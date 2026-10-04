@@ -564,3 +564,4 @@ testsprite_tests/tmp_assistant.html
 testsprite_tests/tmp_assistant*.html
 
 .claude/
+testsprite_tests/tmp/config.json

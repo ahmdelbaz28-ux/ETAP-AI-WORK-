@@ -1,112 +1,95 @@
-"""
-TC001: Run a study from chat with validated parameters.
-Verifies that a user can request a study with validated parameters, execute it,
-and receive computed system metrics (bus voltages, angles, power flow, and losses).
-"""
-
-from __future__ import annotations
-
 import asyncio
-import json
-import os
-import sys
-import urllib.request
+import re
 
-import pytest
-from playwright.async_api import async_playwright
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from testsprite_tests.conftest import (
-    API_URL,
-    APP_URL,
-    MINI_SYSTEM,
-    fetch_auth_token,
-    fetch_csrf_token,
-    setup_authenticated_context,
-)
+from playwright import async_api
+from playwright.async_api import expect
 
 
-async def run_test() -> None:
-    # 1. Execute validated load flow study via API
-    csrf_token = fetch_csrf_token()
-    auth_data = fetch_auth_token()
-    access_token = auth_data["access_token"]
+async def run_test():
+    pw = None
+    browser = None
+    context = None
 
-    payload = json.dumps(
-        {
-            "study_type": "load_flow",
-            "system": MINI_SYSTEM,
-            "params": {
-                "method": "newton-raphson",
-                "base_mva": 100.0,
-                "tolerance": 0.0001,
-                "max_iterations": 50,
-            },
-        }
-    ).encode("utf-8")
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
 
-    req = urllib.request.Request(
-        f"{API_URL}/api/v1/studies/run",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "X-CSRF-Token": csrf_token,
-        },
-        method="POST",
-    )
-
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        assert resp.status == 200, f"Expected 200 OK, got {resp.status}"
-        data = json.loads(resp.read().decode("utf-8"))
-
-    # Assert computation results structure
-    assert data["success"] is True, "Study run should be successful"
-    assert data["study_type"] == "load_flow"
-    assert "results" in data or "data" in data, "Results must be returned"
-    res_data = data.get("results") or data.get("data") or {}
-    assert (
-        "bus_voltages" in res_data
-        or "voltages" in res_data
-        or "summary" in res_data
-        or data.get("success") is True
-    ), "Bus voltages and metrics must be computed"
-
-    # 2. Verify workspace UI renders cleanly in Playwright
-    async with async_playwright() as pw:
+        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--window-size=1280,720", "--disable-dev-shm-usage"],
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process",
+            ],
         )
+
+        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
         context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
         page = await context.new_page()
 
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://127.0.0.1:5173")
         try:
-            await setup_authenticated_context(context, page)
-            await page.goto(f"{APP_URL}/assistant", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Check that assistant header / input area rendered
-            input_locator = page.locator("textarea, input[type='text']")
-            await input_locator.first.wait_for(state="visible", timeout=15000)
-            assert await input_locator.count() >= 1, "Chat workspace input must be visible"
+        # -> Reload the app by navigating to http://127.0.0.1:5173 and verify the SPA renders (look for login or chat UI).
+        await page.goto("http://127.0.0.1:5173")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            current_url = page.url
-            assert "/assistant" in current_url or "/login" in current_url
-        finally:
+        # -> Open the login page (http://127.0.0.1:5173/login) and check whether the login form (email and password fields) appears.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
+        # --> Assertions to verify final state
+
+        # --> Clarification or execution guidance was not displayed because the chat workspace did not load.
+        # Assert-outcome: failed
+        # Assert: Expected the app to navigate to the chat workspace at /assistant so clarification or execution guidance could appear.
+        (
+            await expect(page).to_have_url(re.compile("/assistant"), timeout=15000),
+            "Expected the app to navigate to the chat workspace at /assistant so clarification or execution guidance could appear.",
+        )
+
+        # --> A computation result was not returned because the frontend could not be reached and the study workflow could not run.
+        # Assert-outcome: failed
+        # Assert: Expected the app to reach the chat workspace at /assistant so a computation result could be returned.
+        (
+            await expect(page).to_have_url(re.compile("/assistant"), timeout=15000),
+            "Expected the app to reach the chat workspace at /assistant so a computation result could be returned.",
+        )
+
+        # --> Test blocked by environment/access constraints during agent run
+        # Reason: TEST BLOCKED The frontend could not be reached — the login/chat UI did not render and interactive elements were not available, so the study workflow could not be executed. Observations: - Navigations to http://127.0.0.1:5173 and http://127.0.0.1:5173/login resulted in a blank page with 0 interactive elements. - Earlier attempts returned ERR_EMPTY_RESPONSE or timed out and a reload could not be ...
+        raise AssertionError(
+            "Test blocked during agent run: "
+            + "TEST BLOCKED The frontend could not be reached \u2014 the login/chat UI did not render and interactive elements were not available, so the study workflow could not be executed. Observations: - Navigations to http://127.0.0.1:5173 and http://127.0.0.1:5173/login resulted in a blank page with 0 interactive elements. - Earlier attempts returned ERR_EMPTY_RESPONSE or timed out and a reload could not be ..."
+            + " — the exported script cannot reproduce a PASS in this environment."
+        )
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
             await context.close()
+        if browser:
             await browser.close()
+        if pw:
+            await pw.stop()
 
 
-@pytest.mark.asyncio
-async def test_tc001() -> None:
-    await run_test()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_test())
-    print("TC001 passed successfully!")
+asyncio.run(run_test())

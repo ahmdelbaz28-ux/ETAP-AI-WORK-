@@ -1,122 +1,105 @@
-"""
-TC004: Retrieve grounded standards guidance in chat.
-A user can ask a standards-related engineering question in chat and receive a
-grounded answer based on retrieved knowledge (IEEE 1584, IEC 60909, NFPA 70E).
-"""
-
-from __future__ import annotations
-
 import asyncio
-import json
-import os
-import sys
-import urllib.request
 
-import pytest
-from playwright.async_api import async_playwright
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from testsprite_tests.conftest import (
-    API_URL,
-    APP_URL,
-    E2E_EMAIL,
-    E2E_PASSWORD,
-    fetch_auth_token,
-    fetch_csrf_token,
-    setup_authenticated_context,
-)
+from playwright import async_api
+from playwright.async_api import expect
 
 
-async def run_test() -> None:
-    csrf_token = fetch_csrf_token()
-    auth_data = fetch_auth_token()
-    access_token = auth_data["access_token"]
+async def run_test():
+    pw = None
+    browser = None
+    context = None
 
-    # 1. API: query knowledge / standards guidance
-    payload = json.dumps(
-        {
-            "study_type": "etap_expert",
-            "parameters": {
-                "question": "What standard governs arc flash calculation and boundary in ETAP, and what is IEEE 1584?",
-            },
-        }
-    ).encode("utf-8")
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
 
-    req = urllib.request.Request(
-        f"{API_URL}/api/v1/studies/run",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "X-CSRF-Token": csrf_token,
-        },
-        method="POST",
-    )
-
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        assert resp.status == 200, f"Expected 200 OK, got {resp.status}"
-        data = json.loads(resp.read().decode("utf-8"))
-
-    assert data.get("success") is True, "Expert guidance query must succeed"
-    ans_text = str(data.get("data") or data.get("results") or "")
-    assert (
-        "IEEE" in ans_text
-        or "1584" in ans_text
-        or "Arc Flash" in ans_text
-        or "analysis" in ans_text.lower()
-    ), "Response must contain grounded IEEE/standards reference"
-
-    # 2. UI flow: Login + Chat Workspace
-    async with async_playwright() as pw:
+        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--window-size=1280,720", "--disable-dev-shm-usage"],
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process",
+            ],
         )
+
+        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
         context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
         page = await context.new_page()
 
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://127.0.0.1:5173")
         try:
-            # Login form navigation & interaction
-            await page.goto(f"{APP_URL}/login", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            email_input = page.locator("#login-email")
-            await email_input.wait_for(state="visible", timeout=15000)
-            await email_input.fill(E2E_EMAIL)
+        # -> Open the login page at http://127.0.0.1:5173/login so the login form can be used.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            password_input = page.locator("#login-password")
-            await password_input.fill(E2E_PASSWORD)
+        # -> Wait for the app to load and then reload the login page so the login form becomes visible.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            submit_btn = page.locator("button[type='submit']").first
-            await submit_btn.click()
+        # -> Reload the application by navigating to the root URL 'http://127.0.0.1:5173/' and wait for the UI (login form or app shell) to appear.
+        await page.goto("http://127.0.0.1:5173/")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Set authenticated state and navigate to chat workspace
-            await setup_authenticated_context(context, page)
-            await page.goto(f"{APP_URL}/assistant", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+        # --> Assertions to verify final state
 
-            # Verify chat input and interaction
-            chat_input = page.locator("textarea, input[type='text']").first
-            await chat_input.wait_for(state="visible", timeout=15000)
-            await chat_input.fill("What is the IEEE 1584 arc flash boundary standard?")
+        # --> A grounded engineering answer was not displayed because the application's login UI did not render.
+        # Assert-outcome: failed
+        # Assert: Expected input#login-email to be visible.
+        (
+            await expect(page.locator('xpath=//input[@id="login-email"]').nth(0)).not_to_be_visible(
+                timeout=15000
+            ),
+            "Expected input#login-email to be visible.",
+        )
 
-            # Verify input retains text and chat workspace is functional
-            val = await chat_input.input_value()
-            assert "IEEE 1584" in val, "Chat input should contain standard question"
-        finally:
+        # --> Supporting knowledge or reference context was not shown because the chat workspace could not be accessed (the login form never appeared).
+        # Assert-outcome: failed
+        # Assert: Expected the login submit button (button[type='submit']) to be visible.
+        (
+            await expect(page.locator('xpath=//button[@type="submit"]').nth(0)).not_to_be_visible(
+                timeout=15000
+            ),
+            "Expected the login submit button (button[type='submit']) to be visible.",
+        )
+
+        # --> Test blocked by environment/access constraints during agent run
+        # Reason: TEST BLOCKED The test could not be run — the application's login UI did not render, so the chat workspace and its functionality could not be reached. Observations: - The page at http://127.0.0.1:5173 rendered as a blank white screen with 0 interactive elements (no login form visible). - Multiple navigations to /login and / (with short waits and reloads) did not change the page state; the login ...
+        raise AssertionError(
+            "Test blocked during agent run: "
+            + "TEST BLOCKED The test could not be run \u2014 the application's login UI did not render, so the chat workspace and its functionality could not be reached. Observations: - The page at http://127.0.0.1:5173 rendered as a blank white screen with 0 interactive elements (no login form visible). - Multiple navigations to /login and / (with short waits and reloads) did not change the page state; the login ..."
+            + " — the exported script cannot reproduce a PASS in this environment."
+        )
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
             await context.close()
+        if browser:
             await browser.close()
+        if pw:
+            await pw.stop()
 
 
-@pytest.mark.asyncio
-async def test_tc004() -> None:
-    await run_test()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_test())
-    print("TC004 passed successfully!")
+asyncio.run(run_test())

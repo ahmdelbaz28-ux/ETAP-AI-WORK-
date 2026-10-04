@@ -105,9 +105,9 @@ def install_dependencies():
     print_header("Installing Dependencies")
 
     packages = [
-        "pypdf>=6.13.0",  # SECURITY: replaces deprecated PyPDF2
+        "pypdf>=6.19.0",  # SECURITY: fixes CVE-2026-102994..103000
         "pdfplumber>=0.7.0",
-        "sentence-transformers>=2.2.0",
+        "sentence-transformers>=5.6.0",  # SECURITY: fixes CVE-2026-68770
         "chromadb>=0.4.0",
         "tqdm>=4.62.0",
     ]

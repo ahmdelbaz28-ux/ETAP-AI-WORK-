@@ -132,10 +132,10 @@ bcrypt~=4.1.0
 
 # JWT token signing
 # NOTE: must be >=2.12.0 to satisfy supabase-auth 2.31.0
-# SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
-#   CVE-2026-32597 (accepts unknown `crit` header extensions)
-#   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
-PyJWT>=2.13.0,<3
+# SECURITY: upgraded to >=2.15.1 to fix:
+#   CVE-2026-102268 (CRITICAL), CVE-2026-102266, CVE-2026-102273, CVE-2026-102267,
+#   CVE-2026-102272, CVE-2026-102274, CVE-2026-101918, CVE-2026-101917, CVE-2026-102269, CVE-2026-102270
+PyJWT>=2.15.1,<3
 
 # Data validation
 # NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
@@ -261,9 +261,13 @@ hypothesis>=6.100.0
 pint>=0.26.1
 
 # RAG embedding model & vector database — FIX-RC4 / FIX-RC10
-sentence-transformers>=2.2.0
+# SECURITY: CVE-2026-68770 (CRITICAL code injection bypass) fixed in >=5.6.0
+sentence-transformers>=5.6.0
 chromadb>=0.5.0
 model2vec==0.9.0
+
+# PDF processing — SECURITY: fixes 7 DoS CVEs (CVE-2026-102994..103000)
+pypdf>=6.19.0
 
 
 # GIS visualization

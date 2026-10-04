@@ -1,94 +1,89 @@
-"""
-TC015: Show degraded health when telemetry dependencies are unavailable.
-Verifies that backend readiness/health probes check required dependencies (DB, Redis, telemetry),
-and the UI monitoring view handles dependency status and availability states appropriately.
-"""
-
-from __future__ import annotations
-
 import asyncio
-import json
-import os
-import sys
-import urllib.request
 
-import pytest
-from playwright.async_api import async_playwright
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from testsprite_tests.conftest import (
-    API_URL,
-    APP_URL,
-    E2E_EMAIL,
-    E2E_PASSWORD,
-    setup_authenticated_context,
-)
+from playwright import async_api
+from playwright.async_api import expect
 
 
-async def run_test() -> None:
-    # 1. Inspect dependency health probe via /readyz
-    req = urllib.request.Request(f"{API_URL}/readyz")
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        assert resp.status in (200, 503), f"Expected 200 or 503 from /readyz, got {resp.status}"
-        data = json.loads(resp.read().decode("utf-8"))
+async def run_test():
+    pw = None
+    browser = None
+    context = None
 
-    assert "checks" in data, "Readiness response must contain subsystem checks"
-    checks = data["checks"]
-    assert "db" in checks, "Database dependency check must be monitored"
-    assert "redis" in checks, "Redis/cache telemetry dependency must be monitored"
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
 
-    # Also verify basic liveness /healthz
-    req_live = urllib.request.Request(f"{API_URL}/healthz")
-    with urllib.request.urlopen(req_live, timeout=10) as resp_live:
-        assert resp_live.status == 200
-        live_data = json.loads(resp_live.read().decode("utf-8"))
-        assert live_data.get("status") in ("ok", "healthy")
-
-    # 2. UI flow: Login and view Digital Twin / SCADA monitoring workspace
-    async with async_playwright() as pw:
+        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--window-size=1280,720", "--disable-dev-shm-usage"],
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process",
+            ],
         )
+
+        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
         context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
         page = await context.new_page()
 
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://127.0.0.1:5173")
         try:
-            await page.goto(f"{APP_URL}/login", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
-            await page.locator("#login-email").fill(E2E_EMAIL)
-            await page.locator("#login-password").fill(E2E_PASSWORD)
-            await page.locator("button[type='submit']").first.click()
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # View Digital Twin monitoring
-            await setup_authenticated_context(context, page)
-            await page.goto(f"{APP_URL}/advanced/digital-twin", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+        # -> Reload the Login page and wait for the login form (email and password fields and submit button) to appear.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Verify monitoring view elements
-            heading = page.locator("h1, h2, [role='heading']").first
-            await heading.wait_for(state="visible", timeout=15000)
-            assert await heading.is_visible(), "Monitoring view heading must be visible"
+        # -> Reload the login page and wait for the login form (email and password fields and submit button) to render.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Check that container / status indicators are rendered
-            status_elements = page.locator("span, div, p")
-            assert await status_elements.count() >= 5, (
-                "Monitoring view must display status indicators"
-            )
-        finally:
+        # --> Assertions to verify final state
+
+        # --> Could not verify reduced availability because the login UI did not render at the login URL.
+        await page.locator("xpath=//input[@id='login-email']").nth(0).scroll_into_view_if_needed()
+        # Assert-outcome: failed
+        # Assert: Expected the login email field to be visible so the test could proceed to the monitoring view.
+        (
+            await expect(page.locator("xpath=//input[@id='login-email']").nth(0)).to_be_visible(
+                timeout=15000
+            ),
+            "Expected the login email field to be visible so the test could proceed to the monitoring view.",
+        )
+
+        # --> Test blocked by environment/access constraints during agent run
+        # Reason: TEST BLOCKED The UI could not be reached — the single-page application did not render at the login URL, so the test could not be executed. Observations: - Navigating to http://127.0.0.1:5173/login produced a blank page (screenshot shows empty viewport) with no interactive elements. - Multiple reloads and short waits were attempted and the login form never appeared.
+        raise AssertionError(
+            "Test blocked during agent run: "
+            + "TEST BLOCKED The UI could not be reached \u2014 the single-page application did not render at the login URL, so the test could not be executed. Observations: - Navigating to http://127.0.0.1:5173/login produced a blank page (screenshot shows empty viewport) with no interactive elements. - Multiple reloads and short waits were attempted and the login form never appeared."
+            + " — the exported script cannot reproduce a PASS in this environment."
+        )
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
             await context.close()
+        if browser:
             await browser.close()
+        if pw:
+            await pw.stop()
 
 
-@pytest.mark.asyncio
-async def test_tc015() -> None:
-    await run_test()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_test())
-    print("TC015 passed successfully!")
+asyncio.run(run_test())

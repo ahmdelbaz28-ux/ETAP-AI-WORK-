@@ -1,134 +1,116 @@
-"""
-TC010: Clarify an ambiguous engineering request in chat.
-Verifies that an ambiguous or unsupported engineering request is met with
-a constrained clarification prompt (Format B: REQUEST ANALYSIS: INCOMPLETE)
-and can be resolved with follow-up input.
-"""
-
-from __future__ import annotations
-
 import asyncio
-import json
-import os
-import sys
-import urllib.request
 
-import pytest
-from playwright.async_api import async_playwright
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from testsprite_tests.conftest import (
-    API_URL,
-    APP_URL,
-    fetch_auth_token,
-    fetch_csrf_token,
-    setup_authenticated_context,
-)
+from playwright import async_api
+from playwright.async_api import expect
 
 
-async def run_test() -> None:
-    csrf_token = fetch_csrf_token()
-    auth_data = fetch_auth_token()
-    access_token = auth_data["access_token"]
+async def run_test():
+    pw = None
+    browser = None
+    context = None
 
-    # 1. Submit ambiguous/incomplete request ("Size transformer for 500kW")
-    payload_ambiguous = json.dumps(
-        {
-            "study_type": "etap_expert",
-            "parameters": {
-                "question": "Size transformer for 500kW",
-            },
-        }
-    ).encode("utf-8")
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
 
-    req_ambiguous = urllib.request.Request(
-        f"{API_URL}/api/v1/studies/run",
-        data=payload_ambiguous,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "X-CSRF-Token": csrf_token,
-        },
-        method="POST",
-    )
-
-    with urllib.request.urlopen(req_ambiguous, timeout=15) as resp:
-        assert resp.status == 200
-        data_ambiguous = json.loads(resp.read().decode("utf-8"))
-
-    assert data_ambiguous.get("success") is True
-    res_data = data_ambiguous.get("data") or data_ambiguous.get("results") or {}
-    assert res_data.get("classification") == "incomplete" or "INCOMPLETE" in str(res_data), (
-        "Ambiguous request must trigger clarification / incomplete classification"
-    )
-
-    # 2. Provide missing inputs / complete engineering parameters
-    payload_complete = json.dumps(
-        {
-            "study_type": "etap_expert",
-            "parameters": {
-                "question": "Size transformer for 500kW load with 13.8 kV primary, 480 V secondary, power factor 0.85, per IEEE 141 and IEEE C57.12",
-            },
-        }
-    ).encode("utf-8")
-
-    req_complete = urllib.request.Request(
-        f"{API_URL}/api/v1/studies/run",
-        data=payload_complete,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "X-CSRF-Token": csrf_token,
-        },
-        method="POST",
-    )
-
-    with urllib.request.urlopen(req_complete, timeout=15) as resp:
-        assert resp.status == 200
-        data_complete = json.loads(resp.read().decode("utf-8"))
-
-    assert data_complete.get("success") is True
-    res_complete = data_complete.get("data") or data_complete.get("results") or {}
-    assert res_complete.get("classification") == "complete" or "COMPLETE" in str(res_complete), (
-        "Complete parameters must result in complete engineering analysis"
-    )
-
-    # 3. UI interaction
-    async with async_playwright() as pw:
+        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--window-size=1280,720", "--disable-dev-shm-usage"],
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process",
+            ],
         )
+
+        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
         context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
         page = await context.new_page()
 
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://127.0.0.1:5173")
         try:
-            await setup_authenticated_context(context, page)
-            await page.goto(f"{APP_URL}/assistant", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            chat_input = page.locator("textarea, input[type='text']").first
-            await chat_input.wait_for(state="visible", timeout=15000)
+        # -> Navigate to http://127.0.0.1:5173 to load the AhmedETAP frontend using the required IP address.
+        await page.goto("http://127.0.0.1:5173")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Enter ambiguous request, then provide clarification
-            await chat_input.fill("Size transformer for 500kW")
-            await chat_input.fill("Size transformer for 500kW: 13.8kV/480V, pf 0.85")
-            val = await chat_input.input_value()
-            assert "13.8kV/480V" in val, "Input should contain clarified parameters"
-        finally:
+        # -> Open the application's Login page and check for the email and password input fields.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
+        # -> Final action — this is where the agent failed
+        # Error observed by agent: Navigation failed: Event handler browser_use.browser.watchdog_base.BrowserSession.on_NavigateToUrlEvent#0256(?▶ NavigateToUrlEvent#56b2 🏃) timed out after 60.0s and interrupted any processing of 1 chi
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
+        # --> Assertions to verify final state
+
+        # --> Could not verify a clarification prompt because the frontend failed to load and only a 'Reload' button is visible.
+        await (
+            page.locator("xpath=/html/body/div[1]/div[1]/div[2]/div/button")
+            .nth(0)
+            .scroll_into_view_if_needed()
+        )
+        # Assert-outcome: failed
+        # Assert: Expected a clarification prompt to be displayed.
+        (
+            await expect(
+                page.locator("xpath=/html/body/div[1]/div[1]/div[2]/div/button").nth(0)
+            ).to_be_visible(timeout=15000),
+            "Expected a clarification prompt to be displayed.",
+        )
+
+        # --> Could not verify a constrained non-hallucinated response because the frontend failed to load and only a 'Reload' button is visible.
+        await (
+            page.locator("xpath=/html/body/div[1]/div[1]/div[2]/div/button")
+            .nth(0)
+            .scroll_into_view_if_needed()
+        )
+        # Assert-outcome: failed
+        # Assert: Expected a constrained non-hallucinated response to be displayed.
+        (
+            await expect(
+                page.locator("xpath=/html/body/div[1]/div[1]/div[2]/div/button").nth(0)
+            ).to_be_visible(timeout=15000),
+            "Expected a constrained non-hallucinated response to be displayed.",
+        )
+
+        # --> Test blocked by environment/access constraints during agent run
+        # Reason: TEST BLOCKED The test could not be run — the frontend did not respond at http://127.0.0.1:5173, so the login page and chat workspace could not be reached. Observations: - The browser shows "This page isn’t working" and the message "127.0.0.1 didn’t send any data.". - The page displays ERR_EMPTY_RESPONSE and only a 'Reload' button is interactive; no login form or assistant UI is available.
+        raise AssertionError(
+            "Test blocked during agent run: "
+            + 'TEST BLOCKED The test could not be run \u2014 the frontend did not respond at http://127.0.0.1:5173, so the login page and chat workspace could not be reached. Observations: - The browser shows "This page isn\u2019t working" and the message "127.0.0.1 didn\u2019t send any data.". - The page displays ERR_EMPTY_RESPONSE and only a \'Reload\' button is interactive; no login form or assistant UI is available.'
+            + " — the exported script cannot reproduce a PASS in this environment."
+        )
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
             await context.close()
+        if browser:
             await browser.close()
+        if pw:
+            await pw.stop()
 
 
-@pytest.mark.asyncio
-async def test_tc010() -> None:
-    await run_test()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_test())
-    print("TC010 passed successfully!")
+asyncio.run(run_test())

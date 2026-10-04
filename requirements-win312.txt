@@ -131,11 +131,8 @@ hvac~=2.1.0
 bcrypt~=4.1.0
 
 # JWT token signing
-# NOTE: must be >=2.12.0 to satisfy supabase-auth 2.31.0
-# SECURITY: upgraded from >=2.12.0 to >=2.13.0 to fix:
-#   CVE-2026-32597 (accepts unknown `crit` header extensions)
-#   CVE-2026-48526 (public-key JWK accepted as HMAC secret)
-PyJWT>=2.13.0
+# SECURITY: PyJWT >=2.15.1 — fixes CVE-2026-102268 (CRITICAL) and related CVEs
+PyJWT>=2.15.1
 
 # Data validation
 # NOTE: pydantic must be >=2.11.7 to satisfy `realtime` (sub-dep of supabase~=2.31.0)
@@ -221,8 +218,8 @@ hvac>=2.0.0
 # Password hashing (required - bcrypt replaces SHA-256 for security)
 bcrypt>=4.0.0
 
-# JWT token signing (required - no insecure fallback)
-PyJWT>=2.13.0
+# JWT token signing (required - no insecure fallback) — SECURITY: CVE-2026-102268 fixed
+PyJWT>=2.15.1
 
 # Data validation
 pydantic>=2.0.0

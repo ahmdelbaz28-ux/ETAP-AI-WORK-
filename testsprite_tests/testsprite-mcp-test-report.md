@@ -1,145 +1,190 @@
-# TestSprite AI Testing Report (MCP) — Final Remediation
+# TestSprite AI Testing Report(MCP)
 
 ---
 
 ## 1️⃣ Document Metadata
-
-| Field | Value |
-|---|---|
-| **Project Name** | AhmedETAP AI Engineering Platform (`etap`) |
-| **Report Date** | 2026-09-06 |
-| **Prepared by** | Antigravity Remediation Agent (Fail-Closed Execution) |
-| **Frontend Target** | `http://127.0.0.1:5173` (Vite SPA — IPv4 bound) |
-| **Backend Target** | `http://127.0.0.1:8000` (FastAPI Engineering Service) |
-| **Test Scope** | 16 TestSprite cases — TC001 through TC016 |
-| **Execution Mode** | Local Playwright (headless Chromium) + direct API assertions |
-| **Final Result** | ✅ **16 / 16 PASSED** — exit code 0 |
-| **Run Duration** | 148.98s (2m 28s) |
+- **Project Name:** etap
+- **Date:** 2026-10-04
+- **Prepared by:** TestSprite AI Team
+- **Execution Mode:** TestSprite MCP (cloud browser + local tunnel)
+- **Environment:** Frontend `http://127.0.0.1:5173` (Vite dev), Backend `http://127.0.0.1:8000` (Uvicorn), seeded user `e2e@test.local`
+- **Run:** Suite execution #2 (after network-interrupted run #1) — 15 tests: 8 passed, 7 blocked, 0 failed
 
 ---
 
-## 2️⃣ Quality Gate Results (All 5 Gates — Mandatory)
+## 2️⃣ Requirement Validation Summary
 
-| Gate | Command | Result | Evidence |
-|---|---|---|---|
-| **1. Linter** | `ruff check . --config ruff.toml` | ✅ PASS (exit 0) | `All checks passed!` — 22 unused imports auto-fixed |
-| **2. Validation Suite** | `python scripts/dev/validation_suite.py` | ✅ PASS (exit 0) | `31/31 — Pass Rate 100.0%` |
-| **3. Engineering Tests** | `python -m pytest tests/test_engineering_service.py -q` | ✅ PASS (exit 0) | `74 passed in 176.12s` |
-| **4. Frontend Build** | `npm --prefix ui run build` | ✅ PASS (exit 0) | `built in 1.17s` — 0 TS errors |
-| **5. Security Scan** | `python scripts/security_scan.py` | ✅ PASS (exit 0) | `[PASS] No hardcoded secrets detected` |
+### Requirement: Chat-Driven Study Execution
+- **Description:** A user can request power-system studies from chat with validated parameters, correct invalid submissions, and review returned results (load flow, short circuit).
 
+#### Test TC001 Run a study from chat with validated parameters
+- **Test Code:** [TC001_Run_a_study_from_chat_with_validated_parameters.py](./TC001_Run_a_study_from_chat_with_validated_parameters.py)
+- **Test Error:** TEST BLOCKED — the login/chat UI did not render (blank page, 0 interactive elements); earlier attempts returned ERR_EMPTY_RESPONSE or timed out.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/c41e4704-acdd-4795-89b7-0189e65bcb7c
+- **Status:** BLOCKED
+- **Severity:** HIGH
+- **Analysis / Findings:** Environment issue, not a functional defect. The SPA bundle did not initialize in the cloud browser; sibling routes rendered for passing tests in the same run. Re-run required.
 ---
 
-## 3️⃣ Root Cause & Fixes Applied
-
-### Fix 1 — IPv4 Binding (Phase 1)
-- **Root Cause:** Vite defaulted to `localhost` which on Windows binds IPv6 `[::1]:5173`. TestSprite tunnel connects on IPv4 `127.0.0.1:5173` → `ERR_EMPTY_RESPONSE`.
-- **Fix:** `ui/vite.config.ts` line 16 → `host: "127.0.0.1"`. All proxy targets changed to `http://127.0.0.1:8000`.
-- **Evidence:** `vite.config.ts:16` confirmed `host: "127.0.0.1"`. No bridge needed.
-
-### Fix 2 — RASP Header Sanitisation (Phase 2)
-- **Root Cause:** `RASPMiddleware` in `security/wiring.py` inspected navigation/identity headers triggering SSRF false-positives.
-- **Fix:** Added `_RASP_EXCLUDED_HEADERS` set; headers stripped before pattern-matching. Health paths exempted from auth.
-- **Evidence:** `pytest tests/test_rasp_security.py` → 20/20 passed.
-
-### Fix 3 — TDZ Bug in Chat Session (Phase 3)
-- **Root Cause:** `ui/src/lib/llm-chat.ts` referenced `_chatSessionId` before its `let` declaration causing Temporal Dead Zone crash.
-- **Fix:** Moved session state to `globalThis.__chatSessionId` with lazy initialisation in `getChatSessionId()`.
-- **Evidence:** `npm run build` exit 0, no runtime TDZ errors.
-
-### Fix 4 — Real Assertions in TestSprite Tests (Phase 4)
-- **Root Cause:** Original generated tests only clicked `[id="reload-button"]` and asserted `current_url`. No engineering validation.
-- **Fix:** All 16 TCs rewritten with real API POST assertions, engineering result field checks, and HTTP status code validation (422 invalid → 200 corrected).
-
+#### Test TC002 Run a load flow study and review the results
+- **Test Code:** [TC002_Run_a_load_flow_study_and_review_the_results.py](./TC002_Run_a_load_flow_study_and_review_the_results.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/e40ff01e-4999-4fa7-9a55-778940caa902
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Load flow study submitted through chat; results rendered and reviewed end-to-end.
 ---
 
-## 4️⃣ Test Case Results — Local Playwright Run
-
-```
-============================= test session starts =============================
-platform win32 -- Python 3.8.4, pytest-8.3.5, pluggy-1.5.0
-rootdir: C:\Users\EWS-01\Desktop\etap
-collected 16 items
-
-TC001_Run_a_study_from_chat_with_validated_parameters.py::test_tc001        PASSED [  6%]
-TC002_Run_a_load_flow_study_and_review_the_results.py::test_tc002           PASSED [ 12%]
-TC003_Run_a_short_circuit_study_and_review_the_fault_results.py::test_tc003 PASSED [ 18%]
-TC004_Retrieve_grounded_standards_guidance_in_chat.py::test_tc004           PASSED [ 25%]
-TC005_Ask_a_standards_question_and_receive_grounded_guidance.py::test_tc005 PASSED [ 31%]
-TC006_Refine_a_knowledge_query_with_additional_context.py::test_tc006       PASSED [ 37%]
-TC007_Refuse_unsupported_engineering_requests_and_recover.py::test_tc007    PASSED [ 43%]
-TC008_Correct_an_invalid_study_submission.py::test_tc008                    PASSED [ 50%]
-TC009_Confirm_backend_health_before_viewing_live_telemetry.py::test_tc009   PASSED [ 56%]
-TC010_Clarify_an_ambiguous_engineering_request_in_chat.py::test_tc010       PASSED [ 62%]
-TC011_Interpret_a_telemetry_alarm_in_chat.py::test_tc011                    PASSED [ 68%]
-TC012_Handle_missing_knowledge_with_a_grounded_fallback.py::test_tc012      PASSED [ 75%]
-TC013_Request_telemetry_with_missing_context_and_recover.py::test_tc013     PASSED [ 81%]
-TC014_Open_a_known_result_after_an_invalid_result_lookup.py::test_tc014     PASSED [ 87%]
-TC015_Show_degraded_health_when_telemetry_dependencies_are_unavailable.py::test_tc015 PASSED [ 93%]
-TC016_Recover_from_a_malformed_chat_submission.py::test_tc016               PASSED [100%]
-
-======================= 16 passed in 148.98s (0:02:28) ========================
-```
-
+#### Test TC003 Run a short circuit study and review the fault results
+- **Test Code:** [TC003_Run_a_short_circuit_study_and_review_the_fault_results.py](./TC003_Run_a_short_circuit_study_and_review_the_fault_results.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/42d4cd4c-7a14-4968-a262-2836f4623eaa
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Short circuit study executed from chat; fault results displayed and reviewed without issues.
 ---
 
-## 5️⃣ Requirement Validation Summary
-
-| Requirement ID | Test Case | Target Capability | Assertion Type | Status |
-|---|---|---|---|---|
-| **REQ-STUDY-01** | TC001 | Load flow with validated parameters | POST `/api/v1/studies/run` → assert `bus_voltages`/`success:true` | ✅ Passed |
-| **REQ-STUDY-02** | TC002 | Load flow computation & results review | API study run → DOM results panel visible | ✅ Passed |
-| **REQ-STUDY-03** | TC003 | Short circuit fault results review | POST `short_circuit` → assert `fault_current` present | ✅ Passed |
-| **REQ-KNOW-01** | TC004 | Standards guidance retrieval in chat | POST `etap_expert` → assert `IEEE`/`IEC` in response | ✅ Passed |
-| **REQ-KNOW-02** | TC005 | Grounded standards Q&A | API assertion on standard citation | ✅ Passed |
-| **REQ-KNOW-03** | TC006 | Contextual query refinement | Multi-turn context update flow | ✅ Passed |
-| **REQ-GUARD-01** | TC007 | Unsupported request refusal & recovery | Assert fail-closed 400/422 on unsupported type | ✅ Passed |
-| **REQ-GUARD-02** | TC008 | Invalid → corrected submission | Assert 422 invalid → 200 corrected | ✅ Passed |
-| **REQ-HEALTH-01** | TC009 | Backend health verification | `GET /healthz` → 200 `{"status":"ok"}` (no auth) | ✅ Passed |
-| **REQ-CHAT-01** | TC010 | Ambiguous request clarification | Format B response with clarifying questions | ✅ Passed |
-| **REQ-SCADA-01** | TC011 | Telemetry alarm interpretation | Alarm payload → structured agent response | ✅ Passed |
-| **REQ-FALLBACK** | TC012 | Zero-hallucination grounded fallback | Unknown topic → Format B (no invented values) | ✅ Passed |
-| **REQ-ASSET-01** | TC013 | Telemetry recovery with missing context | Missing asset → clarification flow | ✅ Passed |
-| **REQ-RESULT-01** | TC014 | Result lookup & 404 recovery | `GET /api/v1/results/invalid-id` → 404; valid ID → 200 | ✅ Passed |
-| **REQ-HEALTH-02** | TC015 | Degraded health UI state | `/readyz` 503 → UI shows OFFLINE/CONNECTING | ✅ Passed |
-| **REQ-CHAT-02** | TC016 | Malformed chat recovery | Malformed JSON body → 400/422, retry succeeds | ✅ Passed |
-
+#### Test TC008 Correct an invalid study submission and run it successfully
+- **Test Code:** [TC008_Correct_an_invalid_study_submission_and_run_it_successfully.py](./TC008_Correct_an_invalid_study_submission_and_run_it_successfully.py)
+- **Test Error:** TEST BLOCKED — the SPA rendered blank at `http://127.0.0.1:5173/login` (empty white page), so the correction flow could not be exercised.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/3bd4b022-c5c1-4fe8-9e4b-89a0c1a25ed1
+- **Status:** BLOCKED
+- **Severity:** MEDIUM
+- **Analysis / Findings:** Not validated in this run due to non-rendering SPA in the cloud browser. Re-run required; no defect signal from this attempt.
 ---
 
-## 6️⃣ Done Criteria — Evidence Checklist
+### Requirement: Grounded Standards Guidance
+- **Description:** Chat answers are grounded in published standards, refuse unsupported engineering requests, and recover with approved inputs.
 
-| Criterion | Evidence | Status |
-|---|---|---|
-| `127.0.0.1:5173` reachable without bridge | `vite.config.ts:16` → `host: "127.0.0.1"` | ✅ |
-| `:8000/healthz` returns 200 without auth | Backend log: `GET /health HTTP/1.1" 200 OK` | ✅ |
-| Local E2E 16/16 PASS with real assertions | `16 passed in 148.98s` (exit 0) | ✅ |
-| Gate 1 — Ruff clean | `All checks passed!` (exit 0) | ✅ |
-| Gate 2 — Validation suite 31/31 | `Pass Rate: 100.0%` (exit 0) | ✅ |
-| Gate 3 — Engineering tests 74/74 | `74 passed in 176.12s` (exit 0) | ✅ |
-| Gate 4 — npm build 0 errors | `built in 1.17s` (exit 0) | ✅ |
-| Gate 5 — Security scan PASS | `[PASS] No hardcoded secrets detected` (exit 0) | ✅ |
-| No secrets in code/logs | `security_scan.py` PASS; zero `sk-*`/`ghp_*` | ✅ |
-| Fail-closed security enforced | RASP 20/20, no `|| true`, no bypass | ✅ |
-
+#### Test TC004 Retrieve grounded standards guidance in chat
+- **Test Code:** [TC004_Retrieve_grounded_standards_guidance_in_chat.py](./TC004_Retrieve_grounded_standards_guidance_in_chat.py)
+- **Test Error:** TEST BLOCKED — `http://127.0.0.1:5173` rendered as a blank white screen with 0 interactive elements; the login form never appeared after multiple navigations and reloads.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/e5e6415c-76eb-42dc-906a-c2c5259f7326
+- **Status:** BLOCKED
+- **Severity:** HIGH
+- **Analysis / Findings:** Environment/tunnel issue prevented SPA hydration. No grounding-defect signal — sibling TC006 passed in the same run.
 ---
 
-## 7️⃣ Canonical Run Command
-
-```powershell
-# Terminal 1 - Backend
-$env:JWT_SECRET_KEY = 'dev-e2e-secret-key-32-bytes-long-1234'
-$env:ENGINEERING_SERVICE_CACHE_DISABLED = 'true'
-python -m uvicorn api.routes:app --host 127.0.0.1 --port 8000
-
-# Terminal 2 - Frontend (no bridge needed)
-npm --prefix ui run dev
-# Vite binds to http://127.0.0.1:5173
-
-# Terminal 3 - E2E Tests
-python -m pytest testsprite_tests/ -v
-```
-
+#### Test TC005 Ask a standards question and receive grounded guidance
+- **Test Code:** [TC005_Ask_a_standards_question_and_receive_grounded_guidance.py](./TC005_Ask_a_standards_question_and_receive_grounded_guidance.py)
+- **Test Error:** TEST BLOCKED — blank viewport at `/login` with tab title `AhmedETAP — Power Systems Engi` but 0 interactive elements after three navigation attempts.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/e476abe1-e3dd-4e28-91ef-3336c22cc140
+- **Status:** BLOCKED
+- **Severity:** HIGH
+- **Analysis / Findings:** HTML document reached the browser (title set) but the JS bundle did not execute — consistent with slow/aborted module loading through the tunnel, not a product defect.
 ---
 
-*Report generated: 2026-09-06T13:48:00Z by Antigravity Remediation Agent.*
-*All results based on local verified runs — no "Remediated (Bridge)" claims.*
+#### Test TC006 Refine a knowledge query with additional context
+- **Test Code:** [TC006_Refine_a_knowledge_query_with_additional_context.py](./TC006_Refine_a_knowledge_query_with_additional_context.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/47c8e4cc-6821-4e05-8e61-2b3d97920ec9
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Query refinement with added context returned a coherent, grounded follow-up answer.
+---
+
+#### Test TC007 Refuse unsupported engineering requests and recover with approved inputs
+- **Test Code:** [TC007_Refuse_unsupported_engineering_requests_and_recover_with_approved_inputs.py](./TC007_Refuse_unsupported_engineering_requests_and_recover_with_approved_inputs.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/880d1a20-061f-4fe8-b540-7f47997fcd5a
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** The assistant refused an unsupported request and recovered with approved inputs as required.
+---
+
+### Requirement: Conversational Context Recovery
+- **Description:** The assistant clarifies ambiguous requests, falls back gracefully on missing knowledge, and recovers with precise asset context.
+
+#### Test TC010 Clarify an ambiguous engineering request in chat
+- **Test Code:** [TC010_Clarify_an_ambiguous_engineering_request_in_chat.py](./TC010_Clarify_an_ambiguous_engineering_request_in_chat.py)
+- **Test Error:** TEST BLOCKED — browser showed `ERR_EMPTY_RESPONSE` ("127.0.0.1 didn't send any data"); only a Reload button was interactive, no login form or assistant UI available.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/fdb2dbd9-1b9c-429a-8152-6ea1b2c4e465
+- **Status:** BLOCKED
+- **Severity:** HIGH
+- **Analysis / Findings:** Transport-level empty response through the tunnel (request aborted before any app bytes) — infrastructure issue, not a clarification-logic defect.
+---
+
+#### Test TC012 Handle missing knowledge with a grounded fallback
+- **Test Code:** [TC012_Handle_missing_knowledge_with_a_grounded_fallback.py](./TC012_Handle_missing_knowledge_with_a_grounded_fallback.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/d2420ec5-220a-447a-9391-c38d383a43ec
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Missing knowledge was handled with a grounded fallback instead of fabricated content.
+---
+
+#### Test TC013 Request telemetry with missing context and recover with a precise asset request
+- **Test Code:** [TC013_Request_telemetry_with_missing_context_and_recover_with_a_precise_asset_request.py](./TC013_Request_telemetry_with_missing_context_and_recover_with_a_precise_asset_request.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/349d5d85-6f12-4136-a3a4-6eb465927280
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Vague telemetry request was recovered via a precise, correctly-scoped asset request.
+---
+
+### Requirement: Telemetry & Digital Twin Observability
+- **Description:** Backend health gates live telemetry views, alarms are interpretable in chat, and degraded health is surfaced when dependencies fail.
+
+#### Test TC009 Confirm backend health before viewing live telemetry
+- **Test Code:** [TC009_Confirm_backend_health_before_viewing_live_telemetry.py](./TC009_Confirm_backend_health_before_viewing_live_telemetry.py)
+- **Test Error:** TEST BLOCKED — backend health returned `{"status":"ok"}` at `http://127.0.0.1:8000/healthz`, but `/`, `/login`, and `/index.html` all produced a blank page (SPA did not initialize).
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/727603cd-739b-4102-98c1-6a5068e6dbc3
+- **Status:** BLOCKED
+- **Severity:** MEDIUM
+- **Analysis / Findings:** Backend side of the gate verified healthy; only the frontend rendering step failed (environment). The combined flow remains unverified.
+---
+
+#### Test TC011 Interpret a telemetry alarm in chat
+- **Test Code:** [TC011_Interpret_a_telemetry_alarm_in_chat.py](./TC011_Interpret_a_telemetry_alarm_in_chat.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/b1b89dbb-6b9f-4ddd-bc0c-128e3652012b
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** A telemetry alarm was interpreted in chat with an accurate, actionable explanation.
+---
+
+#### Test TC014 Open a known result after an invalid result lookup
+- **Test Code:** [TC014_Open_a_known_result_after_an_invalid_result_lookup.py](./TC014_Open_a_known_result_after_an_invalid_result_lookup.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/20025bb3-ff41-4ba6-a1b7-2b7165f8e5ea
+- **Status:** ✅ Passed
+- **Severity:** LOW
+- **Analysis / Findings:** Invalid result lookup was handled gracefully and the known result opened correctly afterwards.
+---
+
+#### Test TC015 Show degraded health when telemetry dependencies are unavailable
+- **Test Code:** [TC015_Show_degraded_health_when_telemetry_dependencies_are_unavailable.py](./TC015_Show_degraded_health_when_telemetry_dependencies_are_unavailable.py)
+- **Test Error:** TEST BLOCKED — blank page at `http://127.0.0.1:5173/login` (empty viewport); multiple reloads never produced the login form.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/8387b77c-39f7-53d4-ba2f-9903197e3858/test/07697fed-b07f-4ccc-b2b8-f4539c915331
+- **Status:** BLOCKED
+- **Severity:** LOW
+- **Analysis / Findings:** Degraded-health behavior not exercised in this run (UI unreachable). Low priority — re-run with the blocked set.
+---
+
+## 3️⃣ Coverage & Matching Metrics
+
+- **53.33% of tests passed** (8 / 15) — 0 functional failures, 7 environment-blocked
+
+| Requirement | Total Tests | ✅ Passed | ❌ Failed | ⛔ Blocked |
+|--------------------|-------------|-----------|-----------|------------|
+| Chat-Driven Study Execution | 4 | 2 | 0 | 2 |
+| Grounded Standards Guidance | 4 | 2 | 0 | 2 |
+| Conversational Context Recovery | 3 | 2 | 0 | 1 |
+| Telemetry & Digital Twin Observability | 4 | 2 | 0 | 2 |
+| **Total** | **15** | **8** | **0** | **7** |
+
+- All 8 executed tests passed — every BLOCKED case failed before reaching application assertions.
+- Priority coverage: High priority TC001–TC006 split 2 passed / 4 blocked; Medium TC007–TC014 split 5 passed / 3 blocked; Low TC015 blocked.
+- Compared to run #1 (0/15 blocked by a data-plane DNS outage): run #2 recovered to 53.33% after network stabilization.
+---
+
+## 4️⃣ Key Gaps / Risks
+
+> **53.33% of tests passed fully; 0 tests failed functionally — 7 tests were BLOCKED before any assertion could run.**
+>
+> **R1 — Run #1 total failure (0/15):** data plane of the TestSprite tunnel was unreachable — `getaddrinfo ENOTFOUND data.tun.testsprite.com` after 60000ms (transient DNS/network outage on the workstation during the run). Every browser request returned an invalid HTTP response. Infrastructure, not app.
+>
+> **R2 — SPA blank-page flakiness in run #2 (7 blocked):** cloud browser received HTML (tab title set) but the JS bundle never executed → `0 interactive elements`; one case (`ERR_EMPTY_RESPONSE`) aborted before any bytes. Consistent with slow/aborted module loading through the tunnel — Vite dev serves hundreds of on-demand module requests per page load. TestSprite's own previously documented risk: use `127.0.0.1` only (some generated scripts still open `localhost:5173` first, e.g. TC007).
+>
+> **R3 — No regression evidence:** because 7 tests never executed, the features they cover (chat study kickoff, standards grounding, ambiguity clarification, degraded-health) are UNVERIFIED this round — absence of FAIL is not proof of correctness.
+>
+> **R4 — Partial verification of TC009:** backend health gate passed (`{"status":"ok"}`) but the frontend half was blocked; the end-to-end gate is not proven.
+>
+> **Recommended next steps (no code changes made):** 1) re-run only the blocked set (`testIds` = TC001/TC004/TC005/TC008/TC009/TC010/TC015) when the connection is quiet; 2) run against a production build (`npm run build && vite preview`) to cut module-request volume through the tunnel; 3) enforce `127.0.0.1` in generated scripts (no `localhost`); 4) keep monitoring `data.tun.testsprite.com` DNS stability before long runs.
+---
+
+
+
+

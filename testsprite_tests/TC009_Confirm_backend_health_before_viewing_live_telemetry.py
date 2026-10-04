@@ -1,81 +1,101 @@
-"""
-TC009: Confirm backend health before viewing live telemetry.
-A user can verify backend health and then open the digital twin view to receive live telemetry updates.
-"""
-
-from __future__ import annotations
-
 import asyncio
-import json
-import os
-import sys
-import urllib.request
+import re
 
-import pytest
-from playwright.async_api import async_playwright
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from testsprite_tests.conftest import (
-    API_URL,
-    APP_URL,
-    E2E_EMAIL,
-    E2E_PASSWORD,
-    setup_authenticated_context,
-)
+from playwright import async_api
+from playwright.async_api import expect
 
 
-async def run_test() -> None:
-    # 1. Verify backend health via /healthz endpoint
-    req = urllib.request.Request(f"{API_URL}/healthz")
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        assert resp.status == 200, f"Expected 200 OK from /healthz, got {resp.status}"
-        data = json.loads(resp.read().decode("utf-8"))
-        assert data.get("status") in ("ok", "healthy"), f"Unexpected healthz status: {data}"
+async def run_test():
+    pw = None
+    browser = None
+    context = None
 
-    # 2. UI flow: Login and open Digital Twin / SCADA telemetry view
-    async with async_playwright() as pw:
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
+
+        # Launch a Chromium browser in headless mode with custom arguments
         browser = await pw.chromium.launch(
             headless=True,
-            args=["--window-size=1280,720", "--disable-dev-shm-usage"],
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process",
+            ],
         )
+
+        # Create a new browser context (like an incognito window)
         context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
         context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
         page = await context.new_page()
 
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://127.0.0.1:5173")
         try:
-            # Login interaction
-            await page.goto(f"{APP_URL}/login", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
-            await page.locator("#login-email").fill(E2E_EMAIL)
-            await page.locator("#login-password").fill(E2E_PASSWORD)
-            await page.locator("button[type='submit']").first.click()
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Navigate to Digital Twin view
-            await setup_authenticated_context(context, page)
-            await page.goto(f"{APP_URL}/advanced/digital-twin", timeout=15000)
-            await page.wait_for_load_state("domcontentloaded")
+        # -> Open the login page at http://127.0.0.1:5173/login and check for the email and password input fields.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Check that digital twin / telemetry workspace rendered
-            heading = page.locator("h1, h2, [role='heading']").first
-            await heading.wait_for(state="visible", timeout=15000)
-            assert await heading.is_visible(), "Digital twin heading must be visible"
+        # -> Open the backend health endpoint at http://127.0.0.1:8000/healthz and check whether it reports healthy.
+        await page.goto("http://127.0.0.1:8000/healthz")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
 
-            # Check for telemetry / digital twin diagram or control cards
-            cards = page.locator("div, svg, canvas")
-            assert await cards.count() >= 5, "Digital twin visualization elements must be rendered"
-        finally:
+        # -> Open the login page at http://127.0.0.1:5173/login and look for the email and password input fields.
+        await page.goto("http://127.0.0.1:5173/login")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
+        # -> Open http://127.0.0.1:5173/index.html and check whether the frontend HTML or an error message is returned.
+        await page.goto("http://127.0.0.1:5173/index.html")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
+        # --> Assertions to verify final state
+
+        # --> Expected live telemetry data to be displayed, but the frontend SPA did not render so telemetry could not be observed.
+        # Assert-outcome: failed
+        # Assert: Expected to reach the authenticated UI (/assistant) so the digital twin and live telemetry could be accessed.
+        (
+            await expect(page).to_have_url(re.compile("/assistant"), timeout=15000),
+            "Expected to reach the authenticated UI (/assistant) so the digital twin and live telemetry could be accessed.",
+        )
+
+        # --> Test blocked by environment/access constraints during agent run
+        # Reason: TEST BLOCKED The frontend UI could not be reached — the SPA did not render in the browser, blocking further UI-based verification (login, digital twin, live telemetry). Observations: - The backend health endpoint returned {"status":"ok"} at http://127.0.0.1:8000/healthz (backend reachable). - Navigations to http://127.0.0.1:5173/, http://127.0.0.1:5173/login, and http://127.0.0.1:5173/index.htm...
+        raise AssertionError(
+            "Test blocked during agent run: "
+            + 'TEST BLOCKED The frontend UI could not be reached \u2014 the SPA did not render in the browser, blocking further UI-based verification (login, digital twin, live telemetry). Observations: - The backend health endpoint returned {"status":"ok"} at http://127.0.0.1:8000/healthz (backend reachable). - Navigations to http://127.0.0.1:5173/, http://127.0.0.1:5173/login, and http://127.0.0.1:5173/index.htm...'
+            + " — the exported script cannot reproduce a PASS in this environment."
+        )
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
             await context.close()
+        if browser:
             await browser.close()
+        if pw:
+            await pw.stop()
 
 
-@pytest.mark.asyncio
-async def test_tc009() -> None:
-    await run_test()
-
-
-if __name__ == "__main__":
-    asyncio.run(run_test())
-    print("TC009 passed successfully!")
+asyncio.run(run_test())
