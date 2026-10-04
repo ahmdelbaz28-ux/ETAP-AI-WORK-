@@ -56,7 +56,6 @@ jobs:
           dockerfile: Dockerfile
           config: .hadolint.yaml
           recursive: true
-        continue-on-error: true  # Advisory: hadolint best-effort
 
   # ── 2. CONSISTENCY: verify Python version matches across Dockerfiles ─────
   version-consistency:

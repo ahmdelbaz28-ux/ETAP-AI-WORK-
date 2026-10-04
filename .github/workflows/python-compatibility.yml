@@ -221,7 +221,6 @@ jobs:
               sys.exit(1)
           print("✅ All required imports succeeded")
           PYEOF
-        continue-on-error: true  # Import failures may be due to optional deps
 
       - name: 🧪 Test imports (project modules)
         run: |
@@ -306,7 +305,6 @@ jobs:
               sys.exit(1)
           print("✅ All project modules importable")
           PYEOF
-        continue-on-error: true  # Import failures may be due to optional deps or C extensions without 3.13 wheels
 
   # ── 3. PYPROJECT VALIDATION ──────────────────────────────────────────────
   pyproject-validation:

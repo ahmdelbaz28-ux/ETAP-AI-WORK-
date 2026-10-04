@@ -161,7 +161,7 @@ jobs:
 
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
+        continue-on-error: true  # Non-blocking: Slack notification reporting only
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
@@ -214,7 +214,7 @@ jobs:
 
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
+        continue-on-error: true  # Non-blocking: Slack notification reporting only
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
@@ -267,7 +267,7 @@ jobs:
 
       - name: Notify on failure
         if: failure() && env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
+        continue-on-error: true  # Non-blocking: Slack notification reporting only
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
@@ -326,7 +326,7 @@ jobs:
 
       - name: Notify summary
         if: always() && env.SLACK_WEBHOOK_URL != ''
-        continue-on-error: true
+        continue-on-error: true  # Non-blocking: Slack notification reporting only
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
