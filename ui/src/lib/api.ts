@@ -10,7 +10,7 @@
 
 import { authHeaders } from "./admin-fetch";
 import { API_BASE_URL, getCachedSettings } from "./api-config";
-import { getAuthToken, getCsrfToken, setCsrfToken } from "./tokenStorage";
+import { getAuthToken, getCsrfToken, removeCsrfToken, setCsrfToken } from "./tokenStorage";
 
 // Forward user's active provider key/model to backend dynamically.
 // Extracted to a helper to keep request() below SonarCloud's cognitive
@@ -84,6 +84,25 @@ export async function ensureCsrfToken(): Promise<string | null> {
   return null;
 }
 
+async function handleCsrfRetry<T>(
+  url: string,
+  options: RequestInit | undefined,
+  headers: Record<string, string>,
+): Promise<T | null> {
+  removeCsrfToken();
+  const freshCsrf = await ensureCsrfToken();
+  if (!freshCsrf) return null;
+  const retryHeaders = { ...headers, "X-CSRF-Token": freshCsrf };
+  const retryRes = await fetch(url, {
+    ...options,
+    headers: retryHeaders,
+    signal: options?.signal ?? AbortSignal.timeout(15000),
+  });
+  if (!retryRes.ok) return null;
+  if (retryRes.status === 204) return undefined as unknown as T;
+  return retryRes.json() as Promise<T>;
+}
+
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   // SECURITY FIX: Use sessionStorage instead of localStorage for auth tokens.
@@ -118,6 +137,10 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   });
 
   if (!response.ok) {
+    if (response.status === 403 && method !== "GET" && method !== "HEAD") {
+      const retried = await handleCsrfRetry<T>(url, options, headers);
+      if (retried !== null) return retried;
+    }
     const detail = await extractErrorDetail(response);
     throw new ApiError(response.status, `API ${response.status}: ${detail}`);
   }
