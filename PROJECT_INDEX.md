@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-04T10:31:20.918639+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-04T10:49:56.440834+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -5060,7 +5060,7 @@ This modu
   - Methods: `extract_text_from_pdf()`, `clean_text()`, `create_text_chunks()`, `extract_all_pdfs()`, `create_master_index()`
 - **def** `main()` (line 363)
 
-#### 📄 `etap_user_guide/setup_etap_guide.py` _10.9 KB_
+#### 📄 `etap_user_guide/setup_etap_guide.py` _11.0 KB_
 - **Class** `Colors` (line 20)
 - **def** `print_header()` (line 31)
 - **def** `print_success()` (line 37)
@@ -5593,9 +5593,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | ui-page | 61 |
-| python-module | 41 |
-| api-route | 92 |
 | ui-component | 281 |
+| api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **475** |
 
 ---
@@ -6086,13 +6086,13 @@ Provides
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.2 KB | `e89b0a3a499f` |
-| `requirements.txt` | 10.8 KB | `6e0e61740787` |
-| `requirements-prod.txt` | 3.0 KB | `dc5c486ae36d` |
+| `pyproject.toml` | 11.2 KB | `2e2ae12f8e08` |
+| `requirements.txt` | 11.1 KB | `d2ca38a74dce` |
+| `requirements-prod.txt` | 3.0 KB | `17fee470cbeb` |
 | `requirements-dev.txt` | 0.9 KB | `bee5b6192082` |
-| `requirements-minimal.txt` | 1.6 KB | `ef9727eefdac` |
-| `requirements-ml.txt` | 1.4 KB | `0c0b9a5ee454` |
-| `requirements.hf.txt` | 1.5 KB | `593c53d3e423` |
+| `requirements-minimal.txt` | 1.6 KB | `dea6d1dde417` |
+| `requirements-ml.txt` | 1.4 KB | `0f3bb39a910b` |
+| `requirements.hf.txt` | 1.5 KB | `4540ec87bc52` |
 | `.github/workflows/security.yml` | 13.6 KB | `5aa65d23da4e` |
 | `.github/workflows/release.yml` | 2.3 KB | `b5f5e424ccd9` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
