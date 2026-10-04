@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-01T13:36:45.706055+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-04T10:24:12.123316+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,16 +10,16 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 377 |
-| Python | Classes | 909 |
-| Python | Functions | 813 |
+| Python | Files | 378 |
+| Python | Classes | 912 |
+| Python | Functions | 816 |
 | UI | Files (TSX/TS) | 241 |
-| Test | Files | 255 |
-| Total | Tests | 3759 |
+| Test | Files | 261 |
+| Total | Tests | 3783 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 441 |
-| Scripts | | 154 |
+| Environment | Variables | 442 |
+| Scripts | | 155 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
 | UI | Search Index Entries | 475 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -88,7 +88,7 @@
 - **`siem_syslog`** (19.0 KB) — classes: `SIEMSyslogForwarder`
 - **`smithery_mcp`** (29.5 KB) — classes: `_TokenBucket`, `SmitheryClient`, `ETAPMCPRegistry`
 - **`supabase_auth`** (8.5 KB) — classes: `SupabaseAuthError`
-- **`supabase_integration`** (16.4 KB) — classes: `SupabaseUploadError`
+- **`supabase_integration`** (19.1 KB) — classes: `SupabaseUploadError`
 
 **External services configured:**
 
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **441** variables
+Total: **442** variables
 
 ### General
 
@@ -277,6 +277,7 @@ Total: **441** variables
 - `AKAMAI_ORIGIN_SECRET`
 - `AKAMAI_REQUIRE_ORIGIN_TOKEN`
 - `ALERT_DEBOUNCE_SECONDS`
+- `ALLOWED_APP_URL_DOMAINS`
 - `ALLOW_BIDIRECTIONAL_SYNC`
 - `ALLOW_GIS_TO_ETAP_SYNC`
 - `ALLOW_SQLITE_IN_PROD`
@@ -1055,7 +1056,7 @@ Extracts the repeated patt
 - **def** `normalize_template_var()` (line 142)
 - **def** `get_api_key_auth()` (line 171)
 
-#### 📄 `api/agent_executor.py` _29.1 KB_
+#### 📄 `api/agent_executor.py` _29.5 KB_
 > api/agent_executor.py — Secure Agent Execution Path (P4a).
 
 The narrow gateway through which an autonomous agent may turn a *tool plan*
@@ -1232,44 +1233,44 @@ log entries generated
   - `GET /`
   - `GET /stats`
 
-#### 📄 `api/auth.py` _71.3 KB_
+#### 📄 `api/auth.py` _75.1 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 
 * ``POST /register``      
 
-- **Class** `User` (line 337)
-- **Class** `RegisterRequest` (line 384)
+- **Class** `User` (line 391)
+- **Class** `RegisterRequest` (line 442)
   - Methods: `validate_password_strength()`
-- **Class** `LoginRequest` (line 410)
-- **Class** `LoginResponse` (line 434)
-- **Class** `TokenResponse` (line 453)
-- **Class** `RefreshRequest` (line 464)
-- **Class** `ChangePasswordRequest` (line 472)
+- **Class** `LoginRequest` (line 468)
+- **Class** `LoginResponse` (line 502)
+- **Class** `TokenResponse` (line 521)
+- **Class** `RefreshRequest` (line 532)
+- **Class** `ChangePasswordRequest` (line 541)
   - Methods: `validate_new_password()`
-- **Class** `ForgotPasswordRequest` (line 487)
-- **Class** `ResetPasswordRequest` (line 495)
+- **Class** `ForgotPasswordRequest` (line 556)
+- **Class** `ResetPasswordRequest` (line 564)
   - Methods: `validate_new_password()`
-- **Class** `UpdateProfileRequest` (line 510)
-- **Class** `UserResponse` (line 537)
-- **Class** `UserListResponse` (line 553)
-- **Class** `MfaService` (line 994)
+- **Class** `UpdateProfileRequest` (line 579)
+- **Class** `UserResponse` (line 606)
+- **Class** `UserListResponse` (line 622)
+- **Class** `MfaService` (line 1063)
   - Methods: `issue_challenge()`, `verify_challenge()`, `verify_and_issue_tokens()`
-- **Class** `AuthService` (line 1015)
+- **Class** `AuthService` (line 1084)
   - Methods: `hash_password()`, `verify_password()`, `create_access_token()`, `create_refresh_token()`, `verify_credentials()`
-- **Class** `UserService` (line 1049)
+- **Class** `UserService` (line 1118)
   - Methods: `create()`
-- **async def** `register()` (line 1135)
-- **async def** `login()` (line 1259)
-- **async def** `refresh()` (line 1392)
-- **async def** `logout()` (line 1476)
-- **async def** `get_me()` (line 1529)
-- **async def** `update_me()` (line 1566)
-- **async def** `change_password()` (line 1650)
-- **async def** `forgot_password()` (line 1763)
-- **async def** `reset_password()` (line 1876)
-- **async def** `list_users()` (line 1925)
+- **def** `validate_email_app_url()` (line 274)
+- **async def** `register()` (line 1204)
+- **async def** `login()` (line 1341)
+- **async def** `refresh()` (line 1474)
+- **async def** `logout()` (line 1558)
+- **async def** `get_me()` (line 1640)
+- **async def** `update_me()` (line 1677)
+- **async def** `change_password()` (line 1762)
+- **async def** `forgot_password()` (line 1875)
+- **async def** `reset_password()` (line 1980)
 
 #### 📄 `api/autodesk_connectors.py` _12.9 KB_
 > Autodesk Connector Health & Test API Router
@@ -1426,7 +1427,7 @@ Architecture
   **API Routes:**
   - `GET /api/v1/csrf/token`
 
-#### 📄 `api/cua_confirmation_ws.py` _22.6 KB_
+#### 📄 `api/cua_confirmation_ws.py` _24.7 KB_
 > api/cua_confirmation_ws.py — WebSocket endpoint for CUA dual confirmation
 
 Provides real-time, two-human confirmation for life-safety-critical CUA
@@ -1434,10 +1435,12 @@ act
 
 - **Class** `ConfirmationRequest` (line 143)
   - Methods: `to_dict()`
-- **Class** `ConfirmationBroker` (line 189)
+- **Class** `_PendingDict` (line 189)
+  - Methods: `pop()`, `get_by_tenant()`
+- **Class** `ConfirmationBroker` (line 224)
   - Methods: `connect()`, `disconnect()`, `has_connected_clients()`, `request()`, `confirm()`, `reject()`, `health_check()`
 - **async def** `authenticate_cua_confirmation_ws()` (line 90)
-- **async def** `cua_confirmation_ws()` (line 476)
+- **async def** `cua_confirmation_ws()` (line 523)
 
 #### 📄 `api/data_import.py` _42.5 KB_
 > api/data_import.py — Power-system data import router (P9).
@@ -1459,7 +1462,7 @@ model i
 - **async def** `execute_import()` (line 1056)
 - **async def** `upload_file()` (line 1224)
 
-#### 📄 `api/database.py` _17.8 KB_
+#### 📄 `api/database.py` _17.9 KB_
 > api/database.py — Async SQLAlchemy database configuration.
 
 Supports two backends:
@@ -1470,7 +1473,7 @@ Supports two backends:
 - **async def** `get_db()` (line 326)
 - **async def** `check_db_health()` (line 348)
 - **async def** `init_db()` (line 379)
-- **async def** `close_db()` (line 451)
+- **async def** `close_db()` (line 452)
 
 #### 📄 `api/database_migrations.py` _2.7 KB_
 > api/database_migrations.py — Startup Migration Gate & Schema Health (FIX-27).
@@ -1551,17 +1554,17 @@ Admin-only dashbo
   - `GET /api/config`
   - `GET /`
 
-#### 📄 `api/email_digest.py` _12.7 KB_
+#### 📄 `api/email_digest.py` _12.8 KB_
 > api/email_digest.py — Email Digests for AhmedETAP
 =================================================
 
 Daily / weekly summary emails of user activity an
 
 - **Class** `GenerateDigestRequest` (line 83)
-- **async def** `get_config()` (line 172)
-- **async def** `generate_digest()` (line 185)
-- **async def** `preview_digest()` (line 275)
-- **async def** `run_scheduled_digests()` (line 342)
+- **async def** `get_config()` (line 177)
+- **async def** `generate_digest()` (line 190)
+- **async def** `preview_digest()` (line 280)
+- **async def** `run_scheduled_digests()` (line 347)
 
 #### 📄 `api/email_otp.py` _11.8 KB_
 > api/email_otp.py — Email OTP Router for AhmedETAP
@@ -1779,7 +1782,7 @@ Separated from main engine
   - `GET /metrics`
   - `GET /prometheus/metrics`
 
-#### 📄 `api/magic_links.py` _18.6 KB_
+#### 📄 `api/magic_links.py` _18.7 KB_
 > api/magic_links.py — Magic Links (Passwordless Login) for AhmedETAP
 ===================================================================
 
@@ -1789,10 +1792,10 @@ Passwordless
 - **Class** `MagicLinkRequest` (line 162)
 - **Class** `MagicLinkVerifyRequest` (line 166)
 - **async def** `request_magic_link()` (line 193)
-- **async def** `verify_magic_link()` (line 324)
-- **async def** `invalidate_magic_links()` (line 449)
+- **async def** `verify_magic_link()` (line 326)
+- **async def** `invalidate_magic_links()` (line 451)
 
-#### 📄 `api/mfa.py` _18.5 KB_
+#### 📄 `api/mfa.py` _19.5 KB_
 > MFA Endpoints API Router
 =======================
 Handles all multi-factor authentication endpoints.
@@ -1803,38 +1806,40 @@ SECURITY AUDIT 2026-08-02 (F-04, F-05 fix — CRITI
 - **Class** `TotpVerifyRequest` (line 124)
 - **Class** `BackupCodeVerifyRequest` (line 139)
 - **async def** `setup_totp()` (line 158)
-- **async def** `verify_totp()` (line 243)
-- **async def** `verify_backup_code()` (line 376)
+- **async def** `verify_totp()` (line 242)
+- **async def** `verify_backup_code()` (line 399)
 
   **API Routes:**
   - `POST /totp/setup`
 
-#### 📄 `api/notification_config.py` _19.6 KB_
+#### 📄 `api/notification_config.py` _29.4 KB_
 > api/notification_config.py — Notification & Digest Configuration API
 =====================================================================
 
 Manage not
 
-- **Class** `AlertTypeConfig` (line 168)
+- **Class** `NotificationConfig` (line 179)
+- **Class** `WebhookConfig` (line 199)
+- **Class** `AlertTypeConfig` (line 365)
   - Methods: `validate_alert_type()`, `validate_severity_threshold()`
-- **Class** `DigestScheduleConfig` (line 205)
+- **Class** `DigestScheduleConfig` (line 402)
   - Methods: `validate_period()`
-- **Class** `WebhookConfig` (line 233)
-- **Class** `WebhookCreateRequest` (line 252)
-- **Class** `WebhookResponse` (line 270)
-- **Class** `NotificationConfigResponse` (line 288)
-- **Class** `NotificationConfigUpdateRequest` (line 302)
-- **async def** `get_notification_config()` (line 358)
-- **async def** `update_notification_config()` (line 369)
-- **async def** `get_digest_config()` (line 402)
-- **async def** `update_digest_config()` (line 412)
-- **async def** `list_alert_configs()` (line 434)
-- **async def** `update_alert_config()` (line 444)
-- **async def** `list_webhooks()` (line 485)
-- **async def** `create_webhook()` (line 511)
-- **async def** `delete_webhook()` (line 570)
+- **Class** `WebhookConfigSchema` (line 430)
+- **Class** `WebhookCreateRequest` (line 449)
+- **Class** `WebhookResponse` (line 467)
+- **Class** `NotificationConfigResponse` (line 485)
+- **Class** `NotificationConfigUpdateRequest` (line 499)
+- **async def** `get_notification_config()` (line 555)
+- **async def** `update_notification_config()` (line 567)
+- **async def** `get_digest_config()` (line 612)
+- **async def** `update_digest_config()` (line 623)
+- **async def** `list_alert_configs()` (line 653)
+- **async def** `update_alert_config()` (line 664)
+- **async def** `list_webhooks()` (line 714)
+- **async def** `create_webhook()` (line 741)
+- **async def** `delete_webhook()` (line 830)
 
-#### 📄 `api/notifications.py` _18.7 KB_
+#### 📄 `api/notifications.py` _18.9 KB_
 > api/notifications.py — Real-time Notifications System.
 
 Provides:
@@ -1850,13 +1855,13 @@ Provides:
 - **Class** `TestNotificationRequest` (line 164)
 - **Class** `NotificationManager` (line 180)
   - Methods: `connect()`, `disconnect()`, `send_notification()`, `broadcast()`
-- **async def** `create_notification()` (line 232)
-- **async def** `list_notifications()` (line 342)
-- **async def** `get_unread_count()` (line 417)
-- **async def** `mark_as_read()` (line 439)
-- **async def** `mark_all_as_read()` (line 485)
-- **async def** `send_test_notification()` (line 517)
-- **async def** `notification_websocket_endpoint()` (line 552)
+- **async def** `create_notification()` (line 237)
+- **async def** `list_notifications()` (line 347)
+- **async def** `get_unread_count()` (line 422)
+- **async def** `mark_as_read()` (line 444)
+- **async def** `mark_all_as_read()` (line 490)
+- **async def** `send_test_notification()` (line 522)
+- **async def** `notification_websocket_endpoint()` (line 557)
 
 #### 📄 `api/pe_stamp.py` _6.9 KB_
 > Professional Engineer (PE) stamp workflow for regulated studies.
@@ -2071,25 +2076,25 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _54.0 KB_
+#### 📄 `api/routes.py` _55.9 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
-- **Class** `_BodySizeLimitMiddleware` (line 304)
-- **Class** `_TraceMiddleware` (line 457)
-- **Class** `HealthResponse` (line 504)
-- **Class** `ReadyResponse` (line 509)
-- **Class** `CUARollbackRequest` (line 1229)
-- **def** `get_celery_components()` (line 531)
-- **async def** `run_study_async()` (line 563)
-- **async def** `get_task_status()` (line 611)
-- **async def** `websocket_scada_endpoint_handler()` (line 653)
-- **async def** `websocket_cua_confirmation_handler()` (line 670)
-- **async def** `global_exception_handler()` (line 835)
-- **async def** `etap_health_probe()` (line 944)
-- **async def** `gis_status_probe()` (line 956)
-- **async def** `websocket_session_stream_handler()` (line 971)
-- **async def** `websocket_notifications_handler()` (line 979)
+- **Class** `_BodySizeLimitMiddleware` (line 305)
+- **Class** `_TraceMiddleware` (line 458)
+- **Class** `HealthResponse` (line 505)
+- **Class** `ReadyResponse` (line 510)
+- **Class** `CUARollbackRequest` (line 1277)
+- **def** `get_celery_components()` (line 532)
+- **async def** `run_study_async()` (line 564)
+- **async def** `get_task_status()` (line 612)
+- **async def** `websocket_scada_endpoint_handler()` (line 654)
+- **async def** `websocket_cua_confirmation_handler()` (line 671)
+- **async def** `global_exception_handler()` (line 836)
+- **async def** `etap_health_probe()` (line 946)
+- **async def** `gis_status_probe()` (line 958)
+- **async def** `websocket_session_stream_handler()` (line 973)
+- **async def** `websocket_notifications_handler()` (line 981)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -2127,7 +2132,7 @@ Performs comprehensive security analysis of the running service:
 - **Class** `SecurityAuditor` (line 267)
   - Methods: `run()`
 
-#### 📄 `api/security_headers.py` _4.5 KB_
+#### 📄 `api/security_headers.py` _4.9 KB_
 > api/security_headers.py — Security Headers & Host Validation Middleware.
 
 Implements defense-in-depth HTTP security headers and Host header validation
@@ -2404,18 +2409,18 @@ Replaces in-memory TokenBudgetManager for multi-instance horizontal scaling
 - **def** `get_distributed_budget_manager()` (line 228)
 - **def** `reset_distributed_budget_manager()` (line 235)
 
-#### 📄 `api/tool_policy.py` _12.5 KB_
+#### 📄 `api/tool_policy.py` _12.6 KB_
 > api/tool_policy.py — Tool Policy Engine.
 
 Classifies agent tools as read / mutating / critical so that tool calls
 receive an explicit decision: ``auto
 
-- **Class** `ToolPolicyRequest` (line 292)
-- **def** `validate_engineering_dimensions()` (line 150)
-- **def** `validate_engineering_source()` (line 186)
-- **def** `evaluate_tool_policy()` (line 231)
-- **async def** `evaluate_endpoint()` (line 299)
-- **def** `estimate_tool_tokens()` (line 309)
+- **Class** `ToolPolicyRequest` (line 297)
+- **def** `validate_engineering_dimensions()` (line 155)
+- **def** `validate_engineering_source()` (line 191)
+- **def** `evaluate_tool_policy()` (line 236)
+- **async def** `evaluate_endpoint()` (line 304)
+- **def** `estimate_tool_tokens()` (line 314)
 
   **API Routes:**
   - `POST /evaluate`
@@ -2428,15 +2433,15 @@ Separated from main engineering service for b
 
 - **async def** `validate_system()` (line 31)
 
-#### 📄 `api/websocket.py` _16.8 KB_
+#### 📄 `api/websocket.py` _17.6 KB_
 > WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
 
 SECURITY AUDIT 2026-07-2
 
-- **Class** `SCADALiveFeed` (line 47)
+- **Class** `SCADALiveFeed` (line 49)
   - Methods: `connect()`, `disconnect()`, `send_personal_message()`, `broadcast_message()`
-- **async def** `scada_websocket_endpoint()` (line 391)
+- **async def** `scada_websocket_endpoint()` (line 393)
 
 #### 📄 `api/zip_generator_config.py` _21.6 KB_
 > api/zip_generator_config.py — ZIP Load & Generator Capability Configuration API.
@@ -2540,7 +2545,7 @@ Provides:
 - metrics
 
 
-#### 📄 `core/bootstrap.py` _16.2 KB_
+#### 📄 `core/bootstrap.py` _16.6 KB_
 > Bootstrap module for the Engineering Service.
 Handles initialization of logging, metrics, and core services with privacy controls.
 
@@ -2550,8 +2555,8 @@ Handles initialization of logging, metrics, and core services with privacy contr
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
 - **Class** `_PromStub` (line 33)
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
-- **async def** `lifespan()` (line 361)
-- **def** `get_logger()` (line 487)
+- **async def** `lifespan()` (line 373)
+- **def** `get_logger()` (line 499)
 
 #### 📄 `core/error_tracking.py` _14.3 KB_
 > core/error_tracking.py — Sentry-ready error tracking hooks for AhmedETAP.
@@ -4175,6 +4180,16 @@ Revises: 011_add_hard
 - **def** `upgrade()` (line 26)
 - **def** `downgrade()` (line 43)
 
+#### 📄 `migrations/versions/013_add_totp_secret_to_users.py` _1.2 KB_
+> Add totp_secret column to users table.
+
+Revision ID: 013_add_totp_secret_to_users
+Revises: 012_study_version_unique
+Create Date: 2026-10-04 00:00:00.0
+
+- **def** `upgrade()` (line 19)
+- **def** `downgrade()` (line 33)
+
 #### 📄 `migrations/versions/__init__.py` _0.0 KB_
 
 ### 📦 `etap_integration/`
@@ -4726,7 +4741,7 @@ bcrypt/JWT auth in
 - **def** `link_or_create_local_user()` (line 200)
 - **def** `health_check()` (line 259)
 
-#### 📄 `integrations/supabase_integration.py` _16.4 KB_
+#### 📄 `integrations/supabase_integration.py` _19.1 KB_
 > Supabase integration for AhmedETAP
 ===================================
 
@@ -4735,15 +4750,15 @@ This module provides:
 
 1. **PostgreSQL co
 
-- **Class** `SupabaseUploadError` (line 204)
-- **def** `ensure_buckets_exist()` (line 159)
-- **def** `upload_bytes()` (line 252)
-- **def** `upload_file()` (line 358)
-- **def** `get_public_url()` (line 379)
-- **def** `get_signed_url()` (line 402)
-- **def** `delete_file()` (line 437)
-- **def** `list_files()` (line 450)
-- **def** `health_check()` (line 468)
+- **Class** `SupabaseUploadError` (line 239)
+- **def** `ensure_buckets_exist()` (line 194)
+- **def** `upload_bytes()` (line 287)
+- **def** `upload_file()` (line 393)
+- **def** `get_public_url()` (line 414)
+- **def** `get_signed_url()` (line 437)
+- **def** `delete_file()` (line 490)
+- **def** `list_files()` (line 503)
+- **def** `health_check()` (line 536)
 
 ### 📦 `knowledge/`
 
@@ -5579,8 +5594,8 @@ Provides
 |:---|---:|
 | python-module | 41 |
 | ui-component | 281 |
-| ui-page | 61 |
 | api-route | 92 |
+| ui-page | 61 |
 | **TOTAL** | **475** |
 
 ---
@@ -5592,7 +5607,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5609,7 +5624,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | — |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5620,10 +5635,10 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5635,7 +5650,7 @@ Provides
 | `test_abac.py` | 0 | 6 | **21** |
 | `test_active_alerting.py` | 2 | 0 | **2** |
 | `test_advanced_reports.py` | 3 | 0 | **3** |
-| `test_agent_executor.py` | 23 | 0 | **23** |
+| `test_agent_executor.py` | 25 | 0 | **25** |
 | `test_agent_key_namespace.py` | 9 | 0 | **9** |
 | `test_agent_registration_regression.py` | 18 | 0 | **18** |
 | `test_agents.py` | 2 | 0 | **2** |
@@ -5667,7 +5682,7 @@ Provides
 | `test_audit_phase7_round5_fixes.py` | 0 | 6 | **25** |
 | `test_audit_phase8_medium_fixes.py` | 0 | 3 | **9** |
 | `test_audit_phase9_round6_fixes.py` | 0 | 4 | **11** |
-| `test_auth.py` | 1 | 0 | **1** |
+| `test_auth.py` | 3 | 0 | **3** |
 | `test_auth_api.py` | 0 | 11 | **39** |
 | `test_auth_disabled_fail_closed.py` | 6 | 0 | **6** |
 | `test_auth_enabled.py` | 0 | 1 | **9** |
@@ -5688,17 +5703,19 @@ Provides
 | `test_cli.py` | 1 | 0 | **1** |
 | `test_components_api.py` | 11 | 0 | **11** |
 | `test_concurrency_load_gate.py` | 4 | 0 | **4** |
+| `test_context_engine.py` | 0 | 1 | **3** |
 | `test_context_fabric.py` | 13 | 0 | **13** |
 | `test_contract_sync.py` | 13 | 0 | **13** |
 | `test_coordination.py` | 0 | 1 | **18** |
 | `test_coordination_agent_calculations.py` | 0 | 6 | **11** |
 | `test_coordination_deep.py` | 0 | 5 | **27** |
+| `test_cua_confirmation_ws.py` | 1 | 0 | **1** |
 | `test_cua_display.py` | 0 | 1 | **8** |
 | `test_cua_executor.py` | 26 | 0 | **26** |
 | `test_data_import.py` | 0 | 1 | **3** |
 | `test_data_import_parsing.py` | 0 | 8 | **20** |
 | `test_daytona_chrome_helper.py` | 0 | 1 | **5** |
-| `test_dependencies.py` | 0 | 4 | **21** |
+| `test_dependencies.py` | 1 | 4 | **22** |
 | `test_design_agent_scaffold.py` | 8 | 0 | **8** |
 | `test_digital_twin_coverage.py` | 14 | 0 | **14** |
 | `test_digital_twin_rollback.py` | 1 | 0 | **1** |
@@ -5758,6 +5775,7 @@ Provides
 | `test_m6_integration_acceptance.py` | 0 | 8 | **24** |
 | `test_mcp_config.py` | 1 | 0 | **1** |
 | `test_memory_service.py` | 0 | 5 | **27** |
+| `test_mfa.py` | 1 | 0 | **1** |
 | `test_mfa_lockout_and_replay.py` | 0 | 3 | **12** |
 | `test_ml.py` | 0 | 3 | **22** |
 | `test_motor_starting_simulation.py` | 0 | 1 | **6** |
@@ -5770,6 +5788,7 @@ Provides
 | `test_new_features.py` | 7 | 0 | **7** |
 | `test_no_enumeration.py` | 0 | 4 | **12** |
 | `test_node_sandbox.py` | 0 | 4 | **33** |
+| `test_notification_config.py` | 2 | 0 | **2** |
 | `test_opencv_resilience.py` | 25 | 0 | **25** |
 | `test_opf_correctness.py` | 0 | 1 | **3** |
 | `test_optimization_agent_construct.py` | 6 | 0 | **6** |
@@ -5841,7 +5860,8 @@ Provides
 | `test_study_reachability_gate.py` | 0 | 4 | **10** |
 | `test_study_rerun_phase_b.py` | 7 | 0 | **7** |
 | `test_study_service.py` | 5 | 0 | **5** |
-| `test_supabase_integration.py` | 0 | 8 | **31** |
+| `test_study_versions.py` | 2 | 0 | **2** |
+| `test_supabase_integration.py` | 0 | 9 | **37** |
 | `test_tcc_safety_guards.py` | 0 | 10 | **48** |
 | `test_temp_vercel.py` | 1 | 0 | **1** |
 | `test_token_budget.py` | 7 | 0 | **7** |
@@ -5852,7 +5872,8 @@ Provides
 | `test_vision_base.py` | 0 | 5 | **15** |
 | `test_visualization.py` | 0 | 5 | **23** |
 | `test_warm_start.py` | 4 | 0 | **4** |
-| `test_websocket_security.py` | 0 | 3 | **16** |
+| `test_websocket.py` | 0 | 1 | **3** |
+| `test_websocket_security.py` | 0 | 4 | **17** |
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
 | `test_workflow_chains.py` | 4 | 0 | **4** |
@@ -5989,6 +6010,7 @@ Provides
 | `scripts/run_git.py` | py | 0.0 KB |  |
 | `scripts/run_ieee_benchmarks.py` | py | 6.0 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
+| `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
 | `scripts/run_validation_matrix.sh` | sh | 6.0 KB | !/bin/bash |
 | `scripts/scada_etap_consumer.py` | py | 5.1 KB | SCADA ETAP Consumer |
@@ -6071,7 +6093,7 @@ Provides
 | `requirements-minimal.txt` | 1.6 KB | `ef9727eefdac` |
 | `requirements-ml.txt` | 1.4 KB | `0c0b9a5ee454` |
 | `requirements.hf.txt` | 1.3 KB | `e4b6adccab65` |
-| `.github/workflows/security.yml` | 13.6 KB | `102e636ede5a` |
+| `.github/workflows/security.yml` | 13.6 KB | `5aa65d23da4e` |
 | `.github/workflows/release.yml` | 2.3 KB | `b5f5e424ccd9` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
@@ -6081,11 +6103,11 @@ Provides
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
 | `hf-space/app.py` | 77.0 KB | `b437e67eecd0` |
-| `ui/package.json` | 3.6 KB | `a20bfaa55de5` |
+| `ui/package.json` | 3.7 KB | `c82c013a02bb` |
 | `ui/vite.config.ts` | 2.4 KB | `d6c51c2d7c59` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
-| `pnpm-workspace.yaml` | 7.1 KB | `aeea90d8b780` |
+| `pnpm-workspace.yaml` | 7.4 KB | `e9dc4a945f34` |
 | `tsconfig.json` | 0.7 KB | `356803570541` |
 
 ---
