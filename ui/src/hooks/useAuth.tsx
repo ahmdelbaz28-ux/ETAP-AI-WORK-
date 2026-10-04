@@ -99,12 +99,10 @@ async function extractErrorMessage(response: Response, fallback: string): Promis
   return `${fallback} (HTTP ${status})`;
 }
 
-// Fetch user profile from /me endpoint after login. Falls back to a minimal
-// user object derived from the login email if /me is unavailable.
+// Fetch user profile from /me endpoint after login. Fails closed if /me is unavailable.
 // Extracted from `login` to reduce its cognitive complexity.
 async function fetchUserProfile(
   token: string,
-  email: string,
   setUser: (user: User) => void,
 ): Promise<void> {
   try {
@@ -114,12 +112,17 @@ async function fetchUserProfile(
     if (meResponse.ok) {
       const userData = await meResponse.json();
       setUser(userData);
-    } else {
-      setUser({ id: "", email, name: email, role: "engineer" });
+      return;
     }
   } catch {
-    setUser({ id: "", email, name: email, role: "engineer" });
+    // Handled below by fail-closed cleanup
   }
+
+  // Fail-closed: Never fall back to minimal/fake user object
+  TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
+  TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
+  removeCsrfToken();
+  throw new Error("Could not load user profile after login");
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -230,7 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     TOKEN_STORAGE.setItem(REFRESH_TOKEN_KEY, data.refresh_token);
 
     // Fetch the user profile from /me (TokenResponse does not include user)
-    await fetchUserProfile(data.access_token, email, setUser);
+    await fetchUserProfile(data.access_token, setUser);
 
     // Notify components listening for auth changes (e.g. feature-flag gates)
     if (typeof window !== "undefined") {

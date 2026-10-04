@@ -156,6 +156,45 @@ describe("useAuth", () => {
     expect(result.current.isAuthenticated).toBe(false);
   });
 
+  it("throws error and clears tokens when /me fails after login", async () => {
+    // First call: POST /login succeeds and returns tokens
+    mockFetch.mockResolvedValueOnce(
+      mockResponse({
+        ok: true,
+        data: {
+          access_token: "test-access-token",
+          refresh_token: "test-refresh-token",
+        },
+      }),
+    );
+    // Second call: GET /me fails (e.g. 500)
+    mockFetch.mockResolvedValueOnce(
+      mockResponse({
+        ok: false,
+        status: 500,
+        data: { detail: "Internal Server Error" },
+      }),
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await expect(
+      act(async () => {
+        await result.current.login("engineer@etap.com", "test-password-123"); // NOSONAR — test credentials
+      }),
+    ).rejects.toThrow("Could not load user profile after login");
+
+    expect(sessionStorage.getItem("authToken")).toBeNull();
+    expect(sessionStorage.getItem("refreshToken")).toBeNull();
+    expect(sessionStorage.getItem("csrfToken")).toBeNull();
+    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
   it("clears user and tokens on logout", async () => {
     const mockUser = { id: "1", email: "engineer@etap.com", name: "Engineer", role: "admin" };
     mockFetch.mockResolvedValueOnce(
@@ -164,8 +203,13 @@ describe("useAuth", () => {
         data: {
           access_token: "test-access-token",
           refresh_token: "test-refresh-token",
-          user: mockUser,
         },
+      }),
+    );
+    mockFetch.mockResolvedValueOnce(
+      mockResponse({
+        ok: true,
+        data: mockUser,
       }),
     );
 
