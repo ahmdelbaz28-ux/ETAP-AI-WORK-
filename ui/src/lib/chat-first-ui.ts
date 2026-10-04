@@ -45,20 +45,39 @@ export function useChatFirstUi(): ChatFirstUiState {
   const [optedOut, setOptedOut] = useState(false);
 
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      (window.location.pathname === "/login" || window.location.pathname === "/register")
-    ) {
-      setResolved(false);
-      return;
+    let alive = true;
+
+    const evaluate = () => {
+      if (
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/login" || window.location.pathname === "/register")
+      ) {
+        if (alive) setResolved(false);
+        return;
+      }
+
+      void isChatFirstUiEnabled().then((enabled) => {
+        if (alive) setResolved(enabled);
+      });
+    };
+
+    evaluate();
+
+    const handleAuthChange = () => {
+      evaluate();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("auth-change", handleAuthChange);
+      window.addEventListener("storage", handleAuthChange);
     }
 
-    let alive = true;
-    void isChatFirstUiEnabled().then((enabled) => {
-      if (alive) setResolved(enabled);
-    });
     return () => {
       alive = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("auth-change", handleAuthChange);
+        window.removeEventListener("storage", handleAuthChange);
+      }
     };
   }, []);
 

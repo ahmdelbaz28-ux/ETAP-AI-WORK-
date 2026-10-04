@@ -30,6 +30,20 @@ export default defineConfig({
       "/openapi.json": "http://127.0.0.1:8000",
     },
   },
+  preview: {
+    host: "127.0.0.1",
+    port: 5173,
+    proxy: {
+      "/api": "http://127.0.0.1:8000",
+      "/health": "http://127.0.0.1:8000",
+      "/healthz": "http://127.0.0.1:8000",
+      "/ready": "http://127.0.0.1:8000",
+      "/readyz": "http://127.0.0.1:8000",
+      "/metrics": "http://127.0.0.1:8000",
+      "/docs": "http://127.0.0.1:8000",
+      "/openapi.json": "http://127.0.0.1:8000",
+    },
+  },
   build: {
     outDir: "dist",
     chunkSizeWarningLimit: 800,

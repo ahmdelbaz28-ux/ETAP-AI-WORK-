@@ -2,6 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, createElement, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
+import { getCsrfToken, removeCsrfToken, setCsrfToken } from "../lib/tokenStorage";
 
 // SECURITY AUDIT 2026-08-02 (UI-1 fix):
 // JWT tokens moved from localStorage to sessionStorage to reduce XSS
@@ -189,17 +190,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const ensureCsrfToken = async (): Promise<string | null> => {
+    let token = getCsrfToken();
+    if (token) return token;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/csrf/token`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.token) {
+          token = data.token;
+          setCsrfToken(data.token);
+          return token;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch fresh CSRF token:", err);
+    }
+    return null;
+  };
+
   const login = async (email: string, password: string) => {
     // Issue #8: Cancel any in-flight login before starting a new one.
     loginAbortRef.current?.abort();
     const controller = new AbortController();
     loginAbortRef.current = controller;
 
+    const csrfToken = await ensureCsrfToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       // Backend LoginRequest expects `username` (which accepts email or
       // username) + `password`. Send email as username since that's what
       // the UI collects.
@@ -219,12 +245,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Fetch the user profile from /me (TokenResponse does not include user)
     await fetchUserProfile(data.access_token, email, setUser);
+
+    // Notify components listening for auth changes (e.g. feature-flag gates)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-change"));
+    }
   };
 
   const logout = () => {
     TOKEN_STORAGE.removeItem(AUTH_TOKEN_KEY);
     TOKEN_STORAGE.removeItem(REFRESH_TOKEN_KEY);
+    removeCsrfToken();
     setUser(null);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-change"));
+    }
   };
 
   const register = async (email: string, password: string, name: string) => {
@@ -233,11 +268,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const controller = new AbortController();
     loginAbortRef.current = controller;
 
+    const csrfToken = await ensureCsrfToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       // Backend RegisterRequest expects `username`, `email`, `password`.
       // Derive a username from the email prefix (before @) since the UI
       // collects name + email but not a separate username.

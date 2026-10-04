@@ -513,7 +513,7 @@ pygments==2.21.0
     # via
     #   -r requirements-prod.txt
     #   -r requirements.txt
-pyjwt==2.14.0
+pyjwt==2.15.1
     # via
     #   -r requirements-prod.txt
     #   -r requirements.txt

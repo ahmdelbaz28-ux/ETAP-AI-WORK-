@@ -10,7 +10,7 @@
 
 import { authHeaders } from "./admin-fetch";
 import { API_BASE_URL, getCachedSettings } from "./api-config";
-import { getAuthToken } from "./tokenStorage";
+import { getAuthToken, getCsrfToken, setCsrfToken } from "./tokenStorage";
 
 // Forward user's active provider key/model to backend dynamically.
 // Extracted to a helper to keep request() below SonarCloud's cognitive
@@ -83,6 +83,28 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   // Use a cached settings snapshot to avoid async overhead on every request.
   // The cache is populated on first call and refreshed periodically.
   Object.assign(headers, buildProviderHeaders(getCachedSettings()));
+
+  const method = (options?.method ?? "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD" && !headers["X-CSRF-Token"]) {
+    let csrf = getCsrfToken();
+    if (!csrf) {
+      try {
+        const csrfRes = await fetch(`${API_BASE_URL}/api/v1/csrf/token`);
+        if (csrfRes.ok) {
+          const csrfData = await csrfRes.json();
+          if (typeof csrfData?.token === "string" && csrfData.token.length > 0) {
+            csrf = csrfData.token;
+            setCsrfToken(csrfData.token);
+          }
+        }
+      } catch {
+        // proceed if endpoint unavailable
+      }
+    }
+    if (csrf) {
+      headers["X-CSRF-Token"] = csrf;
+    }
+  }
 
   const response = await fetch(url, {
     ...options,
