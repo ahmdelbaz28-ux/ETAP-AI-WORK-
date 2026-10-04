@@ -2,7 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, createElement, useContext, useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../lib/api-config";
-import { getCsrfToken, removeCsrfToken, setCsrfToken } from "../lib/tokenStorage";
+import { getCsrfToken, removeCsrfToken } from "../lib/tokenStorage";
 
 // SECURITY AUDIT 2026-08-02 (UI-1 fix):
 // JWT tokens moved from localStorage to sessionStorage to reduce XSS
@@ -190,32 +190,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const ensureCsrfToken = async (): Promise<string | null> => {
-    let token = getCsrfToken();
-    if (token) return token;
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/csrf/token`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.token) {
-          token = data.token;
-          setCsrfToken(data.token);
-          return token;
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch fresh CSRF token:", err);
-    }
-    return null;
-  };
-
   const login = async (email: string, password: string) => {
     // Issue #8: Cancel any in-flight login before starting a new one.
     loginAbortRef.current?.abort();
     const controller = new AbortController();
     loginAbortRef.current = controller;
 
-    const csrfToken = await ensureCsrfToken();
+    const csrfToken = getCsrfToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -268,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const controller = new AbortController();
     loginAbortRef.current = controller;
 
-    const csrfToken = await ensureCsrfToken();
+    const csrfToken = getCsrfToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
