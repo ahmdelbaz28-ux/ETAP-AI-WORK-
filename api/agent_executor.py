@@ -769,37 +769,26 @@ async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dic
 
     ``args`` may carry the user goal and power-system model:
       - goal: natural-language objective (default derived from ctx)
-      - system: power-system model dict (default minimal valid system)
+      - system: power-system model dict (required: base_mva, buses, lines)
     The session id is propagated inside parameters so the P3 JobProgress
     bridge streams job_progress/result_ready for this execution.
     """
     from agents.orchestrator import ChiefEngineeringOrchestrator
 
     system_data = args.get("system")
-    if isinstance(system_data, dict):
-        # Fix 11: Validate system data belongs to caller's tenant
-        caller_tenant = ctx.get("tenant_id")
-        sys_tenant = system_data.get("tenant_id")
-        if sys_tenant and caller_tenant and str(sys_tenant) != str(caller_tenant):
-            raise ValueError(
-                f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
-            )
-    else:
-        system_data = {
-            "base_mva": 100.0,
-            "buses": [
-                {"id": "BUS-1", "type": "slack", "voltage_kv": 132.0},
-                {"id": "BUS-2", "type": "pq", "voltage_kv": 33.0, "load_mw": 40.0},
-            ],
-            "lines": [
-                {
-                    "from_bus": "BUS-1",
-                    "to_bus": "BUS-2",
-                    "r_pu": 0.02,
-                    "x_pu": 0.08,
-                }
-            ],
-        }
+    if not isinstance(system_data, dict):
+        raise ValueError(
+            "system model is required and must be a dict (base_mva, buses, lines) — "
+            "refusing to run on a fabricated network"
+        )
+
+    # Fix 11: Validate system data belongs to caller's tenant
+    caller_tenant = ctx.get("tenant_id")
+    sys_tenant = system_data.get("tenant_id")
+    if sys_tenant and caller_tenant and str(sys_tenant) != str(caller_tenant):
+        raise ValueError(
+            f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
+        )
 
     parameters = dict(args.get("parameters") or {})
     if ctx.get("session_id"):

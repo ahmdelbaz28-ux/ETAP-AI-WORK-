@@ -771,3 +771,32 @@ async def test_fix11_cross_tenant_system_data_rejected_in_run_python():
     with pytest.raises(ValueError, match="Cross-tenant system data access denied"):
         await _run_python_executor(args, ctx)
 
+
+@pytest.mark.asyncio
+async def test_run_python_executor_rejects_missing_system(monkeypatch):
+    """T1: _run_python_executor rejects missing or non-dict system model (fail-closed)."""
+    from unittest.mock import AsyncMock, patch
+
+    from api.agent_executor import _run_python_executor
+
+    ctx = {"tenant_id": "tenant-A", "execution_id": "exec-t1"}
+
+    # 1. Missing system key
+    with patch("agents.orchestrator.ChiefEngineeringOrchestrator.execute_autonomous_workflow", new_callable=AsyncMock) as mock_exec:
+        with pytest.raises(ValueError, match="refusing to run on a fabricated network"):
+            await _run_python_executor({}, ctx)
+        mock_exec.assert_not_called()
+
+    # 2. None system
+    with patch("agents.orchestrator.ChiefEngineeringOrchestrator.execute_autonomous_workflow", new_callable=AsyncMock) as mock_exec:
+        with pytest.raises(ValueError, match="refusing to run on a fabricated network"):
+            await _run_python_executor({"system": None}, ctx)
+        mock_exec.assert_not_called()
+
+    # 3. Non-dict system (string)
+    with patch("agents.orchestrator.ChiefEngineeringOrchestrator.execute_autonomous_workflow", new_callable=AsyncMock) as mock_exec:
+        with pytest.raises(ValueError, match="refusing to run on a fabricated network"):
+            await _run_python_executor({"system": "invalid_model_string"}, ctx)
+        mock_exec.assert_not_called()
+
+

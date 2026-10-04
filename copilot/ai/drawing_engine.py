@@ -753,10 +753,37 @@ class ModelGenerator:
         graph: EngineeringGraph,
     ) -> None:
         """Create a Cable entity from a graph node."""
+        from_bus = node.get("from_bus") or node.get("from_bus_id")
+        to_bus = node.get("to_bus") or node.get("to_bus_id")
+
+        if not from_bus or not to_bus:
+            node_id = node.get("id") or node.get("name")
+            connected_buses = []
+            if node_id:
+                for edge in graph.edges:
+                    if edge.get("from") == node_id:
+                        target = edge.get("to")
+                        if target in graph.nodes and graph.nodes[target].get("type") == "bus":
+                            connected_buses.append(target)
+                    elif edge.get("to") == node_id:
+                        source = edge.get("from")
+                        if source in graph.nodes and graph.nodes[source].get("type") == "bus":
+                            connected_buses.append(source)
+            if not from_bus and connected_buses:
+                from_bus = connected_buses[0]
+            if not to_bus and len(connected_buses) > 1:
+                to_bus = connected_buses[1]
+
+        cable_name = node.get("name", f"CBL-{uuid.uuid4().hex[:6].upper()}")
+        if not from_bus or not to_bus:
+            raise ValueError(
+                f"Cable node '{cable_name}' requires explicit 'from_bus' and 'to_bus' connectivity"
+            )
+
         cable = Cable(
-            name=node.get("name", f"CBL-{uuid.uuid4().hex[:6].upper()}"),
-            from_bus_id=node.get("from_bus", "BUS-1"),
-            to_bus_id=node.get("to_bus", "BUS-2"),
+            name=cable_name,
+            from_bus_id=from_bus,
+            to_bus_id=to_bus,
             length_m=node.get("length", 100),
             conductor_size_mm2=node.get("size", 95),
             voltage_rating_kv=0.6,
