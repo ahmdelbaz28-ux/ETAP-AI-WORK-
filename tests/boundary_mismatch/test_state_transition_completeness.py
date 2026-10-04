@@ -7,26 +7,47 @@ a note.
 
 from __future__ import annotations
 
-import re
+import os
 from pathlib import Path
+
+# Directories that must be skipped to avoid hanging on massive trees
+_SKIP_DIRS = frozenset({
+    "node_modules", ".venv", "venv", ".git", "__pycache__",
+    "dist", ".next", "build", ".cache", "coverage", ".mypy_cache",
+    "ui/dist", ".pytest_cache",
+})
+
+
+def _iter_source_files(repo: Path):
+    """Yield .py and .ts files under repo, skipping heavyweight subtrees."""
+    for root, dirs, files in os.walk(repo):
+        root_path = Path(root)
+        # Prune traversal in-place for any skip-listed directory name
+        dirs[:] = [
+            d for d in dirs
+            if d not in _SKIP_DIRS
+            and not any(
+                skip in str(root_path / d).replace("\\", "/")
+                for skip in _SKIP_DIRS
+            )
+        ]
+        for fname in files:
+            if fname.endswith(".py") or fname.endswith(".ts"):
+                yield root_path / fname
 
 
 def test_state_transitions_exist_or_skip():
     """Check if STATE_TRANSITIONS map exists; if not, skip with guidance."""
     repo = Path(__file__).resolve().parents[2]
 
-    # Search for STATE_TRANSITIONS in all .py and .ts files
     found_in = []
-    for pattern in ["**/*.py", "**/*.ts"]:
-        for f in repo.glob(pattern):
-            if "node_modules" in str(f) or ".venv" in str(f):
-                continue
-            try:
-                content = f.read_text()
-                if "STATE_TRANSITIONS" in content or "stateTransitions" in content:
-                    found_in.append(str(f.relative_to(repo)))
-            except Exception:
-                continue
+    for f in _iter_source_files(repo):
+        try:
+            content = f.read_text(encoding="utf-8", errors="ignore")
+            if "STATE_TRANSITIONS" in content or "stateTransitions" in content:
+                found_in.append(str(f.relative_to(repo)))
+        except Exception:
+            continue
 
     if not found_in:
         import pytest
@@ -37,4 +58,5 @@ def test_state_transitions_exist_or_skip():
             "consider defining a state transition map for verification."
         )
 
-    print(f"✓ STATE_TRANSITIONS found in: {found_in}")
+    print(f"\u2713 STATE_TRANSITIONS found in: {found_in}")
+
