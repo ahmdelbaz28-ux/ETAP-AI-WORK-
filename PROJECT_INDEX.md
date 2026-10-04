@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-04T13:13:27.339373+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-04T13:32:27.119170+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,7 +15,7 @@
 | Python | Functions | 816 |
 | UI | Files (TSX/TS) | 241 |
 | Test | Files | 261 |
-| Total | Tests | 3783 |
+| Total | Tests | 3784 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 442 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -1056,7 +1056,7 @@ Extracts the repeated patt
 - **def** `normalize_template_var()` (line 142)
 - **def** `get_api_key_auth()` (line 171)
 
-#### 📄 `api/agent_executor.py` _29.5 KB_
+#### 📄 `api/agent_executor.py` _29.1 KB_
 > api/agent_executor.py — Secure Agent Execution Path (P4a).
 
 The narrow gateway through which an autonomous agent may turn a *tool plan*
@@ -3958,7 +3958,7 @@ Mapping Arch
 > AI Drawing Engine — Autonomous CAD generation from natural language.
 
 
-#### 📄 `copilot/ai/drawing_engine.py` _38.4 KB_
+#### 📄 `copilot/ai/drawing_engine.py` _39.6 KB_
 > AI Drawing Engine
 =================
 Autonomous CAD generation engine that translates natural language
@@ -3974,7 +3974,7 @@ engineering intent into:
   - Methods: `build()`
 - **Class** `ModelGenerator` (line 566)
   - Methods: `generate()`
-- **Class** `AIDrawingEngine` (line 849)
+- **Class** `AIDrawingEngine` (line 876)
   - Methods: `process()`, `get_history()`, `get_statistics()`
 
 #### 📄 `copilot/ai/engineering_assertions.py` _36.4 KB_
@@ -5650,7 +5650,7 @@ Provides
 | `test_abac.py` | 0 | 6 | **21** |
 | `test_active_alerting.py` | 2 | 0 | **2** |
 | `test_advanced_reports.py` | 3 | 0 | **3** |
-| `test_agent_executor.py` | 25 | 0 | **25** |
+| `test_agent_executor.py` | 26 | 0 | **26** |
 | `test_agent_key_namespace.py` | 9 | 0 | **9** |
 | `test_agent_registration_regression.py` | 18 | 0 | **18** |
 | `test_agents.py` | 2 | 0 | **2** |
