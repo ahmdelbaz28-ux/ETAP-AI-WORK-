@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-04T13:44:29.350811+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-04T13:50:01.819734+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,7 +15,7 @@
 | Python | Functions | 816 |
 | UI | Files (TSX/TS) | 241 |
 | Test | Files | 261 |
-| Total | Tests | 3784 |
+| Total | Tests | 3785 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 442 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -5593,9 +5593,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | ui-page | 61 |
-| api-route | 92 |
-| python-module | 41 |
 | ui-component | 281 |
+| python-module | 41 |
+| api-route | 92 |
 | **TOTAL** | **475** |
 
 ---
@@ -5750,7 +5750,7 @@ Provides
 | `test_guards.py` | 50 | 0 | **50** |
 | `test_harmonic_analysis_ieee519.py` | 0 | 1 | **4** |
 | `test_hf_space_auth.py` | 0 | 3 | **12** |
-| `test_hf_space_fail_closed.py` | 3 | 0 | **3** |
+| `test_hf_space_fail_closed.py` | 4 | 0 | **4** |
 | `test_hf_space_production.py` | 12 | 0 | **12** |
 | `test_hf_space_skill.py` | 14 | 0 | **14** |
 | `test_iec60909_published_cases.py` | 0 | 4 | **15** |
@@ -6102,7 +6102,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 77.0 KB | `b437e67eecd0` |
+| `hf-space/app.py` | 77.2 KB | `82411ebe2a0e` |
 | `ui/package.json` | 3.7 KB | `c82c013a02bb` |
 | `ui/vite.config.ts` | 2.8 KB | `8eea984f6b9a` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
