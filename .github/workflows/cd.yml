@@ -72,7 +72,41 @@ jobs:
             if [ "${{ github.event.workflow_run.head_repository.full_name }}" != "${{ github.repository }}" ]; then
               echo "::error::Release Gate ran on a fork — refusing to deploy"; exit 1
             fi
-            SHA="${{ github.event.workflow_run.head_sha }}"
+            # ── B1 FIX: Resolve the actual validated code SHA ──────────────────
+            # The RG runs on the auto-index head (github.event.workflow_run.head_sha)
+            # but evaluates and posts release-gate/authoritative on the *code* commit.
+            # Download the evaluated-sha.txt artifact the RG now publishes, which
+            # contains the exact code SHA it validated. Fall back to head_sha^ (the
+            # parent of the auto-index commit) when the artifact is missing
+            # (i.e. running against an older RG that predates this fix).
+            RG_RUN_ID="${{ github.event.workflow_run.id }}"
+            INDEX_SHA="${{ github.event.workflow_run.head_sha }}"
+            echo "RG run ID: $RG_RUN_ID, index head SHA: $INDEX_SHA"
+
+            SHA=""
+            if gh run download "$RG_RUN_ID" --name evaluated-sha --dir /tmp/rg-sha 2>/dev/null; then
+              ARTIFACT_SHA=$(cat /tmp/rg-sha/evaluated-sha.txt 2>/dev/null | tr -d '[:space:]')
+              if echo "$ARTIFACT_SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
+                SHA="$ARTIFACT_SHA"
+                echo "SHA resolved from RG artifact: $SHA"
+              else
+                echo "::warning::evaluated-sha.txt artifact was malformed ('$ARTIFACT_SHA') — falling back to head_sha^"
+              fi
+            else
+              echo "::warning::evaluated-sha artifact not found in RG run $RG_RUN_ID — falling back to head_sha^"
+            fi
+
+            if [ -z "$SHA" ]; then
+              # Fallback: the parent of the auto-index commit is the real code commit.
+              SHA=$(git rev-parse "${INDEX_SHA}^" 2>/dev/null || echo "")
+              if [ -z "$SHA" ] || ! git cat-file -e "${SHA}^{commit}" 2>/dev/null; then
+                echo "::error::Could not determine code SHA from index SHA $INDEX_SHA"
+                exit 1
+              fi
+              echo "SHA resolved via head_sha^ fallback: $SHA"
+            fi
+            # ── end B1 FIX ────────────────────────────────────────────────────
+
             RG_STATUS=$(gh api "repos/${{ github.repository }}/commits/$SHA/status" \
               --jq '.statuses[] | select(.context == "release-gate/authoritative") | .state' 2>/dev/null | head -n1 || echo "")
             if [ "$RG_STATUS" != "success" ]; then

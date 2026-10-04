@@ -45,6 +45,8 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    outputs:
+      evaluated_sha: ${{ steps.resolve-sha.outputs.commit_sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -239,3 +241,16 @@ jobs:
             -f target_url="${SERVER_URL}/${REPO}/actions/runs/${RUN_ID}"
 
           echo "Authoritative release gate status posted successfully."
+
+          # ── Write evaluated SHA artifact for cd.yml to consume ────────────
+          # cd.yml runs on the RG's head_sha (which is the auto-index commit);
+          # we export the actual validated code SHA so CD can pin to it exactly.
+          echo "$COMMIT_SHA" > /tmp/evaluated-sha.txt
+
+      - name: Upload evaluated SHA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluated-sha
+          path: /tmp/evaluated-sha.txt
+          retention-days: 7
