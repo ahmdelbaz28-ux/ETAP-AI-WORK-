@@ -67,6 +67,9 @@ export default function Register() {
             : `Welcome to AhmedETAP, ${name}!`,
         );
         navigate("/dashboard");
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
       } catch (err) {
         // Issue #8: Ignore AbortError — request was cancelled.
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -205,7 +208,11 @@ function NameField({
   name,
   onChange,
   isRtl,
-}: { readonly name: string; readonly onChange: (v: string) => void; readonly isRtl: boolean }) {
+}: {
+  readonly name: string;
+  readonly onChange: (v: string) => void;
+  readonly isRtl: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <div>
@@ -238,7 +245,11 @@ function RegisterEmailField({
   email,
   onChange,
   isRtl,
-}: { readonly email: string; readonly onChange: (v: string) => void; readonly isRtl: boolean }) {
+}: {
+  readonly email: string;
+  readonly onChange: (v: string) => void;
+  readonly isRtl: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <div>

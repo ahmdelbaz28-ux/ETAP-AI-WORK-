@@ -28,7 +28,11 @@ function mockResponse({
   ok,
   status = 200,
   data = {},
-}: { ok: boolean; status?: number; data?: unknown }) {
+}: {
+  ok: boolean;
+  status?: number;
+  data?: unknown;
+}) {
   const bodyText = typeof data === "string" ? data : JSON.stringify(data);
   return {
     ok,
@@ -50,6 +54,8 @@ describe("useAuth", () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     localStorage.clear();
+    // Default CSRF token present in storage so tests don't consume mock queue on CSRF prefetch
+    sessionStorage.setItem("csrfToken", "test-csrf-token");
     // Default: no token, so no validate call needed
     mockFetch.mockResolvedValue(
       mockResponse({
@@ -314,5 +320,25 @@ describe("useAuth", () => {
     // After refresh failure, logout is called which clears user
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("fetches fresh CSRF token when missing in storage", async () => {
+    sessionStorage.removeItem("csrfToken");
+    mockFetch.mockResolvedValueOnce(
+      mockResponse({
+        ok: true,
+        data: { token: "fresh-csrf-token" },
+      }),
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await waitFor(() => {
+      expect(sessionStorage.getItem("csrfToken")).toBe("fresh-csrf-token");
+    });
   });
 });

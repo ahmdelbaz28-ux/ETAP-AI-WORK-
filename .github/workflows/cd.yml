@@ -19,6 +19,7 @@ concurrency:
 permissions:
   contents: read
   packages: write
+  actions: read
 
 jobs:
   guard:

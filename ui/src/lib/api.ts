@@ -65,6 +65,25 @@ export class ApiError extends Error {
   }
 }
 
+export async function ensureCsrfToken(): Promise<string | null> {
+  let csrf = getCsrfToken();
+  if (csrf) return csrf;
+  try {
+    const csrfRes = await fetch(`${API_BASE_URL}/api/v1/csrf/token`);
+    if (csrfRes?.ok) {
+      const csrfData = await csrfRes.json().catch(() => null);
+      if (typeof csrfData?.token === "string" && csrfData.token.length > 0) {
+        csrf = csrfData.token;
+        setCsrfToken(csrfData.token);
+        return csrf;
+      }
+    }
+  } catch {
+    // proceed if endpoint unavailable or fetch mocked
+  }
+  return null;
+}
+
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   // SECURITY FIX: Use sessionStorage instead of localStorage for auth tokens.
@@ -86,21 +105,7 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
 
   const method = (options?.method ?? "GET").toUpperCase();
   if (method !== "GET" && method !== "HEAD" && !headers["X-CSRF-Token"]) {
-    let csrf = getCsrfToken();
-    if (!csrf) {
-      try {
-        const csrfRes = await fetch(`${API_BASE_URL}/api/v1/csrf/token`);
-        if (csrfRes.ok) {
-          const csrfData = await csrfRes.json();
-          if (typeof csrfData?.token === "string" && csrfData.token.length > 0) {
-            csrf = csrfData.token;
-            setCsrfToken(csrfData.token);
-          }
-        }
-      } catch {
-        // proceed if endpoint unavailable
-      }
-    }
+    const csrf = await ensureCsrfToken();
     if (csrf) {
       headers["X-CSRF-Token"] = csrf;
     }
@@ -1071,9 +1076,7 @@ export interface StudyReRunResponse {
 }
 
 /** Execute a study re-run with updated parameters and revision tracking. */
-export async function executeStudyReRun(
-  payload: StudyReRunPayload,
-): Promise<StudyReRunResponse> {
+export async function executeStudyReRun(payload: StudyReRunPayload): Promise<StudyReRunResponse> {
   const url = `${API_BASE_URL}/studies/re-run`;
   const token = getAuthToken();
   const headers: Record<string, string> = {
@@ -1103,4 +1106,3 @@ export async function executeStudyReRun(
 }
 
 // ============ End of API client ============
-

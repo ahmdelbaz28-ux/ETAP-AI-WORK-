@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { useNotify } from "../context/NotificationContext";
 import { useAuth } from "../hooks/useAuth";
+import { ensureCsrfToken } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 
 export function useLoginViewModel() {
@@ -55,6 +56,9 @@ export function useLoginViewModel() {
         notify("success", i18n.language === "ar" ? "أهلاً بك مجدداً!" : "Welcome back!");
         const from = searchParams.get("from") || "/dashboard";
         navigate(from, { replace: true });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-change"));
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setAuthError(message);
@@ -77,9 +81,14 @@ export function useLoginViewModel() {
       setForgotLoading(true);
       appendLog(`SEC-AUTH: Dispatching password reset link to <${forgotEmail}>...`);
       try {
+        const csrfToken = await ensureCsrfToken();
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (csrfToken) {
+          headers["X-CSRF-Token"] = csrfToken;
+        }
         const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ email: forgotEmail }),
         });
         if (response.ok) {

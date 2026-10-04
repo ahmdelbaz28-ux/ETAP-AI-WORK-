@@ -63,20 +63,42 @@ export function useChatFirstUi(): ChatFirstUiState {
 
     evaluate();
 
-    const handleAuthChange = () => {
+    const handleAuthOrLocationChange = () => {
       evaluate();
     };
 
+    let restoreHistory: (() => void) | undefined;
+
     if (typeof window !== "undefined") {
-      window.addEventListener("auth-change", handleAuthChange);
-      window.addEventListener("storage", handleAuthChange);
+      window.addEventListener("auth-change", handleAuthOrLocationChange);
+      window.addEventListener("storage", handleAuthOrLocationChange);
+      window.addEventListener("popstate", handleAuthOrLocationChange);
+
+      const origPush = window.history.pushState;
+      const origReplace = window.history.replaceState;
+      window.history.pushState = function (...args) {
+        const res = origPush.apply(this, args);
+        evaluate();
+        return res;
+      };
+      window.history.replaceState = function (...args) {
+        const res = origReplace.apply(this, args);
+        evaluate();
+        return res;
+      };
+      restoreHistory = () => {
+        window.history.pushState = origPush;
+        window.history.replaceState = origReplace;
+      };
     }
 
     return () => {
       alive = false;
       if (typeof window !== "undefined") {
-        window.removeEventListener("auth-change", handleAuthChange);
-        window.removeEventListener("storage", handleAuthChange);
+        window.removeEventListener("auth-change", handleAuthOrLocationChange);
+        window.removeEventListener("storage", handleAuthOrLocationChange);
+        window.removeEventListener("popstate", handleAuthOrLocationChange);
+        restoreHistory?.();
       }
     };
   }, []);

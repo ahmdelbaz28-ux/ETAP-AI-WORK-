@@ -2,11 +2,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { useNotify } from "../context/NotificationContext";
+import { ensureCsrfToken } from "../lib/api";
 import { API_BASE_URL } from "../lib/api-config";
 
 function validatePasswordInput(pwd: string, confirm: string, isRtl: boolean): string | null {
   if (pwd.length < 8) {
-    return isRtl ? "يجب أن لا تقل كلمة المرور عن 8 خانات" : "Password must be at least 8 characters long";
+    return isRtl
+      ? "يجب أن لا تقل كلمة المرور عن 8 خانات"
+      : "Password must be at least 8 characters long";
   }
   if (pwd !== confirm) {
     return isRtl ? "كلمتا المرور غير متطابقتين" : "Passwords do not match";
@@ -15,7 +18,12 @@ function validatePasswordInput(pwd: string, confirm: string, isRtl: boolean): st
 }
 
 function resolveResetErrorMessage(data: unknown, isRtl: boolean): string {
-  if (typeof data === "object" && data !== null && "detail" in data && typeof (data as { detail: unknown }).detail === "string") {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "detail" in data &&
+    typeof (data as { detail: unknown }).detail === "string"
+  ) {
     return (data as { detail: string }).detail;
   }
   return isRtl ? "الرابط غير صالح أو منتهي الصلاحية" : "Invalid or expired reset token";
@@ -43,7 +51,10 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070b14]" dir={isRtl ? "rtl" : "ltr"}>
+      <div
+        className="min-h-screen flex items-center justify-center bg-[#070b14]"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
         <div className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
           <h1 className="text-lg font-bold text-white mb-2">
             {isRtl ? "رابط غير صالح" : "Invalid link"}
@@ -71,15 +82,23 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
+      const csrfToken = await ensureCsrfToken();
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken;
+      }
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/reset-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ token, new_password: newPassword }),
       });
       const data = await response.json().catch(() => null);
       if (response.ok) {
         setDone(true);
-        notify("success", isRtl ? "تمت إعادة تعيين كلمة المرور بنجاح" : "Password has been reset successfully");
+        notify(
+          "success",
+          isRtl ? "تمت إعادة تعيين كلمة المرور بنجاح" : "Password has been reset successfully",
+        );
       } else {
         setError(resolveResetErrorMessage(data, isRtl));
       }
@@ -96,13 +115,21 @@ export default function ResetPassword() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070b14]" dir={isRtl ? "rtl" : "ltr"}>
-        <div className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 text-center" data-testid="reset-success">
+      <div
+        className="min-h-screen flex items-center justify-center bg-[#070b14]"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
+        <div
+          className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 text-center"
+          data-testid="reset-success"
+        >
           <h1 className="text-lg font-bold text-green-400 mb-2">
             {isRtl ? "تمت إعادة التعيين بنجاح" : "Password reset successful"}
           </h1>
           <p className="text-sm text-slate-400 mb-4">
-            {isRtl ? "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة." : "You can now sign in with your new password."}
+            {isRtl
+              ? "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة."
+              : "You can now sign in with your new password."}
           </p>
           <Link to="/login" className="text-blue-400 hover:text-blue-300 text-sm font-semibold">
             {isRtl ? "تسجيل الدخول" : "Sign In"}
@@ -113,7 +140,10 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#070b14]" dir={isRtl ? "rtl" : "ltr"}>
+    <div
+      className="min-h-screen flex items-center justify-center bg-[#070b14]"
+      dir={isRtl ? "rtl" : "ltr"}
+    >
       <form
         onSubmit={handleSubmit}
         className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-4"
