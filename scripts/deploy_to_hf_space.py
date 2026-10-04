@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 
 HF_TOKEN = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN", "")
+if not HF_TOKEN and len(sys.argv) > 1 and sys.argv[1].startswith("hf_"):
+    HF_TOKEN = sys.argv[1]
 if not HF_TOKEN:
     # Attempt to read from .env if present
     env_file = Path(__file__).resolve().parent.parent / ".env"
@@ -122,6 +124,11 @@ def main() -> int:
         "security",
         "gis_integration",
         "adms_control",
+        "contracts",
+        "etap_integration",
+        "scripts",
+        "scada_model",
+        "scada_protocols",
         "data",
     ]
 
