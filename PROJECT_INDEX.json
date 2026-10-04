@@ -2,7 +2,7 @@
   "meta": {
     "project": "AhmedETAP — Power Systems Engineering AI Platform",
     "version": "2.1.0",
-    "generated_at": "2026-10-04T11:24:23.935311+00:00",
+    "generated_at": "2026-10-04T11:40:49.873274+00:00",
     "indexer_version": "2.0.0",
     "total_api_routes": 92,
     "total_help_topics": 0,
@@ -40,21 +40,21 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "agents.etap_expert_agent",
-            "__future__",
-            "agents.base",
-            "agents.arc_flash_agent",
-            "agents.battery_storage_agent",
             "agents.cable_sizing_agent",
-            "agents.digital_twin_agent",
+            "agents.base",
+            "agents.earth_grid_agent",
+            "agents.models",
+            "agents.renewable_agent",
+            "agents.stability_agent",
+            "agents.etap_gui_agent",
             "agents.orchestrator",
             "agents.motor_starting_agent",
-            "agents.etap_gui_agent",
-            "agents.stability_agent",
-            "agents.models",
+            "__future__",
+            "agents.etap_expert_agent",
+            "agents.arc_flash_agent",
             "agents.scada_agent",
-            "agents.renewable_agent",
-            "agents.earth_grid_agent"
+            "agents.battery_storage_agent",
+            "agents.digital_twin_agent"
           ]
         },
         "agents/ahmed_etap_orchestrator.py": {
@@ -196,19 +196,19 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "sys",
-            "asyncio",
-            "pathlib",
-            "agents.orchestrator",
             "logging",
-            "time",
+            "sys",
+            "enum",
+            "asyncio",
             "datetime",
             "typing",
-            "enum",
+            "json",
+            "math",
+            "time",
+            "__future__",
+            "agents.orchestrator",
             "dataclasses",
-            "math"
+            "pathlib"
           ]
         },
         "agents/anomaly_agent.py": {
@@ -236,12 +236,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
+            "numpy",
+            "datetime",
             "typing",
+            "agents.orchestrator",
+            "__future__",
             "ml.predictive"
           ]
         },
@@ -266,12 +266,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/base.py": {
@@ -298,14 +298,14 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "core.tracing",
-            "re",
+            "logging",
+            "agents.models",
             "agents.prompt_loader",
             "datetime",
-            "logging",
             "typing",
-            "agents.models"
+            "core.tracing",
+            "__future__",
+            "re"
           ]
         },
         "agents/battery_storage_agent.py": {
@@ -331,12 +331,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/browser_cua_executor.py": {
@@ -365,17 +365,17 @@
             }
           ],
           "imports": [
-            "contextlib",
+            "logging",
+            "asyncio",
+            "typing",
+            "agents.cua_base_executor",
+            "integrations.gemini_vision",
             "__future__",
             "uuid",
-            "asyncio",
+            "playwright.sync_api",
             "pathlib",
-            "integrations.gemini_vision",
-            "logging",
-            "typing",
-            "os",
-            "agents.cua_base_executor",
-            "playwright.sync_api"
+            "contextlib",
+            "os"
           ]
         },
         "agents/cable_sizing_agent.py": {
@@ -401,12 +401,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "orchestrator",
+            "__future__"
           ]
         },
         "agents/code_guard_agent.py": {
@@ -429,13 +429,13 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "guards",
-            "agents.orchestrator",
-            "guards.base",
             "logging",
+            "guards.base",
             "typing",
-            "time"
+            "agents.orchestrator",
+            "time",
+            "__future__",
+            "guards"
           ]
         },
         "agents/coordination_agent.py": {
@@ -461,13 +461,13 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "curves.curves",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "curves.curves",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/cua_base_executor.py": {
@@ -514,17 +514,17 @@
           ],
           "functions": [],
           "imports": [
-            "contextlib",
-            "__future__",
-            "pathlib",
             "logging",
-            "time",
+            "pathlib",
             "datetime",
-            "typing",
-            "integrations.resilience",
-            "abc",
-            "dataclasses",
             "agents.life_safety",
+            "typing",
+            "abc",
+            "time",
+            "__future__",
+            "dataclasses",
+            "integrations.resilience",
+            "contextlib",
             "os"
           ]
         },
@@ -554,20 +554,20 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
             "sys",
+            "pyautogui",
+            "PIL",
+            "integrations.supabase_integration",
+            "datetime",
+            "agents.cua_base_executor",
+            "shutil",
+            "pytesseract",
+            "time",
+            "__future__",
             "uuid",
             "integrations.gemini_vision",
-            "pytesseract",
-            "logging",
-            "time",
-            "datetime",
-            "PIL",
-            "shutil",
-            "pyautogui",
-            "os",
-            "integrations.supabase_integration",
-            "agents.cua_base_executor"
+            "os"
           ]
         },
         "agents/design_agent.py": {
@@ -588,14 +588,14 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "api.feature_flags",
-            "agents.base",
-            "core.tracing",
-            "datetime",
             "logging",
+            "agents.base",
             "agents.models",
-            "math"
+            "datetime",
+            "core.tracing",
+            "math",
+            "__future__",
+            "api.feature_flags"
           ]
         },
         "agents/digital_twin_agent.py": {
@@ -620,13 +620,13 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
+            "numpy",
+            "datetime",
+            "digital_twin.validation_gateway",
             "typing",
-            "digital_twin.validation_gateway"
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/earth_grid_agent.py": {
@@ -654,12 +654,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "orchestrator",
+            "__future__"
           ]
         },
         "agents/etap_expert_agent.py": {
@@ -682,16 +682,16 @@
           ],
           "functions": [],
           "imports": [
-            "agents.etap_expert.classifier",
-            "__future__",
-            "json",
+            "logging",
             "agents.etap_expert.simulator",
             "sys",
-            "pathlib",
-            "agents.orchestrator",
-            "logging",
+            "agents.etap_expert.formatter",
             "typing",
-            "agents.etap_expert.formatter"
+            "json",
+            "agents.orchestrator",
+            "__future__",
+            "agents.etap_expert.classifier",
+            "pathlib"
           ]
         },
         "agents/etap_gui_agent.py": {
@@ -728,23 +728,23 @@
             }
           ],
           "imports": [
-            "cv2",
-            "__future__",
-            "json",
+            "logging",
             "sys",
+            "pyautogui",
             "agents.cua_executor",
+            "PIL",
+            "agents.life_safety",
+            "typing",
+            "json",
+            "shutil",
+            "pytesseract",
+            "agents.orchestrator",
+            "__future__",
             "agents.browser_cua_executor",
             "pathlib",
-            "agents.orchestrator",
-            "pytesseract",
-            "logging",
-            "typing",
-            "PIL",
-            "shutil",
-            "agents.life_safety",
-            "pyautogui",
-            "os",
-            "google.generativeai"
+            "google.generativeai",
+            "cv2",
+            "os"
           ]
         },
         "agents/goal_planner_agent.py": {
@@ -770,12 +770,12 @@
           ],
           "functions": [],
           "imports": [
-            "agents.optimizers.adaptive_planner",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__",
+            "agents.optimizers.adaptive_planner"
           ]
         },
         "agents/life_safety.py": {
@@ -844,25 +844,25 @@
             }
           ],
           "imports": [
+            "PIL",
+            "datetime",
+            "inspect",
             "__future__",
-            "json",
-            "logging",
-            "hashlib",
             "pathlib",
             "os",
-            "hmac",
+            "logging",
+            "hashlib",
             "re",
-            "datetime",
+            "collections.abc",
+            "hmac",
             "requests",
             "integrations.siem_syslog",
-            "threading",
-            "PIL",
-            "time",
             "typing",
-            "inspect",
+            "json",
+            "time",
             "dataclasses",
-            "collections.abc",
-            "tempfile"
+            "tempfile",
+            "threading"
           ]
         },
         "agents/models.py": {
@@ -911,10 +911,10 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
+            "enum",
             "datetime",
             "typing",
-            "enum",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -942,14 +942,14 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "motor_starting.motor_models",
-            "agents.orchestrator",
-            "datetime",
             "logging",
+            "motor_starting.engine",
+            "numpy",
+            "datetime",
             "typing",
-            "motor_starting.engine"
+            "agents.orchestrator",
+            "__future__",
+            "motor_starting.motor_models"
           ]
         },
         "agents/orchestrator.py": {
@@ -986,22 +986,22 @@
             }
           ],
           "imports": [
-            "agents.workflow",
-            "__future__",
-            "core.tracing",
+            "logging",
             "agents.base",
-            "context_fabric.providers",
-            "agents.router",
-            "api.feature_flags",
+            "contracts.ai.models",
+            "agents.models",
+            "agents.workflow",
             "agents.prompt_loader",
             "datetime",
-            "logging",
             "typing",
-            "agents.models",
-            "agents.registry",
-            "contracts.ai.models",
+            "agents.router",
+            "context_fabric.providers",
             "services.memory_service",
-            "context_fabric.fabric"
+            "core.tracing",
+            "__future__",
+            "agents.registry",
+            "context_fabric.fabric",
+            "api.feature_flags"
           ]
         },
         "agents/output_schema_guard.py": {
@@ -1033,11 +1033,11 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "re",
             "logging",
             "typing",
+            "json",
+            "__future__",
+            "re",
             "dataclasses"
           ]
         },
@@ -1109,15 +1109,15 @@
             }
           ],
           "imports": [
+            "logging",
             "numpy",
-            "__future__",
-            "agents.orchestrator",
             "api.environment",
             "datetime",
             "typing",
-            "logging",
-            "os",
-            "ml.predictive"
+            "agents.orchestrator",
+            "__future__",
+            "ml.predictive",
+            "os"
           ]
         },
         "agents/prompt_loader.py": {
@@ -1187,20 +1187,20 @@
             }
           ],
           "imports": [
-            "integrations.langfuse_integration",
-            "__future__",
-            "json",
-            "asyncio",
-            "threading",
-            "pathlib",
             "logging",
-            "time",
-            "typing",
-            "engine.resilience",
-            "os",
-            "yaml",
             "httpx",
-            "hashlib"
+            "engine.resilience",
+            "asyncio",
+            "integrations.langfuse_integration",
+            "typing",
+            "json",
+            "threading",
+            "time",
+            "__future__",
+            "hashlib",
+            "yaml",
+            "pathlib",
+            "os"
           ]
         },
         "agents/registry.py": {
@@ -1326,30 +1326,30 @@
             }
           ],
           "imports": [
-            "__future__",
-            "core.tracing",
-            "agents.base",
-            "load_flow.optimal_power_flow",
-            "logging",
-            "etap_integration.etap_provider",
             "agents.models",
-            "coordination.coordination",
-            "load_flow.load_flow",
-            "fault_analysis.fault",
-            "agents.code_guard_agent",
-            "copilot.ai.engineering_assertions",
-            "agents.etap_gui_agent",
-            "numpy",
             "datetime",
             "guards.agent_output_scanner",
-            "reporting.advanced_reports",
-            "relays.relay",
-            "agents.etap_expert_agent",
-            "fault_analysis.harmonic_analysis",
+            "agents.code_guard_agent",
+            "__future__",
             "agents.output_schema_guard",
+            "logging",
+            "agents.base",
+            "coordination.coordination",
+            "relays.relay",
+            "core.tracing",
+            "load_flow.optimal_power_flow",
+            "agents.ahmed_etap_orchestrator",
+            "fault_analysis.harmonic_analysis",
             "services.study_executor",
+            "agents.etap_expert_agent",
+            "load_flow.load_flow",
+            "reporting.advanced_reports",
+            "numpy",
+            "copilot.ai.engineering_assertions",
             "typing",
-            "agents.ahmed_etap_orchestrator"
+            "etap_integration.etap_provider",
+            "agents.etap_gui_agent",
+            "fault_analysis.fault"
           ]
         },
         "agents/renewable_agent.py": {
@@ -1381,15 +1381,15 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "scipy.special",
-            "agents.orchestrator",
-            "datetime",
             "logging",
+            "numpy",
+            "datetime",
             "typing",
+            "agents.orchestrator",
+            "math",
+            "__future__",
             "dataclasses",
-            "math"
+            "scipy.special"
           ]
         },
         "agents/router.py": {
@@ -1447,13 +1447,13 @@
             }
           ],
           "imports": [
-            "__future__",
             "logging",
-            "typing",
-            "agents.optimizers.bandit_router",
-            "dataclasses",
+            "core.exceptions",
             "agents.models",
-            "core.exceptions"
+            "agents.optimizers.bandit_router",
+            "typing",
+            "__future__",
+            "dataclasses"
           ]
         },
         "agents/scada_agent.py": {
@@ -1497,12 +1497,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/stability_agent.py": {
@@ -1527,12 +1527,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/weather_agent.py": {
@@ -1557,12 +1557,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.orchestrator",
-            "datetime",
             "logging",
-            "typing"
+            "numpy",
+            "datetime",
+            "typing",
+            "agents.orchestrator",
+            "__future__"
           ]
         },
         "agents/workflow.py": {
@@ -1586,22 +1586,22 @@
           ],
           "functions": [],
           "imports": [
-            "agents.optimizers.adaptive_planner",
-            "__future__",
-            "core.tracing",
-            "uuid",
-            "agents.base",
-            "agents.router",
-            "asyncio",
-            "contracts.ai",
             "logging",
-            "time",
+            "agents.base",
+            "agents.models",
+            "asyncio",
             "datetime",
-            "typing",
             "api.session_stream",
             "copilot.ai.engineering_assertions",
-            "agents.models",
-            "agents.registry"
+            "typing",
+            "agents.router",
+            "contracts.ai",
+            "core.tracing",
+            "time",
+            "uuid",
+            "__future__",
+            "agents.registry",
+            "agents.optimizers.adaptive_planner"
           ]
         },
         "agents/optimizers/__init__.py": {
@@ -1613,9 +1613,9 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "agents.optimizers.adaptive_planner",
             "agents.optimizers.optimization_agent",
-            "agents.optimizers.bandit_router"
+            "agents.optimizers.bandit_router",
+            "agents.optimizers.adaptive_planner"
           ]
         },
         "agents/optimizers/adaptive_planner.py": {
@@ -1648,9 +1648,9 @@
           ],
           "functions": [],
           "imports": [
+            "logging",
             "dataclasses",
             "__future__",
-            "logging",
             "typing"
           ]
         },
@@ -1677,14 +1677,14 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "agents.router",
             "logging",
-            "typing",
-            "agents.models",
             "core.exceptions",
+            "agents.models",
+            "numpy",
+            "typing",
+            "agents.router",
             "math",
+            "__future__",
             "hashlib"
           ]
         },
@@ -1707,14 +1707,14 @@
           ],
           "functions": [],
           "imports": [
-            "load_flow.optimizers.pso_opf",
-            "__future__",
-            "agents.orchestrator",
-            "engine.optimizers.filter_design_pso",
             "logging",
+            "load_flow.optimizers.pso_opf",
+            "engine.optimizers.placement_pso",
             "typing",
-            "coordination.optimizers.pso_coordinator",
-            "engine.optimizers.placement_pso"
+            "engine.optimizers.filter_design_pso",
+            "agents.orchestrator",
+            "__future__",
+            "coordination.optimizers.pso_coordinator"
           ]
         },
         "agents/etap_expert/__init__.py": {
@@ -1726,9 +1726,9 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "agents.etap_expert.classifier",
+            "agents.etap_expert.simulator",
             "agents.etap_expert.formatter",
-            "agents.etap_expert.simulator"
+            "agents.etap_expert.classifier"
           ]
         },
         "agents/etap_expert/classifier.py": {
@@ -1837,11 +1837,11 @@
             }
           ],
           "imports": [
+            "typing",
+            "math",
             "__future__",
             "re",
-            "typing",
-            "dataclasses",
-            "math"
+            "dataclasses"
           ]
         }
       }
@@ -1893,11 +1893,11 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "fastapi",
             "logging",
-            "typing"
+            "fastapi",
+            "typing",
+            "__future__",
+            "hmac"
           ]
         },
         "api/_messages.py": {
@@ -1945,13 +1945,13 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "fastapi",
-            "ipaddress",
-            "threading",
             "logging",
+            "fastapi",
+            "hmac",
+            "threading",
             "time",
+            "__future__",
+            "ipaddress",
             "os"
           ]
         },
@@ -1983,11 +1983,11 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "fastapi",
             "logging",
-            "os"
+            "fastapi",
+            "__future__",
+            "os",
+            "hmac"
           ]
         },
         "api/agent_executor.py": {
@@ -2061,26 +2061,26 @@
             }
           ],
           "imports": [
+            "api.approvals",
+            "datetime",
+            "sqlalchemy.ext.asyncio",
             "__future__",
-            "uuid",
-            "fastapi",
+            "api.feature_flags",
             "logging",
-            "pydantic",
-            "sqlalchemy",
-            "api.session_stream",
+            "asyncio",
+            "uuid",
+            "api.session_ownership",
             "api.database",
             "api.tool_policy",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "asyncio",
-            "agents.orchestrator",
-            "api.rag_retriever_redis",
-            "api.approvals",
+            "pydantic",
+            "api.session_stream",
+            "fastapi",
             "api.dependencies",
-            "datetime",
-            "api.session_ownership",
-            "time",
             "typing",
+            "agents.orchestrator",
+            "time",
+            "sqlalchemy",
+            "api.rag_retriever_redis",
             "dataclasses"
           ],
           "api_routes": [
@@ -2237,36 +2237,36 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "fastapi",
-            "logging",
-            "api.cua_confirmation_ws",
-            "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
-            "api.database",
-            "api.shared_handlers",
-            "socket",
-            "sqlalchemy.ext.asyncio",
-            "pathlib",
-            "agents.orchestrator",
-            "agents.etap_gui_agent",
-            "agents.life_safety",
-            "os",
             "api.approvals",
-            "api._messages",
-            "api.dependencies",
-            "re",
-            "services",
+            "fastapi.responses",
             "datetime",
+            "agents.life_safety",
+            "sqlalchemy.ext.asyncio",
+            "__future__",
+            "compat",
+            "os",
+            "logging",
+            "services.mcp_probe",
+            "services",
+            "socket",
+            "api.shared_handlers",
+            "api.session_ownership",
+            "integrations.gemini_vision",
+            "re",
+            "agents.ahmed_etap_orchestrator",
+            "sys",
+            "api.database",
             "agents.prompt_loader",
+            "integrations.siem_syslog",
             "agents.etap_expert_agent",
             "services.agent_safety",
-            "api.session_ownership",
-            "sys",
-            "integrations.siem_syslog",
-            "integrations.gemini_vision"
+            "pydantic",
+            "api._messages",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "json",
+            "agents.etap_gui_agent"
           ],
           "api_routes": [
             {
@@ -2402,20 +2402,20 @@
             }
           ],
           "imports": [
-            "numpy",
-            "hmac",
-            "fastapi",
-            "api._messages",
-            "api.dependencies",
-            "api.environment",
             "logging",
-            "typing",
+            "api._messages",
+            "numpy",
             "fastapi.responses",
+            "api.environment",
+            "fastapi",
+            "api.dependencies",
             "knowledge.rag_engine",
+            "typing",
+            "math",
             "dataclasses",
             "os",
-            "math",
-            "ml.predictive"
+            "ml.predictive",
+            "hmac"
           ],
           "api_routes": [
             {
@@ -2488,14 +2488,14 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
             "logging",
-            "typing",
+            "api._rate_limit",
             "fastapi.responses",
+            "fastapi",
+            "typing",
+            "__future__",
             "api._cdn_base",
-            "os",
-            "api._rate_limit"
+            "os"
           ]
         },
         "api/answer_schema.py": {
@@ -2526,9 +2526,9 @@
           ],
           "functions": [],
           "imports": [
+            "pydantic",
             "__future__",
-            "typing",
-            "pydantic"
+            "typing"
           ]
         },
         "api/approvals.py": {
@@ -2644,22 +2644,22 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "api.dual_control",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "api.session_ownership",
-            "api.tool_policy",
-            "datetime",
-            "typing",
+            "api.database",
             "pydantic",
-            "sqlalchemy",
+            "api.session_ownership",
             "sqlalchemy.orm",
             "sqlalchemy.exc",
-            "api.database",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "api.tool_policy",
+            "typing",
+            "api.dual_control",
+            "json",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
             "hashlib"
           ],
           "api_routes": [
@@ -2764,19 +2764,19 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
-            "pydantic",
-            "sqlalchemy",
-            "compat",
-            "sqlalchemy.orm",
             "api.database",
-            "typing_extensions"
+            "typing_extensions",
+            "pydantic",
+            "sqlalchemy.orm",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "compat"
           ]
         },
         "api/audit_logs.py": {
@@ -2862,17 +2862,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
+            "pydantic",
+            "fastapi.responses",
+            "datetime",
             "fastapi",
             "api.dependencies",
-            "csv",
-            "datetime",
             "typing",
-            "fastapi.responses",
-            "pydantic",
             "io",
-            "math"
+            "csv",
+            "math",
+            "uuid",
+            "__future__"
           ],
           "api_routes": [
             {
@@ -3076,36 +3076,36 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "redis.asyncio",
-            "logging",
-            "pydantic",
-            "security.mfa",
-            "sqlalchemy",
             "sqlalchemy.exc",
-            "urllib.parse",
-            "api.rate_limit",
-            "api.database",
-            "hashlib",
-            "typing_extensions",
-            "sqlalchemy.ext.asyncio",
-            "asyncio",
-            "services.email_service",
-            "os",
-            "services.email_send_log",
-            "api._rate_limit",
-            "api._messages",
-            "collections",
-            "api.dependencies",
-            "jwt",
             "datetime",
+            "api.rate_limit",
+            "services.email_send_log",
+            "sqlalchemy.ext.asyncio",
+            "urllib.parse",
+            "jwt",
+            "__future__",
+            "os",
+            "logging",
+            "typing_extensions",
+            "asyncio",
+            "collections",
+            "redis.asyncio",
+            "uuid",
+            "hashlib",
+            "api.database",
             "sqlalchemy.orm",
-            "threading",
-            "time",
+            "services.email_service",
+            "security.mfa",
+            "pydantic",
+            "api._messages",
+            "api._rate_limit",
+            "fastapi",
+            "api.dependencies",
             "typing",
-            "bcrypt"
+            "bcrypt",
+            "time",
+            "sqlalchemy",
+            "threading"
           ]
         },
         "api/autodesk_connectors.py": {
@@ -3191,18 +3191,18 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "enum",
+            "pydantic",
+            "autodesk_connector.autocad.connector",
+            "datetime",
             "fastapi",
             "api.dependencies",
-            "datetime",
             "typing",
-            "logging",
             "time",
-            "pydantic",
-            "enum",
-            "autodesk_connector.autocad.connector",
-            "compat",
-            "autodesk_connector.revit.connector"
+            "__future__",
+            "autodesk_connector.revit.connector",
+            "compat"
           ]
         },
         "api/cad_simready.py": {
@@ -3246,12 +3246,12 @@
             }
           ],
           "imports": [
+            "logging",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
             "api.dependencies",
-            "logging",
-            "typing",
-            "pydantic",
-            "fastapi.responses"
+            "typing"
           ],
           "api_routes": [
             {
@@ -3333,29 +3333,29 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "fastapi",
-            "logging",
-            "fastapi.responses",
-            "pydantic",
-            "typing_extensions",
-            "contextlib",
             "integrations.model_router",
+            "fastapi.responses",
+            "__future__",
             "api.feature_flags",
-            "asyncio",
-            "copilot.ai.engineering_assertions",
             "os",
-            "integrations.langfuse_integration",
-            "api.dependencies",
+            "logging",
+            "httpx",
+            "typing_extensions",
+            "asyncio",
+            "integrations.provider_policy",
             "re",
             "agents.prompt_loader",
-            "integrations.provider_policy",
             "api.token_budget",
-            "time",
+            "contextlib",
+            "pydantic",
+            "fastapi",
+            "api.dependencies",
+            "integrations.langfuse_integration",
             "typing",
-            "api.answer_schema",
-            "httpx"
+            "copilot.ai.engineering_assertions",
+            "json",
+            "time",
+            "api.answer_schema"
           ]
         },
         "api/cloudflare_protection.py": {
@@ -3398,15 +3398,15 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "fastapi",
             "logging",
-            "typing",
+            "api._rate_limit",
             "fastapi.responses",
+            "fastapi",
+            "typing",
+            "json",
+            "__future__",
             "api._cdn_base",
-            "os",
-            "api._rate_limit"
+            "os"
           ]
         },
         "api/components.py": {
@@ -3534,23 +3534,23 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "re",
-            "pathlib",
-            "api.dependencies",
             "logging",
-            "datetime",
-            "typing",
-            "pydantic",
-            "sqlalchemy",
-            "compat",
-            "sqlalchemy.orm",
             "api.database",
-            "integrations.etap_component_importer"
+            "pydantic",
+            "sqlalchemy.orm",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "integrations.etap_component_importer",
+            "typing",
+            "json",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "re",
+            "compat",
+            "pathlib"
           ],
           "api_routes": [
             {
@@ -3606,15 +3606,15 @@
             }
           ],
           "imports": [
-            "__future__",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
-            "context_fabric.providers",
             "api.dependencies",
             "typing",
-            "fastapi.responses",
-            "pydantic",
-            "context_fabric.fabric",
-            "api.shared_handlers"
+            "context_fabric.providers",
+            "api.shared_handlers",
+            "__future__",
+            "context_fabric.fabric"
           ]
         },
         "api/copilot_config.py": {
@@ -3676,14 +3676,14 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
             "api.dependencies",
-            "re",
-            "logging",
             "typing",
-            "fastapi.responses",
-            "pydantic"
+            "__future__",
+            "re"
           ],
           "api_routes": [
             {
@@ -3762,19 +3762,19 @@
           ],
           "functions": [],
           "imports": [
-            "aiofiles",
-            "contextlib",
-            "__future__",
-            "json",
             "sys",
-            "asyncio",
-            "re",
-            "pathlib",
-            "typing",
+            "dataclasses",
             "argparse",
             "ast",
-            "dataclasses",
+            "asyncio",
+            "pathlib",
+            "aiofiles",
+            "typing",
+            "json",
+            "__future__",
+            "re",
             "compat",
+            "contextlib",
             "os"
           ]
         },
@@ -3819,17 +3819,17 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "fastapi",
-            "api.environment",
             "logging",
+            "fastapi.responses",
+            "api.environment",
+            "fastapi",
+            "hmac",
+            "typing",
             "secrets",
             "time",
-            "typing",
-            "fastapi.responses",
-            "os",
-            "hashlib"
+            "__future__",
+            "hashlib",
+            "os"
           ],
           "api_routes": [
             {
@@ -3892,21 +3892,21 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "hmac",
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
+            "logging",
             "api.websocket",
             "asyncio",
-            "api.dependencies",
-            "threading",
-            "logging",
             "datetime",
+            "fastapi",
+            "api.dependencies",
             "typing",
+            "json",
+            "threading",
+            "__future__",
+            "uuid",
             "dataclasses",
-            "os"
+            "os",
+            "contextlib",
+            "hmac"
           ]
         },
         "api/data_import.py": {
@@ -3998,30 +3998,30 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "api.dual_control",
-            "csv",
-            "logging",
-            "pydantic",
-            "sqlalchemy",
-            "api.session_stream",
-            "api.database",
-            "typing_extensions",
-            "api.feature_flags",
-            "importlib",
-            "sqlalchemy.ext.asyncio",
-            "io",
             "api.approvals",
-            "api.dependencies",
-            "re",
             "datetime",
+            "api.dual_control",
+            "sqlalchemy.ext.asyncio",
+            "csv",
+            "__future__",
             "api.results_store",
-            "threading",
+            "api.feature_flags",
+            "logging",
+            "typing_extensions",
+            "io",
+            "uuid",
+            "re",
+            "api.database",
+            "pydantic",
+            "importlib",
+            "api.session_stream",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "json",
             "time",
-            "typing"
+            "sqlalchemy",
+            "threading"
           ]
         },
         "api/database.py": {
@@ -4065,29 +4065,29 @@
             }
           ],
           "imports": [
-            "__future__",
             "api.assets",
-            "logging",
-            "sqlalchemy.engine.url",
-            "sqlalchemy",
-            "api.tenants",
-            "api.study_versions",
-            "contextlib",
-            "api.components",
-            "sqlalchemy.ext.asyncio",
-            "api.notification_config",
-            "os",
-            "api.export",
-            "api.environment",
-            "api.rbac",
             "core",
-            "api.models.solver_parameters",
-            "sqlalchemy.orm",
-            "sys",
+            "sqlalchemy.ext.asyncio",
+            "__future__",
+            "api.notification_config",
+            "sqlalchemy.pool",
             "api.auth",
-            "api.projects",
+            "logging",
+            "os",
+            "api.tenants",
+            "api.export",
             "collections.abc",
-            "sqlalchemy.pool"
+            "sys",
+            "api.study_versions",
+            "sqlalchemy.orm",
+            "api.environment",
+            "contextlib",
+            "api.rbac",
+            "sqlalchemy.engine.url",
+            "api.models.solver_parameters",
+            "sqlalchemy",
+            "api.projects",
+            "api.components"
           ]
         },
         "api/database_migrations.py": {
@@ -4130,15 +4130,15 @@
             }
           ],
           "imports": [
-            "__future__",
-            "alembic.config",
-            "pathlib",
-            "asyncio",
-            "alembic",
             "logging",
+            "asyncio",
             "typing",
-            "os",
-            "alembic.script"
+            "alembic",
+            "alembic.config",
+            "__future__",
+            "pathlib",
+            "alembic.script",
+            "os"
           ]
         },
         "api/dependencies.py": {
@@ -4208,22 +4208,22 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "fastapi",
-            "api._messages",
-            "api.auth",
-            "sqlalchemy.ext.asyncio",
-            "api.environment",
-            "jwt",
-            "api.request_context",
-            "secrets",
             "logging",
-            "typing",
+            "api.database",
             "pydantic",
+            "api._messages",
+            "api.environment",
+            "fastapi",
+            "hmac",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "jwt",
+            "secrets",
             "sqlalchemy",
-            "os",
-            "api.database"
+            "__future__",
+            "api.request_context",
+            "api.auth",
+            "os"
           ],
           "api_routes": [
             {
@@ -4248,13 +4248,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "api._messages",
-            "api.dependencies",
             "logging",
+            "api._messages",
+            "fastapi.responses",
+            "fastapi",
+            "api.dependencies",
             "time",
-            "fastapi.responses"
+            "__future__"
           ],
           "api_routes": [
             {
@@ -4321,17 +4321,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "core.security_logging",
-            "threading",
-            "re",
-            "asyncio",
             "logging",
+            "asyncio",
+            "datetime",
+            "core.security_logging",
+            "typing",
+            "json",
             "secrets",
             "time",
-            "datetime",
-            "typing"
+            "__future__",
+            "re",
+            "threading"
           ]
         },
         "api/email_dashboard.py": {
@@ -4386,16 +4386,16 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "typing_extensions",
+            "fastapi.responses",
             "fastapi",
             "api._test_mode",
             "api.dependencies",
-            "logging",
             "typing",
-            "fastapi.responses",
-            "os",
             "services.email_send_log",
-            "typing_extensions"
+            "__future__",
+            "os"
           ],
           "api_routes": [
             {
@@ -4465,20 +4465,20 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "api.auth",
-            "api.dependencies",
-            "datetime",
-            "typing",
             "logging",
-            "fastapi.responses",
+            "typing_extensions",
             "pydantic",
+            "fastapi.responses",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
             "services.email_service",
-            "integrations.resend_email",
-            "os",
+            "typing",
             "services.email_send_log",
-            "typing_extensions"
+            "integrations.resend_email",
+            "__future__",
+            "api.auth",
+            "os"
           ]
         },
         "api/email_otp.py": {
@@ -4534,20 +4534,20 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "typing_extensions",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
             "api._test_mode",
-            "services.otp_store",
             "api.dependencies",
-            "logging",
-            "typing",
-            "fastapi.responses",
-            "pydantic",
             "services.email_service",
+            "typing",
             "secrets",
-            "time",
+            "services.otp_store",
+            "__future__",
             "hashlib",
-            "typing_extensions"
+            "time"
           ]
         },
         "api/email_webhooks.py": {
@@ -4629,30 +4629,30 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "ipaddress",
-            "logging",
             "fastapi.responses",
-            "pydantic",
-            "urllib.parse",
-            "hashlib",
-            "typing_extensions",
-            "socket",
-            "asyncio",
-            "os",
-            "hmac",
-            "api.dependencies",
-            "urllib.request",
             "datetime",
+            "urllib.parse",
+            "__future__",
+            "os",
+            "logging",
+            "typing_extensions",
+            "asyncio",
+            "urllib.request",
+            "socket",
+            "uuid",
+            "ipaddress",
+            "hashlib",
+            "hmac",
             "base64",
-            "threading",
-            "time",
-            "typing",
             "urllib.error",
-            "dataclasses"
+            "pydantic",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "json",
+            "time",
+            "dataclasses",
+            "threading"
           ]
         },
         "api/environment.py": {
@@ -4836,22 +4836,22 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "csv",
             "logging",
-            "datetime",
-            "typing",
-            "pydantic",
-            "sqlalchemy",
+            "api.database",
             "api.rbac",
-            "io",
+            "pydantic",
             "sqlalchemy.orm",
-            "api.database"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "io",
+            "json",
+            "csv",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "__future__",
+            "uuid"
           ]
         },
         "api/error_debugger.py": {
@@ -4968,19 +4968,19 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "platform",
+            "logging",
             "sys",
             "traceback",
-            "uuid",
-            "re",
-            "logging",
             "datetime",
+            "platform",
             "typing",
+            "json",
+            "__future__",
+            "uuid",
             "dataclasses",
+            "re",
             "compat",
+            "contextlib",
             "os"
           ]
         },
@@ -5037,21 +5037,21 @@
             }
           ],
           "imports": [
-            "api.approvals",
-            "__future__",
-            "api.dual_control",
-            "fastapi",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
             "logging",
+            "api.approvals",
+            "api.database",
             "pydantic",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "api.dual_control",
+            "sqlalchemy.ext.asyncio",
             "sqlalchemy",
+            "__future__",
             "etap_integration.etap_rest",
-            "os",
-            "api.database"
+            "api.feature_flags",
+            "os"
           ]
         },
         "api/export.py": {
@@ -5149,35 +5149,35 @@
             }
           ],
           "imports": [
+            "engine.benchmarks.ieee_cases",
+            "fastapi.responses",
+            "datetime",
+            "api.dual_control",
+            "sqlalchemy.ext.asyncio",
             "fault_analysis.iec60909_engine",
             "__future__",
-            "api.dual_control",
-            "uuid",
-            "fastapi",
-            "logging",
-            "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
-            "math",
-            "api.database",
-            "load_flow.load_flow",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "io",
-            "engine.engine",
-            "api._messages",
-            "api.dependencies",
-            "re",
-            "api.services.export_generator",
-            "engine.benchmarks.ieee_cases",
-            "datetime",
-            "api.rbac",
-            "cmath",
-            "sqlalchemy.orm",
             "api.results_store",
+            "api.feature_flags",
+            "logging",
+            "engine.engine",
+            "io",
+            "math",
+            "uuid",
+            "re",
+            "api.database",
+            "sqlalchemy.orm",
+            "cmath",
+            "load_flow.load_flow",
+            "api.rbac",
+            "pydantic",
+            "api._messages",
+            "api.services.export_generator",
             "types",
-            "time",
+            "fastapi",
+            "api.dependencies",
             "typing",
+            "time",
+            "sqlalchemy",
             "api.projects"
           ],
           "api_routes": [
@@ -5280,24 +5280,24 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "fastapi",
-            "filelock",
-            "api.dependencies",
-            "re",
-            "threading",
-            "pathlib",
             "logging",
-            "copy",
-            "datetime",
-            "typing",
-            "fastapi.responses",
+            "typing_extensions",
             "pydantic",
-            "os",
+            "pathlib",
+            "fastapi.responses",
+            "datetime",
+            "copy",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "filelock",
+            "json",
+            "threading",
+            "__future__",
             "hashlib",
-            "typing_extensions"
+            "re",
+            "contextlib",
+            "os"
           ],
           "api_routes": [
             {
@@ -5361,24 +5361,24 @@
             }
           ],
           "imports": [
-            "api.approvals",
-            "__future__",
-            "api.dual_control",
-            "fastapi",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
             "logging",
-            "pydantic",
-            "sqlalchemy",
-            "gis_integration.providers.arcgis_provider",
-            "os",
+            "api.approvals",
+            "api.database",
             "gis_integration.exceptions",
+            "pydantic",
+            "gis_integration.providers.arcgis_provider",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "api.dual_control",
+            "sqlalchemy.ext.asyncio",
             "gis_integration.utils",
             "urllib.parse",
-            "api.database"
+            "sqlalchemy",
+            "__future__",
+            "api.feature_flags",
+            "os"
           ]
         },
         "api/health.py": {
@@ -5470,23 +5470,23 @@
             }
           ],
           "imports": [
+            "logging",
+            "core.metrics",
+            "api.database",
+            "core.bootstrap",
+            "pydantic",
+            "api._messages",
+            "fastapi.responses",
             "numpy",
             "fastapi",
-            "api._messages",
-            "core.bootstrap",
-            "api.auth",
-            "logging",
-            "time",
-            "fastapi.responses",
             "typing",
-            "pydantic",
             "etap_integration.etap_provider",
-            "api.database_migrations",
-            "os",
-            "core.metrics",
+            "api.shared_handlers",
+            "time",
             "scipy",
-            "api.database",
-            "api.shared_handlers"
+            "api.database_migrations",
+            "api.auth",
+            "os"
           ],
           "api_routes": [
             {
@@ -5582,27 +5582,27 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "secrets",
-            "logging",
             "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
-            "api.database",
-            "hashlib",
-            "typing_extensions",
-            "api._test_mode",
-            "services.email_service",
-            "os",
-            "api.dependencies",
             "datetime",
-            "integrations.resend_email",
+            "__future__",
             "api.auth",
-            "threading",
-            "time",
+            "logging",
+            "os",
+            "typing_extensions",
+            "hashlib",
+            "api.database",
+            "services.email_service",
+            "secrets",
+            "pydantic",
+            "fastapi",
+            "api._test_mode",
+            "api.dependencies",
             "typing",
-            "dataclasses"
+            "integrations.resend_email",
+            "time",
+            "sqlalchemy",
+            "dataclasses",
+            "threading"
           ]
         },
         "api/mfa.py": {
@@ -5652,21 +5652,21 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "api._messages",
-            "collections",
-            "api.dependencies",
-            "threading",
-            "api.auth",
             "logging",
-            "time",
-            "fastapi.responses",
+            "api.database",
             "pydantic",
+            "api._messages",
+            "fastapi.responses",
+            "fastapi",
+            "api.dependencies",
+            "collections",
+            "time",
+            "__future__",
+            "hashlib",
             "security.mfa",
             "sqlalchemy",
-            "api.database",
-            "hashlib"
+            "api.auth",
+            "threading"
           ],
           "api_routes": [
             {
@@ -5799,22 +5799,22 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "core.security_logging",
-            "api.dependencies",
-            "re",
-            "datetime",
             "logging",
-            "typing",
-            "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
-            "security.secrets_manager",
-            "sqlalchemy.orm",
             "api.database",
-            "api.email_webhooks"
+            "pydantic",
+            "api.email_webhooks",
+            "sqlalchemy.orm",
+            "fastapi.responses",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "core.security_logging",
+            "typing",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "security.secrets_manager",
+            "re"
           ]
         },
         "api/notifications.py": {
@@ -5923,24 +5923,24 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "api.auth",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
+            "logging",
+            "api.database",
+            "enum",
             "pydantic",
             "api.rbac",
-            "sqlalchemy",
-            "enum",
-            "services.email_service",
-            "logging",
-            "os",
             "sqlalchemy.orm",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "services.email_service",
+            "typing",
             "services.email_send_log",
-            "api.database"
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "api.auth",
+            "os"
           ]
         },
         "api/pe_stamp.py": {
@@ -5995,13 +5995,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
+            "logging",
             "datetime",
             "typing",
-            "logging",
-            "dataclasses",
-            "hashlib"
+            "json",
+            "__future__",
+            "hashlib",
+            "dataclasses"
           ]
         },
         "api/projects.py": {
@@ -6131,21 +6131,21 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "api._messages",
-            "sqlalchemy.ext.asyncio",
-            "api.auth",
-            "api.dependencies",
-            "datetime",
-            "typing",
-            "pydantic",
-            "sqlalchemy",
-            "compat",
-            "sqlalchemy.orm",
             "api.database",
-            "typing_extensions"
+            "typing_extensions",
+            "pydantic",
+            "api._messages",
+            "sqlalchemy.orm",
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "compat",
+            "api.auth"
           ]
         },
         "api/prompt_registry.py": {
@@ -6205,13 +6205,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "threading",
             "logging",
-            "secrets",
             "copy",
-            "time",
             "typing",
+            "threading",
+            "secrets",
+            "time",
+            "__future__",
             "dataclasses",
             "os"
           ]
@@ -6252,16 +6252,16 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "asyncio",
             "logging",
+            "asyncio",
             "copy",
-            "secrets",
-            "time",
+            "api.redis_client",
             "typing",
             "api.prompt_registry",
-            "api.redis_client",
+            "json",
+            "secrets",
+            "time",
+            "__future__",
             "os"
           ]
         },
@@ -6335,16 +6335,16 @@
             }
           ],
           "imports": [
-            "botocore.config",
-            "__future__",
-            "uuid",
-            "asyncio",
-            "threading",
             "logging",
-            "typing",
             "boto3",
-            "os",
-            "posixpath"
+            "botocore.config",
+            "asyncio",
+            "typing",
+            "threading",
+            "uuid",
+            "__future__",
+            "posixpath",
+            "os"
           ]
         },
         "api/rag_retriever.py": {
@@ -6388,19 +6388,19 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "json",
-            "asyncio",
-            "threading",
-            "re",
-            "copy",
             "logging",
-            "time",
-            "typing",
-            "dataclasses",
             "api.telemetry",
-            "hashlib"
+            "asyncio",
+            "numpy",
+            "copy",
+            "typing",
+            "json",
+            "time",
+            "__future__",
+            "hashlib",
+            "dataclasses",
+            "re",
+            "threading"
           ]
         },
         "api/rag_retriever_redis.py": {
@@ -6436,18 +6436,18 @@
             }
           ],
           "imports": [
-            "api.rag_retriever",
-            "numpy",
-            "__future__",
-            "json",
-            "re",
             "logging",
-            "copy",
-            "time",
-            "typing",
-            "api.redis_client",
+            "api.rag_retriever",
             "api.telemetry",
-            "hashlib"
+            "numpy",
+            "copy",
+            "api.redis_client",
+            "typing",
+            "json",
+            "time",
+            "__future__",
+            "hashlib",
+            "re"
           ]
         },
         "api/rate_limit.py": {
@@ -6521,21 +6521,21 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "slowapi.errors",
             "logging",
-            "time",
-            "inspect",
-            "typing",
-            "fastapi.responses",
-            "fastapi.dependencies.utils",
-            "os",
             "starlette.requests",
+            "fastapi.dependencies.utils",
+            "fastapi.responses",
+            "slowapi.errors",
+            "typing",
             "starlette.responses",
+            "json",
+            "inspect",
             "slowapi",
+            "time",
+            "__future__",
+            "hashlib",
             "slowapi.middleware",
-            "hashlib"
+            "os"
           ]
         },
         "api/rbac.py": {
@@ -6681,20 +6681,20 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "api._messages",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "api.auth",
-            "datetime",
-            "typing",
-            "pydantic",
-            "sqlalchemy",
+            "api.database",
             "functools",
+            "pydantic",
+            "api._messages",
             "sqlalchemy.orm",
-            "api.database"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "api.auth"
           ],
           "api_routes": [
             {
@@ -6749,11 +6749,11 @@
             }
           ],
           "imports": [
-            "__future__",
-            "redis.asyncio",
-            "asyncio",
             "logging",
+            "asyncio",
             "typing",
+            "redis.asyncio",
+            "__future__",
             "os"
           ]
         },
@@ -6822,17 +6822,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "api.dependencies",
-            "contextvars",
             "logging",
+            "starlette.requests",
+            "api.database",
+            "starlette.datastructures",
+            "api.dependencies",
             "typing",
             "sqlalchemy",
-            "os",
-            "starlette.datastructures",
-            "starlette.requests",
-            "api.database"
+            "uuid",
+            "__future__",
+            "contextvars",
+            "os"
           ]
         },
         "api/results_store.py": {
@@ -6942,26 +6942,26 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "logging",
             "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
-            "api.database",
-            "contextlib",
-            "asyncio",
-            "pathlib",
-            "shutil",
-            "api.rag_retriever_redis",
-            "os",
-            "api.dependencies",
-            "re",
             "datetime",
+            "shutil",
+            "__future__",
+            "os",
+            "logging",
+            "asyncio",
+            "uuid",
+            "re",
+            "api.database",
             "sqlalchemy.orm",
-            "typing"
+            "contextlib",
+            "pydantic",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "json",
+            "sqlalchemy",
+            "api.rag_retriever_redis",
+            "pathlib"
           ]
         },
         "api/risk_scoring.py": {
@@ -7175,36 +7175,36 @@
             }
           ],
           "imports": [
-            "api.security_headers",
-            "__future__",
-            "opentelemetry.trace",
-            "uuid",
-            "api.assets",
-            "json",
-            "redis.asyncio",
-            "api.autodesk_connectors",
-            "api.database",
-            "api.etap_draw",
-            "api.request_context",
-            "api.email_dashboard",
-            "api._messages",
-            "api.audit_logs",
-            "services.study_service",
-            "langwatch",
-            "security.wiring",
-            "sys",
+            "api.ai_ml",
+            "api.approvals",
+            "api.health",
+            "api.notification_config",
+            "os",
             "api.auth",
-            "fastapi.openapi.docs",
-            "core.tracing",
-            "api.websocket",
-            "api.data_import",
-            "api.email_otp",
-            "api.agent_executor",
-            "api.notifications",
-            "api.session_stream",
+            "api.mfa",
+            "api.csrf",
+            "api.magic_links",
+            "api.zip_generator_config",
+            "hmac",
+            "api.study_versions",
+            "api.database",
+            "starlette.datastructures",
+            "api.audit_logs",
+            "api.studies",
+            "api.etap_draw",
+            "api._rate_limit",
             "api.cua_confirmation_ws",
-            "api.email_webhooks",
-            "hashlib"
+            "api.solver_parameters",
+            "api.agents",
+            "api.email_otp",
+            "security.wiring",
+            "datetime",
+            "api.cad_simready",
+            "api.results_store",
+            "celery.result",
+            "api.gis_edits",
+            "traceback",
+            "opentelemetry.trace"
           ],
           "api_routes": [
             {
@@ -7274,29 +7274,29 @@
             }
           ],
           "imports": [
-            "__future__",
-            "api.dual_control",
-            "fastapi",
-            "scada_protocols.wiring",
-            "scada.models",
-            "logging",
+            "api.approvals",
             "fastapi.responses",
-            "pydantic",
-            "sqlalchemy",
+            "datetime",
+            "api.dual_control",
+            "sqlalchemy.ext.asyncio",
+            "scada_protocols.wiring",
+            "scada.control_executor",
+            "__future__",
+            "api.feature_flags",
+            "os",
+            "logging",
+            "httpx",
             "scada.interlock_engine",
             "api.database",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "scada.control_executor",
-            "os",
-            "api.approvals",
+            "scada.models",
+            "pydantic",
             "api._messages",
+            "fastapi",
             "api.dependencies",
-            "datetime",
-            "time",
             "typing",
-            "api.projects",
-            "httpx"
+            "time",
+            "sqlalchemy",
+            "api.projects"
           ]
         },
         "api/security_audit.py": {
@@ -7345,18 +7345,18 @@
           ],
           "functions": [],
           "imports": [
-            "aiofiles",
-            "contextlib",
-            "__future__",
-            "json",
             "sys",
-            "asyncio",
-            "re",
-            "pathlib",
-            "typing",
-            "argparse",
             "dataclasses",
+            "argparse",
+            "asyncio",
+            "pathlib",
+            "aiofiles",
+            "typing",
+            "json",
+            "__future__",
+            "re",
             "compat",
+            "contextlib",
             "os"
           ]
         },
@@ -7382,12 +7382,12 @@
           ],
           "functions": [],
           "imports": [
+            "starlette.datastructures",
+            "typing",
+            "starlette.responses",
             "__future__",
             "re",
-            "typing",
-            "os",
-            "starlette.datastructures",
-            "starlette.responses"
+            "os"
           ]
         },
         "api/semantic_cache.py": {
@@ -7436,21 +7436,21 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "json",
-            "asyncio",
-            "threading",
-            "pathlib",
-            "copy",
             "logging",
-            "time",
-            "typing",
             "api.telemetry",
-            "dataclasses",
-            "os",
+            "asyncio",
+            "numpy",
+            "copy",
+            "typing",
+            "json",
+            "threading",
             "math",
-            "hashlib"
+            "time",
+            "__future__",
+            "hashlib",
+            "dataclasses",
+            "pathlib",
+            "os"
           ]
         },
         "api/semantic_cache_redis.py": {
@@ -7489,18 +7489,18 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "json",
             "logging",
-            "copy",
-            "time",
-            "typing",
-            "api.redis_client",
-            "os",
             "api.telemetry",
             "api.semantic_cache",
-            "hashlib"
+            "numpy",
+            "copy",
+            "api.redis_client",
+            "typing",
+            "json",
+            "time",
+            "__future__",
+            "hashlib",
+            "os"
           ]
         },
         "api/session_ownership.py": {
@@ -7562,9 +7562,9 @@
             }
           ],
           "imports": [
-            "threading",
             "dataclasses",
-            "typing"
+            "typing",
+            "threading"
           ]
         },
         "api/session_redis.py": {
@@ -7595,16 +7595,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
             "logging",
+            "starlette.requests",
+            "api.redis_client",
+            "typing",
+            "json",
             "secrets",
             "time",
-            "typing",
+            "__future__",
             "starlette.types",
-            "api.redis_client",
-            "os",
-            "starlette.requests"
+            "os"
           ]
         },
         "api/session_stream.py": {
@@ -7695,27 +7695,27 @@
             }
           ],
           "imports": [
+            "datetime",
             "__future__",
-            "json",
-            "uuid",
-            "fastapi",
+            "api.auth",
             "logging",
-            "pydantic",
-            "sqlalchemy",
-            "api.database",
-            "hashlib",
             "typing_extensions",
             "asyncio",
-            "hmac",
             "collections",
-            "api.dependencies",
-            "re",
-            "datetime",
-            "base64",
+            "uuid",
+            "hashlib",
             "api.session_ownership",
-            "api.auth",
-            "time",
+            "re",
+            "hmac",
+            "api.database",
+            "base64",
+            "pydantic",
+            "fastapi",
+            "api.dependencies",
             "typing",
+            "json",
+            "time",
+            "sqlalchemy",
             "dataclasses"
           ]
         },
@@ -7796,16 +7796,16 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "httpx",
+            "typing_extensions",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
             "api.dependencies",
-            "re",
-            "logging",
             "typing",
-            "fastapi.responses",
-            "pydantic",
-            "typing_extensions",
-            "httpx",
+            "__future__",
+            "re",
             "services.api_key_store"
           ],
           "api_routes": [
@@ -7974,29 +7974,29 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "ai_context_engine.retriever",
-            "logging",
-            "pydantic",
             "agents.models",
-            "core_model.line",
-            "agents.etap_gui_agent",
-            "os",
             "core_model.system",
-            "ml.predictive",
-            "api._rate_limit",
-            "engine.engine",
-            "numpy",
-            "hmac",
-            "api._messages",
-            "api.dependencies",
             "datetime",
+            "core_model.bus",
+            "__future__",
+            "os",
+            "logging",
+            "ai_context_engine.retriever",
+            "engine.engine",
+            "hmac",
+            "core_model.line",
             "agents.etap_expert_agent",
-            "time",
-            "typing",
             "ai_context_engine.knowledge_graph",
-            "core_model.bus"
+            "ml.predictive",
+            "pydantic",
+            "api._messages",
+            "api._rate_limit",
+            "numpy",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "agents.etap_gui_agent",
+            "time"
           ]
         },
         "api/solver_parameters.py": {
@@ -8064,15 +8064,15 @@
             }
           ],
           "imports": [
-            "api.services.solver_parameter_service",
-            "__future__",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
             "logging",
-            "typing",
+            "api.database",
             "pydantic",
-            "api.database"
+            "api.services.solver_parameter_service",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "__future__"
           ]
         },
         "api/storage_management.py": {
@@ -8158,19 +8158,19 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "typing_extensions",
+            "api.rbac",
+            "pydantic",
+            "datetime",
             "fastapi",
             "api.dependencies",
-            "threading",
-            "re",
-            "logging",
-            "datetime",
             "typing",
-            "pydantic",
-            "api.rbac",
-            "os",
             "api.r2_storage",
-            "typing_extensions"
+            "__future__",
+            "re",
+            "os",
+            "threading"
           ]
         },
         "api/studies.py": {
@@ -8214,31 +8214,31 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "core_model.specs",
-            "logging",
-            "pydantic",
-            "core.metrics",
-            "api.database",
-            "api.shared_handlers",
-            "typing_extensions",
-            "core_model.line",
-            "api.feature_flags",
-            "sqlalchemy.ext.asyncio",
-            "core_model.system",
             "api.approvals",
-            "core_model.generator",
-            "core_model.load",
-            "core_model.transformer",
-            "api.dependencies",
-            "api.services.study_execution_service",
+            "core_model.system",
+            "sqlalchemy.ext.asyncio",
+            "core_model.bus",
+            "__future__",
             "api.results_store",
-            "services.study_executor",
+            "api.feature_flags",
+            "core_model.load",
+            "logging",
+            "typing_extensions",
             "core.bootstrap",
-            "typing",
+            "api.shared_handlers",
+            "core_model.generator",
+            "api.database",
+            "api.services.study_execution_service",
+            "core_model.line",
+            "core_model.transformer",
+            "core_model.specs",
+            "services.study_executor",
+            "core.metrics",
+            "pydantic",
             "api.semantic_cache_redis",
-            "core_model.bus"
+            "fastapi",
+            "api.dependencies",
+            "typing"
           ],
           "api_routes": [
             {
@@ -8322,22 +8322,22 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
-            "pydantic",
+            "api.database",
             "api.rbac",
-            "sqlalchemy",
-            "api.projects",
+            "pydantic",
             "sqlalchemy.orm",
+            "asyncio",
             "sqlalchemy.exc",
-            "api.database"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "json",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__",
+            "api.projects"
           ]
         },
         "api/task_queue.py": {
@@ -8369,13 +8369,13 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
             "logging",
-            "time",
+            "api.redis_client",
             "typing",
-            "api.redis_client"
+            "json",
+            "time",
+            "uuid",
+            "__future__"
           ]
         },
         "api/telemetry.py": {
@@ -8402,10 +8402,10 @@
           ],
           "functions": [],
           "imports": [
-            "threading",
-            "__future__",
             "logging",
-            "typing"
+            "typing",
+            "__future__",
+            "threading"
           ]
         },
         "api/templates.py": {
@@ -8485,18 +8485,18 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
-            "pydantic",
+            "api.database",
             "api.rbac",
-            "sqlalchemy",
+            "pydantic",
             "sqlalchemy.orm",
-            "api.database"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__"
           ],
           "api_routes": [
             {
@@ -8566,17 +8566,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "fastapi",
-            "sqlalchemy.ext.asyncio",
-            "api.dependencies",
-            "datetime",
-            "typing",
+            "api.database",
             "pydantic",
-            "sqlalchemy",
             "sqlalchemy.orm",
-            "api.database"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "sqlalchemy",
+            "uuid",
+            "__future__"
           ]
         },
         "api/token_budget.py": {
@@ -8610,12 +8610,12 @@
             }
           ],
           "imports": [
-            "__future__",
-            "threading",
             "logging",
-            "typing",
+            "api.telemetry",
             "api.session_stream",
-            "api.telemetry"
+            "typing",
+            "__future__",
+            "threading"
           ]
         },
         "api/token_budget_redis.py": {
@@ -8655,13 +8655,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "api.token_budget",
             "logging",
-            "typing",
+            "api.telemetry",
             "api.session_stream",
             "api.redis_client",
-            "api.telemetry"
+            "typing",
+            "api.token_budget",
+            "__future__"
           ]
         },
         "api/tool_policy.py": {
@@ -8711,13 +8711,13 @@
             }
           ],
           "imports": [
-            "core.units",
-            "__future__",
-            "json",
+            "pydantic",
             "fastapi",
             "api.dependencies",
             "typing",
-            "pydantic"
+            "json",
+            "__future__",
+            "core.units"
           ],
           "api_routes": [
             {
@@ -8742,11 +8742,11 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
             "api.studies",
             "fastapi",
             "api.dependencies",
-            "logging"
+            "__future__"
           ]
         },
         "api/websocket.py": {
@@ -8777,21 +8777,21 @@
             }
           ],
           "imports": [
-            "hmac",
-            "json",
+            "logging",
+            "services.scada_simulator",
+            "starlette.websockets",
+            "asyncio",
+            "api.environment",
+            "datetime",
             "fastapi",
             "api.auth",
             "api.dependencies",
-            "asyncio",
-            "api.environment",
-            "logging",
-            "time",
-            "datetime",
             "typing",
-            "os",
+            "json",
             "urllib.parse",
-            "starlette.websockets",
-            "services.scada_simulator"
+            "time",
+            "os",
+            "hmac"
           ]
         },
         "api/zip_generator_config.py": {
@@ -8931,15 +8931,15 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
+            "logging",
+            "pydantic",
+            "fastapi.responses",
             "fastapi",
             "api.dependencies",
-            "re",
-            "logging",
             "typing",
-            "fastapi.responses",
-            "pydantic",
+            "uuid",
+            "__future__",
+            "re",
             "core_model.zip_load"
           ]
         },
@@ -8987,19 +8987,19 @@
             }
           ],
           "imports": [
+            "openpyxl.styles",
+            "datetime",
             "openpyxl",
+            "typing",
+            "io",
+            "api.pe_stamp",
+            "json",
+            "csv",
+            "reportlab.lib",
             "reportlab.lib.pagesizes",
             "__future__",
-            "json",
-            "openpyxl.styles",
-            "csv",
-            "datetime",
-            "typing",
-            "reportlab.lib",
             "reportlab.platypus",
-            "io",
             "reportlab.lib.styles",
-            "api.pe_stamp",
             "fault_analysis.arc_flash_engine"
           ]
         },
@@ -9031,11 +9031,11 @@
             }
           ],
           "imports": [
-            "__future__",
-            "sqlalchemy.ext.asyncio",
             "typing",
+            "sqlalchemy.ext.asyncio",
+            "api.models.solver_parameters",
             "sqlalchemy",
-            "api.models.solver_parameters"
+            "__future__"
           ]
         },
         "api/services/study_execution_service.py": {
@@ -9060,23 +9060,23 @@
             }
           ],
           "imports": [
-            "api.services.solver_parameter_service",
-            "__future__",
-            "uuid",
-            "fastapi",
+            "api.study_versions",
             "api._messages",
-            "sqlalchemy.ext.asyncio",
+            "api.services.solver_parameter_service",
             "asyncio",
-            "api.dependencies",
-            "services.study_executor",
-            "datetime",
-            "time",
-            "typing",
-            "core_model.specs",
-            "sqlalchemy",
-            "api.projects",
             "sqlalchemy.exc",
-            "api.study_versions"
+            "datetime",
+            "fastapi",
+            "api.dependencies",
+            "typing",
+            "sqlalchemy.ext.asyncio",
+            "services.study_executor",
+            "core_model.specs",
+            "time",
+            "uuid",
+            "__future__",
+            "sqlalchemy",
+            "api.projects"
           ]
         },
         "api/models/__init__.py": {
@@ -9105,12 +9105,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
+            "api.database",
+            "sqlalchemy.orm",
             "datetime",
             "typing",
             "sqlalchemy",
-            "sqlalchemy.orm",
-            "api.database"
+            "__future__"
           ]
         },
         "api/cron/digest.py": {
@@ -9132,10 +9132,10 @@
           ],
           "functions": [],
           "imports": [
-            "json",
             "http.server",
             "urllib.request",
             "urllib.error",
+            "json",
             "os"
           ]
         },
@@ -9239,28 +9239,28 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
+            "services.cache_service",
             "scada_protocols.wiring",
+            "__future__",
+            "api.auth",
             "logging",
-            "etap_integration.etap_provider",
+            "os",
+            "asyncio",
+            "engine.engine",
+            "scada_model.scada_model",
             "math",
-            "api.database",
             "digital_twin.event_bus",
+            "collections.abc",
+            "scripts.maintenance.verify_agents",
+            "api.database",
+            "structlog",
             "contextlib",
             "importlib",
-            "services.cache_service",
-            "asyncio",
-            "os",
-            "scada_model.scada_model",
-            "engine.engine",
-            "structlog",
             "numpy",
-            "api.auth",
-            "threading",
-            "scripts.maintenance.verify_agents",
             "typing",
-            "collections.abc"
+            "etap_integration.etap_provider",
+            "json",
+            "threading"
           ]
         },
         "core/error_tracking.py": {
@@ -9309,17 +9309,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
-            "pathlib",
-            "re",
-            "sentry_sdk.integrations.logging",
             "logging",
+            "sentry_sdk",
+            "fastapi.responses",
+            "fastapi",
             "typing",
             "time",
-            "fastapi.responses",
-            "os",
-            "sentry_sdk"
+            "__future__",
+            "sentry_sdk.integrations.logging",
+            "pathlib",
+            "re",
+            "os"
           ]
         },
         "core/exceptions.py": {
@@ -9423,14 +9423,14 @@
             }
           ],
           "imports": [
-            "__future__",
-            "fastapi",
             "logging",
+            "functools",
+            "fastapi",
             "typing",
             "inspect",
             "prometheus_client",
-            "collections.abc",
-            "functools"
+            "__future__",
+            "collections.abc"
           ]
         },
         "core/network_topology.py": {
@@ -9489,12 +9489,12 @@
           ],
           "functions": [],
           "imports": [
-            "networkx",
-            "__future__",
             "logging",
-            "typing",
             "integrations.neo4j_integration",
             "heapq",
+            "typing",
+            "__future__",
+            "networkx",
             "dataclasses"
           ]
         },
@@ -9524,16 +9524,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "pathlib",
             "logging",
-            "time",
-            "typing",
-            "dataclasses",
-            "os",
-            "yaml",
+            "httpx",
             "base64",
-            "httpx"
+            "typing",
+            "time",
+            "__future__",
+            "yaml",
+            "dataclasses",
+            "pathlib",
+            "os"
           ]
         },
         "core/redis_state.py": {
@@ -9610,15 +9610,15 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "uuid",
-            "redis.asyncio",
-            "engine.resilience",
             "logging",
-            "time",
+            "engine.resilience",
             "typing",
+            "json",
+            "redis.asyncio",
+            "time",
+            "__future__",
+            "uuid",
+            "contextlib",
             "os"
           ]
         },
@@ -9662,11 +9662,11 @@
             }
           ],
           "imports": [
-            "__future__",
             "logging",
             "typing",
-            "collections.abc",
-            "tenacity"
+            "__future__",
+            "tenacity",
+            "collections.abc"
           ]
         },
         "core/security_logging.py": {
@@ -9721,20 +9721,20 @@
             }
           ],
           "imports": [
-            "hmac",
-            "__future__",
-            "json",
-            "uuid",
-            "logging.handlers",
-            "re",
-            "threading",
-            "pathlib",
             "logging",
+            "enum",
             "datetime",
             "typing",
-            "enum",
+            "json",
+            "logging.handlers",
+            "threading",
+            "__future__",
+            "hashlib",
+            "uuid",
+            "re",
             "os",
-            "hashlib"
+            "pathlib",
+            "hmac"
           ]
         },
         "core/study_engine.py": {
@@ -9769,19 +9769,19 @@
           ],
           "functions": [],
           "imports": [
-            "fault_analysis.iec60909_engine",
-            "agents.etap_expert_agent",
-            "numpy",
-            "__future__",
-            "fault_analysis.arc_flash_engine",
-            "datetime",
             "logging",
-            "time",
-            "typing",
             "enum",
-            "dataclasses",
+            "numpy",
+            "datetime",
+            "typing",
+            "fault_analysis.iec60909_engine",
+            "time",
+            "__future__",
+            "agents.etap_expert_agent",
+            "fault_analysis.fault",
             "load_flow.load_flow",
-            "fault_analysis.fault"
+            "dataclasses",
+            "fault_analysis.arc_flash_engine"
           ]
         },
         "core/tracing.py": {
@@ -9836,26 +9836,26 @@
             }
           ],
           "imports": [
-            "__future__",
-            "opentelemetry.trace",
-            "opentelemetry.trace.propagation.tracecontext",
-            "opentelemetry.sdk.trace",
-            "logging",
-            "opentelemetry.propagators.textmap",
-            "functools",
-            "contextlib",
-            "opentelemetry.sdk.resources",
             "opentelemetry.context",
-            "os",
-            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter",
-            "opentelemetry.exporter.otlp.proto.http.trace_exporter",
-            "base64",
-            "opentelemetry.propagate",
-            "typing",
+            "opentelemetry.sdk.trace",
             "inspect",
+            "__future__",
+            "os",
+            "logging",
+            "opentelemetry.trace",
+            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter",
             "collections.abc",
+            "functools",
+            "opentelemetry",
+            "base64",
             "opentelemetry.sdk.trace.export",
-            "opentelemetry"
+            "opentelemetry.propagators.textmap",
+            "opentelemetry.trace.propagation.tracecontext",
+            "opentelemetry.sdk.resources",
+            "contextlib",
+            "typing",
+            "opentelemetry.propagate",
+            "opentelemetry.exporter.otlp.proto.http.trace_exporter"
           ]
         },
         "core/units.py": {
@@ -9880,8 +9880,8 @@
             }
           ],
           "imports": [
-            "pint",
             "re",
+            "pint",
             "__future__",
             "typing"
           ]
@@ -9920,18 +9920,18 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "engine.numerical_safety",
             "engine.caching",
-            "engine.error_handler",
             "engine.data_optimizer",
-            "engine.resilience",
+            "engine.numerical_safety",
             "engine.async_executor",
-            "engine.sparse_solver",
-            "engine.cache_manager",
-            "engine.gpu_solver",
+            "engine.resilience",
             "engine.scalability",
+            "engine.interfaces",
+            "engine.cache_manager",
             "engine.engine",
-            "engine.interfaces"
+            "engine.gpu_solver",
+            "engine.error_handler",
+            "engine.sparse_solver"
           ]
         },
         "engine/async_executor.py": {
@@ -10060,20 +10060,20 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "engine.error_handler",
-            "uuid",
-            "threading",
-            "asyncio",
             "logging",
-            "time",
-            "concurrent.futures",
+            "enum",
+            "asyncio",
             "datetime",
             "typing",
-            "enum",
+            "concurrent.futures",
+            "time",
+            "__future__",
+            "uuid",
+            "engine.error_handler",
+            "contextlib",
             "dataclasses",
-            "collections.abc"
+            "collections.abc",
+            "threading"
           ]
         },
         "engine/cache_manager.py": {
@@ -10170,19 +10170,19 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "threading",
-            "cachetools",
-            "re",
             "logging",
-            "time",
-            "typing",
             "enum",
-            "collections.abc",
             "functools",
+            "cachetools",
             "psutil",
-            "hashlib"
+            "typing",
+            "json",
+            "time",
+            "__future__",
+            "hashlib",
+            "re",
+            "collections.abc",
+            "threading"
           ]
         },
         "engine/caching.py": {
@@ -10230,18 +10230,18 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
+            "asyncio",
+            "typing",
             "json",
             "collections",
-            "redis.asyncio",
-            "asyncio",
             "threading",
-            "api.request_context",
-            "logging",
+            "redis.asyncio",
             "time",
-            "typing",
-            "os",
-            "hashlib"
+            "__future__",
+            "hashlib",
+            "api.request_context",
+            "os"
           ]
         },
         "engine/data_optimizer.py": {
@@ -10325,25 +10325,25 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "logging",
-            "math",
-            "contextlib",
-            "core_model.line",
-            "core_model.system",
-            "numpy",
-            "core_model.generator",
-            "core_model.transformer",
-            "gc",
             "psutil",
+            "core_model.system",
+            "gc",
+            "core_model.bus",
+            "__future__",
             "scipy.sparse.linalg",
+            "logging",
             "tracemalloc",
-            "sys",
-            "scipy.sparse",
-            "time",
-            "typing",
+            "math",
+            "core_model.generator",
             "collections.abc",
-            "core_model.bus"
+            "sys",
+            "core_model.line",
+            "core_model.transformer",
+            "contextlib",
+            "numpy",
+            "typing",
+            "scipy.sparse",
+            "time"
           ]
         },
         "engine/dispatch.py": {
@@ -10362,11 +10362,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
+            "agents.models",
             "agents",
             "typing",
-            "dataclasses",
-            "agents.models"
+            "__future__",
+            "dataclasses"
           ]
         },
         "engine/engine.py": {
@@ -10393,21 +10393,21 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "load_flow.load_flow",
+            "core.exceptions",
+            "visualization.visualization",
+            "engine.interfaces",
+            "core_model.system",
+            "matplotlib",
+            "engine.dispatch",
+            "coordination.coordination",
             "typing",
             "load_flow.dc_flow",
-            "engine.dispatch",
             "relays.relay",
             "load_flow.fast_decoupled",
-            "matplotlib",
-            "core_model.system",
-            "visualization.visualization",
-            "core.exceptions",
-            "coordination.coordination",
-            "fault_analysis.arc_flash_engine",
-            "engine.interfaces",
-            "fault_analysis.fault"
+            "__future__",
+            "fault_analysis.fault",
+            "load_flow.load_flow",
+            "fault_analysis.arc_flash_engine"
           ]
         },
         "engine/error_handler.py": {
@@ -10493,24 +10493,24 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "traceback",
-            "uuid",
-            "collections",
-            "email.message",
-            "threading",
-            "urllib.request",
             "logging",
-            "time",
-            "datetime",
-            "typing",
-            "smtplib",
+            "traceback",
             "enum",
-            "dataclasses",
+            "smtplib",
+            "datetime",
+            "urllib.request",
+            "email.message",
+            "typing",
+            "json",
+            "collections",
             "urllib.error",
-            "collections.abc"
+            "time",
+            "__future__",
+            "uuid",
+            "contextlib",
+            "dataclasses",
+            "collections.abc",
+            "threading"
           ]
         },
         "engine/gpu_solver.py": {
@@ -10534,17 +10534,17 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "cupyx.scipy.sparse.linalg",
             "logging",
+            "numpy",
             "typing",
-            "time",
             "scipy.sparse",
-            "engine.sparse_solver",
-            "cupy",
             "math",
-            "scipy.sparse.linalg"
+            "time",
+            "__future__",
+            "scipy.sparse.linalg",
+            "cupy",
+            "cupyx.scipy.sparse.linalg",
+            "engine.sparse_solver"
           ]
         },
         "engine/interfaces.py": {
@@ -10695,12 +10695,12 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
-            "typing",
             "numpy.linalg",
             "enum",
+            "numpy",
+            "typing",
+            "__future__",
             "collections.abc"
           ]
         },
@@ -10817,16 +10817,16 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "threading",
-            "asyncio",
             "logging",
-            "time",
-            "typing",
-            "collections.abc",
             "functools",
-            "random"
+            "numpy",
+            "asyncio",
+            "typing",
+            "random",
+            "time",
+            "__future__",
+            "collections.abc",
+            "threading"
           ]
         },
         "engine/scalability.py": {
@@ -10978,21 +10978,21 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "uuid",
+            "logging",
+            "kombu",
+            "heapq",
+            "typing",
+            "random",
             "collections",
             "threading",
             "redis",
-            "logging",
             "time",
-            "typing",
-            "heapq",
+            "__future__",
+            "uuid",
             "dataclasses",
-            "collections.abc",
-            "os",
             "compat",
-            "kombu",
-            "random"
+            "collections.abc",
+            "os"
           ]
         },
         "engine/sparse_solver.py": {
@@ -11041,15 +11041,15 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
-            "time",
+            "numpy",
             "typing",
             "scipy.sparse",
-            "dataclasses",
             "math",
-            "scipy.sparse.linalg"
+            "time",
+            "__future__",
+            "scipy.sparse.linalg",
+            "dataclasses"
           ]
         },
         "engine/benchmarks/ieee_cases.py": {
@@ -11092,16 +11092,16 @@
             }
           ],
           "imports": [
-            "core_model.line",
-            "core_model.generator",
-            "__future__",
-            "core_model.load",
-            "core_model.transformer",
-            "typing",
             "core_model.system",
-            "math",
             "engine.engine",
-            "core_model.bus"
+            "typing",
+            "core_model.line",
+            "core_model.transformer",
+            "math",
+            "core_model.generator",
+            "core_model.bus",
+            "__future__",
+            "core_model.load"
           ]
         },
         "engine/optimizers/__init__.py": {
@@ -11140,13 +11140,13 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "engine.optimizers.pso_core",
             "logging",
+            "engine.optimizers.pso_core",
+            "numpy",
             "typing",
-            "dataclasses",
-            "math"
+            "math",
+            "__future__",
+            "dataclasses"
           ]
         },
         "engine/optimizers/multi_objective.py": {
@@ -11181,10 +11181,10 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
             "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11212,11 +11212,11 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "engine.optimizers.pso_core",
             "logging",
+            "engine.optimizers.pso_core",
+            "numpy",
             "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11250,10 +11250,10 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
             "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11288,10 +11288,10 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
             "logging",
-            "typing",
             "enum",
+            "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11324,14 +11324,14 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "json",
-            "asyncio",
             "logging",
-            "time",
-            "typing",
+            "numpy",
+            "asyncio",
             "api.redis_client",
+            "typing",
+            "json",
+            "time",
+            "__future__",
             "hashlib"
           ]
         }
@@ -11349,12 +11349,12 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "fault_analysis.iec60909_engine",
-            "fault_analysis.harmonic_analysis",
-            "fault_analysis.arc_flash_calc",
+            "fault_analysis.fault",
             "fault_analysis.ieee1584_database",
-            "fault_analysis.arc_flash_engine",
-            "fault_analysis.fault"
+            "fault_analysis.harmonic_analysis",
+            "fault_analysis.iec60909_engine",
+            "fault_analysis.arc_flash_calc",
+            "fault_analysis.arc_flash_engine"
           ]
         },
         "fault_analysis/arc_flash_calc.py": {
@@ -11373,10 +11373,10 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
             "sys",
+            "json",
             "math",
+            "__future__",
             "fault_analysis.arc_flash_engine"
           ]
         },
@@ -11421,11 +11421,11 @@
           ],
           "functions": [],
           "imports": [
+            "enum",
             "numpy",
             "fault_analysis.ieee1584_database",
-            "enum",
-            "dataclasses",
-            "math"
+            "math",
+            "dataclasses"
           ]
         },
         "fault_analysis/arc_flash_labels.py": {
@@ -11534,11 +11534,11 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
-            "typing",
             "enum",
+            "numpy",
+            "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11603,11 +11603,11 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "numpy.typing",
-            "typing",
             "enum",
+            "numpy",
+            "typing",
+            "numpy.typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -11660,10 +11660,10 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "typing",
             "enum",
+            "numpy",
+            "typing",
+            "__future__",
             "dataclasses"
           ]
         }
@@ -11681,11 +11681,11 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "load_flow.optimal_power_flow",
-            "load_flow.solver",
             "load_flow.dc_flow",
             "load_flow.base_solver",
             "load_flow.fast_decoupled",
+            "load_flow.solver",
+            "load_flow.optimal_power_flow",
             "load_flow.load_flow"
           ]
         },
@@ -11709,12 +11709,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
+            "core_model.system",
             "typing",
             "abc",
-            "core_model.system"
+            "__future__"
           ]
         },
         "load_flow/consolidated_solver.py": {
@@ -11748,12 +11748,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
+            "core_model.system",
             "typing",
             "load_flow.base_solver",
-            "core_model.system"
+            "__future__"
           ]
         },
         "load_flow/fast_decoupled.py": {
@@ -11781,14 +11781,14 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "enum",
+            "numpy",
+            "core_model.system",
             "typing",
             "load_flow.base_solver",
-            "enum",
-            "core_model.system",
-            "scipy"
+            "scipy",
+            "__future__"
           ]
         },
         "load_flow/load_flow.py": {
@@ -11809,10 +11809,10 @@
           ],
           "functions": [],
           "imports": [
-            "engine.optimizers.warm_start_store",
-            "numpy",
             "logging",
-            "api.feature_flags"
+            "api.feature_flags",
+            "numpy",
+            "engine.optimizers.warm_start_store"
           ]
         },
         "load_flow/optimal_power_flow.py": {
@@ -11861,12 +11861,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
             "enum",
-            "dataclasses",
-            "scipy.optimize"
+            "numpy",
+            "scipy.optimize",
+            "__future__",
+            "dataclasses"
           ]
         },
         "load_flow/solver.py": {
@@ -11885,13 +11885,13 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
             "typing",
-            "engine.sparse_solver",
             "engine.gpu_solver",
-            "load_flow.load_flow"
+            "__future__",
+            "load_flow.load_flow",
+            "engine.sparse_solver"
           ]
         },
         "load_flow/optimizers/__init__.py": {
@@ -11924,13 +11924,13 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "engine.optimizers.pso_core",
-            "load_flow.optimal_power_flow",
             "logging",
+            "engine.optimizers.pso_core",
+            "numpy",
             "typing",
-            "load_flow.solver"
+            "load_flow.solver",
+            "__future__",
+            "load_flow.optimal_power_flow"
           ]
         }
       }
@@ -11972,14 +11972,14 @@
             }
           ],
           "imports": [
-            "aiofiles",
-            "__future__",
-            "json",
-            "integrations.siem_syslog",
-            "datetime",
             "logging",
-            "typing",
+            "aiofiles",
+            "datetime",
             "agents.life_safety",
+            "typing",
+            "json",
+            "__future__",
+            "integrations.siem_syslog",
             "os"
           ]
         },
@@ -12015,15 +12015,15 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
             "logging",
-            "time",
+            "httpx",
             "datetime",
             "typing",
+            "json",
+            "time",
+            "__future__",
             "compat",
-            "os",
-            "httpx"
+            "os"
           ]
         },
         "services/api_key_store.py": {
@@ -12057,17 +12057,17 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "threading",
-            "pathlib",
             "logging",
-            "datetime",
-            "dataclasses",
-            "cryptography.fernet",
-            "os",
             "base64",
+            "sqlite3",
+            "datetime",
+            "threading",
+            "__future__",
             "hashlib",
-            "sqlite3"
+            "cryptography.fernet",
+            "dataclasses",
+            "pathlib",
+            "os"
           ]
         },
         "services/cache_service.py": {
@@ -12100,14 +12100,14 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
+            "logging",
+            "typing",
             "json",
             "redis.asyncio",
             "api.request_context",
-            "logging",
             "time",
-            "typing",
+            "__future__",
+            "contextlib",
             "os"
           ]
         },
@@ -12164,15 +12164,15 @@
             }
           ],
           "imports": [
-            "__future__",
-            "uuid",
-            "collections",
-            "threading",
             "logging",
             "datetime",
+            "core.redis_state",
+            "collections",
+            "__future__",
+            "uuid",
             "dataclasses",
             "os",
-            "core.redis_state"
+            "threading"
           ]
         },
         "services/email_service.py": {
@@ -12257,13 +12257,13 @@
             }
           ],
           "imports": [
+            "logging",
+            "datetime",
+            "typing",
+            "integrations.resend_email",
             "__future__",
             "pathlib",
-            "datetime",
-            "logging",
-            "typing",
-            "os",
-            "integrations.resend_email"
+            "os"
           ]
         },
         "services/mcp_probe.py": {
@@ -12284,16 +12284,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "socket",
-            "ipaddress",
-            "pathlib",
             "logging",
             "typing",
             "shutil",
-            "os",
+            "socket",
             "urllib.parse",
-            "httpcore"
+            "httpcore",
+            "__future__",
+            "ipaddress",
+            "pathlib",
+            "os"
           ]
         },
         "services/memory_service.py": {
@@ -12397,19 +12397,19 @@
           ],
           "functions": [],
           "imports": [
-            "langchain_core.documents",
-            "langchain_openai",
-            "__future__",
-            "langchain_experimental.graph_transformers",
             "logging",
-            "typing",
-            "langchain_core.embeddings",
+            "langchain_core.documents",
             "langchain_neo4j",
+            "langchain_core.embeddings",
+            "langchain_experimental.graph_transformers",
+            "langchain_openai",
             "qdrant_client.http",
-            "os",
+            "typing",
             "qdrant_client",
+            "__future__",
             "hashlib",
-            "langchain_qdrant"
+            "langchain_qdrant",
+            "os"
           ]
         },
         "services/otp_store.py": {
@@ -12472,16 +12472,16 @@
             }
           ],
           "imports": [
-            "__future__",
-            "asyncio",
-            "re",
             "logging",
+            "asyncio",
+            "core.redis_state",
             "secrets",
             "time",
+            "__future__",
+            "hashlib",
+            "re",
             "dataclasses",
-            "os",
-            "core.redis_state",
-            "hashlib"
+            "os"
           ]
         },
         "services/scada_simulator.py": {
@@ -12506,12 +12506,12 @@
             }
           ],
           "imports": [
-            "__future__",
             "datetime",
-            "secrets",
-            "typing",
             "etap_scada_bridge",
-            "random"
+            "typing",
+            "random",
+            "secrets",
+            "__future__"
           ]
         },
         "services/study_executor.py": {
@@ -12532,35 +12532,35 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "core_model.specs",
-            "logging",
-            "etap_integration.etap_provider",
-            "engine.dispatch",
-            "guards.ai_failure_modes",
-            "agents.models",
-            "math",
             "breaker_duty.evaluator",
-            "hashlib",
-            "core.units",
-            "core_model.line",
-            "api.risk_scoring",
-            "api.feature_flags",
-            "asyncio",
-            "agents.orchestrator",
-            "copilot.ai.engineering_assertions",
-            "agents.etap_gui_agent",
-            "os",
+            "agents.models",
             "core_model.system",
-            "engine.engine",
+            "core_model.bus",
+            "__future__",
             "agents.optimizers.optimization_agent",
-            "numpy",
-            "core_model.generator",
+            "api.feature_flags",
+            "compat",
             "core_model.load",
+            "os",
+            "logging",
+            "engine.caching",
+            "core.bootstrap",
+            "asyncio",
+            "engine.engine",
+            "api.pe_stamp",
+            "guards.ai_failure_modes",
+            "math",
+            "core_model.generator",
+            "uuid",
+            "hashlib",
+            "agents.ahmed_etap_orchestrator",
+            "engine.dispatch",
+            "core_model.line",
             "core_model.transformer",
+            "core_model.specs",
             "concurrent.futures",
+            "agents.etap_expert_agent",
+            "api.risk_scoring",
             "core.exceptions"
           ]
         },
@@ -12580,30 +12580,30 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "core.tracing",
-            "fastapi",
-            "core_model.specs",
-            "etap_integration.etap_provider",
-            "hashlib",
-            "core_model.line",
-            "api.request_context",
-            "asyncio",
-            "copilot.ai.engineering_assertions",
-            "os",
             "core_model.system",
-            "core_model.generator",
+            "api.request_context",
+            "core_model.bus",
+            "__future__",
+            "utils.language_detection",
             "core_model.load",
+            "os",
+            "core.bootstrap",
+            "asyncio",
+            "core.tracing",
+            "core_model.generator",
+            "hashlib",
+            "collections.abc",
+            "core_model.line",
             "core_model.transformer",
+            "core_model.specs",
             "concurrent.futures",
             "core.exceptions",
-            "core.bootstrap",
-            "time",
+            "fastapi",
+            "copilot.ai.engineering_assertions",
             "typing",
-            "collections.abc",
-            "utils.language_detection",
-            "core_model.bus"
+            "etap_integration.etap_provider",
+            "json",
+            "time"
           ]
         },
         "services/yolo/main.py": {
@@ -12683,19 +12683,19 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "torch",
-            "uuid",
-            "dotenv",
-            "fastapi",
-            "doclayout_yolo",
             "logging",
-            "typing",
-            "pydantic",
             "uvicorn",
-            "os",
+            "torch",
+            "pydantic",
+            "huggingface_hub",
             "gc",
-            "huggingface_hub"
+            "fastapi",
+            "typing",
+            "dotenv",
+            "uuid",
+            "doclayout_yolo",
+            "contextlib",
+            "os"
           ]
         },
         "services/doctr/main.py": {
@@ -12775,19 +12775,19 @@
             }
           ],
           "imports": [
-            "contextlib",
+            "argparse",
+            "uvicorn",
             "torch",
+            "pydantic",
+            "asyncio",
+            "doctr.models",
             "fastapi",
+            "typing",
+            "time",
             "dotenv",
             "doctr.io",
-            "asyncio",
-            "time",
-            "typing",
-            "pydantic",
-            "argparse",
             "pydantic.generics",
-            "doctr.models",
-            "uvicorn",
+            "contextlib",
             "os"
           ]
         }
@@ -12805,11 +12805,11 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "security.siem",
             "security.log_redaction",
+            "security.abac",
+            "security.siem",
             "security.secrets_manager",
             "security.mfa",
-            "security.abac",
             "security.security_framework"
           ]
         },
@@ -12903,21 +12903,21 @@
             }
           ],
           "imports": [
-            "hmac",
+            "logging",
+            "starlette.requests",
+            "dataclasses",
+            "datetime",
+            "api.dependencies",
+            "typing",
+            "starlette.responses",
+            "operator",
             "__future__",
             "ipaddress",
-            "api.dependencies",
             "re",
-            "logging",
-            "datetime",
-            "typing",
-            "operator",
-            "dataclasses",
-            "collections.abc",
             "os",
             "compat",
-            "starlette.responses",
-            "starlette.requests"
+            "collections.abc",
+            "hmac"
           ]
         },
         "security/log_redaction.py": {
@@ -12951,10 +12951,10 @@
             }
           ],
           "imports": [
-            "contextlib",
+            "logging",
             "__future__",
             "re",
-            "logging",
+            "contextlib",
             "os"
           ]
         },
@@ -13035,20 +13035,20 @@
           ],
           "functions": [],
           "imports": [
-            "pyotp",
-            "hmac",
-            "__future__",
-            "struct",
-            "webauthn",
             "logging",
-            "secrets",
-            "time",
+            "pyotp",
+            "base64",
+            "webauthn",
             "typing",
             "inspect",
+            "secrets",
+            "struct",
+            "__future__",
+            "hashlib",
+            "time",
             "dataclasses",
             "os",
-            "base64",
-            "hashlib"
+            "hmac"
           ]
         },
         "security/rasp.py": {
@@ -13105,12 +13105,12 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "re",
             "logging",
-            "typing",
             "enum",
+            "typing",
+            "json",
+            "__future__",
+            "re",
             "dataclasses"
           ]
         },
@@ -13176,23 +13176,23 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "logging.handlers",
-            "re",
-            "threading",
-            "pathlib",
             "logging",
+            "win32con",
+            "stat",
+            "security.security_framework",
+            "win32security",
             "datetime",
             "typing",
+            "json",
+            "logging.handlers",
+            "threading",
             "hvac",
-            "win32con",
-            "win32api",
-            "stat",
+            "__future__",
             "cryptography.fernet",
-            "os",
-            "security.security_framework",
-            "win32security"
+            "win32api",
+            "re",
+            "pathlib",
+            "os"
           ]
         },
         "security/secure_executor.py": {
@@ -13211,20 +13211,20 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "sys",
-            "resource",
-            "re",
             "logging",
+            "sys",
+            "subprocess",
+            "tempfile",
+            "resource",
             "typing",
             "guards.ai_failure_modes",
-            "subprocess",
-            "os",
+            "json",
             "math",
-            "tempfile",
-            "security.security_framework"
+            "__future__",
+            "security.security_framework",
+            "re",
+            "contextlib",
+            "os"
           ]
         },
         "security/secure_powershell_executor.py": {
@@ -13243,16 +13243,16 @@
             }
           ],
           "imports": [
-            "json",
-            "sys",
-            "ntsecuritycon",
-            "re",
             "logging",
-            "subprocess",
-            "os",
-            "tempfile",
+            "sys",
             "security.security_framework",
-            "win32security"
+            "win32security",
+            "tempfile",
+            "ntsecuritycon",
+            "json",
+            "re",
+            "subprocess",
+            "os"
           ]
         },
         "security/security_framework.py": {
@@ -13375,27 +13375,27 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
+            "datetime",
             "logging.handlers",
-            "logging",
-            "secrets",
-            "ast",
-            "hashlib",
+            "jwt",
+            "__future__",
             "pathlib",
             "os",
-            "api.dependencies",
+            "logging",
+            "uuid",
+            "hashlib",
             "re",
-            "jwt",
-            "datetime",
-            "cryptography.fernet",
-            "base64",
-            "threading",
-            "time",
             "enum",
+            "base64",
+            "secrets",
+            "ast",
+            "api.dependencies",
+            "bcrypt",
+            "json",
+            "time",
+            "cryptography.fernet",
             "dataclasses",
-            "bcrypt"
+            "threading"
           ]
         },
         "security/siem.py": {
@@ -13439,21 +13439,21 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "uuid",
-            "aiohttp",
-            "collections",
-            "threading",
-            "asyncio",
-            "urllib.request",
             "logging",
-            "time",
+            "httpx",
+            "asyncio",
             "datetime",
+            "urllib.request",
             "typing",
+            "aiohttp",
+            "json",
+            "collections",
+            "time",
+            "__future__",
+            "uuid",
             "dataclasses",
             "os",
-            "httpx"
+            "threading"
           ]
         },
         "security/wiring.py": {
@@ -13485,17 +13485,17 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "re",
-            "asyncio",
             "logging",
-            "typing",
-            "os",
             "starlette.requests",
+            "asyncio",
+            "security.rasp",
+            "typing",
             "starlette.responses",
             "security.abac",
-            "security.rasp"
+            "json",
+            "__future__",
+            "re",
+            "os"
           ]
         }
       }
@@ -13606,29 +13606,29 @@
             }
           ],
           "imports": [
-            "__future__",
             "torch",
-            "logging",
-            "tensorflow",
-            "optuna",
             "shap",
-            "contextlib",
-            "pyod.models.auto_encoder",
-            "torch_geometric.nn",
-            "torch_geometric",
-            "pyod.models.iforest",
-            "mlflow",
-            "numpy",
-            "sklearn.model_selection",
             "datetime",
             "xgboost",
-            "pandas",
-            "prophet",
+            "__future__",
+            "tensorflow",
+            "sklearn.model_selection",
             "pyod.models.knn",
-            "typing",
-            "tempfile",
+            "logging",
+            "torch_geometric.nn",
+            "optuna",
+            "sklearn.ensemble",
+            "pyod.models.iforest",
+            "pyod.models.auto_encoder",
+            "mlflow",
+            "prophet",
+            "torch_geometric",
+            "contextlib",
             "sklearn.preprocessing",
-            "sklearn.ensemble"
+            "numpy",
+            "typing",
+            "pandas",
+            "tempfile"
           ]
         }
       }
@@ -13645,12 +13645,12 @@
           "classes": [],
           "functions": [],
           "imports": [
+            "kombu",
+            "typing",
+            "kombu.utils.url",
             "celery",
             "__future__",
-            "typing",
-            "os",
-            "kombu.utils.url",
-            "kombu"
+            "os"
           ]
         },
         "worker/tasks.py": {
@@ -13687,17 +13687,17 @@
             }
           ],
           "imports": [
-            "celery",
+            "logging",
             "numpy",
+            "etap_integration.etap_provider",
+            "celery",
+            "services.study_service",
+            "worker.celery_app",
             "socket",
+            "time",
             "uuid",
             "redis",
-            "logging",
-            "time",
-            "etap_integration.etap_provider",
-            "worker.celery_app",
-            "os",
-            "services.study_service"
+            "os"
           ]
         }
       }
@@ -13798,28 +13798,28 @@
             }
           ],
           "imports": [
-            "reportlab.lib.pagesizes",
+            "datetime",
+            "openpyxl",
             "docx.shared",
+            "reportlab.lib",
             "__future__",
-            "logging",
-            "matplotlib.pyplot",
-            "matplotlib",
-            "integrations.supabase_integration",
             "reportlab.lib.units",
             "pathlib",
-            "reportlab.lib",
-            "reportlab.platypus",
             "os",
-            "openpyxl",
-            "numpy",
-            "openpyxl.styles",
+            "logging",
             "docx.enum.text",
+            "openpyxl.styles",
             "re",
-            "datetime",
             "docx",
+            "reportlab.lib.pagesizes",
+            "reportlab.platypus",
             "reportlab.lib.enums",
-            "dataclasses",
+            "matplotlib",
+            "numpy",
+            "matplotlib.pyplot",
+            "integrations.supabase_integration",
             "reportlab.lib.styles",
+            "dataclasses",
             "tempfile"
           ]
         }
@@ -13837,11 +13837,11 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "event_bus",
-            "state_store",
             "digital_twin_core",
             "validation_gateway",
-            "gis_bridge"
+            "gis_bridge",
+            "state_store",
+            "event_bus"
           ]
         },
         "digital_twin/digital_twin_core.py": {
@@ -13937,19 +13937,19 @@
           ],
           "functions": [],
           "imports": [
-            "event_bus",
-            "numpy",
-            "__future__",
             "logging",
-            "time",
+            "numpy",
+            "engine.engine",
+            "validation_gateway",
             "typing",
             "handlers",
-            "state_store",
-            "collections.abc",
-            "validation_gateway",
             "scada_model.scada_model",
-            "engine.engine",
-            "hashlib"
+            "time",
+            "__future__",
+            "hashlib",
+            "state_store",
+            "event_bus",
+            "collections.abc"
           ]
         },
         "digital_twin/event_bus.py": {
@@ -14088,16 +14088,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "uuid",
-            "collections",
-            "threading",
             "logging",
-            "time",
-            "typing",
             "enum",
+            "typing",
+            "collections",
+            "time",
+            "uuid",
+            "__future__",
             "dataclasses",
-            "collections.abc"
+            "collections.abc",
+            "threading"
           ]
         },
         "digital_twin/gis_bridge.py": {
@@ -14129,18 +14129,18 @@
           ],
           "functions": [],
           "imports": [
-            "core_model.line",
-            "__future__",
-            "core_model.load",
-            "core_model.generator",
-            "core_model.transformer",
             "logging",
             "typing",
+            "core_model.line",
+            "core_model.transformer",
             "time",
-            "dataclasses",
+            "__future__",
             "core_model.bus",
             "digital_twin.event_bus",
-            "gis_integration.providers.postgis_provider"
+            "core_model.generator",
+            "dataclasses",
+            "gis_integration.providers.postgis_provider",
+            "core_model.load"
           ]
         },
         "digital_twin/handlers.py": {
@@ -14241,19 +14241,19 @@
           ],
           "functions": [],
           "imports": [
-            "event_bus",
-            "fault_analysis.arc_flash_engine",
-            "__future__",
             "logging",
-            "time",
+            "coordination.coordination",
             "typing",
             "abc",
-            "dataclasses",
             "relays.relay",
+            "time",
+            "__future__",
             "scada_model.state_estimation",
-            "coordination.coordination",
+            "fault_analysis.fault",
             "load_flow.load_flow",
-            "fault_analysis.fault"
+            "dataclasses",
+            "event_bus",
+            "fault_analysis.arc_flash_engine"
           ]
         },
         "digital_twin/state_store.py": {
@@ -14341,18 +14341,18 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "json",
-            "threading",
-            "redis",
             "logging",
-            "copy",
-            "time",
-            "typing",
-            "redlock",
             "enum",
-            "dataclasses"
+            "numpy",
+            "copy",
+            "typing",
+            "json",
+            "redis",
+            "redlock",
+            "time",
+            "__future__",
+            "dataclasses",
+            "threading"
           ]
         },
         "digital_twin/validation_gateway.py": {
@@ -14408,11 +14408,11 @@
           ],
           "functions": [],
           "imports": [
-            "gis_model.gis_model",
-            "__future__",
-            "time",
-            "typing",
             "enum",
+            "typing",
+            "time",
+            "__future__",
+            "gis_model.gis_model",
             "dataclasses",
             "collections.abc"
           ]
@@ -14550,12 +14550,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "curves.curves",
             "logging",
+            "numpy",
             "typing",
             "relays.relay",
+            "curves.curves",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -14580,9 +14580,9 @@
           "functions": [],
           "imports": [
             "numpy",
+            "curves.curves",
             "__future__",
             "api.feature_flags",
-            "curves.curves",
             "coordination.optimizers.pso_coordinator"
           ]
         },
@@ -14619,12 +14619,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "engine.optimizers.pso_core",
-            "curves.curves",
             "logging",
-            "typing"
+            "engine.optimizers.pso_core",
+            "numpy",
+            "typing",
+            "curves.curves",
+            "__future__"
           ]
         }
       }
@@ -14702,8 +14702,8 @@
           "functions": [],
           "imports": [
             "numpy",
-            "__future__",
-            "curves.curves"
+            "curves.curves",
+            "__future__"
           ]
         }
       }
@@ -14812,12 +14812,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "collections",
-            "time",
             "enum",
-            "dataclasses",
-            "scada_model.scada_model"
+            "collections",
+            "scada_model.scada_model",
+            "time",
+            "__future__",
+            "dataclasses"
           ]
         }
       }
@@ -14859,11 +14859,11 @@
             }
           ],
           "imports": [
-            "__future__",
-            "engine.resilience",
             "logging",
+            "engine.resilience",
             "typing",
-            "warnings"
+            "warnings",
+            "__future__"
           ]
         },
         "utils/language_detection.py": {
@@ -14900,11 +14900,11 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
+            "langdetect",
             "typing",
-            "os",
-            "langdetect"
+            "__future__",
+            "contextlib",
+            "os"
           ]
         }
       }
@@ -14922,10 +14922,10 @@
           "functions": [],
           "imports": [
             "guards.base",
-            "guards.docs_guard",
             "guards.ai_failure_modes",
-            "guards.code_guard",
-            "guards.test_guard"
+            "guards.test_guard",
+            "guards.docs_guard",
+            "guards.code_guard"
           ]
         },
         "guards/agent_output_scanner.py": {
@@ -14957,10 +14957,10 @@
             }
           ],
           "imports": [
-            "__future__",
-            "re",
             "logging",
             "typing",
+            "__future__",
+            "re",
             "dataclasses"
           ]
         },
@@ -14988,12 +14988,12 @@
           ],
           "functions": [],
           "imports": [
+            "logging",
+            "ast",
+            "guards.base",
+            "typing",
             "__future__",
             "re",
-            "guards.base",
-            "logging",
-            "typing",
-            "ast",
             "dataclasses"
           ]
         },
@@ -15045,10 +15045,10 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
             "logging",
-            "typing",
             "enum",
+            "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -15070,13 +15070,13 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "re",
-            "guards.base",
             "logging",
+            "ast",
+            "guards.base",
             "typing",
             "guards.ai_failure_modes",
-            "ast"
+            "__future__",
+            "re"
           ]
         },
         "guards/docs_guard.py": {
@@ -15097,12 +15097,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "guards.base",
-            "re",
             "logging",
+            "guards.base",
+            "ast",
             "typing",
-            "ast"
+            "__future__",
+            "re"
           ]
         },
         "guards/prompt_rule_enforcement.py": {
@@ -15150,14 +15150,14 @@
             }
           ],
           "imports": [
-            "__future__",
-            "re",
+            "logging",
+            "functools",
             "guards.base",
             "asyncio",
-            "logging",
             "typing",
-            "dataclasses",
-            "functools"
+            "__future__",
+            "re",
+            "dataclasses"
           ]
         },
         "guards/test_guard.py": {
@@ -15178,13 +15178,13 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "re",
-            "guards.base",
             "logging",
+            "ast",
+            "guards.base",
             "typing",
             "guards.ai_failure_modes",
-            "ast"
+            "__future__",
+            "re"
           ]
         }
       }
@@ -15224,15 +15224,15 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "etap_integration.sync_engine",
-            "copilot.translation.engine",
             "logging",
-            "etap_integration.etap_provider",
+            "autodesk_connector.shared.models",
             "autodesk_connector.autocad.connector",
-            "digital_twin.state_store",
+            "etap_integration.etap_provider",
             "autodesk_connector.revit.connector",
-            "autodesk_connector.shared.models"
+            "__future__",
+            "digital_twin.state_store",
+            "etap_integration.sync_engine",
+            "copilot.translation.engine"
           ]
         },
         "copilot/translation/__init__.py": {
@@ -15281,11 +15281,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
             "logging",
+            "autodesk_connector.shared.models",
             "typing",
-            "compat",
-            "autodesk_connector.shared.models"
+            "__future__",
+            "compat"
           ]
         },
         "copilot/ai/__init__.py": {
@@ -15362,17 +15362,17 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "uuid",
-            "copilot.translation.engine",
-            "re",
             "logging",
-            "time",
+            "autodesk_connector.shared.models",
             "typing",
-            "dataclasses",
-            "compat",
             "math",
-            "autodesk_connector.shared.models"
+            "time",
+            "uuid",
+            "__future__",
+            "dataclasses",
+            "re",
+            "compat",
+            "copilot.translation.engine"
           ]
         },
         "copilot/ai/engineering_assertions.py": {
@@ -15431,10 +15431,10 @@
             }
           ],
           "imports": [
-            "__future__",
             "logging",
-            "typing",
             "enum",
+            "typing",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -15533,16 +15533,16 @@
           ],
           "functions": [],
           "imports": [
-            "unittest",
-            "__future__",
-            "json",
             "sys",
-            "copilot.translation.engine",
+            "autodesk_connector.shared.models",
             "copilot.mcp.server",
-            "os",
             "copilot.ai.drawing_engine",
+            "unittest",
+            "json",
+            "__future__",
+            "copilot.translation.engine",
             "tempfile",
-            "autodesk_connector.shared.models"
+            "os"
           ]
         },
         "copilot/api/__init__.py": {
@@ -15618,19 +15618,19 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "fastapi",
-            "copilot.translation.engine",
             "logging",
-            "time",
+            "typing_extensions",
             "pydantic",
-            "typing",
-            "etap_integration.etap_provider",
+            "autodesk_connector.shared.models",
+            "fastapi",
             "copilot.mcp.server",
             "copilot.ai.drawing_engine",
-            "autodesk_connector.shared.models",
-            "typing_extensions"
+            "typing",
+            "etap_integration.etap_provider",
+            "json",
+            "time",
+            "__future__",
+            "copilot.translation.engine"
           ]
         }
       }
@@ -15674,17 +15674,17 @@
             }
           ],
           "imports": [
-            "sqlalchemy.engine",
-            "__future__",
             "sys",
-            "sqlalchemy.ext.asyncio",
+            "api.database",
             "asyncio",
+            "logging.config",
+            "sqlalchemy.engine",
             "alembic",
             "sqlalchemy.engine.url",
-            "api.database",
+            "sqlalchemy.ext.asyncio",
             "sqlalchemy",
-            "os",
-            "logging.config"
+            "__future__",
+            "os"
           ]
         },
         "migrations/versions/001_initial_schema.py": {
@@ -15709,8 +15709,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15736,8 +15736,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15763,8 +15763,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15790,8 +15790,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15817,8 +15817,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15844,8 +15844,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15871,8 +15871,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15898,8 +15898,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15925,8 +15925,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15952,8 +15952,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -15979,8 +15979,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -16006,8 +16006,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -16033,8 +16033,8 @@
             }
           ],
           "imports": [
-            "sqlalchemy",
             "alembic",
+            "sqlalchemy",
             "__future__"
           ]
         },
@@ -16063,10 +16063,10 @@
           "functions": [],
           "imports": [
             "etap_integration.etap_com",
-            "etap_integration.sync_engine",
             "etap_integration.etap_error_recovery",
+            "etap_integration.etap_compatibility",
             "etap_integration.etap_provider",
-            "etap_integration.etap_compatibility"
+            "etap_integration.sync_engine"
           ]
         },
         "etap_integration/etap_adapter.py": {
@@ -16131,13 +16131,13 @@
             }
           ],
           "imports": [
-            "__future__",
+            "enum",
             "core.bootstrap",
             "typing",
             "abc",
-            "enum",
-            "os",
-            "etap_provider"
+            "__future__",
+            "etap_provider",
+            "os"
           ]
         },
         "etap_integration/etap_com.py": {
@@ -16191,18 +16191,18 @@
             }
           ],
           "imports": [
-            "__future__",
-            "sys",
-            "pythoncom",
-            "re",
-            "pathlib",
-            "win32com.client",
             "logging",
-            "time",
+            "sys",
+            "tempfile",
+            "pythoncom",
             "typing",
-            "os",
             "etap_integration.unified_etap_types",
-            "tempfile"
+            "win32com.client",
+            "time",
+            "__future__",
+            "pathlib",
+            "re",
+            "os"
           ]
         },
         "etap_integration/etap_compatibility.py": {
@@ -16243,15 +16243,15 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "sys",
-            "platform",
-            "pythoncom",
-            "win32com.client",
             "logging",
+            "sys",
+            "winreg",
+            "pythoncom",
+            "platform",
             "typing",
-            "dataclasses",
-            "winreg"
+            "win32com.client",
+            "__future__",
+            "dataclasses"
           ]
         },
         "etap_integration/etap_error_recovery.py": {
@@ -16299,18 +16299,18 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
+            "logging",
             "sys",
+            "enum",
+            "engine.resilience",
+            "psutil",
             "pythoncom",
             "win32com.client",
-            "engine.resilience",
-            "logging",
             "time",
-            "enum",
+            "__future__",
             "dataclasses",
             "subprocess",
-            "os",
-            "psutil"
+            "os"
           ]
         },
         "etap_integration/etap_provider.py": {
@@ -16396,17 +16396,17 @@
             }
           ],
           "imports": [
-            "requests",
-            "etap_integration.etap_com",
-            "__future__",
-            "sys",
-            "engine.resilience",
             "logging",
+            "sys",
+            "requests",
+            "enum",
+            "engine.resilience",
+            "etap_integration.etap_com",
             "copy",
-            "time",
             "typing",
             "abc",
-            "enum",
+            "time",
+            "__future__",
             "etap_integration.etap_rest",
             "os"
           ]
@@ -16467,14 +16467,14 @@
             }
           ],
           "imports": [
+            "logging",
+            "httpx",
+            "pydantic",
+            "asyncio",
+            "typing",
             "__future__",
             "re",
-            "asyncio",
-            "logging",
-            "typing",
-            "pydantic",
-            "os",
-            "httpx"
+            "os"
           ]
         },
         "etap_integration/etap_worker_service.py": {
@@ -16513,18 +16513,18 @@
           ],
           "imports": [
             "etap_integration.etap_com",
-            "winreg",
-            "__future__",
             "sys",
-            "fastapi",
-            "fastapi.security",
-            "typing",
+            "typing_extensions",
+            "winreg",
             "pydantic",
+            "fastapi",
+            "typing",
             "time",
-            "uvicorn",
-            "os",
+            "__future__",
             "security.security_framework",
-            "typing_extensions"
+            "fastapi.security",
+            "uvicorn",
+            "os"
           ]
         },
         "etap_integration/scada_client.py": {
@@ -16575,17 +16575,17 @@
             }
           ],
           "imports": [
-            "__future__",
+            "logging",
             "asyncio",
             "iec61850datamodel",
-            "logging",
-            "time",
             "typing",
             "py61850",
-            "dataclasses",
-            "os",
+            "random",
             "math",
-            "random"
+            "time",
+            "__future__",
+            "dataclasses",
+            "os"
           ]
         },
         "etap_integration/sync_engine.py": {
@@ -16622,17 +16622,17 @@
           ],
           "functions": [],
           "imports": [
-            "core_model.line",
-            "__future__",
-            "json",
             "logging",
-            "time",
-            "typing",
-            "etap_integration.etap_provider",
-            "dataclasses",
-            "os",
             "engine.engine",
-            "core_model.bus"
+            "typing",
+            "core_model.line",
+            "etap_integration.etap_provider",
+            "json",
+            "time",
+            "__future__",
+            "core_model.bus",
+            "dataclasses",
+            "os"
           ]
         },
         "etap_integration/unified_etap_types.py": {
@@ -16676,12 +16676,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "time",
+            "enum",
             "typing",
             "abc",
-            "dataclasses",
-            "enum"
+            "time",
+            "__future__",
+            "dataclasses"
           ]
         },
         "etap_integration/worker_registry.py": {
@@ -16741,18 +16741,18 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "platform",
-            "socket",
-            "fastapi",
-            "redis.asyncio",
-            "asyncio",
-            "redis",
             "logging",
-            "time",
+            "asyncio",
+            "fastapi",
+            "platform",
             "typing",
+            "json",
+            "socket",
+            "redis",
+            "redis.asyncio",
+            "time",
+            "__future__",
+            "contextlib",
             "os"
           ]
         }
@@ -16770,12 +16770,12 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "core_model.line",
-            "core_model.load",
-            "core_model.generator",
-            "core_model.transformer",
             "core_model.system",
-            "core_model.bus"
+            "core_model.line",
+            "core_model.transformer",
+            "core_model.bus",
+            "core_model.generator",
+            "core_model.load"
           ]
         },
         "core_model/bus.py": {
@@ -16893,9 +16893,9 @@
           ],
           "functions": [],
           "imports": [
+            "numpy",
             "dataclasses",
-            "__future__",
-            "numpy"
+            "__future__"
           ]
         },
         "core_model/specs.py": {
@@ -16990,11 +16990,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "typing",
             "pydantic",
-            "os",
-            "math"
+            "typing",
+            "math",
+            "__future__",
+            "os"
           ]
         },
         "core_model/system.py": {
@@ -17077,9 +17077,9 @@
           ],
           "functions": [],
           "imports": [
+            "numpy",
             "dataclasses",
-            "__future__",
-            "numpy"
+            "__future__"
           ]
         }
       }
@@ -17096,8 +17096,8 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "scada_model.state_estimation",
-            "scada_model.scada_model"
+            "scada_model.scada_model",
+            "scada_model.state_estimation"
           ]
         },
         "scada_model/scada_model.py": {
@@ -17173,10 +17173,10 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "time",
             "enum",
+            "numpy",
+            "time",
+            "__future__",
             "dataclasses"
           ]
         },
@@ -17219,12 +17219,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
-            "torch",
-            "torch_geometric.nn",
             "logging",
             "enum",
+            "torch",
+            "torch_geometric.nn",
+            "numpy",
+            "__future__",
             "dataclasses",
             "ml.predictive"
           ]
@@ -17262,21 +17262,21 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "integrations.langfuse_integration",
-            "__future__",
-            "integrations.supabase_auth",
-            "atexit",
-            "integrations.langfuse_middleware",
-            "integrations.siem_syslog",
-            "integrations.langfuse_llm",
             "logging",
+            "atexit",
+            "integrations.langfuse_sessions",
+            "integrations.supabase_integration",
+            "integrations.langfuse_integration",
+            "integrations.langwatch_integration",
             "typing",
+            "integrations.langfuse_middleware",
+            "integrations.langfuse_llm",
+            "integrations.supabase_auth",
+            "__future__",
+            "integrations.siem_syslog",
             "integrations.langfuse_evals",
             "integrations.smithery_mcp",
-            "integrations.langwatch_integration",
-            "integrations.supabase_integration",
-            "integrations.langfuse_sessions"
+            "contextlib"
           ]
         },
         "integrations/_observability_base.py": {
@@ -17313,9 +17313,9 @@
             }
           ],
           "imports": [
+            "logging",
             "typing",
             "__future__",
-            "logging",
             "os"
           ]
         },
@@ -17353,14 +17353,14 @@
             }
           ],
           "imports": [
-            "__future__",
-            "pathlib",
             "logging",
-            "time",
-            "typing",
             "PIL",
+            "base64",
+            "typing",
             "io",
-            "base64"
+            "time",
+            "__future__",
+            "pathlib"
           ]
         },
         "integrations/anthropic_vision.py": {
@@ -17382,16 +17382,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "urllib.request",
             "logging",
-            "typing",
-            "integrations",
-            "PIL",
-            "os",
             "httpx",
-            "services.api_key_store"
+            "PIL",
+            "urllib.request",
+            "integrations",
+            "typing",
+            "json",
+            "__future__",
+            "services.api_key_store",
+            "os"
           ]
         },
         "integrations/etap_component_importer.py": {
@@ -17412,13 +17412,13 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "importlib",
-            "uuid",
-            "re",
             "logging",
+            "importlib",
             "typing",
-            "xml.etree.ElementTree"
+            "uuid",
+            "__future__",
+            "xml.etree.ElementTree",
+            "re"
           ]
         },
         "integrations/gemini_vision.py": {
@@ -17447,16 +17447,16 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "importlib.util",
             "logging",
-            "typing",
-            "integrations",
-            "os",
             "base64",
+            "integrations",
+            "typing",
+            "json",
+            "__future__",
+            "importlib.util",
             "google.generativeai",
-            "services.api_key_store"
+            "services.api_key_store",
+            "os"
           ]
         },
         "integrations/langfuse_evals.py": {
@@ -17529,11 +17529,11 @@
             }
           ],
           "imports": [
-            "integrations.langfuse_integration",
-            "__future__",
-            "re",
             "logging",
-            "typing"
+            "integrations.langfuse_integration",
+            "typing",
+            "__future__",
+            "re"
           ]
         },
         "integrations/langfuse_integration.py": {
@@ -17574,17 +17574,17 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "integrations._observability_base",
-            "langfuse",
-            "atexit",
-            "threading",
-            "asyncio",
             "logging",
-            "typing",
-            "collections.abc",
+            "atexit",
             "functools",
+            "asyncio",
+            "integrations._observability_base",
+            "typing",
+            "threading",
+            "collections.abc",
+            "__future__",
+            "langfuse",
+            "contextlib",
             "os"
           ]
         },
@@ -17651,17 +17651,17 @@
             }
           ],
           "imports": [
-            "integrations.model_router",
-            "__future__",
-            "langfuse.openai",
-            "threading",
-            "anthropic",
             "logging",
-            "time",
-            "typing",
+            "langfuse.anthropic",
+            "integrations.model_router",
             "openai",
+            "langfuse.openai",
+            "typing",
+            "anthropic",
+            "time",
+            "__future__",
             "os",
-            "langfuse.anthropic"
+            "threading"
           ]
         },
         "integrations/langfuse_middleware.py": {
@@ -17689,20 +17689,20 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "starlette.middleware.base",
-            "integrations.langfuse_integration",
-            "__future__",
-            "re",
             "logging",
-            "time",
-            "typing",
-            "starlette.types",
-            "collections.abc",
-            "os",
+            "starlette.middleware.base",
             "starlette.requests",
+            "integrations.langfuse_sessions",
+            "integrations.langfuse_integration",
+            "typing",
             "starlette.responses",
-            "integrations.langfuse_sessions"
+            "collections.abc",
+            "time",
+            "__future__",
+            "starlette.types",
+            "re",
+            "contextlib",
+            "os"
           ]
         },
         "integrations/langfuse_sessions.py": {
@@ -17760,15 +17760,15 @@
             }
           ],
           "imports": [
-            "integrations.langfuse_integration",
-            "__future__",
-            "json",
-            "uuid",
             "logging",
-            "time",
-            "os",
+            "httpx",
+            "integrations.langfuse_integration",
+            "json",
             "math",
-            "httpx"
+            "time",
+            "__future__",
+            "uuid",
+            "os"
           ]
         },
         "integrations/langwatch_integration.py": {
@@ -17801,20 +17801,20 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "integrations._observability_base",
-            "atexit",
-            "asyncio",
-            "threading",
             "logging",
-            "time",
-            "typing",
-            "collections.abc",
+            "atexit",
             "functools",
-            "os",
+            "asyncio",
+            "integrations._observability_base",
+            "langwatch",
+            "typing",
             "random",
-            "langwatch"
+            "threading",
+            "collections.abc",
+            "time",
+            "__future__",
+            "contextlib",
+            "os"
           ]
         },
         "integrations/model_router.py": {
@@ -17863,13 +17863,13 @@
             }
           ],
           "imports": [
+            "logging",
+            "enum",
+            "typing",
+            "integrations.langfuse_llm",
+            "integrations.provider_policy",
             "__future__",
             "re",
-            "integrations.langfuse_llm",
-            "logging",
-            "typing",
-            "integrations.provider_policy",
-            "enum",
             "dataclasses"
           ]
         },
@@ -17929,10 +17929,10 @@
             }
           ],
           "imports": [
-            "neo4j",
-            "__future__",
             "logging",
+            "neo4j",
             "typing",
+            "__future__",
             "os"
           ]
         },
@@ -17990,16 +17990,16 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
             "sys",
+            "base64",
             "urllib.request",
-            "urllib.error",
             "typing",
-            "dataclasses",
-            "os",
+            "json",
+            "urllib.error",
             "urllib.parse",
-            "base64"
+            "__future__",
+            "dataclasses",
+            "os"
           ]
         },
         "integrations/openai_vision.py": {
@@ -18021,16 +18021,16 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "urllib.request",
             "logging",
-            "typing",
-            "integrations",
-            "PIL",
-            "os",
             "httpx",
-            "services.api_key_store"
+            "PIL",
+            "urllib.request",
+            "integrations",
+            "typing",
+            "json",
+            "__future__",
+            "services.api_key_store",
+            "os"
           ]
         },
         "integrations/opencv_vision.py": {
@@ -18053,16 +18053,16 @@
           ],
           "functions": [],
           "imports": [
-            "cv2",
+            "logging",
+            "PIL",
             "numpy",
+            "integrations",
+            "typing",
+            "shutil",
+            "pytesseract",
             "__future__",
             "re",
-            "pytesseract",
-            "logging",
-            "typing",
-            "integrations",
-            "PIL",
-            "shutil"
+            "cv2"
           ]
         },
         "integrations/provider_policy.py": {
@@ -18160,13 +18160,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
-            "threading",
-            "pathlib",
             "logging",
             "typing",
-            "os"
+            "json",
+            "__future__",
+            "pathlib",
+            "os",
+            "threading"
           ]
         },
         "integrations/resend_email.py": {
@@ -18223,19 +18223,19 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
+            "logging",
+            "httpx",
             "asyncio",
             "urllib.request",
-            "logging",
-            "time",
             "typing",
-            "urllib.error",
-            "dataclasses",
-            "email.utils",
-            "os",
             "services.email_send_log",
-            "httpx"
+            "json",
+            "urllib.error",
+            "email.utils",
+            "time",
+            "__future__",
+            "dataclasses",
+            "os"
           ]
         },
         "integrations/resilience.py": {
@@ -18285,23 +18285,23 @@
             }
           ],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "uuid",
-            "pathlib",
-            "integrations.gemini_vision",
-            "integrations.openai_vision",
             "logging",
-            "time",
+            "integrations.opencv_vision",
+            "functools",
+            "integrations.anthropic_vision",
             "datetime",
             "typing",
-            "hashlib",
+            "json",
             "collections.abc",
-            "functools",
-            "os",
-            "integrations.anthropic_vision",
-            "integrations.opencv_vision"
+            "time",
+            "__future__",
+            "uuid",
+            "integrations.gemini_vision",
+            "integrations.openai_vision",
+            "pathlib",
+            "hashlib",
+            "contextlib",
+            "os"
           ]
         },
         "integrations/siem_syslog.py": {
@@ -18324,16 +18324,16 @@
           ],
           "functions": [],
           "imports": [
-            "socket",
-            "__future__",
-            "json",
-            "api._messages",
-            "threading",
             "logging",
+            "api._messages",
+            "ssl",
             "datetime",
             "typing",
-            "os",
-            "ssl"
+            "json",
+            "socket",
+            "threading",
+            "__future__",
+            "os"
           ]
         },
         "integrations/smithery_mcp.py": {
@@ -18375,23 +18375,23 @@
           ],
           "functions": [],
           "imports": [
-            "contextlib",
-            "__future__",
-            "json",
-            "uuid",
-            "atexit",
-            "integrations._observability_base",
-            "asyncio",
-            "re",
-            "threading",
             "logging",
-            "time",
-            "typing",
+            "httpx",
+            "atexit",
             "engine.resilience",
-            "collections.abc",
-            "os",
+            "asyncio",
+            "integrations._observability_base",
+            "typing",
+            "json",
             "random",
-            "httpx"
+            "threading",
+            "collections.abc",
+            "time",
+            "__future__",
+            "uuid",
+            "re",
+            "contextlib",
+            "os"
           ]
         },
         "integrations/supabase_auth.py": {
@@ -18441,13 +18441,13 @@
             }
           ],
           "imports": [
-            "__future__",
-            "secrets",
-            "typing",
             "logging",
-            "os",
+            "httpx",
+            "typing",
             "urllib.parse",
-            "httpx"
+            "secrets",
+            "__future__",
+            "os"
           ]
         },
         "integrations/supabase_integration.py": {
@@ -18515,12 +18515,12 @@
             }
           ],
           "imports": [
-            "supabase",
-            "__future__",
-            "uuid",
-            "pathlib",
             "logging",
+            "supabase",
             "typing",
+            "uuid",
+            "__future__",
+            "pathlib",
             "os"
           ]
         }
@@ -18596,12 +18596,12 @@
           ],
           "functions": [],
           "imports": [
-            "numpy",
-            "__future__",
             "logging",
+            "numpy",
             "typing",
-            "os",
-            "model2vec"
+            "model2vec",
+            "__future__",
+            "os"
           ]
         },
         "knowledge/rag_engine.py": {
@@ -18661,19 +18661,19 @@
             }
           ],
           "imports": [
-            "numpy",
-            "__future__",
-            "api.feature_flags",
-            "sentence_transformers",
-            "chromadb",
-            "datetime",
             "logging",
-            "knowledge.emb_model2vec",
+            "sentence_transformers",
             "openai",
-            "dataclasses",
-            "os",
+            "knowledge.emb_model2vec",
+            "chromadb",
+            "numpy",
+            "datetime",
             "faiss",
-            "hashlib"
+            "__future__",
+            "hashlib",
+            "dataclasses",
+            "api.feature_flags",
+            "os"
           ]
         }
       }
@@ -18719,14 +18719,14 @@
           ],
           "functions": [],
           "imports": [
-            "contextlib",
-            "__future__",
             "logging",
+            "folium",
             "typing",
             "folium.plugins",
-            "folium",
-            "os",
-            "math"
+            "math",
+            "__future__",
+            "contextlib",
+            "os"
           ]
         },
         "visualization/visualization.py": {
@@ -18750,8 +18750,8 @@
           ],
           "functions": [],
           "imports": [
-            "relays.relay",
             "numpy",
+            "relays.relay",
             "matplotlib"
           ]
         }
@@ -18769,10 +18769,10 @@
           "classes": [],
           "functions": [],
           "imports": [
-            "gis_integration.base",
-            "gis_integration.transformer",
-            "gis_integration.models",
             "gis_integration.exceptions",
+            "gis_integration.base",
+            "gis_integration.models",
+            "gis_integration.transformer",
             "gis_integration.providers.postgis_provider"
           ]
         },
@@ -18803,12 +18803,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "typing",
+            "gis_integration.exceptions",
             "gis_integration.models",
+            "typing",
             "abc",
-            "collections.abc",
-            "gis_integration.exceptions"
+            "__future__",
+            "collections.abc"
           ]
         },
         "gis_integration/exceptions.py": {
@@ -18901,8 +18901,8 @@
           "functions": [],
           "imports": [
             "dataclasses",
-            "__future__",
             "compat",
+            "__future__",
             "typing"
           ]
         },
@@ -18927,9 +18927,9 @@
           ],
           "functions": [],
           "imports": [
+            "gis_integration.models",
             "gis_integration.exceptions",
             "__future__",
-            "gis_integration.models",
             "typing"
           ]
         },
@@ -18973,11 +18973,11 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
             "logging",
+            "gis_integration.exceptions",
             "typing",
-            "gis_integration.exceptions"
+            "json",
+            "__future__"
           ]
         },
         "gis_integration/providers/__init__.py": {
@@ -18996,14 +18996,14 @@
             }
           ],
           "imports": [
-            "gis_integration.base",
-            "__future__",
-            "api.feature_flags",
-            "gis_integration.providers.qgis_provider",
             "logging",
-            "gis_integration.providers.arcgis_provider",
             "gis_integration.providers.mock_gis",
             "gis_integration.exceptions",
+            "gis_integration.base",
+            "gis_integration.providers.arcgis_provider",
+            "gis_integration.providers.qgis_provider",
+            "__future__",
+            "api.feature_flags",
             "os"
           ]
         },
@@ -19047,19 +19047,19 @@
           ],
           "functions": [],
           "imports": [
-            "gis_integration.base",
-            "__future__",
-            "json",
-            "re",
             "logging",
-            "time",
-            "typing",
-            "gis_integration.models",
-            "collections.abc",
-            "os",
+            "httpx",
             "gis_integration.exceptions",
+            "gis_integration.base",
+            "gis_integration.models",
+            "typing",
+            "json",
             "gis_integration.utils",
-            "httpx"
+            "time",
+            "__future__",
+            "re",
+            "collections.abc",
+            "os"
           ]
         },
         "gis_integration/providers/mock_gis.py": {
@@ -19085,11 +19085,11 @@
           ],
           "functions": [],
           "imports": [
-            "gis_integration.base",
-            "__future__",
             "logging",
-            "typing",
+            "gis_integration.base",
             "gis_integration.models",
+            "typing",
+            "__future__",
             "collections.abc"
           ]
         },
@@ -19131,18 +19131,18 @@
           ],
           "functions": [],
           "imports": [
-            "contextlib",
-            "psycopg2",
-            "__future__",
-            "json",
-            "re",
             "logging",
-            "time",
-            "typing",
             "dataclasses",
+            "typing",
+            "json",
+            "psycopg2",
+            "math",
+            "time",
+            "__future__",
+            "contextlib",
+            "re",
             "collections.abc",
-            "os",
-            "math"
+            "os"
           ]
         },
         "gis_integration/providers/qgis_provider.py": {
@@ -19168,15 +19168,15 @@
           ],
           "functions": [],
           "imports": [
+            "logging",
+            "gis_integration.exceptions",
             "gis_integration.base",
+            "gis_integration.models",
+            "gis_integration.utils",
             "__future__",
             "qgis.core",
-            "logging",
-            "gis_integration.models",
             "collections.abc",
-            "os",
-            "gis_integration.exceptions",
-            "gis_integration.utils"
+            "os"
           ]
         }
       }
@@ -19286,12 +19286,12 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "typing",
             "enum",
-            "dataclasses",
-            "math"
+            "typing",
+            "json",
+            "math",
+            "__future__",
+            "dataclasses"
           ]
         }
       }
@@ -19368,8 +19368,8 @@
             }
           ],
           "imports": [
-            "gis_integration.models",
             "random",
+            "gis_integration.models",
             "__future__",
             "typing"
           ]
@@ -19415,13 +19415,13 @@
             }
           ],
           "imports": [
-            "__future__",
+            "gis_integration.models",
             "copy",
             "typing",
-            "gis_integration.models",
+            "random",
+            "__future__",
             "dataclasses",
-            "collections.abc",
-            "random"
+            "collections.abc"
           ]
         },
         "gis_validation/stress_tests.py": {
@@ -19459,12 +19459,12 @@
             }
           ],
           "imports": [
+            "gis_integration.models",
             "tracemalloc",
-            "__future__",
+            "typing",
             "gis_validation.dataset_generator",
             "time",
-            "typing",
-            "gis_integration.models",
+            "__future__",
             "dataclasses",
             "collections.abc"
           ]
@@ -19516,22 +19516,22 @@
             }
           ],
           "imports": [
-            "gis_validation.crs_validator",
-            "gis_validation.failure_injection",
-            "__future__",
-            "gis_validation_real.ground_truth_validator",
             "importlib",
-            "gis_integration.providers.qgis_provider",
-            "gis_validation.dataset_generator",
-            "gis_integration.providers.arcgis_provider",
-            "typing",
-            "time",
-            "gis_integration.models",
-            "gis_validation.stress_tests",
-            "dataclasses",
             "gis_validation_real.real_gis_loader",
+            "gis_validation.stress_tests",
+            "gis_integration.providers.arcgis_provider",
+            "gis_integration.models",
             "gis_validation_real.project_adapters",
-            "gis_validation.topology_validator"
+            "typing",
+            "gis_integration.providers.qgis_provider",
+            "gis_validation.crs_validator",
+            "gis_validation.dataset_generator",
+            "gis_validation_real.ground_truth_validator",
+            "time",
+            "__future__",
+            "gis_validation.topology_validator",
+            "dataclasses",
+            "gis_validation.failure_injection"
           ]
         },
         "gis_validation/topology_validator.py": {
@@ -19618,13 +19618,13 @@
             }
           ],
           "imports": [
-            "gis_validation.crs_validator",
-            "gis_integration.transformer",
-            "__future__",
             "gis_integration.models",
+            "gis_integration.transformer",
             "typing",
-            "dataclasses",
-            "gis_validation.topology_validator"
+            "gis_validation.crs_validator",
+            "__future__",
+            "gis_validation.topology_validator",
+            "dataclasses"
           ]
         },
         "gis_validation_real/ground_truth_validator.py": {
@@ -19650,13 +19650,13 @@
             }
           ],
           "imports": [
-            "gis_validation.crs_validator",
-            "gis_integration.transformer",
-            "__future__",
             "gis_integration.models",
+            "gis_integration.transformer",
             "typing",
-            "dataclasses",
-            "gis_validation.topology_validator"
+            "gis_validation.crs_validator",
+            "__future__",
+            "gis_validation.topology_validator",
+            "dataclasses"
           ]
         },
         "gis_validation_real/project_adapters.py": {
@@ -19682,12 +19682,12 @@
             }
           ],
           "imports": [
+            "gis_integration.exceptions",
             "gis_integration.base",
-            "__future__",
-            "typing",
             "gis_integration.models",
-            "dataclasses",
-            "gis_integration.exceptions"
+            "typing",
+            "__future__",
+            "dataclasses"
           ]
         },
         "gis_validation_real/real_gis_loader.py": {
@@ -19719,12 +19719,12 @@
             }
           ],
           "imports": [
+            "gis_integration.exceptions",
             "gis_integration.base",
-            "__future__",
-            "gis_integration.providers",
             "gis_integration.providers.arcgis_provider",
-            "dataclasses",
-            "gis_integration.exceptions"
+            "gis_integration.providers",
+            "__future__",
+            "dataclasses"
           ]
         }
       }
@@ -19873,12 +19873,12 @@
             }
           ],
           "imports": [
-            "__future__",
-            "gis_validation_electrical.impedance_validator",
-            "gis_validation_electrical.electrical_model",
             "gis_integration.models",
             "typing",
+            "gis_validation_electrical.impedance_validator",
+            "gis_validation_electrical.electrical_model",
             "gis_validation_electrical.radiality_checker",
+            "__future__",
             "dataclasses",
             "gis_validation_electrical.cim_mapper",
             "gis_validation_electrical.load_flow_validator"
@@ -19907,8 +19907,8 @@
             }
           ],
           "imports": [
-            "gis_validation_electrical.electrical_model",
             "dataclasses",
+            "gis_validation_electrical.electrical_model",
             "__future__"
           ]
         },
@@ -19935,8 +19935,8 @@
             }
           ],
           "imports": [
-            "gis_validation_electrical.electrical_model",
             "dataclasses",
+            "gis_validation_electrical.electrical_model",
             "__future__",
             "typing"
           ]
@@ -19964,8 +19964,8 @@
             }
           ],
           "imports": [
-            "gis_validation_electrical.electrical_model",
             "dataclasses",
+            "gis_validation_electrical.electrical_model",
             "__future__"
           ]
         }
@@ -20014,8 +20014,8 @@
             }
           ],
           "imports": [
-            "__future__",
-            "math"
+            "math",
+            "__future__"
           ]
         }
       }
@@ -20045,9 +20045,9 @@
           ],
           "functions": [],
           "imports": [
+            "json",
             "pathlib",
-            "__future__",
-            "json"
+            "__future__"
           ]
         }
       }
@@ -20096,12 +20096,12 @@
             }
           ],
           "imports": [
-            "__future__",
-            "json",
             "sentence_transformers",
-            "pathlib",
             "chromadb",
-            "chromadb.config"
+            "json",
+            "chromadb.config",
+            "__future__",
+            "pathlib"
           ]
         },
         "etap_user_guide/extract_guide.py": {
@@ -20133,13 +20133,13 @@
             }
           ],
           "imports": [
+            "sys",
+            "datetime",
+            "pdfplumber",
+            "json",
             "pypdf",
             "__future__",
-            "json",
-            "sys",
-            "pathlib",
-            "datetime",
-            "pdfplumber"
+            "pathlib"
           ]
         },
         "etap_user_guide/setup_etap_guide.py": {
@@ -20237,12 +20237,12 @@
             }
           ],
           "imports": [
-            "etap_user_guide.etap_guide_rag",
-            "json",
             "sys",
             "traceback",
-            "pathlib",
             "datetime",
+            "etap_user_guide.etap_guide_rag",
+            "json",
+            "pathlib",
             "subprocess"
           ]
         }
@@ -20280,17 +20280,17 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "tree_sitter_python",
-            "pathlib",
-            "chromadb",
-            "tree_sitter",
             "logging",
             "argparse",
             "ast",
-            "os",
+            "chromadb",
+            "tree_sitter_python",
+            "__future__",
+            "hashlib",
+            "pathlib",
             "tempfile",
-            "hashlib"
+            "tree_sitter",
+            "os"
           ]
         },
         "ai_context_engine/knowledge_graph.py": {
@@ -20320,11 +20320,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "json",
-            "pathlib",
             "logging",
             "ast",
+            "json",
+            "__future__",
+            "pathlib",
             "os"
           ]
         },
@@ -20356,11 +20356,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "ai_context_engine.retriever",
             "logging",
+            "ai_context_engine.retriever",
             "typing",
-            "math"
+            "math",
+            "__future__"
           ]
         },
         "ai_context_engine/retriever.py": {
@@ -20391,11 +20391,11 @@
           ],
           "functions": [],
           "imports": [
-            "__future__",
-            "pathlib",
-            "chromadb",
             "logging",
-            "typing"
+            "chromadb",
+            "typing",
+            "__future__",
+            "pathlib"
           ]
         }
       }
@@ -20655,13 +20655,13 @@
           ],
           "functions": [],
           "imports": [
-            "contextlib",
-            "__future__",
-            "uuid",
+            "pydantic",
             "datetime",
             "typing",
-            "pydantic",
-            "compat"
+            "uuid",
+            "__future__",
+            "compat",
+            "contextlib"
           ]
         },
         "autodesk_connector/revit/__init__.py": {
@@ -20743,13 +20743,13 @@
           ],
           "functions": [],
           "imports": [
-            "requests",
-            "__future__",
             "logging",
+            "requests",
+            "autodesk_connector.shared.models",
             "typing",
             "time",
-            "compat",
-            "autodesk_connector.shared.models"
+            "__future__",
+            "compat"
           ]
         },
         "autodesk_connector/autocad/__init__.py": {
@@ -20842,13 +20842,13 @@
           ],
           "functions": [],
           "imports": [
-            "requests",
-            "__future__",
-            "uuid",
             "logging",
+            "requests",
+            "autodesk_connector.shared.models",
             "time",
-            "compat",
-            "autodesk_connector.shared.models"
+            "uuid",
+            "__future__",
+            "compat"
           ]
         }
       }
@@ -23367,8 +23367,8 @@
       },
       "ui/src/hooks/useAuth.tsx": {
         "file": "ui/src/hooks/useAuth.tsx",
-        "hash": "09a76e7f418d",
-        "size_kb": 11.3,
+        "hash": "3cf4e75a63a9",
+        "size_kb": 10.8,
         "exports": [
           "useAuth",
           "AuthProvider"
@@ -33401,8 +33401,8 @@
         ],
         "standards_referenced": [
           "IEEE 242",
-          "IEC 60255",
-          "IEC60255"
+          "IEC60255",
+          "IEC 60255"
         ],
         "function_count": 0
       },
@@ -33752,8 +33752,8 @@
           "validate_result"
         ],
         "standards_referenced": [
-          "IEEE 1584-2018",
-          "IEEE 399"
+          "IEEE 399",
+          "IEEE 1584-2018"
         ],
         "function_count": 0
       },
@@ -34306,6 +34306,31 @@
         "utils"
       ]
     },
+    "coordination": {
+      "imports": [
+        "api",
+        "curves",
+        "engine",
+        "relays"
+      ],
+      "imported_by": [
+        "agents",
+        "digital_twin",
+        "engine"
+      ]
+    },
+    "relays": {
+      "imports": [
+        "curves"
+      ],
+      "imported_by": [
+        "agents",
+        "coordination",
+        "digital_twin",
+        "engine",
+        "visualization"
+      ]
+    },
     "load_flow": {
       "imports": [
         "api",
@@ -34318,6 +34343,36 @@
         "core",
         "digital_twin",
         "engine"
+      ]
+    },
+    "fault_analysis": {
+      "imports": [],
+      "imported_by": [
+        "agents",
+        "api",
+        "core",
+        "digital_twin",
+        "engine"
+      ]
+    },
+    "reporting": {
+      "imports": [
+        "integrations"
+      ],
+      "imported_by": [
+        "agents"
+      ]
+    },
+    "copilot": {
+      "imports": [
+        "autodesk_connector",
+        "digital_twin",
+        "etap_integration"
+      ],
+      "imported_by": [
+        "agents",
+        "api",
+        "services"
       ]
     },
     "etap_integration": {
@@ -34334,61 +34389,6 @@
         "core",
         "services",
         "worker"
-      ]
-    },
-    "coordination": {
-      "imports": [
-        "api",
-        "curves",
-        "engine",
-        "relays"
-      ],
-      "imported_by": [
-        "agents",
-        "digital_twin",
-        "engine"
-      ]
-    },
-    "fault_analysis": {
-      "imports": [],
-      "imported_by": [
-        "agents",
-        "api",
-        "core",
-        "digital_twin",
-        "engine"
-      ]
-    },
-    "copilot": {
-      "imports": [
-        "autodesk_connector",
-        "digital_twin",
-        "etap_integration"
-      ],
-      "imported_by": [
-        "agents",
-        "api",
-        "services"
-      ]
-    },
-    "reporting": {
-      "imports": [
-        "integrations"
-      ],
-      "imported_by": [
-        "agents"
-      ]
-    },
-    "relays": {
-      "imports": [
-        "curves"
-      ],
-      "imported_by": [
-        "agents",
-        "coordination",
-        "digital_twin",
-        "engine",
-        "visualization"
       ]
     },
     "knowledge": {
@@ -34428,12 +34428,6 @@
         "gis_validation_real"
       ]
     },
-    "ai_context_engine": {
-      "imports": [],
-      "imported_by": [
-        "api"
-      ]
-    },
     "core_model": {
       "imports": [],
       "imported_by": [
@@ -34443,6 +34437,12 @@
         "etap_integration",
         "load_flow",
         "services"
+      ]
+    },
+    "ai_context_engine": {
+      "imports": [],
+      "imported_by": [
+        "api"
       ]
     },
     "scada_model": {
@@ -34536,10 +34536,10 @@
   "ui_search_index_summary": {
     "total": 475,
     "by_type": {
-      "ui-page": 61,
-      "ui-component": 281,
+      "api-route": 92,
       "python-module": 41,
-      "api-route": 92
+      "ui-page": 61,
+      "ui-component": 281
     }
   }
 }
