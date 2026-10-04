@@ -187,6 +187,12 @@ async def _startup_auth_fail_closed_check() -> None:
         if not jwt_key:
             missing_vars.append("JWT_SECRET_KEY")
 
+        redis_url = os.environ.get("REDIS_URL", "").strip()
+        if not redis_url:
+            logger.critical(
+                "PRODUCTION DEPLOYMENT WITHOUT REDIS: Rate limiting will fall back to in-memory! Set REDIS_URL."
+            )
+
         if missing_vars:
             msg = (
                 f"FATAL STARTUP ERROR: Running in {env} mode with missing mandatory configuration: "

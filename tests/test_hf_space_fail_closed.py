@@ -1,68 +1,89 @@
 """
-tests/test_hf_space_fail_closed.py — Tests for Fail-Closed authentication guard in HF Space.
+tests/test_hf_space_fail_closed.py — Tests for Fail-Closed authentication and database guards in HF Space.
 """
 
 from __future__ import annotations
 
+import importlib.util
+import logging
 import os
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+# Load hf-space/app.py dynamically due to hyphen in folder name
+_app_path = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
+_spec = importlib.util.spec_from_file_location("hf_space_app", str(_app_path))
+_mod = importlib.util.module_from_spec(_spec)
+assert _spec and _spec.loader
+_spec.loader.exec_module(_mod)
 
-def test_hf_space_fail_closed_production_raises():
+_startup_auth_fail_closed_check = _mod._startup_auth_fail_closed_check
+
+
+@pytest.mark.asyncio
+async def test_hf_space_fail_closed_production_raises_when_missing_key():
     """In production mode without an API key, startup check must raise RuntimeError."""
-    app_path = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
-    src = app_path.read_text(encoding="utf-8")
-    assert "_startup_auth_fail_closed_check" in src
-    assert "Fail-Closed Security Guard" in src
-
     with patch.dict(
         os.environ,
-        {"ENVIRONMENT": "production", "ENGINEERING_SERVICE_API_KEY": "", "HF_API_KEY": ""},
+        {
+            "ENVIRONMENT": "production",
+            "ENGINEERING_SERVICE_API_KEY": "",
+            "HF_API_KEY": "",
+            "JWT_SECRET_KEY": "valid-secret",
+            "DATABASE_URL": "postgresql://user:pass@localhost/db",
+        },
         clear=True,
     ):
-        env = os.environ.get("ENVIRONMENT", "development").lower()
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
-            "HF_API_KEY", ""
-        )
-        with pytest.raises(RuntimeError, match="must be configured in production mode"):
-            if env in ("production", "staging", "prod") and not eng_key:
-                raise RuntimeError(
-                    f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
-                )
+        with pytest.raises(RuntimeError, match="Fail-Closed Security Guard"):
+            await _startup_auth_fail_closed_check()
 
 
-def test_hf_space_fail_closed_production_with_key_succeeds():
-    """In production mode with an API key, startup check must succeed."""
+@pytest.mark.asyncio
+async def test_hf_space_fail_closed_production_sqlite_fails_immediately():
+    """In production mode with SQLite and without ALLOW_SQLITE_IN_PROD, startup must fail immediately."""
     with patch.dict(
         os.environ,
-        {"ENVIRONMENT": "production", "ENGINEERING_SERVICE_API_KEY": "secret_key_123"},
+        {
+            "ENVIRONMENT": "production",
+            "ENGINEERING_SERVICE_API_KEY": "secret_key_123",
+            "JWT_SECRET_KEY": "secret_jwt_456",
+            "DATABASE_URL": "sqlite:///tmp/test.db",
+            "ALLOW_SQLITE_IN_PROD": "false",
+        },
         clear=True,
     ):
-        env = os.environ.get("ENVIRONMENT", "development").lower()
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
-            "HF_API_KEY", ""
-        )
-        if env in ("production", "staging", "prod") and not eng_key:
-            raise RuntimeError(
-                f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
-            )
+        with pytest.raises(RuntimeError, match="SQLite is forbidden in production"):
+            await _startup_auth_fail_closed_check()
 
 
-def test_hf_space_dev_mode_without_key_succeeds():
+@pytest.mark.asyncio
+async def test_hf_space_production_logs_critical_warning_when_redis_missing(caplog):
+    """In production mode without REDIS_URL, startup must log a critical warning."""
+    with patch.dict(
+        os.environ,
+        {
+            "ENVIRONMENT": "production",
+            "ENGINEERING_SERVICE_API_KEY": "secret_key_123",
+            "JWT_SECRET_KEY": "secret_jwt_456",
+            "DATABASE_URL": "postgresql://user:pass@localhost:5432/db",
+            "REDIS_URL": "",
+        },
+        clear=True,
+    ):
+        with caplog.at_level(logging.CRITICAL):
+            await _startup_auth_fail_closed_check()
+        assert any("PRODUCTION DEPLOYMENT WITHOUT REDIS" in r.message for r in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_hf_space_dev_mode_without_key_succeeds():
     """In development mode without an API key, startup check allows execution."""
     with patch.dict(
         os.environ,
         {"ENVIRONMENT": "development", "ENGINEERING_SERVICE_API_KEY": "", "HF_API_KEY": ""},
         clear=True,
     ):
-        env = os.environ.get("ENVIRONMENT", "development").lower()
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
-            "HF_API_KEY", ""
-        )
-        if env in ("production", "staging", "prod") and not eng_key:
-            raise RuntimeError(
-                f"ENGINEERING_SERVICE_API_KEY or HF_API_KEY must be configured in {env} mode (Fail-Closed Security Guard)."
-            )
+        # Should not raise
+        await _startup_auth_fail_closed_check()
