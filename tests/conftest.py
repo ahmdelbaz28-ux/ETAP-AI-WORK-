@@ -16,9 +16,9 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Set test environment variables
-os.environ.setdefault("APP_ENV", "test")
-os.environ.setdefault("ENVIRONMENT", "test")
-os.environ.setdefault("ENV", "test")
+os.environ.setdefault("APP_ENV", "development")
+os.environ.setdefault("ENVIRONMENT", "development")
+os.environ.setdefault("ENV", "development")
 os.environ.setdefault("ENGINEERING_SERVICE_AUTH_DISABLED", "true")
 os.environ.setdefault("ENGINEERING_SERVICE_API_KEY", "test-key")
 os.environ.setdefault("ENGINEERING_SERVICE_RATE_LIMIT_DISABLED", "true")
@@ -27,6 +27,16 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long!")
 os.environ.setdefault("ETAP_SECRET_KEY", "test-etap-secret-key-32-chars-long!")
 os.environ.setdefault("AUTH_DISABLED", "true")
 os.environ.setdefault("AUTH_RETURN_RESET_TOKEN", "true")
+
+@pytest.fixture(scope="session", autouse=True)
+def _ensure_test_development_environment():
+    """Ensure ENVIRONMENT is explicitly configured in DEV_ENVIRONMENTS for the test suite."""
+    old_env = os.environ.get("ENVIRONMENT")
+    if not old_env or old_env not in ("development", "test", "dev", "ci", "testing"):
+        os.environ["ENVIRONMENT"] = "development"
+    yield
+    if old_env is not None:
+        os.environ["ENVIRONMENT"] = old_env
 
 # ─── pytest-xdist isolation ──────────────────────────────────────────────────
 # CI runs pytest with `-n 4`. All workers share one process-wide DATABASE_URL,

@@ -25,7 +25,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_USER_NOT_FOUND
 from api.database import get_db
-from api.environment import auth_disabled_allowed, is_production_environment
+from api.environment import (
+    DEV_ENVIRONMENTS,
+    auth_disabled_allowed,
+    get_environment,
+    is_production_environment,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +38,15 @@ logger = logging.getLogger(__name__)
 # JWT configuration
 # ---------------------------------------------------------------------------
 
+_env = get_environment()
+_is_dev = _env in DEV_ENVIRONMENTS
+
 _jwt_key = os.getenv("JWT_SECRET_KEY", "")
 if not _jwt_key:
-    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
-    if _env in ("production", "prod", "staging"):
+    if not _is_dev:
         raise RuntimeError(
-            "JWT_SECRET_KEY must be set in production/staging. "
-            "Refusing to start with a default secret. "
+            f"JWT_SECRET_KEY must be set in non-development environment '{_env}'. "
+            "Refusing to start with a default secret (Fail-Closed Security Guard). "
             'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
         )
     # Development fallback: generate a random key at startup.
@@ -80,11 +87,10 @@ if len(_jwt_key) < 32 or _jwt_key in _INSECURE_JWT_SAMPLES:
 
 API_KEY: str = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
 if not API_KEY:
-    _env = os.getenv("ENVIRONMENT", os.getenv("ENV", "development")).lower()
-    if _env in ("production", "prod", "staging"):
+    if not _is_dev:
         raise RuntimeError(
-            "ENGINEERING_SERVICE_API_KEY must be set in production/staging. "
-            "Refusing to start with no API key.",
+            f"ENGINEERING_SERVICE_API_KEY must be set in non-development environment '{_env}'. "
+            "Refusing to start with no API key (Fail-Closed Security Guard).",
         )
     logger.warning("ENGINEERING_SERVICE_API_KEY not set — API key auth disabled in development")
 if API_KEY in _INSECURE_JWT_SAMPLES or API_KEY == "etap_dev_api_key_1234567890":
