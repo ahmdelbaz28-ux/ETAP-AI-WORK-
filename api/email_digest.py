@@ -135,6 +135,11 @@ async def _build_digest_context(
         for r in user_in_window[:10]
     ]
 
+    from api.auth import validate_email_app_url
+
+    raw_app_url = os.getenv("EMAIL_APP_URL", "https://etap-ai-work.vercel.app")
+    app_url = validate_email_app_url(raw_app_url)
+
     return {
         "recipient_name": user_name or email.split("@")[0],
         "period_label": period_label,
@@ -143,7 +148,7 @@ async def _build_digest_context(
         "by_flow": by_flow,
         "items": items,
         "current_year": now.year,
-        "app_url": os.getenv("EMAIL_APP_URL", "https://etap-ai-work.vercel.app"),
+        "app_url": app_url,
         "brand_name": os.getenv("EMAIL_BRAND_NAME", "AhmedETAP"),
         "brand_tagline": os.getenv("EMAIL_BRAND_TAGLINE", ""),
         "support_email": os.getenv("EMAIL_SUPPORT_ADDRESS", "support@etap-ai-work.vercel.app"),

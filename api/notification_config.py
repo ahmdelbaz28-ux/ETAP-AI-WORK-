@@ -44,7 +44,17 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    String,
+    Text,
+    select,
+)
+from sqlalchemy.orm import Mapped, mapped_column
 
+from api.database import Base
 from api.dependencies import (
     CurrentUser,
     get_api_key,
@@ -70,6 +80,7 @@ def _sanitize_for_log(value: object, max_len: int = 200) -> str:
 
 
 logger = logging.getLogger("etap.api.notification_config")
+audit_logger = logging.getLogger("audit")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -161,6 +172,192 @@ _store: Dict[str, Any] = _default_store()
 
 
 # ---------------------------------------------------------------------------
+# SQLAlchemy ORM Models (Fix 14: Persist to DB)
+# ---------------------------------------------------------------------------
+
+
+class NotificationConfig(Base):
+    """Persisted notification configuration (digest schedule + alert preferences)."""
+
+    __tablename__ = "notification_configs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default="default")
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    digest: Mapped[dict] = mapped_column(JSON, nullable=False, default=lambda: _default_store()["digest"])
+    alerts: Mapped[dict] = mapped_column(JSON, nullable=False, default=lambda: _default_alert_configs())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+
+class WebhookConfig(Base):
+    """Persisted outbound webhook configuration with secret encrypted at rest."""
+
+    __tablename__ = "webhook_configs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    owner_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    url: Mapped[str] = mapped_column(String(2048), nullable=False)
+    events: Mapped[list] = mapped_column(JSON, nullable=False)
+    secret: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # Fernet encrypted at rest
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Encryption and Audit Logging Helpers (Fix 14)
+# ---------------------------------------------------------------------------
+
+
+def _get_fernet_cipher() -> Any:
+    """Retrieve Fernet cipher instance from LocalSecretsManager."""
+    try:
+        from security.secrets_manager import LocalSecretsManager
+
+        return LocalSecretsManager()._cipher
+    except Exception as exc:
+        logger.warning("Could not initialize LocalSecretsManager cipher: %s", exc)
+        return None
+
+
+def _encrypt_secret(secret: str) -> str:
+    """Encrypt secret at rest using Fernet."""
+    if not secret:
+        return ""
+    cipher = _get_fernet_cipher()
+    if cipher:
+        try:
+            return cipher.encrypt(secret.encode("utf-8")).decode("utf-8")
+        except Exception as exc:
+            logger.warning("Secret encryption failed: %s", exc)
+    return secret
+
+
+def _decrypt_secret(encrypted: str) -> str:
+    """Decrypt stored secret with graceful fallback if plaintext."""
+    if not encrypted:
+        return ""
+    cipher = _get_fernet_cipher()
+    if cipher:
+        try:
+            return cipher.decrypt(encrypted.encode("utf-8")).decode("utf-8")
+        except Exception:
+            return encrypted
+    return encrypted
+
+
+def _log_config_change(
+    action: str,
+    target_id: Optional[str] = None,
+    user: Optional[CurrentUser] = None,
+    details: Optional[dict[str, Any]] = None,
+) -> None:
+    """Emit audit logs for configuration and webhook modifications."""
+    user_id = getattr(user, "user_id", None) or "system"
+    tenant_id = getattr(user, "tenant_id", None)
+    safe_action = _sanitize_for_log(action)
+    safe_target = _sanitize_for_log(target_id)
+    safe_user = _sanitize_for_log(user_id)
+
+    audit_logger.info(
+        "notification_config_changed action=%s target=%s user_id=%s details=%s",
+        safe_action,
+        safe_target,
+        safe_user,
+        _sanitize_for_log(details or {}),
+    )
+
+    try:
+        from core.security_logging import SecurityAuditLogger
+
+        sec_logger = SecurityAuditLogger()
+        sec_logger.log_event(
+            event_type="notification_config_change",
+            action=action,
+            target_id=target_id,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            details=details or {},
+        )
+    except Exception as exc:
+        logger.debug("SecurityAuditLogger dispatch failed: %s", exc)
+
+
+async def _sync_from_db(tenant_id: Optional[str] = None) -> None:
+    """Load config and webhooks from DB into _store cache."""
+    try:
+        from api.database import async_session
+
+        async with async_session() as db:
+            cfg_id = tenant_id or "default"
+            stmt = select(NotificationConfig).where(NotificationConfig.id == cfg_id)
+            res = await db.execute(stmt)
+            cfg = res.scalar_one_or_none()
+            if cfg is not None:
+                if cfg.digest:
+                    _store["digest"].update(cfg.digest)
+                if cfg.alerts:
+                    _store["alerts"].update(cfg.alerts)
+
+            wh_stmt = select(WebhookConfig)
+            wh_res = await db.execute(wh_stmt)
+            for wh in wh_res.scalars().all():
+                _store["webhooks"][wh.id] = {
+                    "id": wh.id,
+                    "url": wh.url,
+                    "events": wh.events,
+                    "secret": _decrypt_secret(wh.secret or ""),
+                    "enabled": wh.enabled,
+                    "owner_id": wh.owner_id,
+                    "created_at": wh.created_at.isoformat() if wh.created_at else datetime.now(UTC).isoformat(),
+                }
+    except Exception as exc:
+        logger.debug("Database sync failed, continuing with in-memory store: %s", exc)
+
+
+async def _save_config_to_db(tenant_id: Optional[str] = None) -> None:
+    """Save current _store config to DB."""
+    try:
+        from api.database import async_session
+
+        async with async_session() as db:
+            cfg_id = tenant_id or "default"
+            stmt = select(NotificationConfig).where(NotificationConfig.id == cfg_id)
+            res = await db.execute(stmt)
+            cfg = res.scalar_one_or_none()
+            if cfg is None:
+                cfg = NotificationConfig(
+                    id=cfg_id,
+                    tenant_id=tenant_id,
+                    digest=_store["digest"].copy(),
+                    alerts=_store["alerts"].copy(),
+                )
+                db.add(cfg)
+            else:
+                cfg.digest = _store["digest"].copy()
+                cfg.alerts = _store["alerts"].copy()
+                cfg.updated_at = datetime.now(UTC)
+            await db.commit()
+    except Exception as exc:
+        logger.warning("Failed to persist notification config to DB: %s", exc)
+
+
+# ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
@@ -230,8 +427,8 @@ class DigestScheduleConfig(BaseModel):
         return v
 
 
-class WebhookConfig(BaseModel):
-    """Configuration for an outbound webhook.
+class WebhookConfigSchema(BaseModel):
+    """Configuration schema for an outbound webhook.
 
     Attributes:
         url: The HTTPS endpoint that receives webhook payloads.
@@ -358,6 +555,7 @@ def _current_config_response() -> NotificationConfigResponse:
 async def get_notification_config() -> NotificationConfigResponse:
     """Return the full notification configuration including digest schedule,
     alert type settings, and registered webhooks."""
+    await _sync_from_db()
     return _current_config_response()
 
 
@@ -368,12 +566,14 @@ async def get_notification_config() -> NotificationConfigResponse:
 )
 async def update_notification_config(
     body: NotificationConfigUpdateRequest,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> NotificationConfigResponse:
     """Partially update the notification configuration.
 
     Only fields that are provided in the request body will be updated;
     omitted fields remain unchanged.
     """
+    await _sync_from_db()
     if body.digest is not None:
         _store["digest"].update(body.digest.model_dump())
         logger.info("digest_config_updated new_config=%s", body.digest.model_dump())
@@ -385,6 +585,16 @@ async def update_notification_config(
         for alert_cfg in body.alerts:
             _store["alerts"][alert_cfg.alert_type] = alert_cfg.model_dump()
         logger.info("alerts_config_updated count=%d", len(body.alerts))
+
+    await _save_config_to_db()
+    _log_config_change(
+        action="update_notification_config",
+        user=user,
+        details={
+            "has_digest": body.digest is not None,
+            "alerts_count": len(body.alerts) if body.alerts else 0,
+        },
+    )
 
     return _current_config_response()
 
@@ -401,6 +611,7 @@ async def update_notification_config(
 )
 async def get_digest_config() -> DigestScheduleConfig:
     """Return the current digest schedule configuration."""
+    await _sync_from_db()
     return DigestScheduleConfig(**_store["digest"])
 
 
@@ -411,13 +622,21 @@ async def get_digest_config() -> DigestScheduleConfig:
 )
 async def update_digest_config(
     body: DigestScheduleConfig,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> DigestScheduleConfig:
     """Update the digest schedule configuration.
 
     All fields of the digest schedule are replaced with the provided values.
     """
+    await _sync_from_db()
     _store["digest"].update(body.model_dump())
     logger.info("digest_schedule_updated config=%s", body.model_dump())
+    await _save_config_to_db()
+    _log_config_change(
+        action="update_digest_config",
+        user=user,
+        details={"config": body.model_dump()},
+    )
     return DigestScheduleConfig(**_store["digest"])
 
 
@@ -433,6 +652,7 @@ async def update_digest_config(
 )
 async def list_alert_configs() -> List[AlertTypeConfig]:
     """Return the configuration for every supported alert type."""
+    await _sync_from_db()
     return [AlertTypeConfig(**a) for a in _store["alerts"].values()]
 
 
@@ -444,6 +664,7 @@ async def list_alert_configs() -> List[AlertTypeConfig]:
 async def update_alert_config(
     alert_type: str,
     body: AlertTypeConfig,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> AlertTypeConfig:
     """Update the configuration for a specific alert type.
 
@@ -462,12 +683,20 @@ async def update_alert_config(
             detail=f"Path alert_type '{alert_type}' does not match body alert_type '{body.alert_type}'",
         )
 
+    await _sync_from_db()
     _store["alerts"][alert_type] = body.model_dump()
     logger.info("alert_config_updated alert_type=%s config=%s", alert_type, body.model_dump())
     logger.info(
         "alert_config_updated alert_type=%s config=%s",
         _sanitize_for_log(alert_type),
         _sanitize_for_log(body.model_dump()),
+    )
+    await _save_config_to_db()
+    _log_config_change(
+        action="update_alert_config",
+        target_id=alert_type,
+        user=user,
+        details={"alert_type": alert_type, "config": body.model_dump()},
     )
     return AlertTypeConfig(**_store["alerts"][alert_type])
 
@@ -486,6 +715,7 @@ async def list_webhooks(
     user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ) -> List[WebhookResponse]:
     """Return all registered webhooks scoped to the current user (or all if admin)."""
+    await _sync_from_db()
     user_id = str(getattr(user, "user_id", "")).strip() if user else None
     role = getattr(user, "role", "") if user else ""
 
@@ -515,9 +745,9 @@ async def create_webhook(
     """Register a new webhook endpoint.
 
     The webhook will receive POST requests for the specified event types
-    whenever they occur in the system.  The optional ``secret`` is used
-    to compute an ``X-Webhook-Signature`` header (HMAC-SHA256) on each
-    delivery so the receiver can verify authenticity.
+    whenever they occur in the system.  The optional ``secret`` is encrypted
+    at rest and used to compute an ``X-Webhook-Signature`` header (HMAC-SHA256)
+    on each delivery so the receiver can verify authenticity.
     """
     # SSRF protection: validate URL against private / internal targets
     from api.email_webhooks import _SSRFBlockedError, _validate_webhook_url
@@ -538,6 +768,10 @@ async def create_webhook(
     webhook_id = str(uuid.uuid4())
     now = datetime.now(UTC).isoformat()
     user_id = str(getattr(user, "user_id", "")).strip() if user else None
+    tenant_id = getattr(user, "tenant_id", None) if user else None
+
+    # Encrypt secret at rest (Fix 14)
+    encrypted_secret = _encrypt_secret(body.secret) if body.secret else ""
 
     webhook_data = {
         "id": webhook_id,
@@ -549,6 +783,26 @@ async def create_webhook(
         "created_at": now,
     }
 
+    # Persist to database (Fix 14)
+    try:
+        from api.database import async_session
+
+        async with async_session() as db:
+            wh_obj = WebhookConfig(
+                id=webhook_id,
+                tenant_id=tenant_id,
+                owner_id=user_id,
+                url=body.url,
+                events=body.events,
+                secret=encrypted_secret,
+                enabled=True,
+                created_at=datetime.now(UTC),
+            )
+            db.add(wh_obj)
+            await db.commit()
+    except Exception as exc:
+        logger.warning("Failed to persist webhook to DB: %s", exc)
+
     _store["webhooks"][webhook_id] = webhook_data
     logger.info(
         "webhook_created id=%s url=%s events=%s owner_id=%s",
@@ -556,6 +810,12 @@ async def create_webhook(
         body.url,
         body.events,
         user_id,
+    )
+    _log_config_change(
+        action="create_webhook",
+        target_id=webhook_id,
+        user=user,
+        details={"url": body.url, "events": body.events, "owner_id": user_id},
     )
     return _webhook_to_response(webhook_data)
 
@@ -576,6 +836,7 @@ async def delete_webhook(
     Returns 204 on success, 404 if the webhook does not exist, 403 if unauthorized.
     Requires an authenticated user JWT (API-key-only callers are rejected with 401).
     """
+    await _sync_from_db()
     if webhook_id not in _store["webhooks"]:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -594,8 +855,29 @@ async def delete_webhook(
                 detail="Cannot delete another user's webhook",
             )
 
+    # Delete from database (Fix 14)
+    try:
+        from api.database import async_session
+
+        async with async_session() as db:
+            stmt = select(WebhookConfig).where(WebhookConfig.id == webhook_id)
+            res = await db.execute(stmt)
+            wh_obj = res.scalar_one_or_none()
+            if wh_obj is not None:
+                await db.delete(wh_obj)
+                await db.commit()
+    except Exception as exc:
+        logger.warning("Failed to delete webhook from DB: %s", exc)
+
     del _store["webhooks"][webhook_id]
     logger.info("webhook_deleted id=%s", webhook_id)
+    _log_config_change(
+        action="delete_webhook",
+        target_id=webhook_id,
+        user=user,
+        details={"webhook_id": webhook_id},
+    )
 
 
-__all__ = ["router"]
+__all__ = ["NotificationConfig", "WebhookConfig", "router"]
+

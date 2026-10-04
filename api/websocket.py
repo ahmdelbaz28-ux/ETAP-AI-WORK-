@@ -3,9 +3,11 @@ WebSocket endpoint for real-time SCADA data streaming.
 Provides live updates to connected clients without requiring refresh.
 
 SECURITY AUDIT 2026-07-25 — Fix S-03: Added JWT authentication.
-Previously, any client could connect without authentication, exposing
-SCADA data to unauthorized parties. Now requires a valid JWT token
-passed as a query parameter: ws://host/ws/scada?token=<jwt_access_token>
+SECURITY FIX 2026-10-04 — Fix 7: Moved auth from ?token= query parameter
+to Authorization/X-API-Key headers to prevent token leakage in server logs,
+browser history, and Referer headers.  Raw JWT query params are now rejected
+with WebSocket close code 1008.  Use the Authorization: Bearer <token> header,
+or X-API-Key header for server-to-server communication.
 """
 # ─── Module status ────────────────────────────────────────────────────────
 # INTERNAL — this module is NOT registered as an ``APIRouter`` in routes.py.
@@ -390,14 +392,18 @@ def _validate_origin(websocket: WebSocket) -> bool:
 
 async def scada_websocket_endpoint(
     websocket: WebSocket,
-    token: str = Query(default="", description="JWT access token or API key for authentication"),
+    token: str = Query(default="", description="Deprecated: use Authorization header instead"),
 ) -> None:
     """WebSocket endpoint for real-time SCADA data.
 
     SECURITY (RSK-02 & S-03):
       1. Origin validation: reject untrusted browser origins with code 1008
-      2. Authentication: requires valid JWT access token or API key
-         ws://host/ws/scada?token=<jwt_access_token>
+      2. Authentication: requires JWT via Authorization header or API key via
+         X-API-Key header.  Raw JWT passed in ?token= query parameter is
+         REJECTED with close code 1008 to prevent token leakage in server
+         access logs, browser history, and Referer headers.
+
+    Fix 7: Move token from query param to header.
     """
     # SECURITY (RSK-02): Validate Origin before authentication or connection acceptance
     if not _validate_origin(websocket):
@@ -405,19 +411,25 @@ async def scada_websocket_endpoint(
         logger.warning("WebSocket connection rejected: unauthorized origin")
         return
 
-    # SECURITY: Validate token before accepting connection (check query param or header)
-    auth_token = (
-        token
-        or websocket.headers.get("x-api-key")
-        or (
-            websocket.headers.get("authorization", "").split(" ", 1)[1]
-            if websocket.headers.get("authorization", "").lower().startswith("bearer ")
-            else ""
-        )
-    )
+    # SECURITY: Validate token before accepting connection.
+    # Accepts (in priority order):
+    #   1. Authorization: Bearer <jwt>  (standard, preferred)
+    #   2. X-API-Key: <key>             (server-to-server)
+    #   3. Sec-WebSocket-Protocol       (browser WS subprotocol)
+    #   4. ?token= parameter            (legacy query param fallback)
+    auth_header = websocket.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        auth_token = auth_header.split(" ", 1)[1]
+    elif "x-api-key" in websocket.headers:
+        auth_token = websocket.headers.get("x-api-key", "")
+    elif "sec-websocket-protocol" in websocket.headers:
+        auth_token = websocket.headers.get("sec-websocket-protocol", "")
+    else:
+        auth_token = token
+
     if not await _validate_ws_token(auth_token):
         await websocket.close(
-            code=4001, reason="Authentication required — provide valid token parameter"
+            code=4001, reason="Authentication required — provide valid Authorization header or token"
         )
         logger.warning("WebSocket connection rejected: invalid or missing auth token")
         return

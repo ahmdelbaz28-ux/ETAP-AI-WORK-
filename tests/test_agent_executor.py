@@ -728,3 +728,46 @@ def test_idempotency_key_cannot_cross_plans(client):
     assert second.status_code == 409
     assert second.json()["detail"]["code"] == "IDEMPOTENCY_KEY_CONFLICT"
     assert len(calls) == 1  # plan B was NEVER executed
+
+
+def test_fix11_system_parameter_requires_source(client):
+    """Fix 11: ToolPlan carrying 'system' parameter without source is rejected with 422."""
+    plan_body = {
+        "tool": "run_python",
+        "args": {
+            "system": {
+                "base_mva": 100.0,
+                "buses": [{"id": "B1"}],
+            }
+        },
+        "session_id": "sess-fix11",
+    }
+    resp = client.post(
+        "/api/v1/agent-exec/plan",
+        json=plan_body,
+        headers=_auth(),
+    )
+    assert resp.status_code == 422
+    assert resp.json()["detail"]["code"] == "UNSOURCED_ENGINEERING_VALUE"
+
+
+@pytest.mark.asyncio
+async def test_fix11_cross_tenant_system_data_rejected_in_run_python():
+    """Fix 11: _run_python_executor rejects system data tagged with another tenant."""
+    from api.agent_executor import _run_python_executor
+
+    args = {
+        "system": {
+            "tenant_id": "tenant-B",
+            "base_mva": 100.0,
+            "buses": [],
+        }
+    }
+    ctx = {
+        "tenant_id": "tenant-A",
+        "execution_id": "exec-fix11",
+    }
+
+    with pytest.raises(ValueError, match="Cross-tenant system data access denied"):
+        await _run_python_executor(args, ctx)
+

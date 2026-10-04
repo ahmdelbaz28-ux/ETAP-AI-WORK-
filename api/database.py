@@ -409,6 +409,7 @@ async def init_db() -> None:
     import api.components  # noqa: F401  - registers Component model
     import api.export  # noqa: F401  - registers ExportHistory model
     import api.models.solver_parameters  # noqa: F401  - registers ProjectSolverParameters model
+    import api.notification_config  # noqa: F401  - registers NotificationConfig & WebhookConfig models
     import api.projects  # noqa: F401  - registers Project & StudyResult models
     import api.rbac  # noqa: F401  - registers Role Permission and UserRole models
     import api.study_versions  # noqa: F401  - registers StudyVersion model

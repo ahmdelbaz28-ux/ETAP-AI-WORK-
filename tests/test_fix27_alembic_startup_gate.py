@@ -35,7 +35,7 @@ def test_alembic_config_and_head_revision() -> None:
     head_rev = get_head_revision()
     assert head_rev is not None
     # Verify matches latest migration revision ID
-    assert head_rev == "012_study_version_unique"
+    assert head_rev == "013_add_totp_secret_to_users"
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_schema_health_reporting() -> None:
     """Verify check_schema_health returns head revision."""
     health = await check_schema_health()
     assert health["status"] == "synchronized"
-    assert health["head_revision"] == "012_study_version_unique"
+    assert health["head_revision"] == "013_add_totp_secret_to_users"
 
 
 @pytest.mark.asyncio
@@ -72,9 +72,11 @@ async def test_alembic_startup_gate_tolerates_warning_in_development() -> None:
 
 def test_schema_health_endpoint() -> None:
     """Verify GET /api/v1/health/schema endpoint."""
+    from api.database_migrations import get_head_revision
+
     client = TestClient(app)
     resp = client.get("/api/v1/health/schema")
     assert resp.status_code == 200
     data = resp.json()
     assert "head_revision" in data
-    assert data["head_revision"] == "012_study_version_unique"
+    assert data["head_revision"] == get_head_revision()

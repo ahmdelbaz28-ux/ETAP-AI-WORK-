@@ -117,17 +117,24 @@ _ALLOWED_MIME_TYPES = frozenset(
 _MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 
-# ─── Lazy Supabase client (optional dependency) ──────────────────────────
+# ─── Lazy Supabase clients (optional dependency) ─────────────────────────
+# Fix 4: Two separate clients:
+#   _admin_client  — service-role key, used ONLY for administrative ops
+#                    (bucket creation, internal data operations).
+#   _anon_client   — anon/publishable key, used for user-facing storage ops
+#                    (get_signed_url, list_files) so that Supabase RLS
+#                    policies (auth.uid() = tenant_id) are enforced.
 
-_client = None
+_admin_client = None
+_anon_client = None
 _client_init_attempted = False
 
 
 def _get_client():
-    """Return the Supabase client (lazy, thread-safe enough for our use)."""
-    global _client, _client_init_attempted
-    if _client is not None:
-        return _client
+    """Return the service-role Supabase client for administrative operations."""
+    global _admin_client, _client_init_attempted
+    if _admin_client is not None:
+        return _admin_client
     if _client_init_attempted:
         return None
     _client_init_attempted = True
@@ -139,8 +146,8 @@ def _get_client():
     try:
         from supabase import create_client  # type: ignore
 
-        _client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-        logger.info("✅ Supabase client initialized — URL: %s", SUPABASE_URL)
+        _admin_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        logger.info("✅ Supabase admin client initialized — URL: %s", SUPABASE_URL)
     except ImportError:
         logger.warning(
             "supabase package not installed. Run: pip install supabase. "
@@ -148,9 +155,37 @@ def _get_client():
         )
         return None
     except Exception as e:
-        logger.warning("Supabase client init failed: %s", e)
+        logger.warning("Supabase admin client init failed: %s", e)
         return None
-    return _client
+    return _admin_client
+
+
+def _get_anon_client():
+    """Return the anon-key Supabase client for user-facing storage operations.
+
+    Uses SUPABASE_ANON_KEY so that Supabase Row Level Security policies are
+    respected (the service-role key bypasses RLS).  Falls back to the admin
+    client when the anon key is not configured.
+    """
+    global _anon_client
+    if _anon_client is not None:
+        return _anon_client
+
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        # Fall back to service-role client (including when mocked in tests)
+        return _get_client()
+
+    try:
+        from supabase import create_client  # type: ignore
+
+        _anon_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+        logger.info("✅ Supabase anon client initialized — URL: %s", SUPABASE_URL)
+    except ImportError:
+        return _get_client()
+    except Exception as e:
+        logger.warning("Supabase anon client init failed: %s", e)
+        return _get_client()
+    return _anon_client
 
 
 # ─── Bucket management ───────────────────────────────────────────────────
@@ -399,8 +434,13 @@ def get_public_url(bucket: str, path: str) -> str | None:
         return None
 
 
-def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> str | None:
+def get_signed_url(
+    *, bucket: str, path: str, expires_in: int = 3600, tenant_id: str | None = None
+) -> str | None:
     """Return a signed URL for a private file.
+
+    Fix 4: Uses the anon-key client so Supabase RLS policies are enforced.
+    Validates that *path* is scoped to *tenant_id* before generating the URL.
 
     Parameters
     ----------
@@ -410,13 +450,26 @@ def get_signed_url(*, bucket: str, path: str, expires_in: int = 3600) -> str | N
         File path within the bucket.
     expires_in : int
         URL expiry in seconds (default 1 hour; max 7 days for Supabase).
+    tenant_id : str | None
+        Caller's tenant identifier.  When provided the *path* must start with
+        ``{tenant_id}/``; a ValueError is raised otherwise to prevent
+        cross-tenant access.
 
     Returns
     -------
     str or None
         The signed URL, or None on failure.
     """
-    client = _get_client()
+    # Fix 4: Enforce tenant-scoped path before generating any URL.
+    if tenant_id:
+        normalized = path.lstrip("/")
+        if not normalized.startswith(f"{tenant_id}/"):
+            raise ValueError(
+                f"get_signed_url: path does not belong to tenant '{tenant_id}': {path!r}"
+            )
+
+    # Fix 4: Use the anon client so Supabase RLS rules are active.
+    client = _get_anon_client()
     if client is None:
         return None
     try:
@@ -447,9 +500,24 @@ def delete_file(*, bucket: str, path: str) -> bool:
         return False
 
 
-def list_files(*, bucket: str, prefix: str = "", limit: int = 100) -> list[dict[str, Any]]:
-    """List files in a bucket. Returns a list of file metadata dicts."""
-    client = _get_client()
+def list_files(
+    *, bucket: str, prefix: str = "", limit: int = 100, tenant_id: str | None = None
+) -> list[dict[str, Any]]:
+    """List files in a bucket. Returns a list of file metadata dicts.
+
+    Fix 18: Validates that *prefix* is scoped to *tenant_id* to prevent
+    cross-tenant file enumeration.
+    """
+    # Fix 18: Enforce tenant-scoped prefix before listing.
+    if tenant_id:
+        normalized_prefix = prefix.lstrip("/")
+        if normalized_prefix and not normalized_prefix.startswith(f"{tenant_id}/"):
+            raise ValueError(
+                f"list_files: prefix does not belong to tenant '{tenant_id}': {prefix!r}"
+            )
+
+    # Fix 4: Use the anon client so Supabase RLS policies are enforced.
+    client = _get_anon_client()
     if client is None:
         return []
     try:

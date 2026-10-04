@@ -521,3 +521,71 @@ class TestDatabaseUrlNormalisation:
         # SQLite passes through
         result = _normalise_url("sqlite+aiosqlite:///./data/etap.db")
         assert result == "sqlite+aiosqlite:///./data/etap.db"
+
+# ---------------------------------------------------------------------------
+# Fix 4 & Fix 18: Tenant isolation for get_signed_url and list_files
+# ---------------------------------------------------------------------------
+
+
+class TestTenantIsolation:
+    """Fix 4 / Fix 18: Storage operations must be scoped to the caller's tenant."""
+
+    def test_get_signed_url_cross_tenant_raises(self):
+        """Tenant B cannot get a signed URL for Tenant A's file (Fix 4)."""
+        from integrations.supabase_integration import get_signed_url
+
+        with pytest.raises(ValueError, match="does not belong to tenant"):
+            get_signed_url(
+                bucket="reports",
+                path="tenant_a/report.pdf",
+                tenant_id="tenant_b",
+            )
+
+    def test_get_signed_url_same_tenant_does_not_raise_before_client_call(self):
+        """Tenant validation passes when path prefix matches tenant_id (Fix 4).
+
+        The call is expected to return None because there is no real Supabase
+        client configured in the test environment - but must NOT raise a
+        ValueError for the tenant check.
+        """
+        from integrations.supabase_integration import get_signed_url
+
+        # Should not raise ValueError for the tenant check; may return None.
+        result = get_signed_url(
+            bucket="reports",
+            path="tenant_a/report.pdf",
+            tenant_id="tenant_a",
+        )
+        assert result is None or isinstance(result, str)
+
+    def test_get_signed_url_no_tenant_id_skips_check(self):
+        """Omitting tenant_id disables the prefix check (backward-compat)."""
+        from integrations.supabase_integration import get_signed_url
+
+        result = get_signed_url(bucket="reports", path="some/path.pdf")
+        assert result is None or isinstance(result, str)
+
+    def test_list_files_cross_tenant_raises(self):
+        """Tenant B cannot list Tenant A's files (Fix 18)."""
+        from integrations.supabase_integration import list_files
+
+        with pytest.raises(ValueError, match="does not belong to tenant"):
+            list_files(
+                bucket="reports",
+                prefix="tenant_a/",
+                tenant_id="tenant_b",
+            )
+
+    def test_list_files_same_tenant_does_not_raise(self):
+        """list_files succeeds (returns empty list) when prefix matches tenant (Fix 18)."""
+        from integrations.supabase_integration import list_files
+
+        result = list_files(bucket="reports", prefix="tenant_a/", tenant_id="tenant_a")
+        assert result == []
+
+    def test_list_files_no_prefix_same_tenant_does_not_raise(self):
+        """Empty prefix with tenant_id is allowed (lists all tenant files)."""
+        from integrations.supabase_integration import list_files
+
+        result = list_files(bucket="reports", prefix="", tenant_id="tenant_a")
+        assert result == []

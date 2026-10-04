@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -14,19 +14,31 @@
       "a11y": {
         "useButtonType": "warn",
         "useSemanticElements": "warn",
-        "useKeyWithClickEvents": "warn"
+        "useKeyWithClickEvents": "warn",
+        "noStaticElementInteractions": "warn",
+        "noSvgWithoutTitle": "warn",
+        "useAriaPropsForRole": "warn",
+        "noNoninteractiveTabindex": "warn"
       },
       "suspicious": {
         "noArrayIndexKey": "warn",
         "noExplicitAny": "warn",
-        "noShadowRestrictedNames": "warn"
+        "noShadowRestrictedNames": "warn",
+        "useIterableCallbackReturn": "warn",
+        "noDuplicateCustomProperties": "warn"
       },
       "complexity": {
         "noForEach": "warn"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "useHookAtTopLevel": "warn"
       }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "javascript": {

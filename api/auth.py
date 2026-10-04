@@ -31,6 +31,7 @@ import hashlib
 import logging as _logging
 import os
 import time
+import urllib.parse
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
@@ -89,7 +90,7 @@ except ImportError:
 import bcrypt
 import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -100,6 +101,7 @@ from api.dependencies import (
     JWT_SECRET_KEY,
     CurrentUser,
     get_current_user_from_header,
+    get_optional_current_user_from_header,
     pagination_params,
     require_role,
 )
@@ -209,7 +211,14 @@ def _cleanup_expired_blacklist() -> None:
 
 
 async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
-    """Blacklist a refresh token JTI using Redis (with TTL), with in-memory fallback."""
+    """Blacklist a token JTI using Redis (with TTL), with in-memory fallback."""
+    expiry = time.time() + (
+        ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400
+    )
+    with _token_blacklist_lock:
+        _cleanup_expired_blacklist()
+        _token_blacklist_memory[jti] = expiry
+
     r = _get_redis_client()
     if r is not None:
         key = f"{_TOKEN_BLACKLIST_PREFIX}{jti}"
@@ -218,19 +227,9 @@ async def _blacklist_token(jti: str, ttl_seconds: Optional[int] = None) -> None:
                 await r.set(key, "1", ex=ttl_seconds)
             else:
                 await r.set(key, "1")
-            return
         except (OSError, _RedisError):
-            # Redis unreachable — fall through to in-memory fallback
+            # Redis unreachable — in-memory fallback already recorded
             _logger.warning("Redis unavailable for token blacklist, using in-memory fallback")
-
-    # In-memory fallback with TTL
-    expiry = time.time() + (
-        ttl_seconds if ttl_seconds and ttl_seconds > 0 else REFRESH_TOKEN_EXPIRE_DAYS * 86400
-    )
-    with _token_blacklist_lock:
-        _cleanup_expired_blacklist()
-        _token_blacklist_memory[jti] = expiry
-    _logger.info("Token blacklisted in memory (Redis unavailable): %s", jti[:8] + "...")
 
 
 async def _is_token_blacklisted(jti: str) -> bool:
@@ -256,6 +255,61 @@ async def _is_token_blacklisted(jti: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Host Header Poisoning Protection (Fix 20)
+# ---------------------------------------------------------------------------
+
+_ALLOWED_EMAIL_APP_DOMAINS: set[str] = {
+    "localhost",
+    "127.0.0.1",
+    "testserver",
+    "etap-ai-work.vercel.app",
+    "etap.vercel.app",
+    "ahmedetap.com",
+    "etap.com",
+    "hf.space",
+    "huggingface.co",
+}
+
+
+def validate_email_app_url(raw_url: str | None = None) -> str:
+    """Validate EMAIL_APP_URL against trusted domains to prevent host header poisoning (Fix 20).
+
+    Raises:
+        RuntimeError: If scheme is invalid or hostname is not in the allowlist.
+    """
+    url = (raw_url or os.getenv("EMAIL_APP_URL", "http://localhost:3000")).strip()
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise RuntimeError(f"Invalid EMAIL_APP_URL scheme or netloc: '{url}'")
+
+    hostname = (parsed.hostname or "").lower()
+
+    # Extra allowed domains from environment (comma-separated)
+    env_allowed = os.getenv("ALLOWED_APP_URL_DOMAINS", "")
+    allowed_domains = set(_ALLOWED_EMAIL_APP_DOMAINS)
+    if env_allowed:
+        allowed_domains.update(d.strip().lower() for d in env_allowed.split(",") if d.strip())
+
+    # Hostname matching
+    is_allowed = False
+    if hostname in allowed_domains:
+        is_allowed = True
+    elif hostname.endswith(".localhost") or hostname.endswith(".vercel.app") or hostname.endswith(".hf.space"):
+        is_allowed = True
+    else:
+        for domain in allowed_domains:
+            if hostname == domain or hostname.endswith(f".{domain}"):
+                is_allowed = True
+                break
+
+    if not is_allowed:
+        raise RuntimeError(
+            f"EMAIL_APP_URL host '{hostname}' is not in the allowlist. "
+            "Host header poisoning / untrusted domain rejected."
+        )
+
+    return url.rstrip("/")
+
 # Common-password blocklist (small sample — extend as needed)
 # ---------------------------------------------------------------------------
 
@@ -374,6 +428,10 @@ class User(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # Fix 15: Persist TOTP secret in DB so it survives across stateless API requests.
+    # Previously TOTPProvider stored secrets in-memory per-instance which meant every
+    # request got an empty store and verification always failed.
+    totp_secret: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
 
 # ---------------------------------------------------------------------------
@@ -426,9 +484,19 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(strict=False)
 
     username: str
-    password: str
+    # password is required for leg-1 (normal login) but optional for leg-2
+    # (MFA completion), where mfa_challenge_token proves password was already
+    # verified.  A model validator below ensures at least one is present.
+    password: Optional[str] = None
     mfa_code: Optional[str] = None
     mfa_challenge_token: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _require_password_or_challenge_token(self) -> LoginRequest:
+        """Enforce: leg-1 needs password; leg-2 can omit password if challenge token present."""
+        if not self.password and not self.mfa_challenge_token:
+            raise ValueError("Either 'password' or 'mfa_challenge_token' is required.")
+        return self
 
 
 class LoginResponse(BaseModel):
@@ -462,11 +530,12 @@ class TokenResponse(BaseModel):
 
 
 class RefreshRequest(BaseModel):
-    """Payload for ``POST /refresh``."""
+    """Payload for ``POST /refresh`` and ``POST /logout``."""
 
     model_config = ConfigDict(strict=False)
 
-    refresh_token: str
+    refresh_token: Optional[str] = None
+    mfa_challenge_token: Optional[str] = None
 
 
 class ChangePasswordRequest(BaseModel):
@@ -1205,15 +1274,28 @@ async def _verify_mfa_and_issue_tokens(
     db: AsyncSession,
 ) -> LoginResponse:
     try:
-        from security.mfa import TOTPProvider
+        from security.mfa import _totp_code
     except ImportError:
         # MFA subsystem unavailable — fail closed (no login).
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="MFA subsystem unavailable",
         ) from None
-    totp = TOTPProvider()
-    if not totp.verify_code(str(user.id), mfa_code):
+    # Fix 15: Use the persisted User.totp_secret instead of in-memory TOTPProvider.
+    totp_secret = getattr(user, "totp_secret", None)
+    if not totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="MFA not configured for this account",
+        )
+    try:
+        expected = _totp_code(totp_secret)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="MFA subsystem error",
+        )
+    if mfa_code != expected:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid MFA code",
@@ -1475,25 +1557,28 @@ async def refresh(
 )
 async def logout(
     request: Request,
-    user: CurrentUserDep,
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
     body: Optional[RefreshRequest] = Body(None),  # NOSONAR  # S8410
 ) -> Response:
-    """Log the current user out by blacklisting both the access token and provided refresh token."""
+    """Log the current user out by blacklisting the access/challenge token and provided refresh token."""
     from api.dependencies import _decode_jwt, _extract_bearer_token
 
-    # Revoke access token immediately upon logout
+    has_credentials = False
+
+    # Revoke access or challenge token immediately upon logout
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
         try:
-            acc_token = _extract_bearer_token(auth_header)
-            acc_payload = _decode_jwt(acc_token, options={"verify_exp": False})
-            acc_jti = acc_payload.get("jti")
-            acc_exp = acc_payload.get("exp")
-            acc_ttl: Optional[int] = None
-            if isinstance(acc_exp, (int, float)):
-                acc_ttl = int(acc_exp - datetime.now(tz=UTC).timestamp())
-            if acc_jti:
-                await _blacklist_token(acc_jti, ttl_seconds=acc_ttl)
+            tok = _extract_bearer_token(auth_header)
+            tok_payload = _decode_jwt(tok, options={"verify_exp": False})
+            tok_jti = tok_payload.get("jti")
+            tok_exp = tok_payload.get("exp")
+            tok_ttl: Optional[int] = None
+            if isinstance(tok_exp, (int, float)):
+                tok_ttl = int(tok_exp - datetime.now(tz=UTC).timestamp())
+            if tok_jti:
+                await _blacklist_token(tok_jti, ttl_seconds=tok_ttl)
+                has_credentials = True
         except Exception:
             pass
 
@@ -1512,8 +1597,34 @@ async def logout(
 
             if jti:
                 await _blacklist_token(jti, ttl_seconds=ttl_seconds)
+                has_credentials = True
         except jwt.InvalidTokenError:
             pass  # Invalid token — nothing to blacklist
+
+    if body and body.mfa_challenge_token:
+        try:
+            ch_payload = _decode_jwt(
+                body.mfa_challenge_token,
+                options={"verify_exp": False},
+            )
+            ch_jti = ch_payload.get("jti")
+            ch_exp = ch_payload.get("exp")
+            ch_ttl: Optional[int] = None
+            if isinstance(ch_exp, (int, float)):
+                now_epoch = datetime.now(tz=UTC).timestamp()
+                ch_ttl = int(ch_exp - now_epoch)
+
+            if ch_jti:
+                await _blacklist_token(ch_jti, ttl_seconds=ch_ttl)
+                has_credentials = True
+        except jwt.InvalidTokenError:
+            pass
+
+    if not has_credentials and not auth_header and not (body and (body.refresh_token or body.mfa_challenge_token)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing credentials",
+        )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -1607,10 +1718,11 @@ async def update_me(
             # Option 2: Verify TOTP code
             if not verified and body.mfa_code:
                 try:
-                    from security.mfa import TOTPProvider
+                    from security.mfa import _totp_code
 
-                    totp = TOTPProvider()
-                    verified = totp.verify_code(str(db_user.id), body.mfa_code)
+                    _ts = getattr(db_user, "totp_secret", None)
+                    if _ts:
+                        verified = body.mfa_code == _totp_code(_ts)
                 except Exception:
                     verified = False
             if not verified:
@@ -1764,6 +1876,7 @@ async def forgot_password(
     request: Request,
     body: ForgotPasswordRequest,
     db: DbDep,
+    response: Response,
 ) -> dict[str, str]:
     """Generate a password-reset token for the given email.
 
@@ -1785,7 +1898,12 @@ async def forgot_password(
     `user@x.com` share a bucket. Failed lookups (email not in DB) are
     ALSO rate-limited so the limit cannot be used to enumerate accounts.
     """
+    response.headers["Referrer-Policy"] = "no-referrer"
     normalised_email = body.email.strip().lower()
+
+    # Fix 20: Validate EMAIL_APP_URL against allowlist (prevents host header poisoning)
+    raw_url = os.getenv("EMAIL_APP_URL", "http://localhost:3000").strip()
+    validated_url = validate_email_app_url(raw_url)
 
     # Per-email rate limit (prevents email-bombing via forgot-password).
     await _check_forgot_password_rate_limit(normalised_email)
@@ -1804,26 +1922,12 @@ async def forgot_password(
 
         # Send password-reset email via Resend (additive, best-effort)
         try:
-            import os as _os
-            import urllib.parse as _urlparse
-
             from services.email_send_log import log_email_send
             from services.email_service import send_password_reset
 
-            # SECURITY AUDIT 2026-07-29 (self-critique pass, EC-05):
-            # URL-encode the reset token before interpolating into the
-            # reset link. uuid4 hex chars are URL-safe today, but if the
-            # token format ever changes to include `&`, `?`, `#`, `+`, or
-            # `%` (e.g. switching to base64url or signed JWT), an
-            # unencoded token would silently truncate at the first
-            # reserved character and produce an unusable reset link.
-            raw_url = _os.getenv("EMAIL_APP_URL", "http://localhost:3000").strip()
-            parsed_app_url = _urlparse.urlparse(raw_url)
-            if parsed_app_url.scheme not in ("http", "https") or not parsed_app_url.netloc:
-                raw_url = "http://localhost:3000"
             reset_link = (
-                f"{raw_url.rstrip('/')}"
-                f"/reset-password?token={_urlparse.quote(reset_token, safe='')}"
+                f"{validated_url}"
+                f"/reset-password?token={urllib.parse.quote(reset_token, safe='')}"
             )
             result = await send_password_reset(
                 email=user.email,
@@ -1877,8 +1981,11 @@ async def reset_password(
     request: Request,
     body: ResetPasswordRequest,
     db: DbDep,
+    response: Response,
 ) -> dict[str, str]:
     """Set a new password using a valid reset token."""
+    response.headers["Referrer-Policy"] = "no-referrer"
+
     token_hash = hashlib.sha256(body.token.encode()).hexdigest()
     result = await db.execute(select(User).where(User.reset_token == token_hash))
     user = result.scalar_one_or_none()

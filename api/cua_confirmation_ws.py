@@ -186,6 +186,41 @@ class ConfirmationRequest:
 # ─── Confirmation Broker — singleton ───────────────────────────────────────
 
 
+class _PendingDict(dict):
+    """Dictionary that partitions confirmation requests by tenant while maintaining
+    full backward compatibility with dict access (req_id -> ConfirmationRequest).
+    """
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._by_tenant: dict[str, dict[str, ConfirmationRequest]] = {}
+
+    def __setitem__(self, key: str, value: ConfirmationRequest) -> None:
+        super().__setitem__(key, value)
+        tid = getattr(value, "tenant_id", "") or "default"
+        if tid not in self._by_tenant:
+            self._by_tenant[tid] = {}
+        self._by_tenant[tid][key] = value
+
+    def __delitem__(self, key: str) -> None:
+        val = super().pop(key, None)
+        if val is not None:
+            tid = getattr(val, "tenant_id", "") or "default"
+            if tid in self._by_tenant:
+                self._by_tenant[tid].pop(key, None)
+
+    def pop(self, key: str, default: Any = None) -> Any:
+        val = super().pop(key, default)
+        if val is not None and val is not default:
+            tid = getattr(val, "tenant_id", "") or "default"
+            if tid in self._by_tenant:
+                self._by_tenant[tid].pop(key, None)
+        return val
+
+    def get_by_tenant(self, tenant_id: str) -> dict[str, ConfirmationRequest]:
+        return self._by_tenant.get(tenant_id or "default", {})
+
+
 class ConfirmationBroker:
     """Singleton broker that manages pending confirmation requests.
 
@@ -194,7 +229,7 @@ class ConfirmationBroker:
     """
 
     def __init__(self) -> None:
-        self._pending: dict[str, ConfirmationRequest] = {}
+        self._pending: _PendingDict = _PendingDict()
         self._connected_clients: dict[WebSocket, str] = {}  # ws -> tenant_id
         self._async_lock: asyncio.Lock | None = None
         # Default: 2 humans required for dual-confirmation actions
@@ -248,8 +283,10 @@ class ConfirmationBroker:
     async def _broadcast(self, message: dict[str, Any], tenant_id: str = "") -> None:
         """Send a message to connected WebSocket clients for the matching tenant."""
         dead: list[WebSocket] = []
-        for ws, client_tenant in self._connected_clients.items():
+        for ws, client_tenant in list(self._connected_clients.items()):
             if tenant_id and client_tenant and tenant_id != client_tenant:
+                continue
+            if tenant_id and not client_tenant:
                 continue
             try:
                 await ws.send_json(message)
@@ -376,8 +413,13 @@ class ConfirmationBroker:
             if not req:
                 return {"error": "request_not_found", "request_id": request_id}
 
-            # Cross-tenant check
-            if req.tenant_id and tenant_id and req.tenant_id != tenant_id:
+            # Cross-tenant check: enforce strict tenant boundary
+            if req.tenant_id and (not tenant_id or req.tenant_id != tenant_id):
+                return {
+                    "error": "cross_tenant_forbidden",
+                    "message": "Cannot confirm request from a different tenant",
+                }
+            if tenant_id and (not req.tenant_id or req.tenant_id != tenant_id):
                 return {
                     "error": "cross_tenant_forbidden",
                     "message": "Cannot confirm request from a different tenant",
@@ -426,8 +468,13 @@ class ConfirmationBroker:
             if not req:
                 return {"error": "request_not_found", "request_id": request_id}
 
-            # Cross-tenant check
-            if req.tenant_id and tenant_id and req.tenant_id != tenant_id:
+            # Cross-tenant check: enforce strict tenant boundary
+            if req.tenant_id and (not tenant_id or req.tenant_id != tenant_id):
+                return {
+                    "error": "cross_tenant_forbidden",
+                    "message": "Cannot reject request from a different tenant",
+                }
+            if tenant_id and (not req.tenant_id or req.tenant_id != tenant_id):
                 return {
                     "error": "cross_tenant_forbidden",
                     "message": "Cannot reject request from a different tenant",

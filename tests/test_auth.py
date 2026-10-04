@@ -41,3 +41,34 @@ def test_deactivated_user_jwt_bypass_rejected(client, admin_headers):
 
     me_after = client.get("/api/v1/auth/me", headers=user_headers)
     assert me_after.status_code == 401
+
+
+def test_password_reset_host_header_poisoning_rejected(client, monkeypatch):
+    """Fix 20: Untrusted EMAIL_APP_URL must be rejected to prevent password reset host header poisoning."""
+    from api.auth import validate_email_app_url
+
+    # Direct validation test
+    with pytest.raises(RuntimeError, match="not in the allowlist"):
+        validate_email_app_url("https://evil.com")
+
+    # Allowed domain test
+    valid = validate_email_app_url("https://etap-ai-work.vercel.app")
+    assert valid == "https://etap-ai-work.vercel.app"
+
+    # Endpoint test with untrusted EMAIL_APP_URL
+    monkeypatch.setenv("EMAIL_APP_URL", "https://evil.com")
+    with pytest.raises(RuntimeError, match="Host header poisoning / untrusted domain rejected"):
+        client.post(
+            "/api/v1/auth/forgot-password",
+            json={"email": "deact_user_reg@example.com"},
+        )
+
+
+def test_password_reset_referrer_policy_header(client):
+    """Fix 20: Password reset endpoints must send Referrer-Policy: no-referrer."""
+    resp = client.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": "nonexistent@example.com"},
+    )
+    assert resp.headers.get("referrer-policy") == "no-referrer"
+

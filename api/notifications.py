@@ -183,9 +183,14 @@ class NotificationManager:
     def __init__(self) -> None:
         self._connections: dict[str, list[WebSocket]] = {}  # user_id -> [websockets]
 
-    async def connect(self, user_id: str, websocket: WebSocket) -> None:
+    async def connect(
+        self, user_id: str, websocket: WebSocket, subprotocol: str | None = None
+    ) -> None:
         """Accept a WebSocket connection and register it."""
-        await websocket.accept()
+        if subprotocol:
+            await websocket.accept(subprotocol=subprotocol)
+        else:
+            await websocket.accept()
         if user_id not in self._connections:
             self._connections[user_id] = []
         self._connections[user_id].append(websocket)
@@ -553,6 +558,7 @@ async def notification_websocket_endpoint(
     websocket: WebSocket,
     db: AsyncSession,
     user: CurrentUser,
+    subprotocol: str | None = None,
 ) -> None:
     """WebSocket endpoint for real-time notifications.
 
@@ -568,7 +574,7 @@ async def notification_websocket_endpoint(
         "created_at": "..."
     }
     """
-    await notification_manager.connect(user.user_id, websocket)
+    await notification_manager.connect(user.user_id, websocket, subprotocol=subprotocol)
     try:
         while True:
             # Keep connection alive by waiting for messages

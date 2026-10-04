@@ -94,15 +94,20 @@ class SecurityHeadersMiddleware:
                     headers["Strict-Transport-Security"] = (
                         f"max-age={_HSTS_MAX_AGE}; includeSubDomains; preload"
                     )
-                headers["X-Content-Type-Options"] = "nosniff"
-                headers["X-Frame-Options"] = _X_FRAME_OPTIONS
-                headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-                headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-                headers["Content-Security-Policy"] = (
-                    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
-                    "img-src 'self' data:; font-src 'self'; connect-src 'self' wss: https:; "
-                    "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
-                )
+                if "x-content-type-options" not in headers:
+                    headers["X-Content-Type-Options"] = "nosniff"
+                if "x-frame-options" not in headers:
+                    headers["X-Frame-Options"] = _X_FRAME_OPTIONS
+                if "permissions-policy" not in headers:
+                    headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+                if "referrer-policy" not in headers:
+                    headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+                if "content-security-policy" not in headers:
+                    headers["Content-Security-Policy"] = (
+                        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                        "img-src 'self' data:; font-src 'self'; connect-src 'self' wss: https:; "
+                        "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+                    )
             await send(message)
 
         await self.app(scope, receive, send_with_headers)

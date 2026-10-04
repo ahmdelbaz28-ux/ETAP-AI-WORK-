@@ -184,36 +184,35 @@ async def setup_totp(
         qr_uri = totp.generate_qr_code(target_user_id, secret)
         totp.generate_backup_codes(target_user_id)  # side effect: stores codes in DB
 
-        # V-10: Automatically enable MFA after successful TOTP setup.
-        # Previously, the user had to separately call PUT /me with mfa_enabled=True,
-        # which meant MFA setup could be silently incomplete.
-        try:
-            from sqlalchemy import select as sa_select
+        # Fix 15: Persist the TOTP secret to the User row so it survives across
+        # stateless API requests. TOTPProvider._secrets is per-instance (in-memory)
+        # and is NOT shared across requests.
+        from sqlalchemy import select as sa_select
 
-            from api.auth import User
-            from api.database import async_session
+        from api.auth import User
+        from api.database import async_session
 
-            async with async_session() as db:
-                result = await db.execute(sa_select(User).where(User.id == target_user_id))
-                db_user = result.scalar_one_or_none()
-                if db_user and not db_user.mfa_enabled:
+        async with async_session() as db:
+            result = await db.execute(sa_select(User).where(User.id == target_user_id))
+            db_user = result.scalar_one_or_none()
+            if db_user:
+                db_user.totp_secret = secret
+                # V-10: Automatically enable MFA after successful TOTP setup.
+                if not db_user.mfa_enabled:
                     db_user.mfa_enabled = True
-                    await db.commit()
-        except Exception as mfa_enable_err:
-            # Non-blocking — log but don't fail the setup
-            from logging import getLogger
+                await db.commit()
 
-            getLogger("etap.api.mfa").warning(
-                "mfa_auto_enable_failed user=%s err=%s", target_user_id, mfa_enable_err
-            )
 
         return JSONResponse(
             content={
                 "success": True,
                 "data": {
                     "qr_code_uri": qr_uri,
-                    # Note: secret and backup_codes are NOT exposed in the API response
-                    # to prevent credential leakage. They are stored server-side only.
+                    # The secret is shown ONCE to the user at setup time so they
+                    # can manually enter it if QR scanning fails (standard TOTP
+                    # authenticator-app behavior per RFC 6238). After this initial
+                    # display the server NEVER returns it again.
+                    "secret": secret,
                 },
                 "trace_id": trace_id,
             },
@@ -283,10 +282,34 @@ async def verify_totp(
                     del _lockouts[target_user_id]
                     _failed_attempts.pop(target_user_id, None)
 
-        from security.mfa import TOTPProvider
+        from sqlalchemy import select as sa_select
 
-        totp = TOTPProvider()
-        is_valid = totp.verify_code(target_user_id, code)
+        from api.auth import User
+        from api.database import async_session
+        from security.mfa import _totp_code
+
+        # Fix 15: Load the TOTP secret from the DB (User.totp_secret).
+        # TOTPProvider._secrets is per-instance (in-memory) and cannot survive
+        # across stateless API requests. Reading from the DB is the only correct approach.
+        async with async_session() as db:
+            result = await db.execute(sa_select(User).where(User.id == target_user_id))
+            db_user = result.scalar_one_or_none()
+
+        totp_secret = db_user.totp_secret if db_user else None
+        if not totp_secret:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="MFA not configured for this user. Call /mfa/totp/setup first.",
+            )
+
+        try:
+            expected_code = _totp_code(totp_secret)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Invalid TOTP secret stored for user.",
+            )
+        is_valid = code == expected_code
 
         # V-12: TOTP code replay protection
         # A valid TOTP code should only be usable once within its 30-second window.

@@ -72,6 +72,8 @@
       "cloudflared"
     ],
     "overrides": {
+      "probe-image-size": "^7.4.0",
+      "http-cache-semantics": "^4.3.0",
       "qs": "^6.16.0",
       "protobufjs": "^8.6.6",
       "langsmith": "^0.8.0",

@@ -10,6 +10,10 @@ packages:
 # one or more open alerts that are fixed by the pinned version.
 # =============================================================================
 overrides:
+  # HIGH: probe-image-size Quadratic-time DoS in SVG Parser (GHSA-gjj5-9665-rwrc)
+  probe-image-size: ^7.4.0
+  # HIGH: http-cache-semantics cross-user cache disclosure (GHSA-ch52-4w7c-c8xp)
+  http-cache-semantics: ^4.3.0
   # HIGH: qs array-limit bypass and DoS (GHSA-x5fp-wj9c-mxmx, GHSA-4mjr-xmp4-gh2g)
   qs: ^6.16.0
   # CRITICAL: protobufjs 8.0.1 had Arbitrary Code Execution (CVE) — 25 alerts.

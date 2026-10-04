@@ -126,13 +126,14 @@ function backendToToastType(n: BackendNotification): ToastNotification["type"] {
 }
 
 /**
- * Build the WebSocket URL for the notifications feed. The token is sent
- * as a query parameter because WebSocket headers are limited and the
- * browser API doesn't allow setting Authorization on WS upgrades.
+ * Build the WebSocket URL for the notifications feed.
+ * Fix 7: Token is sent via Sec-WebSocket-Protocol subprotocol instead of ?token=
+ * query parameter to prevent token leakage in server logs, browser history,
+ * and Referer headers.
  */
-function buildWsUrl(token: string): string {
+function buildWsUrl(): string {
   // API_BASE_URL may be "" (same-origin on HF Space), a bare host, or a
-  // full URL. Normalize to ws(s)://host/ws/notifications?token=...
+  // full URL. Normalize to ws(s)://host/ws/notifications
   const base = API_BASE_URL || "";
   let url: string;
   if (base.startsWith("http://") || base.startsWith("https://")) {
@@ -144,8 +145,7 @@ function buildWsUrl(token: string): string {
     const proto = globalThis.location?.protocol === "https:" ? "wss:" : "ws:";
     url = `${proto}//${globalThis.location?.host ?? ""}${base}`;
   }
-  const sep = url.includes("?") ? "&" : "?";
-  return `${url}/ws/notifications${sep}token=${encodeURIComponent(token)}`;
+  return `${url}/ws/notifications`;
 }
 
 // ---------------------------------------------------------------------------
@@ -234,7 +234,7 @@ export function NotificationProvider({ children }: { readonly children: ReactNod
 
     let ws: WebSocket;
     try {
-      ws = new WebSocket(buildWsUrl(token));
+      ws = new WebSocket(buildWsUrl(), ["access_token", token]);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn("Failed to construct WebSocket:", err);

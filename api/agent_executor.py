@@ -776,7 +776,15 @@ async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dic
     from agents.orchestrator import ChiefEngineeringOrchestrator
 
     system_data = args.get("system")
-    if not isinstance(system_data, dict) or not system_data:
+    if isinstance(system_data, dict):
+        # Fix 11: Validate system data belongs to caller's tenant
+        caller_tenant = ctx.get("tenant_id")
+        sys_tenant = system_data.get("tenant_id")
+        if sys_tenant and caller_tenant and str(sys_tenant) != str(caller_tenant):
+            raise ValueError(
+                f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
+            )
+    else:
         system_data = {
             "base_mva": 100.0,
             "buses": [

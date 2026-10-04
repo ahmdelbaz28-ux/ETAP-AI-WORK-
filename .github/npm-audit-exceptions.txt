@@ -71,3 +71,31 @@ GHSA-3pph-fpjx-jg34
 # Patched in markdown-it >=14.3.1 (overridden in pnpm-workspace.yaml, package.json).
 GHSA-253c-mchw-3w2r
 
+# GHSA-gjj5-9665-rwrc — probe-image-size: Quadratic-time Denial of Service in the SVG Parser
+# Affects: probe-image-size <=7.3.0 (transitive dep of @mastra/memory).
+# Patched in >=7.4.0 (overridden in pnpm-workspace.yaml to ^7.4.0).
+# Practical exploitability in THIS repo: probe-image-size is only utilized for local
+# asset size inspection in Node memory agent workflows, not user-uploaded SVG parsing.
+# Re-review trigger: Next @mastra/memory major release.
+GHSA-gjj5-9665-rwrc
+
+# GHSA-ch52-4w7c-c8xp — http-cache-semantics: max-stale handling cross-user cache disclosure
+# Affects: http-cache-semantics <=4.2.0 (transitive dep of electron-builder / got / cacheable-request).
+# Status: Patched in 4.3.0 (overridden in pnpm-workspace.yaml). Audit database records <0.0.0.
+# Practical exploitability in THIS repo:
+#   - Used only by electron-builder desktop packaging tooling during build/packaging time.
+#   - Not exposed to multi-tenant runtime HTTP caching in the client SPA or backend.
+# Decision: accept on grounds of build-time dev dependency and single-user packaging.
+# Re-review trigger: electron-builder bump to v27+ or cacheable-request upstream update.
+GHSA-ch52-4w7c-c8xp
+
+# GHSA-vfj7-8cjw-p6xm — braces: stack-exhaustion DoS through deeply nested patterns
+# Affects: braces <=3.0.3 (transitive dep of mastra > micromatch > fast-glob).
+# Status: Patched versions <0.0.0 (no patched 3.x release available).
+# Practical exploitability in THIS repo:
+#   - braces is used solely by fast-glob / micromatch for local workspace file pattern matching.
+#   - Never evaluates untrusted network user patterns.
+# Decision: accept on grounds of build-time/local file globbing only.
+# Re-review trigger: micromatch / fast-glob release migrating to braces 4+.
+GHSA-vfj7-8cjw-p6xm
+

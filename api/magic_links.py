@@ -257,11 +257,13 @@ async def request_magic_link(
     # Send email only if user exists (otherwise silent no-op to prevent enumeration)
     if user_id is not None:
         try:
+            from api.auth import validate_email_app_url
             from integrations.resend_email import EmailParams, resend_client
             from services.email_service import _BRAND_NAME, _common_context, _load_template, _render
 
+            app_base_url = validate_email_app_url(os.getenv("EMAIL_APP_URL", "http://localhost:3000"))
             magic_link_url = (
-                f"{os.getenv('EMAIL_APP_URL', 'http://localhost:3000')}"
+                f"{app_base_url}"
                 f"/magic-link/verify?token={raw_token}"
             )
 

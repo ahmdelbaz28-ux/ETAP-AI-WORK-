@@ -228,3 +228,16 @@ class TestExtractBearerToken:
         jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abc123"
         result = _extract_bearer_token(f"Bearer {jwt_token}")
         assert result == jwt_token
+
+
+def test_decode_jwt_algorithm_confusion_rejected():
+    """Fix 19: Non-HS256 algorithms must be rejected to prevent algorithm confusion attacks."""
+    import base64
+
+    from api.dependencies import _decode_jwt
+
+    header = base64.urlsafe_b64encode(b'{"alg":"RS256","typ":"JWT"}').decode().rstrip("=")
+    fake_token = f"{header}.e30.mock_signature"
+    with pytest.raises(ValueError, match="Only HS256 algorithm is supported"):
+        _decode_jwt(fake_token, algorithms=["RS256"])
+

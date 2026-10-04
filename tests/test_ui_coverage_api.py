@@ -145,9 +145,9 @@ class TestCopilotConfigAPI:
 class TestStorageManagementAPI:
     """Tests for /api/v1/storage endpoints."""
 
-    def test_get_storage_metrics(self, client: TestClient) -> None:
+    def test_get_storage_metrics(self, client: TestClient, admin_headers: dict) -> None:
         """GET /api/v1/storage/metrics returns storage usage."""
-        response = client.get("/api/v1/storage/metrics")
+        response = client.get("/api/v1/storage/metrics", headers=admin_headers)
         # May return 503 if R2 not configured in test env
         assert response.status_code in (200, 503)
 

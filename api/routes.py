@@ -58,6 +58,7 @@ from api.feature_flags import router as feature_flags_router
 from api.gis_edits import router as gis_edits_router
 from api.health import router as health_router
 from api.magic_links import router as magic_links_router
+from api.mfa import router as mfa_router  # Fix 15: MFA TOTP/WebAuthn endpoints
 from api.notification_config import router as notification_config_router
 from api.notifications import notification_websocket_endpoint
 from api.notifications import router as notifications_router
@@ -889,6 +890,7 @@ app.include_router(exports_router)
 app.include_router(settings_router)
 app.include_router(feature_flags_router)  # /api/v1/feature-flags/*
 # ─── Resend email integration routers ─────────────────────────────────────
+app.include_router(mfa_router)  # /api/v1/auth/mfa/* — Fix 15: TOTP/WebAuthn MFA endpoints
 app.include_router(email_otp_router)  # /api/v1/auth/email-otp/*
 app.include_router(magic_links_router)  # /api/v1/auth/magic-link/*
 app.include_router(email_digest_router)  # /api/v1/email-digest/*
@@ -977,43 +979,87 @@ async def websocket_session_stream_handler(websocket: WebSocket, session_id: str
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/notifications")
 async def websocket_notifications_handler(websocket: WebSocket) -> None:
-    """WebSocket endpoint for real-time notifications."""
-    # Authenticate via token in query params (since WebSocket headers are limited)
-    token = websocket.query_params.get("token", "")
-    if not token:
-        await websocket.close(code=1008, reason="Missing authentication token")
-        return
+    """WebSocket endpoint for real-time notifications.
 
-    try:
-        from api.auth import _is_token_blacklisted
-        from api.dependencies import _validate_jwt_access_token
+    Fix 7: Reject raw JWT in ?token= query parameter to avoid token leakage
+    in server access logs, browser history, and Referer headers.
+    Accepts:
+      1. Short-lived WS ticket via ?ticket= (from POST /api/v1/ws-ticket)
+      2. Sec-WebSocket-Protocol header: "access_token, <jwt>" or "<jwt>"
+      3. Authorization: Bearer <jwt> header
+    """
+    raw_query_token = websocket.query_params.get("token", "")
+    ticket = websocket.query_params.get("ticket", "")
+    auth_header = websocket.headers.get("authorization", "")
+    protocol = websocket.headers.get("sec-websocket-protocol", "")
 
-        payload = await _validate_jwt_access_token(token)
-        token_type = payload.get("type")
-        if token_type != "access":
-            await websocket.close(code=1008, reason="Invalid token type")
-            return
-        jti = payload.get("jti")
-        if jti and await _is_token_blacklisted(jti):
-            await websocket.close(code=1008, reason="Token has been revoked")
-            return
-        user_id = payload.get("sub")
-    except HTTPException as exc:
-        reason = (
-            "Token has been revoked"
-            if "revoked" in exc.detail.lower()
-            else "Invalid or expired token"
+    # Fix 7: Reject raw JWT query param
+    if raw_query_token:
+        await websocket.close(
+            code=1008,
+            reason="JWT in query parameter is not allowed. Use Authorization header or short-lived ticket.",
         )
-        await websocket.close(code=1008, reason=reason)
         return
-    except Exception:
-        await websocket.close(code=1008, reason="Invalid token")
-        return
+
+    subprotocol_to_accept = None
+    user_id = None
+
+    if ticket:
+        from api.session_stream import consume_ws_ticket
+
+        ticket_claims = consume_ws_ticket(ticket, "notifications")
+        if not ticket_claims:
+            await websocket.close(code=1008, reason="Invalid or expired ticket")
+            return
+        user_id = ticket_claims.get("uid") or ticket_claims.get("user_id")
+    else:
+        token = ""
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header.split(" ", 1)[1]
+        elif protocol:
+            parts = [p.strip() for p in protocol.split(",")]
+            if len(parts) >= 2 and parts[0] == "access_token":
+                token = parts[1]
+                subprotocol_to_accept = "access_token"
+            elif len(parts) == 1 and parts[0] != "access_token":
+                token = parts[0]
+            elif len(parts) >= 2:
+                token = parts[-1]
+
+        if not token:
+            await websocket.close(code=1008, reason="Missing authentication token")
+            return
+
+        try:
+            from api.auth import _is_token_blacklisted
+            from api.dependencies import _validate_jwt_access_token
+
+            payload = await _validate_jwt_access_token(token)
+            token_type = payload.get("type")
+            if token_type != "access":
+                await websocket.close(code=1008, reason="Invalid token type")
+                return
+            jti = payload.get("jti")
+            if jti and await _is_token_blacklisted(jti):
+                await websocket.close(code=1008, reason="Token has been revoked")
+                return
+            user_id = payload.get("sub")
+        except HTTPException as exc:
+            reason = (
+                "Token has been revoked"
+                if "revoked" in exc.detail.lower()
+                else "Invalid or expired token"
+            )
+            await websocket.close(code=1008, reason=reason)
+            return
+        except Exception:
+            await websocket.close(code=1008, reason="Invalid token")
+            return
 
     # Get user from database
-    from api.database import get_db
+    from api.database import async_session
 
-    async with get_db() as db:
+    async with async_session() as db:
         from sqlalchemy import select
 
         from api.auth import User
@@ -1034,7 +1080,9 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
             is_active=user.is_active,
         )
 
-        await notification_websocket_endpoint(websocket, db, current_user)
+        await notification_websocket_endpoint(
+            websocket, db, current_user, subprotocol=subprotocol_to_accept
+        )
 
 
 # ============================================================================

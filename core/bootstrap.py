@@ -353,6 +353,18 @@ def _validate_environment() -> None:
             if not auth_disabled:
                 warnings.append("ENGINEERING_SERVICE_API_KEY not set and auth not disabled")
 
+    # Fix 20: Validate EMAIL_APP_URL against allowlist at startup
+    email_app_url = os.environ.get("EMAIL_APP_URL")
+    if email_app_url:
+        try:
+            from api.auth import validate_email_app_url
+
+            validate_email_app_url(email_app_url)
+        except Exception as e:
+            if is_production:
+                raise RuntimeError(f"Startup validation failed: {e}") from e
+            warnings.append(f"EMAIL_APP_URL validation warning: {e}")
+
     for w in warnings:
         logger.warning("env_validation: %s", w)
 

@@ -120,6 +120,11 @@ ENGINEERING_PARAMS: tuple[str, ...] = (
     "working_distance",
     "bolted_fault_current",
     "electrode_config",
+    # Fix 11: Cross-tenant system data — must be sourced from caller's tenant/project
+    "system",
+    "buses",
+    "lines",
+    "base_mva",
 )
 
 # ─── Engineering aliases mapped to canonical parameters ─────────────────────

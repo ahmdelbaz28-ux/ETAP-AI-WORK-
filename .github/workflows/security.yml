@@ -195,12 +195,12 @@ jobs:
           set -uo pipefail
           AUDIT_FAIL=0
           echo "### pnpm audit (root) ###"
-          if ! pnpm audit --audit-level=high; then
+          if ! node scripts/run_npm_audit_gate.cjs .; then
             echo "::error::pnpm audit found unexpected high/critical vulnerabilities in root"
             AUDIT_FAIL=1
           fi
           echo "### pnpm audit (ui/) ###"
-          if ! (cd ui && pnpm audit --audit-level=high); then
+          if ! node scripts/run_npm_audit_gate.cjs ui; then
             echo "::error::pnpm audit found unexpected high/critical vulnerabilities in ui/"
             AUDIT_FAIL=1
           fi
