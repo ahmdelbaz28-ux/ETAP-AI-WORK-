@@ -280,3 +280,4 @@ langwatch>=0.1.0
 -r requirements-prod.txt
 nltk>=3.10.3 # not directly required, pinned by Snyk to avoid a vulnerability
 transformers>=5.17.0 # not directly required, pinned by Snyk to avoid a vulnerability
+protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability

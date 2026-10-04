@@ -122,7 +122,7 @@ opentelemetry-instrumentation-fastapi = "0.51b0"
 opentelemetry-semantic-conventions = "0.51b0"
 opentelemetry-util-http = "0.51b0"
 grpcio = "1.64.1"
-protobuf = "4.25.3"
+protobuf = "5.29.6"
 
 # ─── Typing helpers ──────────────────────────────────────────────────────────
 typing-extensions = "4.12.2"

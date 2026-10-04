@@ -107,3 +107,7 @@ supabase~=2.31.0
 # Added 2026-07-10 — langfuse needs these to wrap LLM calls
 openai~=2.52.0
 anthropic~=1.4.0
+
+# ─── Transitive Security Pins (Snyk) ───────────────────────────────────────
+protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.8.0 # not directly required, pinned by Snyk to avoid a vulnerability

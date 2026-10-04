@@ -25,3 +25,4 @@ transformers>=5.17.0                # HuggingFace Transformers
 sentence-transformers>=5.6.0        # Sentence embeddings for RAG (SECURITY: CVE-2026-68770 fixed)
 # SECURITY: Pillow~=12.3.0 fixes 17 CVEs (CVE-2026-59197..59205, CVE-2023-50447, CVE-2023-4863, etc.)
 Pillow~=12.3.0
+protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability

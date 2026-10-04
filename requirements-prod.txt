@@ -126,3 +126,4 @@ chromadb>=0.5.0
 folium>=0.16.0
 
 defusedxml>=0.7.1
+protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability

@@ -61,3 +61,4 @@ tenacity~=9.0.0
 setuptools>=83.0.0
 # Pygments — aligned with pyproject.toml pin (pygments>=2.20.0)
 Pygments>=2.20.0
+protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability
