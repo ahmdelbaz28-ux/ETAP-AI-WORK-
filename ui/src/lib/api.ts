@@ -954,25 +954,6 @@ export async function previewZIPLoad(
   );
 }
 
-// ============ Demo mode ============
-
-/** Check if the API client is running in demo mode (no real backend). */
-export function isDemoMode(): boolean {
-  // FIX-16: Demo mode is ONLY true if explicitly configured via query param or env var.
-  // When API_BASE_URL is "" (same-origin / HF Space), the client talks to the real backend!
-  if (typeof window !== "undefined") {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("demo") === "true") return true;
-    } catch {
-      // ignore
-    }
-  }
-  const env = (import.meta as unknown as { env?: Record<string, string> }).env;
-  if (env?.VITE_DEMO_MODE === "true") return true;
-  return false;
-}
-
 // ============ Dual Control ============
 
 export type DualControlAction = "approve" | "reject";
