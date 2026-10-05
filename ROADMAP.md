@@ -28,21 +28,21 @@ AhmedETAP v2.1.0 is an enterprise-grade autonomous engineering intelligence plat
 
 | Capability | Standard | Status |
 |---|---|---|
-| Load Flow Analysis | Newton-Raphson (Analytical Jacobian) | Shipped |
-| Fast Decoupled Load Flow | Stott-Alsac (XB / BX) | In Development |
-| Short Circuit Analysis | IEC 60909 (Driving-point) | Shipped |
-| Arc Flash Analysis | IEEE 1584-2018 | Shipped (ST-published validated) |
-| Harmonic Analysis | IEEE 519-2022 | In Development |
-| Protection Coordination | IEC 60255 (Pairwise grading) | Shipped |
-| Optimal Power Flow | DC-OPF / AC-OPF | In Development |
-| Motor Starting Analysis | Time-Domain Dynamic (RK4) | In Development |
-| Transient Stability | Swing Equation (RK4) | In Development |
-| Cable Sizing Verification | IEC 60287 | Planned |
-| Earth Grid Calculation | IEEE 80 | Planned |
-| Renewable Energy Integration | Solar / Wind Integration | Planned |
-| Battery Storage Analysis | BESS Sizing & Dispatch | Planned |
+| Load Flow Analysis | Newton-Raphson (Analytical Jacobian) | Shipped (`engine/engine.py:32`) |
+| Fast Decoupled Load Flow | Stott-Alsac (XB / BX) | Shipped (`load_flow/fast_decoupled.py`) |
+| Short Circuit Analysis | IEC 60909 (Driving-point) | Shipped (`fault_analysis/fault.py:45`) |
+| Arc Flash Analysis | IEEE 1584-2018 | Shipped (ST-published validated: `fault_analysis/arc_flash_engine.py:261`) |
+| Harmonic Analysis | IEEE 519-2022 | Shipped (`fault_analysis/harmonic_analysis.py`, `agents/registry.py:57`) |
+| Protection Coordination | IEC 60255 (Pairwise grading) | Shipped (`coordination/coordination.py:52`) |
+| Optimal Power Flow | DC-OPF / AC-OPF | Shipped (`load_flow/optimal_power_flow.py`, `agents/registry.py:58`) |
+| Motor Starting Analysis | Time-Domain Dynamic (RK4) | Shipped (`agents/motor_starting_agent.py`, `agents/registry.py:65`) |
+| Transient Stability | Swing Equation (RK4) | Shipped (`agents/stability_agent.py`, `agents/registry.py:66`) |
+| Cable Sizing Verification | IEC 60364 / IEC 60287 | Shipped (`agents/cable_sizing_agent.py`, `agents/registry.py:67`) |
+| Earth Grid Calculation | IEEE 80 | Shipped (`agents/earth_grid_agent.py`, `agents/registry.py:68`) |
+| Renewable Energy Integration | Solar / Wind Integration (IEEE 1547) | Shipped (`agents/renewable_agent.py`, `agents/registry.py:69`) |
+| Battery Storage Analysis | BESS Sizing & Dispatch (IEC 62933) | Shipped (`agents/battery_storage_agent.py`, `agents/registry.py:70`) |
 
-> **Backend Engine Status:** Fast Decoupled / DC Flow / DC-OPF / Harmonic / Motor Starting / Transient Stability / N-1: Shipped (backend) — UI pending feature-flag rollout.
+> **Backend Engine Status:** All core physics engines are shipped and operational in the Python runtime. UI controls adhere to feature flags in `.feature-flags.json`.
 
 #### Solver Optimizations
 
@@ -51,13 +51,13 @@ AhmedETAP v2.1.0 is an enterprise-grade autonomous engineering intelligence plat
 - `__slots__` optimization on core model classes (Bus, Line, Load, Generator, Transformer, System)
 - GPU solver module (`engine/gpu_solver.py`)
 
-#### AI Agent System (24 Specialized Agents)[^1]
+#### AI Agent System (27 Canonical Specialist Agents)[^1]
 
-- **Engineering Agents:** Load Flow, Short Circuit, Arc Flash, Harmonic, OPF, Motor Starting, Stability, Cable Sizing, Earth Grid, Renewable, Battery Storage, Protection Coordination
+- **Engineering Agents:** Load Flow, Short Circuit, Arc Flash, Harmonic, OPF, Motor Starting, Stability, Cable Sizing, Earth Grid, Renewable, Battery Storage, Protection Coordination, Generative Design
 - **Operational Agents:** SCADA, Digital Twin, Weather, Anomaly Detection, Predictive Analytics
-- **Meta Agents:** Goal Planner, Power System Coordinator, ETAP Expert, ETAP GUI, Code Guard, Validation Agent, Report Generation Agent
+- **Meta Agents:** Goal Planner, Power System Coordinator, ETAP Expert, ETAP GUI, Code Guard, Validation Agent, Report Generation Agent, Optimization Agent, AhmedETAP Orchestrator
 
-[^1]: Note on agent count: Canonical architecture specifies 24 specialist agents as documented in `README.md` and `AGENTS.md`. Earlier snapshots (e.g. `PROJECT_INDEX.md` dated 2026-06-28 listing 19 agents) reflect prior milestones before full agent suite consolidation.
+[^1]: **Canonical Agent Architecture Footnote:** Canonical architecture defines **27 Canonical Specialist Agents** declared in [`agents/registry.py`](agents/registry.py) (`CANONICAL_AGENT_KEYS`), with 3 backward-compat aliases (`AGENT_KEY_ALIASES`: `harmonic`, `opf`, `protection`) yielding 30 registered keys, 17 canonical `StudyType` members in [`agents/models.py`](agents/models.py), and 11 Mastra TypeScript LLM agents in [`src/mastra/agents/`](src/mastra/agents/). Historical documentation references (19 in early 2026-06 snapshots, 24 in v2.1.0 drafts, 25 in legacy numbered `AGENTS.md` sections, or 31 in `PROJECT_INDEX.md` script indexing) reflect prior milestones or raw file counts before full registry consolidation.
 
 #### ETAP Integration
 
@@ -146,11 +146,11 @@ Focus: **Stabilization, Security Hardening, Production Readiness**
 
 ### Critical Fixes
 
-- [ ] Purge exposed secrets from Git history using BFG Repo Cleaner (TECH-DEBT-001)
-- [ ] Implement Redis-backed token blacklisting for multi-instance deployments (TECH-DEBT-003)
-- [ ] Migrate rate limiting to Redis-backed store for distributed deployments (TECH-DEBT-004)
-- [ ] Reject WebAuthn authentication when `webauthn` library is unavailable (TECH-DEBT-005)
-- [ ] Enable HTTPS enforcement in nginx with TLS termination (TECH-DEBT-009)
+- [x] Purge exposed secrets from Git history using BFG Repo Cleaner (TECH-DEBT-001) — Completed & verified in `SECURITY.md` (commit `697f0336c`)
+- [x] Implement Redis-backed token blacklisting for multi-instance deployments (TECH-DEBT-003) — Completed (`security/token_blacklist.py`)
+- [x] Migrate rate limiting to Redis-backed store for distributed deployments (TECH-DEBT-004) — Completed (`security/distributed_rate_limiter.py`)
+- [x] Reject WebAuthn authentication when `webauthn` library is unavailable (TECH-DEBT-005) — Completed (`security/mfa.py`)
+- [x] Enable HTTPS enforcement in nginx with TLS termination (TECH-DEBT-009) — Completed (`nginx/conf.d/etap.conf`)
 
 ### Testing & Quality
 

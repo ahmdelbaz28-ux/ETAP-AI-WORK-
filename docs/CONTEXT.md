@@ -4,84 +4,73 @@ This document defines the ubiquitous language for the AhmedETAP platform, ensuri
 
 ---
 
-> [!WARNING]
-> **ARCHITECTURAL ERRATA & HISTORICAL NOTICE (Milestones M0–M6 Closure)**
-> The Cloudflare Workers and KV Storage model (`TASK_STORE_KV`, `API_KEYS_KV`, `RATE_LIMIT_KV`) described in sections of this document is **OBSOLETE**.
-> 
-> The platform has converged on a hardened **Dual-Runtime Architecture**:
-> 1. **Mastra (TypeScript/Node.js)**: Planning, specialist agent routing, and structured goal decomposition.
+> [!NOTE]
+> **Authoritative Architecture & Data Model Reference**
+> The platform operates on a hardened **Dual-Runtime Architecture**:
+> 1. **Mastra (TypeScript/Node.js)**: Planning, specialist agent routing, and structured goal decomposition (`src/mastra/`).
 > 2. **Engineering Service (Python/FastAPI)**: Deterministic, validated power-system physics calculations (Newton-Raphson, IEC 60909, IEEE 1584, IEC 60255, IEEE 399).
-> 3. **Persistence & State**: Backed by FastAPI, SQLAlchemy (SQLite in local development, PostgreSQL in production), Redis for transient study caching, and Qdrant for dense semantic retrieval.
+> 3. **Persistence & State**: Backed by FastAPI and SQLAlchemy (`api/database.py` with PostgreSQL/Neon in production and SQLite in local test development), with Redis for transient study caching and distributed rate limiting.
 > 
-> **Authoritative Truth Files**:
-> - [AGENTS.md](../AGENTS.md): Dual-runtime architecture, agent capabilities, and prompt loading system.
-> - [engine/dispatch.py](../engine/dispatch.py): Canonical 20-entry `STUDY_DISPATCH` table.
-> - [agents/registry.py](../agents/registry.py): 27 canonical agent keys and registry namespace.
-> - [services/study_executor.py](../services/study_executor.py): Dual-port study executor and fail-closed reachability.
-> - [core/bootstrap.py](../core/bootstrap.py): Lifespan startup dynamic agent reflection gatekeeper.
-> - [api/database.py](../api/database.py): Relational database models and connection management.
-> - [docs/ai-integration/README.md](./ai-integration/README.md): Master AI integration governance index.
+> **Authoritative Truth Files:**
+> - [`AGENTS.md`](../AGENTS.md): Dual-runtime architecture, 27 canonical specialist agents, and manifest-first prompt loading.
+> - [`engine/dispatch.py`](../engine/dispatch.py): Canonical study dispatch routing table.
+> - [`agents/registry.py`](../agents/registry.py): 27 canonical agent keys and registry namespace.
+> - [`api/database.py`](../api/database.py): Relational database models and connection management.
+> - [`services/study_executor.py`](../services/study_executor.py): Dual-port study executor and fail-closed reachability.
+> - [`core/bootstrap.py`](../core/bootstrap.py): Lifespan startup dynamic agent reflection gatekeeper.
 
 ---
 
 ## Core Entities
 
 ### Agent
-- **Definition**: A specialized AI service responsible for performing specific engineering studies or tasks.
+- **Definition**: A specialized service (computational Python agent or conversational TypeScript agent) responsible for performing specific engineering studies or tasks.
 - **Key Attributes**:
-  - `agentId`: Unique identifier for the agent (e.g., `load-flow-agent`, `short-circuit-agent`).
-  - Specialized for one or more `studyTypes` (e.g., `load-flow-agent` handles `load_flow` studies).
+  - `agentId`: Unique canonical key for the agent (e.g., `load_flow`, `short_circuit`, `arc_flash`).
+  - Specialized for one or more `studyTypes` declared in `agents/models.py:StudyType`.
 - **Relationships**:
-  - Performs `Studies` and generates `Tasks`.
-  - Authenticated via `API Keys`.
+  - Executes `Studies` and persists `Tasks`.
+  - Authenticated via API Keys or session tokens.
 
 ### Study
-- **Definition**: A computational analysis or task performed by an `Agent` (e.g., load flow, short circuit, arc flash).
+- **Definition**: A computational analysis or task performed by an `Agent` or the `PowerSystemEngine` (e.g., load flow, short circuit, arc flash).
 - **Key Attributes**:
-  - `studyType`: Type of analysis (e.g., `load_flow`, `short_circuit`, `arc_flash`).
-  - `parameters`: Input data required for the study (structure varies by `studyType`).
-  - `dryRun`: Boolean flag indicating whether the study is validated but not executed.
+  - `studyType`: Type of analysis conforming to canonical snake_case `StudyType` values.
+  - `parameters`: Input data required for the study (structure validated by schema guards).
+  - `dryRun`: Boolean flag indicating whether the study parameters are validated without full numerical execution.
 - **Relationships**:
-  - Executed by an `Agent` or the `Engineering Service`.
-  - Generates a `Task` upon execution.
+  - Executed by an `Agent` via `engine/dispatch.py`.
+  - Generates a persisted `Task` record upon execution.
 
 ### Task
-- **Definition**: A persisted record of a `Study` execution, including its status and results.
+- **Definition**: A persisted record in the relational database (`api/database.py`) of a `Study` execution, including its status, provenance hash, and results.
 - **Key Attributes**:
-  - `taskId`: Unique identifier for the task.
-  - `status`: Current state of the task (`dry_run`, `pending`, `completed`).
-  - `studyType`: The type of study associated with the task.
-  - `results`: Output data from the study (if completed).
+  - `taskId`: Unique UUID identifier for the task.
+  - `status`: Current state of the task (`pending`, `running`, `completed`, `failed`).
+  - `studyType`: The canonical type of study associated with the task.
+  - `results`: Output JSON structure containing validated engineering figures.
 - **Relationships**:
-  - Generated by a `Study`.
-  - Persisted in `KV Storage` for tracking and retrieval.
+  - Generated by a `Study` execution.
+  - Persisted in the relational database table (`api/database.py`) and cached in Redis.
 
-### API Key
-- **Definition**: Authentication mechanism for accessing the platform's API.
+### API Key & Authentication
+- **Definition**: Authentication mechanism for programmatic access and user session validation.
 - **Key Attributes**:
-  - `key`: Unique string used for authentication.
-  - `revoked`: Boolean flag indicating whether the key is revoked.
-  - `name`: Optional human-readable name for the key.
+  - `key`: Secure hashed token string.
+  - `revoked`: Boolean flag indicating revocation.
+  - `tenant_id`: Multi-tenant isolation boundary.
 - **Relationships**:
-  - Authenticates requests to interact with `Agents` or execute `Studies`.
-  - Stored in `KV Storage` (`API_KEYS_KV`).
+  - Authenticates HTTP and WebSocket requests to `/api/v1/*`.
+  - Validated by fail-closed middleware.
 
 ### Engineering Service
-- **Definition**: External service (Python runtime) responsible for executing computational studies.
+- **Definition**: The Python/FastAPI execution core responsible for deterministic numerical physics computations and COM automation.
 - **Key Attributes**:
-  - `configured`: Boolean flag indicating whether the service is configured.
-  - `healthy`: Boolean flag indicating whether the service is operational.
+  - `configured`: Boolean flag indicating engine availability.
+  - `healthy`: Boolean flag verified via `/health` endpoint.
 - **Relationships**:
-  - Executes `Studies` for non-`dryRun` requests.
-  - Status checked via the `/health` endpoint.
-
-### KV Storage
-- **Definition**: Key-value storage used for persisting tasks, API keys, and metrics.
-- **Key Namespaces**:
-  - `TASK_STORE_KV`: Stores `Tasks`.
-  - `API_KEYS_KV`: Stores `API Keys`.
-  - `RATE_LIMIT_KV`: Enforces rate limiting.
-  - `METRICS_KV`: Stores platform metrics.
+  - Dispatches requests via `engine/dispatch.py`.
+  - Enforces standards compliance (IEEE, IEC, NFPA).
 
 ---
 
@@ -89,68 +78,29 @@ This document defines the ubiquitous language for the AhmedETAP platform, ensuri
 
 | **Source Entity**      | **Relationship**               | **Target Entity**          | **Description**                                                                                     |
 |------------------------|--------------------------------|----------------------------|-----------------------------------------------------------------------------------------------------|
-| Agent                  | Performs                      | Study                      | An `Agent` executes a `Study` and generates a `Task`.                                              |
-| Study                  | Generates                     | Task                       | A `Study` execution creates a `Task` for tracking and persistence.                                 |
-| Task                   | Persisted in                  | KV Storage                 | `Tasks` are stored in `TASK_STORE_KV` for retrieval and status tracking.                           |
+| Agent                  | Performs                      | Study                      | An `Agent` executes a `Study` and generates a persisted `Task`.                                    |
+| Study                  | Generates                     | Task                       | A `Study` execution creates a relational `Task` record for tracking, auditing, and retrieval.       |
+| Task                   | Persisted in                  | Relational Database        | `Tasks` are stored in PostgreSQL (`api/database.py`) with transient cache in Redis.                 |
 | API Key                | Authenticates                 | Agent/Study                | `API Keys` validate requests to interact with `Agents` or execute `Studies`.                       |
-| Engineering Service    | Executes                      | Study                      | The `Engineering Service` performs computational studies for non-`dryRun` requests.                |
+| Engineering Service    | Executes                      | Study                      | The `Engineering Service` performs computational physics calculations for non-`dryRun` requests.    |
 
 ---
 
 ## Key Scenarios
 
 ### Study Execution Flow
-1. A user submits a request to `/api/v1/studies/run` with a `studyType` and `parameters`.
-2. The API gateway validates the `studyType` and `API Key`.
-3. If `dryRun: true`, the study is validated but not executed by the `Engineering Service`.
-4. If `dryRun: false`, the `Engineering Service` executes the study.
-5. A `Task` is generated and persisted in `KV Storage`.
-6. The `taskId` is returned to the user for status tracking.
+1. A client submits a request to `POST /api/v1/studies/run` with a `study_type` and `parameters`.
+2. The API middleware authenticates the client and validates tenant isolation.
+3. If `dryRun: true`, parameters are verified against schema guards without numerical solver execution.
+4. If `dryRun: false`, `engine/dispatch.py` routes the task to the designated `BaseAgent` or native solver.
+5. The result is verified by standards validation, and a `Task` record is persisted in the database.
+6. The client receives the `task_id` and complete engineering result payload.
 
-### Agent Interaction Flow
-1. A user submits a request to `/api/v1/agents/{agentId}/chat` with a `messages` array.
-2. The API gateway validates the `API Key` and `agentId`.
-3. The `Agent` processes the request and returns a response.
-4. If the request involves a `Study`, a `Task` may be generated.
-
----
-
-## Ambiguities and Open Questions
-
-1. **`Study` vs. `Task`**:
-   - Are `Studies` and `Tasks` distinct entities, or is a `Task` simply a persisted instance of a `Study`?
-   - **Current Interpretation**: A `Task` is a persisted record of a `Study` execution, including its status and results.
-
-2. **`Agent` vs. `StudyType` Mapping**:
-   - Is every `studyType` tied to a specific `Agent`, or are some studies executed directly by the `Engineering Service`?
-   - **Current Interpretation**: Most `studyTypes` are tied to `Agents`, but some (e.g., `fault`) may be executed directly by the `Engineering Service`.
-
-3. **`parameters` Structure**:
-   - The structure of `parameters` for a `Study` is not standardized. Are they study-specific or platform-wide?
-   - **Current Interpretation**: `parameters` are study-specific and defined by the `Agent` or `Engineering Service`.
-
-4. **`dryRun` Mode**:
-   - Does `dryRun` validate `parameters` or only the `studyType`?
-   - **Current Interpretation**: `dryRun` validates the `studyType` and basic request structure but does not execute the study.
-
-5. **Task Lifecycle**:
-   - Are there policies for task cleanup, archival, or TTL in `KV Storage`?
-   - **Current Interpretation**: Not explicitly defined. Tasks persist until manually deleted.
-
----
-
-## Decisions
-
-1. **Terminology Standardization**:
-   - Use `Agent` to refer to specialized AI services (e.g., `load-flow-agent`).
-   - Use `Study` to refer to computational analyses (e.g., `load_flow`).
-   - Use `Task` to refer to persisted execution records of `Studies`.
-
-2. **`dryRun` Behavior**:
-   - `dryRun: true` validates the `studyType` and request structure but skips execution by the `Engineering Service`.
-
-3. **`parameters` Flexibility**:
-   - `parameters` are study-specific and defined by the `Agent` or `Engineering Service`. No platform-wide schema is enforced.
+### Conversational Engineering Flow (Chat-First v3.0)
+1. An engineer enters a query or uploads network data in `ChatWorkspace`.
+2. The query streams to `POST /api/v1/chat/stream` with BYOK credentials (`X-User-LLM-Key`).
+3. Mastra / Coordinator Agent parses intent, executes required tool calls through authorized gateways, and renders structured findings.
+4. Safety-critical actions require dual-control Maker-Checker signoff before execution.
 
 ---
 
@@ -158,12 +108,12 @@ This document defines the ubiquitous language for the AhmedETAP platform, ensuri
 
 | **Term**               | **Definition**                                                                                     |
 |------------------------|-----------------------------------------------------------------------------------------------------|
-| Agent                  | A specialized AI service that performs engineering studies (e.g., `load-flow-agent`).              |
-| Study                  | A computational analysis or task (e.g., `load_flow`, `short_circuit`).                            |
-| Task                   | A persisted record of a `Study` execution, including its status and results.                       |
-| API Key                | Authentication mechanism for accessing the platform's API.                                         |
-| Engineering Service    | External service (Python runtime) that executes computational studies.                            |
-| KV Storage             | Key-value storage for persisting tasks, API keys, and metrics.                                    |
-| `studyType`            | The type of engineering analysis (e.g., `load_flow`, `short_circuit`).                            |
-| `dryRun`               | A mode where the study is validated but not executed by the `Engineering Service`.                 |
-| `taskId`               | Unique identifier for a `Task`.                                                                    |
+| Agent                  | A specialized service that performs engineering analyses or conversation orchestration.            |
+| Study                  | A computational analysis (e.g., `load_flow`, `short_circuit`, `arc_flash`).                         |
+| Task                   | A persisted record in PostgreSQL of a `Study` execution, including provenance and result metrics.    |
+| API Key                | Authentication credential validating access to platform API endpoints.                             |
+| Engineering Service    | FastAPI core executing numerical physics calculations and COM integration.                         |
+| Relational Storage     | PostgreSQL database (`api/database.py`) providing durable multi-tenant project and task storage.    |
+| `StudyType`            | Canonical snake_case enumeration of supported engineering studies (`agents/models.py`).             |
+| `dryRun`               | Validation mode verifying parameters without invoking computational solvers.                        |
+| `taskId`               | Unique identifier for a persisted `Task` record.                                                    |

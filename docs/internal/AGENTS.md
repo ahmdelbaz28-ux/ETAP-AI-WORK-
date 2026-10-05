@@ -1,4 +1,9 @@
-# Agent Development Guidelines
+# Agent Development Guidelines (Experimental Prototype Archive)
+
+> [!CAUTION]
+> **NON-AUTHORITATIVE ARCHIVAL DOCUMENT**
+> This file describes an early Mastra prototype framework design. It is preserved for historical reference only.
+> For the canonical, production-verified agent architecture (27 canonical specialist agents, manifest-first prompt loader, dual-runtime FastAPI + Mastra), consult [`AGENTS.md`](../../AGENTS.md) and [`agents/registry.py`](../../agents/registry.py).
 
 ## Project Overview
 

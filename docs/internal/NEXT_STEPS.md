@@ -3,11 +3,11 @@
 ## ✅ ما تم إنجازه
 
 تم بنجاح تصميم وتنفيذ منصة AhmedETAP للهندسة الكهربائية مع:
-- 5,000+ سطر كود إنتاجي
-- 25 وكلاء هندسيين متخصصين
-- 85% تغطية اختبار
-- وثائق شاملة (~150 صفحة)
-- أمان مؤسسي كامل
+- 379 ملف بايثون عبر 41 حزمة برمجية و 913 كلاس
+- 27 وكيلاً معتمداً في السجل الرسمي (`agents/registry.py`) مع 17 نوع دراسة معتمد
+- 3,774 اختباراً ناجحاً في بايثون + 208/208 اختبارات ناجحة لواجهة المستخدم (Vitest)
+- واجهة هندسية ذكية Chat-First v3.0 مع دعم كامل للغتين (العربية والإنجليزية) والوضع الفاتح والداكن
+- أمان مؤسسي متقدم (Maker-Checker، زر طوارئ CUA، تحصين fail-closed)
 
 ---
 
@@ -80,22 +80,25 @@ cp .env.example .env
 **المحتوى المطلوب في `.env`:**
 
 ```env
-# مفاتيح API
+# مفاتيح API وتتبع LLM
 OPENAI_API_KEY=sk-your-openai-key-here
-LANGWATCH_API_KEY=sk-lw-your-key-here
-SMITHERY_API_KEY=your-smithery-key
+LANGFUSE_PUBLIC_KEY=pk-lf-your-key-here
+LANGFUSE_SECRET_KEY=sk-lf-your-key-here
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
 
 # مصادقة JWT
 JWT_SECRET_KEY=generate-a-secure-random-key-here
 
-# قاعدة البيانات
-DATABASE_URL=file:./mastra.db
+# قاعدة البيانات (PostgreSQL للإنتاج أو SQLite للتطوير المحلي)
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/etap_db
+# للتطوير المحلي: DATABASE_URL=sqlite+aiosqlite:///./etap_dev.db
 
 # إعدادات ETAP (Windows فقط)
-ETAP_INSTALL_PATH=C:\Program Files\ETAP
-ETAP_VERSION=19.0
+ETAP_INSTALL_PATH=C:\ETAP 210
+ETAP_VERSION=21.0
 
 # إعدادات الأمان
+ENGINEERING_SERVICE_API_KEY=generate-a-secure-api-key
 MAX_REQUESTS_PER_MINUTE=100
 TOKEN_EXPIRY_HOURS=8
 LOG_LEVEL=INFO
@@ -114,27 +117,29 @@ python -c "import secrets; print(secrets.token_hex(32))"
 
 افتح **طرفيتين منفصلتين**:
 
-**الطرفية 1 - Backend Python:**
+**الطرفية 1 - Backend FastAPI Engine:**
 ```bash
-python main.py
+uvicorn api.main:app --reload --port 8000
+# أو تشغيل خدمة الهندسة مباشرة:
+python engineering_service.py
 ```
 
-**الطرفية 2 - Mastra Server:**
+**الطرفية 2 - Frontend UI (Vite SPA):**
 ```bash
-pnpm dev
+cd ui
+npm run dev
 ```
 
-**الوصول إلى API:**
+**الوصول إلى API وفحص الصحة:**
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:8000/health
 ```
 
 **الاستجابة المتوقعة:**
 ```json
 {
   "status": "healthy",
-  "timestamp": "2026-06-04T14:30:00",
-  "version": "1.0.0"
+  "version": "2.1.0"
 }
 ```
 

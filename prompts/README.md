@@ -1,7 +1,7 @@
-# Prompts — Writing Guide
+# Prompts — Writing & Resolution Guide
 
 > **Source:** Adapted from harness's `skill-writing-guide.md` (8 principles).
-> **Scope:** All 29 prompt YAML files in `prompts/`.
+> **Scope:** All 32 prompt YAML files in `prompts/`, governed by the `prompts.json` manifest-first resolution contract and Langfuse Cloud tracing.
 
 ## The 8 Principles
 

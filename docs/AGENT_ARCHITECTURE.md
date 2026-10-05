@@ -1,7 +1,7 @@
 # Agent Architecture: Python & Mastra TypeScript Systems
 
-> **Document version:** 2026-03-04
-> **Project:** AhmedETAP — AI-Powered Power Systems Engineering Platform
+> **Document version:** 2026-10-05  
+> **Project:** AhmedETAP — AI-Powered Power Systems Engineering Platform  
 
 ---
 
@@ -26,9 +26,10 @@ AhmedETAP runs **two parallel agent systems** that coexist within the same monor
 | **Language** | Python (async) | TypeScript (Node.js) |
 | **Framework** | Custom (`BaseAgent` + `ChiefEngineeringOrchestrator`) | Mastra Core (`@mastra/core/agent`) |
 | **Primary role** | Deterministic computation, numerical analysis, orchestration | LLM-powered conversation, tool use, networked agent routing |
-| **API surface** | FastAPI (`/api/v1/studies/run`, `/api/v1/agents/`) | Next.js API routes (`/api/v1/agents/*/chat`) |
-| **Prompt management** | Shared `prompts/` YAML + LangWatch | Shared `prompts/` YAML + LangWatch |
-| **Requires LLM?** | No — most agents are purely computational | Yes — every agent is LLM-driven |
+| **API surface** | FastAPI (`/api/v1/studies/run`, `/api/v1/chat/stream`) | Mastra CLI / In-process Node runtime |
+| **Frontend UI** | React 19 + Vite 6 (`ui/`) | Unified ChatWorkspace UI (Chat-First v3.0) |
+| **Prompt management** | `prompts.json` manifest-first + Langfuse Cloud | `prompts.json` manifest-first + Langfuse Cloud |
+| **Requires LLM?** | No — core study specialists are purely computational | Yes — every agent is LLM-driven |
 
 ### Why two systems?
 
@@ -36,9 +37,9 @@ The two systems exist because they solve fundamentally different problems:
 
 - **Python agents** perform **deterministic engineering calculations** (Newton-Raphson load flow, IEC 60909 short-circuit analysis, IEEE 519 harmonic compliance, relay coordination). These computations require NumPy, domain-specific solvers, and direct access to the power system model. They must produce **bit-exact, reproducible results** — an LLM cannot replace a Newton-Raphson solver.
 
-- **Mastra TypeScript agents** provide **conversational AI** experiences. They interpret natural-language user requests, decide which specialist to route to, and use LLM reasoning to explain results, suggest corrective actions, and guide non-expert users through complex engineering workflows. They also serve as the **web-facing gateway** for the chat UI.
+- **Mastra TypeScript agents** provide **conversational AI** experiences. They interpret natural-language user requests, decide which specialist to route to, and use LLM reasoning to explain results, suggest corrective actions, and guide non-expert users through complex engineering workflows. They also serve as the **conversational gateway** for the chat UI.
 
-Both systems share the same prompt management layer (`prompts/*.yaml` + LangWatch API) and the same domain knowledge, ensuring consistent behavior regardless of which system handles a request.
+Both systems share the same prompt management layer (`prompts.json` manifest-first + `prompts/*.yaml` + Langfuse API) and the same domain knowledge, ensuring consistent behavior regardless of which system handles a request.
 
 ---
 
@@ -60,26 +61,37 @@ Use the Python agent system when you need to:
 
 ```
 agents/
-├── __init__.py
-├── orchestrator.py              # BaseAgent, all core agents, ChiefEngineeringOrchestrator
-├── prompt_loader.py             # 3-tier prompt loading (LangWatch → YAML → fallback)
+├── __init__.py                  # Package exports & STUDY_TYPE_AGENT_MAP
+├── registry.py                  # Single source of truth for 27 canonical agent keys & aliases
+├── orchestrator.py              # ChiefEngineeringOrchestrator
+├── router.py                    # Intent and LinUCB Bandit Router
+├── workflow.py                  # Multi-step dependency execution graph
+├── base.py                      # BaseAgent abstract class
+├── models.py                    # Canonical StudyType, AgentResult, AgentStatus
+├── prompt_loader.py             # Manifest-first prompt loading (prompts.json → YAML → fallback)
+├── life_safety.py               # Life-safety hardware interlocks & hazard classification
+├── output_schema_guard.py       # Pydantic schema validation for agent outputs
 ├── etap_expert_agent.py         # Rule-based ETAP expert (Format A/B/C/D)
-├── etap_gui_agent.py            # Computer Use Agent for desktop apps
-├── code_guard_agent.py          # Automated code quality review
-├── arc_flash_agent.py           # Standalone arc flash analysis
-├── goal_planner_agent.py        # Goal decomposition
-├── weather_agent.py             # Weather data agent
-├── motor_starting_agent.py      # Motor starting analysis
-├── cable_sizing_agent.py        # Cable sizing calculations
-├── earth_grid_agent.py          # Earth grid design agent
-├── stability_agent.py           # Transient stability analysis
-├── coordination_agent.py        # Protection coordination
+├── etap_gui_agent.py            # Computer Use Agent for desktop apps (CUA)
+├── code_guard_agent.py          # Automated code quality & prompt-injection defense
+├── arc_flash_agent.py           # Standalone arc flash analysis (IEEE 1584-2018)
+├── goal_planner_agent.py        # Goal decomposition & task planning
+├── weather_agent.py             # Environmental / Weather data agent
+├── motor_starting_agent.py      # Motor starting analysis (IEEE 399)
+├── cable_sizing_agent.py        # Cable sizing calculations (IEC 60364)
+├── earth_grid_agent.py          # Earth grid design agent (IEEE 80)
+├── stability_agent.py           # Transient stability analysis (Swing Equation)
+├── coordination_agent.py        # Protection coordination (IEC 60255)
 ├── predictive_agent.py          # Predictive maintenance
-├── renewable_agent.py           # Renewable energy integration
-├── battery_storage_agent.py     # Battery storage analysis
+├── renewable_agent.py           # Renewable energy integration (IEEE 1547)
+├── battery_storage_agent.py     # Battery storage analysis (IEC 62933)
 ├── digital_twin_agent.py        # Digital twin agent
-├── scada_agent.py               # SCADA integration
+├── scada_agent.py               # SCADA integration (IEC 61850)
 ├── anomaly_agent.py             # Anomaly detection
+├── design_agent.py              # Generative substation design agent
+├── ahmed_etap_orchestrator.py   # End-to-end multi-agent study orchestrator
+├── optimizers/                  # Protection coordination & dispatch optimizers
+└── etap_expert/                 # ETAP Expert knowledge subsystems
 ```
 
 ### 2.3 Core Classes

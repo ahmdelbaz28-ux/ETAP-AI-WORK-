@@ -67,14 +67,15 @@ cd ETAP-AI-WORK-
    # JWT Authentication
    JWT_SECRET_KEY=generate-a-secure-random-key-here
 
-   # Database (if using persistent storage)
-   DATABASE_URL=file:./mastra.db
+   # Database
+   DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/etap_db
 
    # ETAP Configuration (Windows only)
-   ETAP_INSTALL_PATH=C:\Program Files\ETAP
-   ETAP_VERSION=19.0
+   ETAP_INSTALL_PATH=C:\ETAP 210
+   ETAP_VERSION=21.0
 
    # Security Settings
+   ENGINEERING_SERVICE_API_KEY=your-secure-service-key
    MAX_REQUESTS_PER_MINUTE=100
    TOKEN_EXPIRY_HOURS=8
    ```

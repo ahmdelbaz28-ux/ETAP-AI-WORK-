@@ -15,7 +15,7 @@ app_port: 7860
 <h3>Enterprise AI-Powered Power Systems Engineering Intelligence</h3>
 
 <p>
-  An autonomous engineering-intelligence platform that fuses <strong>24 specialist AI agents</strong>
+  An autonomous engineering-intelligence platform that fuses <strong>27 canonical specialist AI agents</strong>
   with rigorous IEC / IEEE computational engines — taking engineers from a natural-language
   question to a validated, standards-compliant, auditable engineering report in seconds.
 </p>
@@ -75,7 +75,7 @@ app_port: 7860
 
 **AhmedETAP** is a production-grade, autonomous engineering-intelligence platform that wraps ETAP-style power-systems analysis in a conversational, agent-driven interface. It combines:
 
-- A **FastAPI backend** running 24 specialist AI agents with native IEEE/IEC computational engines
+- A **FastAPI backend** running 27 canonical specialist AI agents with native IEEE/IEC computational engines
 - A **React 19 + Vite 6** single-page application served from a global edge CDN
 - A **dual-runtime agent orchestration** layer: Python for computation, TypeScript (Mastra) for LLM orchestration
 - **Enterprise-grade observability**: Langfuse prompt versioning, LangWatch evaluations, Prometheus/Grafana metrics
@@ -99,7 +99,7 @@ app_port: 7860
  │  Vercel Edge CDN             │         │  Hugging Face Space (Docker SDK)       │
  │  ────────────────────────    │  HTTPS  │  ─────────────────────────────────     │
  │  React 19 + Vite 6 SPA       │ ──────► │  FastAPI 0.115 + uvicorn               │
- │  TypeScript 5.7              │  JSON   │  24 AI agents (Python + TypeScript)    │
+ │  TypeScript 5.7              │  JSON   │  27 canonical agents (Python + TS)     │
  │  Zustand + React Query 5     │  WS     │  40+ REST endpoints (/api/v1/*)        │
  │  React Router 7              │         │  IEEE/IEC computational engines        │
  │  i18next (Arabic / English)  │         │  JWT auth · RBAC · bcrypt              │
@@ -141,15 +141,17 @@ The platform uses **two distinct computation layers**:
 
 ## 🤖 AI Agent Inventory
 
-24 specialist agents, each governed by Langfuse prompt-versioning and safety alerts:
+27 canonical specialist agents[^1], each governed by Langfuse prompt-versioning and safety alerts:
 
 | Domain | Agents |
 |:---|:---|
 | **Power System Analysis** | Load Flow (IEEE 3002.7) · Short Circuit (IEC 60909) · Arc Flash (IEEE 1584) · Protection Coordination (IEC 60255) · Motor Starting (IEEE 399) · Harmonic Analysis (IEEE 519) · Transient Stability |
-| **ETAP Automation** | ETAP Engineer Agent · ETAP GUI (Computer-Use via Gemini Vision) · ETAP Expert Skill (4,400+ line knowledge base) · Generative Design Agent |
+| **ETAP Automation** | ETAP Engineer Agent · ETAP GUI (Computer-Use via Gemini Vision) · ETAP Expert Skill (4,400+ line knowledge base) · Generative Design Agent · ETAP Execution Agent |
 | **Infrastructure & GIS** | QGIS/ArcGIS Connector · SCADA Agent (IEC 61850) · Digital Twin · Renewable Energy (IEEE 1547) · BESS Storage (IEC 62933) |
-| **Engineering Ops** | Cable Sizing (IEC 60364) · Earth Grid (IEEE 80) · Optimal Power Flow · Anomaly Detection · Predictive Analytics |
-| **Orchestration & Safety** | Power System Coordinator (router) · Goal Planner · Report Generation · Code Guard (prompt-injection defence) · Validation Agent |
+| **Engineering Ops** | Cable Sizing (IEC 60364) · Earth Grid (IEEE 80) · Optimal Power Flow · Optimization Agent · Anomaly Detection · Predictive Analytics · AhmedETAP Orchestrator |
+| **Orchestration & Safety** | Power System Coordinator (router) · Goal Planner · Report Generation · Code Guard (prompt-injection defence) · Validation Agent · Weather Agent |
+
+[^1]: **Canonical Agent Architecture Footnote:** Canonical architecture defines **27 Canonical Specialist Agents** declared in [`agents/registry.py`](agents/registry.py) (`CANONICAL_AGENT_KEYS`), with 3 backward-compat aliases (`AGENT_KEY_ALIASES`: `harmonic`, `opf`, `protection`) yielding 30 registered keys, 17 canonical `StudyType` members in [`agents/models.py`](agents/models.py), and 11 Mastra TypeScript LLM agents in [`src/mastra/agents/`](src/mastra/agents/). Historical documentation references (19 in early 2026-06 snapshots, 24 in v2.1.0 drafts, 25 in legacy numbered `AGENTS.md` sections, or 31 in `PROJECT_INDEX.md` script indexing) reflect prior milestones or raw file counts before full registry consolidation.
 
 Full prompt files and agent specifications: [`AGENTS.md`](AGENTS.md) · [`agents/`](agents/) · [`prompts/`](prompts/)
 
