@@ -95,7 +95,7 @@ aiofiles>=25.1.0,<26.0.0
 
 # Security & Infrastructure
 pyotp~=2.9.0
-# WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=2.0.0,<3.0.0)
+# WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=3.0.1,<4.0.0)
 webauthn>=2.0.0,<3.0.0
 redis>=6.2.0
 websockets>=15,<16
