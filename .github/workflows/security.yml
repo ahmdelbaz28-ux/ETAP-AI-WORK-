@@ -107,7 +107,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - name: Cache Trivy vulnerability database
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /tmp/trivy-cache
           key: ${{ runner.os }}-trivy-db-${{ github.run_id }}
