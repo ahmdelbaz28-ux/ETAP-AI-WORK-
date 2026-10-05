@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-05T06:28:05.557379+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-05T07:42:04.671213+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,12 +10,12 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 378 |
-| Python | Classes | 912 |
-| Python | Functions | 816 |
+| Python | Files | 379 |
+| Python | Classes | 913 |
+| Python | Functions | 820 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 261 |
-| Total | Tests | 3785 |
+| Test | Files | 262 |
+| Total | Tests | 3796 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 442 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -1680,7 +1680,7 @@ Mirrors the SCADA
 - **async def** `resolve_draw()` (line 283)
 - **async def** `get_draw_status()` (line 440)
 
-#### 📄 `api/export.py` _30.3 KB_
+#### 📄 `api/export.py` _49.6 KB_
 > api/export.py — Advanced Export Service (P9).
 
 Provides:
@@ -1690,45 +1690,45 @@ Provides:
 - JSON export
 - Custom 
 
-- **Class** `ExportHistory` (line 85)
-- **Class** `ExportFormat` (line 103)
-- **Class** `ExportResponse` (line 113)
-- **Class** `ExportHistoryResponse` (line 126)
-- **async def** `list_export_formats()` (line 343)
-- **async def** `export_pdf()` (line 362)
-- **async def** `export_excel()` (line 469)
-- **async def** `export_csv()` (line 561)
-- **async def** `export_json()` (line 617)
-- **async def** `export_history()` (line 660)
-- **async def** `export_format()` (line 707)
-- **async def** `export_history_by_project()` (line 731)
-- **async def** `list_reports()` (line 785)
-- **async def** `list_recent_exports()` (line 871)
+- **Class** `ExportHistory` (line 86)
+- **Class** `ExportFormat` (line 104)
+- **Class** `ExportResponse` (line 114)
+- **Class** `ExportHistoryResponse` (line 127)
+- **async def** `list_export_formats()` (line 351)
+- **async def** `export_pdf()` (line 372)
+- **async def** `export_excel()` (line 479)
+- **async def** `export_csv()` (line 571)
+- **async def** `export_json()` (line 627)
+- **async def** `export_cim()` (line 985)
+- **async def** `export_history()` (line 1131)
+- **async def** `export_format()` (line 1178)
+- **async def** `export_history_by_project()` (line 1204)
+- **async def** `list_reports()` (line 1258)
 
   **API Routes:**
   - `GET /formats`
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _18.5 KB_
+#### 📄 `api/feature_flags.py` _18.7 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 360)
-- **Class** `FeatureFlagListOut` (line 369)
-- **Class** `FeatureFlagPatch` (line 377)
+- **Class** `FeatureFlagOut` (line 366)
+- **Class** `FeatureFlagListOut` (line 375)
+- **Class** `FeatureFlagPatch` (line 383)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 245)
-- **def** `is_feature_enabled()` (line 250)
-- **def** `is_strict_feature_enabled()` (line 271)
-- **def** `get_disabled_studies()` (line 291)
-- **def** `get_flag_metadata()` (line 308)
-- **def** `evaluate_flag_with_rollout()` (line 339)
-- **async def** `list_feature_flags()` (line 420)
-- **async def** `get_feature_flag()` (line 452)
-- **async def** `update_feature_flag()` (line 489)
+- **def** `is_enabled()` (line 251)
+- **def** `is_feature_enabled()` (line 256)
+- **def** `is_strict_feature_enabled()` (line 277)
+- **def** `get_disabled_studies()` (line 297)
+- **def** `get_flag_metadata()` (line 314)
+- **def** `evaluate_flag_with_rollout()` (line 345)
+- **async def** `list_feature_flags()` (line 426)
+- **async def** `get_feature_flag()` (line 458)
+- **async def** `update_feature_flag()` (line 495)
 
   **API Routes:**
   - `GET /{key}`
@@ -4508,7 +4508,7 @@ Provides visual perception via Anthropic's Claude API (claude-3.5-sonnet,
 
 Parses ETAP project and library XML files to extract standardized
 
-- **Class** `ETAPComponentImporter` (line 51)
+- **Class** `ETAPComponentImporter` (line 49)
   - Methods: `parse_xml_content()`
 
 #### 📄 `integrations/gemini_vision.py` _10.0 KB_
@@ -4975,7 +4975,7 @@ Supports:
 
 #### 📄 `gis_validation_electrical/__init__.py` _0.1 KB_
 
-#### 📄 `gis_validation_electrical/cim_mapper.py` _7.8 KB_
+#### 📄 `gis_validation_electrical/cim_mapper.py` _8.0 KB_
 - **Class** `CIMConductingEquipment` (line 10)
 - **Class** `CIMConnectivityNode` (line 18)
 - **Class** `CIMTerminal` (line 26)
@@ -4983,6 +4983,17 @@ Supports:
 - **Class** `CIMBreaker` (line 43)
 - **Class** `CIMModel` (line 51)
 - **def** `map_adms_to_cim()` (line 76)
+
+#### 📄 `gis_validation_electrical/cim_writer.py` _20.1 KB_
+> gis_validation_electrical/cim_writer.py — Schneider-profile CIM XML Exporter.
+
+Serializes CIMModel (from gis_validation_electrical.cim_mapper) into
+CI
+
+- **Class** `CIMTooLargeError` (line 34)
+- **def** `make_rdf_id()` (line 173)
+- **def** `make_mrid()` (line 193)
+- **def** `build_cim_xml()` (line 198)
 
 #### 📄 `gis_validation_electrical/electrical_model.py` _5.0 KB_
 - **Class** `ElectricalNode` (line 10)
@@ -5591,10 +5602,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-component | 279 |
 | python-module | 41 |
+| ui-component | 279 |
 | ui-page | 61 |
+| api-route | 92 |
 | **TOTAL** | **473** |
 
 ---
@@ -5734,6 +5745,7 @@ Provides
 | `test_etap_gui_agent.py` | 36 | 0 | **36** |
 | `test_etap_parameter_roundtrip.py` | 0 | 6 | **11** |
 | `test_etap_rest_draw.py` | 15 | 0 | **15** |
+| `test_export_cim.py` | 11 | 0 | **11** |
 | `test_fail_closed_infra.py` | 7 | 0 | **7** |
 | `test_fault_analysis_deep.py` | 0 | 6 | **28** |
 | `test_feature_flags.py` | 0 | 5 | **31** |
@@ -6101,7 +6113,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 77.2 KB | `82411ebe2a0e` |
+| `hf-space/app.py` | 78.0 KB | `69112fac55b4` |
 | `ui/package.json` | 3.7 KB | `c82c013a02bb` |
 | `ui/vite.config.ts` | 2.8 KB | `8eea984f6b9a` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
