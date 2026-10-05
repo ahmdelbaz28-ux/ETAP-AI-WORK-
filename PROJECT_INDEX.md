@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-05T07:42:04.671213+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-05T09:08:13.246750+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -22,7 +22,7 @@
 | Scripts | | 155 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
-| UI | Search Index Entries | 473 |
+| UI | Search Index Entries | 474 |
 
 ---
 
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -1839,29 +1839,29 @@ Manage not
 - **async def** `create_webhook()` (line 741)
 - **async def** `delete_webhook()` (line 830)
 
-#### 📄 `api/notifications.py` _18.9 KB_
+#### 📄 `api/notifications.py` _19.1 KB_
 > api/notifications.py — Real-time Notifications System.
 
 Provides:
 - Notification model with types (study_complete, system_alert, etc.)
 - WebSocket end
 
-- **Class** `NotificationType` (line 67)
-- **Class** `NotificationPriority` (line 86)
-- **Class** `Notification` (line 100)
-- **Class** `NotificationResponse` (line 128)
-- **Class** `NotificationListResponse` (line 146)
-- **Class** `UnreadCountResponse` (line 158)
-- **Class** `TestNotificationRequest` (line 164)
-- **Class** `NotificationManager` (line 180)
+- **Class** `NotificationType` (line 72)
+- **Class** `NotificationPriority` (line 91)
+- **Class** `Notification` (line 105)
+- **Class** `NotificationResponse` (line 133)
+- **Class** `NotificationListResponse` (line 151)
+- **Class** `UnreadCountResponse` (line 163)
+- **Class** `TestNotificationRequest` (line 169)
+- **Class** `NotificationManager` (line 185)
   - Methods: `connect()`, `disconnect()`, `send_notification()`, `broadcast()`
-- **async def** `create_notification()` (line 237)
-- **async def** `list_notifications()` (line 347)
-- **async def** `get_unread_count()` (line 422)
-- **async def** `mark_as_read()` (line 444)
-- **async def** `mark_all_as_read()` (line 490)
-- **async def** `send_test_notification()` (line 522)
-- **async def** `notification_websocket_endpoint()` (line 557)
+- **async def** `create_notification()` (line 242)
+- **async def** `list_notifications()` (line 357)
+- **async def** `get_unread_count()` (line 432)
+- **async def** `mark_as_read()` (line 454)
+- **async def** `mark_all_as_read()` (line 500)
+- **async def** `send_test_notification()` (line 532)
+- **async def** `notification_websocket_endpoint()` (line 567)
 
 #### 📄 `api/pe_stamp.py` _6.9 KB_
 > Professional Engineer (PE) stamp workflow for regulated studies.
@@ -2076,25 +2076,25 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _55.9 KB_
+#### 📄 `api/routes.py` _56.6 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
-- **Class** `_BodySizeLimitMiddleware` (line 305)
-- **Class** `_TraceMiddleware` (line 458)
-- **Class** `HealthResponse` (line 505)
-- **Class** `ReadyResponse` (line 510)
-- **Class** `CUARollbackRequest` (line 1277)
-- **def** `get_celery_components()` (line 532)
-- **async def** `run_study_async()` (line 564)
-- **async def** `get_task_status()` (line 612)
-- **async def** `websocket_scada_endpoint_handler()` (line 654)
-- **async def** `websocket_cua_confirmation_handler()` (line 671)
-- **async def** `global_exception_handler()` (line 836)
-- **async def** `etap_health_probe()` (line 946)
-- **async def** `gis_status_probe()` (line 958)
-- **async def** `websocket_session_stream_handler()` (line 973)
-- **async def** `websocket_notifications_handler()` (line 981)
+- **Class** `_BodySizeLimitMiddleware` (line 314)
+- **Class** `_TraceMiddleware` (line 467)
+- **Class** `HealthResponse` (line 514)
+- **Class** `ReadyResponse` (line 519)
+- **Class** `CUARollbackRequest` (line 1301)
+- **def** `get_celery_components()` (line 541)
+- **async def** `run_study_async()` (line 573)
+- **async def** `get_task_status()` (line 621)
+- **async def** `websocket_scada_endpoint_handler()` (line 663)
+- **async def** `websocket_cua_confirmation_handler()` (line 680)
+- **async def** `global_exception_handler()` (line 845)
+- **async def** `etap_health_probe()` (line 955)
+- **async def** `gis_status_probe()` (line 967)
+- **async def** `websocket_session_stream_handler()` (line 982)
+- **async def** `websocket_notifications_handler()` (line 990)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -4853,8 +4853,8 @@ Produces folium/leaflet
 - **def** `esri_json_to_geojson()` (line 98)
 - **def** `geojson_to_esri_json()` (line 166)
 
-#### 📄 `gis_integration/providers/__init__.py` _4.8 KB_
-- **def** `get_gis_provider()` (line 86)
+#### 📄 `gis_integration/providers/__init__.py` _4.9 KB_
+- **def** `get_gis_provider()` (line 106)
 
 #### 📄 `gis_integration/providers/arcgis_provider.py` _28.7 KB_
 - **Class** `ArcGISProvider` (line 54)
@@ -5568,7 +5568,7 @@ Provides
 - `api-config.ts` → Exports: _none_
 - `api-fetch.ts` → Exports: _none_
 - `api.ts` → Exports: `ApiError`, `AI_ML_CAPABILITIES`
-- `chat-first-ui.ts` → Exports: `CHAT_FIRST_UI_KEY`, `useChatFirstUi`
+- `chat-first-ui.ts` → Exports: `CHAT_FIRST_UI_KEY`, `enterChatFirst`, `useChatFirstUi`
 - `external-services.ts` → Exports: `EXTERNAL_SERVICES`
 - `format.ts` → Exports: `formatDate`, `formatPercent`, `formatSize`, `formatBytes`
 - `llm-chat.ts` → Exports: `getActiveProvider`, `getConfiguredProviders`, `isElectronRuntime`, `getChatSessionId`, `CHAT_STREAM_TIMEOUT_MS`
@@ -5602,11 +5602,11 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| ui-component | 279 |
+| ui-component | 280 |
 | ui-page | 61 |
+| python-module | 41 |
 | api-route | 92 |
-| **TOTAL** | **473** |
+| **TOTAL** | **474** |
 
 ---
 
@@ -5617,7 +5617,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5632,7 +5632,7 @@ Provides
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
-| `gis_validation_electrical` | `gis_integration` | — |
+| `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
 | `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
@@ -5648,7 +5648,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -6113,9 +6113,9 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.0 KB | `69112fac55b4` |
+| `hf-space/app.py` | 78.0 KB | `34f70676fe8d` |
 | `ui/package.json` | 3.7 KB | `c82c013a02bb` |
-| `ui/vite.config.ts` | 2.8 KB | `8eea984f6b9a` |
+| `ui/vite.config.ts` | 2.9 KB | `d5ffbb7f3a8f` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
 | `pnpm-workspace.yaml` | 7.4 KB | `e9dc4a945f34` |
