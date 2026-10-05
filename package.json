@@ -37,7 +37,7 @@
     "@ai-sdk/anthropic": "^4.0.65",
     "@langwatch/scenario": "^1.6.0",
     "@mastra/core": "^1.71.0",
-    "@mastra/duckdb": "^1.9.0",
+    "@mastra/duckdb": "^1.12.1",
     "@mastra/libsql": "^1.4.0",
     "@mastra/loggers": "1.2.0",
     "@mastra/memory": "^1.29.0",
