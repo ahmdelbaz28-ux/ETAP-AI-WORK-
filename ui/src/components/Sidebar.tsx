@@ -37,9 +37,10 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, useLocation } from "react-router";
+import { NavLink, useLocation, useNavigate } from "react-router";
 import { useTheme } from "../context/ThemeContext";
 import { type HealthResponse, fetchHealth } from "../lib/api";
+import { enterChatFirst } from "../lib/chat-first-ui";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
 import { BrandLogo } from "./BrandLogo";
@@ -316,6 +317,14 @@ function MobileSidebarDrawer({
   t: (key: string) => string;
   location: { pathname: string };
 }>) {
+  const navigate = useNavigate();
+  const handleItemClick = (to: string, e: React.MouseEvent) => {
+    if (to === "/dashboard") {
+      e.preventDefault();
+      enterChatFirst();
+      navigate("/dashboard");
+    }
+  };
   return (
     <>
       {/* Backdrop */}
@@ -383,6 +392,7 @@ function MobileSidebarDrawer({
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={(e) => handleItemClick(item.to, e)}
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150",
@@ -464,7 +474,16 @@ export function Sidebar() {
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } =
     useAppStore();
+  const navigate = useNavigate();
   const [healthStatus, setHealthStatus] = useState<"online" | "offline" | "checking">("checking");
+
+  const handleItemClick = (to: string, e: React.MouseEvent) => {
+    if (to === "/dashboard") {
+      e.preventDefault();
+      enterChatFirst();
+      navigate("/dashboard");
+    }
+  };
 
   const isRtl = i18n.language === "ar";
 
@@ -539,6 +558,7 @@ export function Sidebar() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={(e) => handleItemClick(item.to, e)}
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group relative",

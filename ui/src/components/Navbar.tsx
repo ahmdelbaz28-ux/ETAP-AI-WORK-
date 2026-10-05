@@ -17,6 +17,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Bot,
   Sparkles,
   User as UserIcon,
   X,
@@ -24,6 +25,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { enterChatFirst } from "../lib/chat-first-ui";
 import { clearAuthTokens } from "../lib/tokenStorage";
 import { useAppStore } from "../store";
 import { cn } from "../utils/helpers";
@@ -296,6 +298,23 @@ export function Navbar() {
 
       {/* ─── Right: Tools ──────────────────────────────────────────── */}
       <div className="flex items-center gap-0.5 shrink-0">
+        {/* Switch to Chat Workspace Button */}
+        <button
+          onClick={() => {
+            enterChatFirst();
+            navigate("/dashboard");
+          }}
+          type="button"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 text-xs font-medium transition-all mr-1 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+          title={isRtl ? "العودة إلى مساحة العمل الذكية (Chat Workspace)" : "Switch to Chat Workspace"}
+          data-testid="switch-to-chat-workspace-btn"
+        >
+          <Bot className="w-4 h-4" />
+          <span className="hidden sm:inline font-medium">
+            {isRtl ? "مساحة الدردشة" : "Chat Workspace"}
+          </span>
+        </button>
+
         {/* Language Toggle — hidden on mobile (in sidebar drawer instead) */}
         <div className="hidden sm:block">
           <ToolButton

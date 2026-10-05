@@ -1,6 +1,6 @@
-import { AlertCircle, Check, ChevronDown, FolderKanban, Loader2, RotateCcw, Search } from "lucide-react";
+import { AlertCircle, Check, ChevronDown, FolderKanban, Loader2, Plus, RotateCcw, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { request } from "../../lib/api";
+import { createProject, request } from "../../lib/api";
 import { useChatStore } from "../../store/chatStore";
 import { cn } from "../../utils/helpers";
 
@@ -19,6 +19,7 @@ export function ProjectSelector() {
 
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -46,6 +47,25 @@ export function ProjectSelector() {
       setLoading(false);
     }
   }, [setProjectId]);
+
+  const handleCreateQuickProject = async () => {
+    setCreating(true);
+    try {
+      const created = await createProject({
+        name: "Main Substation Alpha",
+        description: "Default electrical network project",
+      });
+      if (created?.id) {
+        setProjectId(created.id);
+        await loadProjects();
+        setOpen(false);
+      }
+    } catch (err) {
+      console.error("Failed to create project", err);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     void loadProjects();
@@ -157,8 +177,22 @@ export function ProjectSelector() {
                 </button>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-500">
-                No matching projects found
+              <div className="py-6 text-center text-xs text-slate-500 space-y-3">
+                <div data-testid="no-matching-projects-text">
+                  {search ? "No matching projects found" : "No projects created yet"}
+                </div>
+                {!search && (
+                  <button
+                    type="button"
+                    onClick={() => void handleCreateQuickProject()}
+                    disabled={creating}
+                    className="px-3 py-1.5 rounded-lg bg-brand-600/30 hover:bg-brand-600/50 border border-brand-500/40 text-brand-300 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                    data-testid="create-quick-project-btn"
+                  >
+                    {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                    + إنشاء مشروع (Create Project)
+                  </button>
+                )}
               </div>
             ) : (
               filtered.map((proj) => {

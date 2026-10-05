@@ -213,10 +213,15 @@ if is_production_environment():
 
 _ADMIN_PREFIX = "/admin/"
 _MSG_ADMIN_ROLE_REQUIRED = "Admin role required"
+_KILL_SWITCH_PATHS = ("/admin/cua/kill-switch", "/api/v1/admin/cua/kill-switch")
+
+
+def _is_kill_switch_path(path: str) -> bool:
+    return any(path.startswith(prefix) for prefix in _KILL_SWITCH_PATHS)
 
 
 def _check_admin_path_restricted(path: str) -> None:
-    if path.startswith(_ADMIN_PREFIX):
+    if path.startswith(_ADMIN_PREFIX) and not _is_kill_switch_path(path):
         raise HTTPException(status_code=403, detail=_MSG_ADMIN_ROLE_REQUIRED)
 
 
@@ -230,7 +235,11 @@ def _validate_bearer_auth(auth_header: str, path: str) -> bool:
     try:
         payload = _validate_jwt_access_token_sync(token)
         role = payload.get("role", "")
-        if path.startswith(_ADMIN_PREFIX) and role != "admin":
+        if (
+            (path.startswith(_ADMIN_PREFIX) or path.startswith("/api/v1/admin/"))
+            and not _is_kill_switch_path(path)
+            and role != "admin"
+        ):
             raise HTTPException(status_code=403, detail=_MSG_ADMIN_ROLE_REQUIRED)
         return True
     except HTTPException:
@@ -1189,6 +1198,11 @@ async def audit_verify(request: Request):
         403: {"description": "Forbidden — missing or invalid API key"},
     },
 )
+@app.get(
+    "/api/v1/admin/cua/kill-switch",
+    tags=["CUA", "Admin"],
+    include_in_schema=False,
+)
 async def cua_kill_switch_status(request: Request):
     """Return the current CUA kill switch status.
 
@@ -1226,6 +1240,11 @@ async def cua_kill_switch_status(request: Request):
         403: {"description": "Forbidden — missing or invalid API key"},
     },
 )
+@app.post(
+    "/api/v1/admin/cua/kill-switch/activate",
+    tags=["CUA", "Admin"],
+    include_in_schema=False,
+)
 async def cua_kill_switch_activate(request: Request):
     """Activate the CUA kill switch — blocks all CUA agent actions.
 
@@ -1259,6 +1278,11 @@ async def cua_kill_switch_activate(request: Request):
     responses={
         403: {"description": "Forbidden — missing or invalid API key"},
     },
+)
+@app.post(
+    "/api/v1/admin/cua/kill-switch/deactivate",
+    tags=["CUA", "Admin"],
+    include_in_schema=False,
 )
 async def cua_kill_switch_deactivate(request: Request):
     """Deactivate the CUA kill switch — resumes CUA agent actions.

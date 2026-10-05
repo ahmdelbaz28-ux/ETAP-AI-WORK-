@@ -1017,9 +1017,16 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
 
   checkEmergencyStop: async () => {
     try {
-      const res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
-        "/admin/cua/kill-switch",
-      );
+      let res: { active?: boolean; enabled?: boolean; is_active?: boolean } | null = null;
+      try {
+        res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
+          "/api/v1/admin/cua/kill-switch",
+        );
+      } catch {
+        res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
+          "/admin/cua/kill-switch",
+        );
+      }
       const active = !!(res?.active ?? res?.enabled ?? res?.is_active);
       set({ emergencyStop: { ...get().emergencyStop, active, error: null } });
     } catch (err) {
@@ -1096,17 +1103,25 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     get().abortStream();
     set({
       emergencyStop: { ...get().emergencyStop, activating: true, error: null },
-      streamStatus: "error",
+      streamStatus: "idle",
     });
+    const stopPayload = {
+      reason: reason || "User-triggered emergency stop from ChatWorkspace",
+      scope: "session",
+      session_id: get().sessionId,
+    };
     try {
-      await request<{ success: boolean }>("/admin/cua/kill-switch/activate", {
-        method: "POST",
-        body: JSON.stringify({
-          reason: reason || "User-triggered emergency stop from ChatWorkspace",
-          scope: "session",
-          session_id: get().sessionId,
-        }),
-      });
+      try {
+        await request<{ success: boolean }>("/api/v1/admin/cua/kill-switch/activate", {
+          method: "POST",
+          body: JSON.stringify(stopPayload),
+        });
+      } catch {
+        await request<{ success: boolean }>("/admin/cua/kill-switch/activate", {
+          method: "POST",
+          body: JSON.stringify(stopPayload),
+        });
+      }
       set({
         emergencyStop: { active: true, activating: false, lastResult: "success", error: null },
       });

@@ -43,7 +43,12 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from api.database import Base
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
+
+from api.database import Base, get_db
 from api.dependencies import (
     CurrentUser,
     PaginationParams,
@@ -56,7 +61,7 @@ from api.rbac import require_permission
 # Type aliases
 # ---------------------------------------------------------------------------
 
-DbDep = Any
+DbDep = Annotated[AsyncSession, Depends(get_db)]
 
 
 # ---------------------------------------------------------------------------
@@ -339,6 +344,11 @@ router = APIRouter(prefix="/api/v1/notifications", tags=["Notifications"])
 # ---------------------------------------------------------------------------
 
 
+@router.get(
+    "",
+    response_model=NotificationListResponse,
+    include_in_schema=False,
+)
 @router.get(
     "/",
     response_model=NotificationListResponse,

@@ -18,7 +18,8 @@ import { POPULAR_PROVIDERS } from "./providers";
 import { redactSecrets } from "./llm-utils";
 import { apiUrl, getCachedSettings } from "./api-config";
 import { testProviderKey } from "./provider-keys";
-import { getAuthToken } from "./tokenStorage";
+import { getAuthToken, getCsrfToken } from "./tokenStorage";
+import { ensureCsrfToken } from "./api";
 
 // --- section ---
 export interface ChatMessage {
@@ -1150,10 +1151,21 @@ export const CHAT_STREAM_TIMEOUT_MS = 15000;
  * X-User-LLM-Provider) configured in backend CORS allow_headers and handled
  * securely by api/chat_stream.py without server logging.
  */
-function createServerChatHeaders(): Record<string, string> {
+async function createServerChatHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const token = getAuthToken();
   if (token) headers.Authorization = `Bearer ${token}`;
+
+  let csrf = getCsrfToken();
+  if (!csrf) {
+    try {
+      csrf = await ensureCsrfToken();
+    } catch {
+      /* ignore */
+    }
+  }
+  if (csrf) headers["X-CSRF-Token"] = csrf;
+
   const activeProv = getActiveProvider();
   if (activeProv?.apiKey) {
     headers["X-User-LLM-Key"] = activeProv.apiKey;
@@ -1194,7 +1206,7 @@ export interface ServerChatStreamOptions {
   stopSequences?: string[];
 }
 
-function prepareServerChatRequest(
+async function prepareServerChatRequest(
   messages: ChatMessage[],
   signalOrOptions?: AbortSignal | ServerChatStreamOptions,
   projectId?: string | null,
@@ -1207,7 +1219,7 @@ function prepareServerChatRequest(
   const maxTokens = options?.maxTokens ?? 4000;
   const stopSequences = options?.stopSequences;
 
-  const headers = createServerChatHeaders();
+  const headers = await createServerChatHeaders();
   const { controller, cleanup } = createTimeoutController(signal);
 
   const body = JSON.stringify({
@@ -1262,7 +1274,7 @@ export async function* streamFromServerChat(
   signalOrOptions?: AbortSignal | ServerChatStreamOptions,
   projectId?: string | null,
 ): AsyncGenerator<string, void, unknown> {
-  const { controller, cleanup, headers, body } = prepareServerChatRequest(
+  const { controller, cleanup, headers, body } = await prepareServerChatRequest(
     messages,
     signalOrOptions,
     projectId,

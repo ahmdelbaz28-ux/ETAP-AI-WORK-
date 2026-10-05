@@ -23,6 +23,10 @@ function isEnvOverride(): boolean {
 /** Resolve the effective ChatWorkspace state. FAIL CLOSED → OFF by default. */
 export async function isChatFirstUiEnabled(): Promise<boolean> {
   if (isEnvOverride()) return true;
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
+    if (!token) return false;
+  }
   try {
     const res = await fetchFeatureFlags();
     const flag = (res?.data ?? []).find((f) => f.key === CHAT_FIRST_UI_KEY);
@@ -33,11 +37,19 @@ export async function isChatFirstUiEnabled(): Promise<boolean> {
   }
 }
 
+export function enterChatFirst(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("enter-chat-first"));
+  }
+}
+
 export interface ChatFirstUiState {
   readonly ready: boolean;
   readonly enabled: boolean;
   /** Session-scoped exit that restores the legacy UI until the next load. */
   readonly exitToLegacy: () => void;
+  /** Restore ChatWorkspace from legacy UI. */
+  readonly enterChatFirst: () => void;
 }
 
 export function useChatFirstUi(): ChatFirstUiState {
@@ -67,12 +79,18 @@ export function useChatFirstUi(): ChatFirstUiState {
       evaluate();
     };
 
+    const handleEnterChatFirst = () => {
+      setOptedOut(false);
+      evaluate();
+    };
+
     let restoreHistory: (() => void) | undefined;
 
     if (typeof window !== "undefined") {
       window.addEventListener("auth-change", handleAuthOrLocationChange);
       window.addEventListener("storage", handleAuthOrLocationChange);
       window.addEventListener("popstate", handleAuthOrLocationChange);
+      window.addEventListener("enter-chat-first", handleEnterChatFirst);
 
       const origPush = window.history.pushState;
       const origReplace = window.history.replaceState;
@@ -98,6 +116,7 @@ export function useChatFirstUi(): ChatFirstUiState {
         window.removeEventListener("auth-change", handleAuthOrLocationChange);
         window.removeEventListener("storage", handleAuthOrLocationChange);
         window.removeEventListener("popstate", handleAuthOrLocationChange);
+        window.removeEventListener("enter-chat-first", handleEnterChatFirst);
         restoreHistory?.();
       }
     };
@@ -107,5 +126,9 @@ export function useChatFirstUi(): ChatFirstUiState {
     ready: resolved !== null,
     enabled: resolved === true && !optedOut,
     exitToLegacy: () => setOptedOut(true),
+    enterChatFirst: () => {
+      setOptedOut(false);
+      void isChatFirstUiEnabled().then((enabled) => setResolved(enabled));
+    },
   };
 }
