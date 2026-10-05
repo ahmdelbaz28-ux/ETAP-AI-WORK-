@@ -581,9 +581,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#api-key" class="md-nav__link">
+  <a href="#api-key-authentication" class="md-nav__link">
     <span class="md-ellipsis">
-      API Key
+      API Key &amp; Authentication
     </span>
   </a>
   
@@ -593,15 +593,6 @@
   <a href="#engineering-service" class="md-nav__link">
     <span class="md-ellipsis">
       Engineering Service
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#kv-storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      KV Storage
     </span>
   </a>
   
@@ -641,9 +632,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#agent-interaction-flow" class="md-nav__link">
+  <a href="#conversational-engineering-flow-chat-first-v30" class="md-nav__link">
     <span class="md-ellipsis">
-      Agent Interaction Flow
+      Conversational Engineering Flow (Chat-First v3.0)
     </span>
   </a>
   
@@ -651,24 +642,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ambiguities-and-open-questions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ambiguities and Open Questions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Decisions
-    </span>
-  </a>
   
 </li>
       
@@ -704,86 +677,75 @@
 <p>This document defines the ubiquitous language for the AhmedETAP platform, ensuring clarity and consistency in terminology across the codebase, documentation, and discussions.</p>
 <hr />
 <blockquote>
-<p>[!WARNING]
-<strong>ARCHITECTURAL ERRATA &amp; HISTORICAL NOTICE (Milestones M0–M6 Closure)</strong>
-The Cloudflare Workers and KV Storage model (<code>TASK_STORE_KV</code>, <code>API_KEYS_KV</code>, <code>RATE_LIMIT_KV</code>) described in sections of this document is <strong>OBSOLETE</strong>.</p>
-<p>The platform has converged on a hardened <strong>Dual-Runtime Architecture</strong>:
-1. <strong>Mastra (TypeScript/Node.js)</strong>: Planning, specialist agent routing, and structured goal decomposition.
+<p>[!NOTE]
+<strong>Authoritative Architecture &amp; Data Model Reference</strong>
+The platform operates on a hardened <strong>Dual-Runtime Architecture</strong>:
+1. <strong>Mastra (TypeScript/Node.js)</strong>: Planning, specialist agent routing, and structured goal decomposition (<code>src/mastra/</code>).
 2. <strong>Engineering Service (Python/FastAPI)</strong>: Deterministic, validated power-system physics calculations (Newton-Raphson, IEC 60909, IEEE 1584, IEC 60255, IEEE 399).
-3. <strong>Persistence &amp; State</strong>: Backed by FastAPI, SQLAlchemy (SQLite in local development, PostgreSQL in production), Redis for transient study caching, and Qdrant for dense semantic retrieval.</p>
-<p><strong>Authoritative Truth Files</strong>:
-- <a href="../AGENTS.md">AGENTS.md</a>: Dual-runtime architecture, agent capabilities, and prompt loading system.
-- <a href="../engine/dispatch.py">engine/dispatch.py</a>: Canonical 20-entry <code>STUDY_DISPATCH</code> table.
-- <a href="../agents/registry.py">agents/registry.py</a>: 27 canonical agent keys and registry namespace.
-- <a href="../services/study_executor.py">services/study_executor.py</a>: Dual-port study executor and fail-closed reachability.
-- <a href="../core/bootstrap.py">core/bootstrap.py</a>: Lifespan startup dynamic agent reflection gatekeeper.
-- <a href="../api/database.py">api/database.py</a>: Relational database models and connection management.
-- <a href="../ai-integration/">docs/ai-integration/README.md</a>: Master AI integration governance index.</p>
+3. <strong>Persistence &amp; State</strong>: Backed by FastAPI and SQLAlchemy (<code>api/database.py</code> with PostgreSQL/Neon in production and SQLite in local test development), with Redis for transient study caching and distributed rate limiting.</p>
+<p><strong>Authoritative Truth Files:</strong>
+- <a href="../AGENTS.md"><code>AGENTS.md</code></a>: Dual-runtime architecture, 27 canonical specialist agents, and manifest-first prompt loading.
+- <a href="../engine/dispatch.py"><code>engine/dispatch.py</code></a>: Canonical study dispatch routing table.
+- <a href="../agents/registry.py"><code>agents/registry.py</code></a>: 27 canonical agent keys and registry namespace.
+- <a href="../api/database.py"><code>api/database.py</code></a>: Relational database models and connection management.
+- <a href="../services/study_executor.py"><code>services/study_executor.py</code></a>: Dual-port study executor and fail-closed reachability.
+- <a href="../core/bootstrap.py"><code>core/bootstrap.py</code></a>: Lifespan startup dynamic agent reflection gatekeeper.</p>
 </blockquote>
 <hr />
 <h2 id="core-entities">Core Entities</h2>
 <h3 id="agent">Agent</h3>
 <ul>
-<li><strong>Definition</strong>: A specialized AI service responsible for performing specific engineering studies or tasks.</li>
+<li><strong>Definition</strong>: A specialized service (computational Python agent or conversational TypeScript agent) responsible for performing specific engineering studies or tasks.</li>
 <li><strong>Key Attributes</strong>:</li>
-<li><code>agentId</code>: Unique identifier for the agent (e.g., <code>load-flow-agent</code>, <code>short-circuit-agent</code>).</li>
-<li>Specialized for one or more <code>studyTypes</code> (e.g., <code>load-flow-agent</code> handles <code>load_flow</code> studies).</li>
+<li><code>agentId</code>: Unique canonical key for the agent (e.g., <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>).</li>
+<li>Specialized for one or more <code>studyTypes</code> declared in <code>agents/models.py:StudyType</code>.</li>
 <li><strong>Relationships</strong>:</li>
-<li>Performs <code>Studies</code> and generates <code>Tasks</code>.</li>
-<li>Authenticated via <code>API Keys</code>.</li>
+<li>Executes <code>Studies</code> and persists <code>Tasks</code>.</li>
+<li>Authenticated via API Keys or session tokens.</li>
 </ul>
 <h3 id="study">Study</h3>
 <ul>
-<li><strong>Definition</strong>: A computational analysis or task performed by an <code>Agent</code> (e.g., load flow, short circuit, arc flash).</li>
+<li><strong>Definition</strong>: A computational analysis or task performed by an <code>Agent</code> or the <code>PowerSystemEngine</code> (e.g., load flow, short circuit, arc flash).</li>
 <li><strong>Key Attributes</strong>:</li>
-<li><code>studyType</code>: Type of analysis (e.g., <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>).</li>
-<li><code>parameters</code>: Input data required for the study (structure varies by <code>studyType</code>).</li>
-<li><code>dryRun</code>: Boolean flag indicating whether the study is validated but not executed.</li>
+<li><code>studyType</code>: Type of analysis conforming to canonical snake_case <code>StudyType</code> values.</li>
+<li><code>parameters</code>: Input data required for the study (structure validated by schema guards).</li>
+<li><code>dryRun</code>: Boolean flag indicating whether the study parameters are validated without full numerical execution.</li>
 <li><strong>Relationships</strong>:</li>
-<li>Executed by an <code>Agent</code> or the <code>Engineering Service</code>.</li>
-<li>Generates a <code>Task</code> upon execution.</li>
+<li>Executed by an <code>Agent</code> via <code>engine/dispatch.py</code>.</li>
+<li>Generates a persisted <code>Task</code> record upon execution.</li>
 </ul>
 <h3 id="task">Task</h3>
 <ul>
-<li><strong>Definition</strong>: A persisted record of a <code>Study</code> execution, including its status and results.</li>
+<li><strong>Definition</strong>: A persisted record in the relational database (<code>api/database.py</code>) of a <code>Study</code> execution, including its status, provenance hash, and results.</li>
 <li><strong>Key Attributes</strong>:</li>
-<li><code>taskId</code>: Unique identifier for the task.</li>
-<li><code>status</code>: Current state of the task (<code>dry_run</code>, <code>pending</code>, <code>completed</code>).</li>
-<li><code>studyType</code>: The type of study associated with the task.</li>
-<li><code>results</code>: Output data from the study (if completed).</li>
+<li><code>taskId</code>: Unique UUID identifier for the task.</li>
+<li><code>status</code>: Current state of the task (<code>pending</code>, <code>running</code>, <code>completed</code>, <code>failed</code>).</li>
+<li><code>studyType</code>: The canonical type of study associated with the task.</li>
+<li><code>results</code>: Output JSON structure containing validated engineering figures.</li>
 <li><strong>Relationships</strong>:</li>
-<li>Generated by a <code>Study</code>.</li>
-<li>Persisted in <code>KV Storage</code> for tracking and retrieval.</li>
+<li>Generated by a <code>Study</code> execution.</li>
+<li>Persisted in the relational database table (<code>api/database.py</code>) and cached in Redis.</li>
 </ul>
-<h3 id="api-key">API Key</h3>
+<h3 id="api-key-authentication">API Key &amp; Authentication</h3>
 <ul>
-<li><strong>Definition</strong>: Authentication mechanism for accessing the platform's API.</li>
+<li><strong>Definition</strong>: Authentication mechanism for programmatic access and user session validation.</li>
 <li><strong>Key Attributes</strong>:</li>
-<li><code>key</code>: Unique string used for authentication.</li>
-<li><code>revoked</code>: Boolean flag indicating whether the key is revoked.</li>
-<li><code>name</code>: Optional human-readable name for the key.</li>
+<li><code>key</code>: Secure hashed token string.</li>
+<li><code>revoked</code>: Boolean flag indicating revocation.</li>
+<li><code>tenant_id</code>: Multi-tenant isolation boundary.</li>
 <li><strong>Relationships</strong>:</li>
-<li>Authenticates requests to interact with <code>Agents</code> or execute <code>Studies</code>.</li>
-<li>Stored in <code>KV Storage</code> (<code>API_KEYS_KV</code>).</li>
+<li>Authenticates HTTP and WebSocket requests to <code>/api/v1/*</code>.</li>
+<li>Validated by fail-closed middleware.</li>
 </ul>
 <h3 id="engineering-service">Engineering Service</h3>
 <ul>
-<li><strong>Definition</strong>: External service (Python runtime) responsible for executing computational studies.</li>
+<li><strong>Definition</strong>: The Python/FastAPI execution core responsible for deterministic numerical physics computations and COM automation.</li>
 <li><strong>Key Attributes</strong>:</li>
-<li><code>configured</code>: Boolean flag indicating whether the service is configured.</li>
-<li><code>healthy</code>: Boolean flag indicating whether the service is operational.</li>
+<li><code>configured</code>: Boolean flag indicating engine availability.</li>
+<li><code>healthy</code>: Boolean flag verified via <code>/health</code> endpoint.</li>
 <li><strong>Relationships</strong>:</li>
-<li>Executes <code>Studies</code> for non-<code>dryRun</code> requests.</li>
-<li>Status checked via the <code>/health</code> endpoint.</li>
-</ul>
-<h3 id="kv-storage">KV Storage</h3>
-<ul>
-<li><strong>Definition</strong>: Key-value storage used for persisting tasks, API keys, and metrics.</li>
-<li><strong>Key Namespaces</strong>:</li>
-<li><code>TASK_STORE_KV</code>: Stores <code>Tasks</code>.</li>
-<li><code>API_KEYS_KV</code>: Stores <code>API Keys</code>.</li>
-<li><code>RATE_LIMIT_KV</code>: Enforces rate limiting.</li>
-<li><code>METRICS_KV</code>: Stores platform metrics.</li>
+<li>Dispatches requests via <code>engine/dispatch.py</code>.</li>
+<li>Enforces standards compliance (IEEE, IEC, NFPA).</li>
 </ul>
 <hr />
 <h2 id="relationships">Relationships</h2>
@@ -801,19 +763,19 @@ The Cloudflare Workers and KV Storage model (<code>TASK_STORE_KV</code>, <code>A
 <td>Agent</td>
 <td>Performs</td>
 <td>Study</td>
-<td>An <code>Agent</code> executes a <code>Study</code> and generates a <code>Task</code>.</td>
+<td>An <code>Agent</code> executes a <code>Study</code> and generates a persisted <code>Task</code>.</td>
 </tr>
 <tr>
 <td>Study</td>
 <td>Generates</td>
 <td>Task</td>
-<td>A <code>Study</code> execution creates a <code>Task</code> for tracking and persistence.</td>
+<td>A <code>Study</code> execution creates a relational <code>Task</code> record for tracking, auditing, and retrieval.</td>
 </tr>
 <tr>
 <td>Task</td>
 <td>Persisted in</td>
-<td>KV Storage</td>
-<td><code>Tasks</code> are stored in <code>TASK_STORE_KV</code> for retrieval and status tracking.</td>
+<td>Relational Database</td>
+<td><code>Tasks</code> are stored in PostgreSQL (<code>api/database.py</code>) with transient cache in Redis.</td>
 </tr>
 <tr>
 <td>API Key</td>
@@ -825,7 +787,7 @@ The Cloudflare Workers and KV Storage model (<code>TASK_STORE_KV</code>, <code>A
 <td>Engineering Service</td>
 <td>Executes</td>
 <td>Study</td>
-<td>The <code>Engineering Service</code> performs computational studies for non-<code>dryRun</code> requests.</td>
+<td>The <code>Engineering Service</code> performs computational physics calculations for non-<code>dryRun</code> requests.</td>
 </tr>
 </tbody>
 </table>
@@ -833,74 +795,19 @@ The Cloudflare Workers and KV Storage model (<code>TASK_STORE_KV</code>, <code>A
 <h2 id="key-scenarios">Key Scenarios</h2>
 <h3 id="study-execution-flow">Study Execution Flow</h3>
 <ol>
-<li>A user submits a request to <code>/api/v1/studies/run</code> with a <code>studyType</code> and <code>parameters</code>.</li>
-<li>The API gateway validates the <code>studyType</code> and <code>API Key</code>.</li>
-<li>If <code>dryRun: true</code>, the study is validated but not executed by the <code>Engineering Service</code>.</li>
-<li>If <code>dryRun: false</code>, the <code>Engineering Service</code> executes the study.</li>
-<li>A <code>Task</code> is generated and persisted in <code>KV Storage</code>.</li>
-<li>The <code>taskId</code> is returned to the user for status tracking.</li>
+<li>A client submits a request to <code>POST /api/v1/studies/run</code> with a <code>study_type</code> and <code>parameters</code>.</li>
+<li>The API middleware authenticates the client and validates tenant isolation.</li>
+<li>If <code>dryRun: true</code>, parameters are verified against schema guards without numerical solver execution.</li>
+<li>If <code>dryRun: false</code>, <code>engine/dispatch.py</code> routes the task to the designated <code>BaseAgent</code> or native solver.</li>
+<li>The result is verified by standards validation, and a <code>Task</code> record is persisted in the database.</li>
+<li>The client receives the <code>task_id</code> and complete engineering result payload.</li>
 </ol>
-<h3 id="agent-interaction-flow">Agent Interaction Flow</h3>
+<h3 id="conversational-engineering-flow-chat-first-v30">Conversational Engineering Flow (Chat-First v3.0)</h3>
 <ol>
-<li>A user submits a request to <code>/api/v1/agents/{agentId}/chat</code> with a <code>messages</code> array.</li>
-<li>The API gateway validates the <code>API Key</code> and <code>agentId</code>.</li>
-<li>The <code>Agent</code> processes the request and returns a response.</li>
-<li>If the request involves a <code>Study</code>, a <code>Task</code> may be generated.</li>
-</ol>
-<hr />
-<h2 id="ambiguities-and-open-questions">Ambiguities and Open Questions</h2>
-<ol>
-<li><strong><code>Study</code> vs. <code>Task</code></strong>:</li>
-<li>Are <code>Studies</code> and <code>Tasks</code> distinct entities, or is a <code>Task</code> simply a persisted instance of a <code>Study</code>?</li>
-<li>
-<p><strong>Current Interpretation</strong>: A <code>Task</code> is a persisted record of a <code>Study</code> execution, including its status and results.</p>
-</li>
-<li>
-<p><strong><code>Agent</code> vs. <code>StudyType</code> Mapping</strong>:</p>
-</li>
-<li>Is every <code>studyType</code> tied to a specific <code>Agent</code>, or are some studies executed directly by the <code>Engineering Service</code>?</li>
-<li>
-<p><strong>Current Interpretation</strong>: Most <code>studyTypes</code> are tied to <code>Agents</code>, but some (e.g., <code>fault</code>) may be executed directly by the <code>Engineering Service</code>.</p>
-</li>
-<li>
-<p><strong><code>parameters</code> Structure</strong>:</p>
-</li>
-<li>The structure of <code>parameters</code> for a <code>Study</code> is not standardized. Are they study-specific or platform-wide?</li>
-<li>
-<p><strong>Current Interpretation</strong>: <code>parameters</code> are study-specific and defined by the <code>Agent</code> or <code>Engineering Service</code>.</p>
-</li>
-<li>
-<p><strong><code>dryRun</code> Mode</strong>:</p>
-</li>
-<li>Does <code>dryRun</code> validate <code>parameters</code> or only the <code>studyType</code>?</li>
-<li>
-<p><strong>Current Interpretation</strong>: <code>dryRun</code> validates the <code>studyType</code> and basic request structure but does not execute the study.</p>
-</li>
-<li>
-<p><strong>Task Lifecycle</strong>:</p>
-</li>
-<li>Are there policies for task cleanup, archival, or TTL in <code>KV Storage</code>?</li>
-<li><strong>Current Interpretation</strong>: Not explicitly defined. Tasks persist until manually deleted.</li>
-</ol>
-<hr />
-<h2 id="decisions">Decisions</h2>
-<ol>
-<li><strong>Terminology Standardization</strong>:</li>
-<li>Use <code>Agent</code> to refer to specialized AI services (e.g., <code>load-flow-agent</code>).</li>
-<li>Use <code>Study</code> to refer to computational analyses (e.g., <code>load_flow</code>).</li>
-<li>
-<p>Use <code>Task</code> to refer to persisted execution records of <code>Studies</code>.</p>
-</li>
-<li>
-<p><strong><code>dryRun</code> Behavior</strong>:</p>
-</li>
-<li>
-<p><code>dryRun: true</code> validates the <code>studyType</code> and request structure but skips execution by the <code>Engineering Service</code>.</p>
-</li>
-<li>
-<p><strong><code>parameters</code> Flexibility</strong>:</p>
-</li>
-<li><code>parameters</code> are study-specific and defined by the <code>Agent</code> or <code>Engineering Service</code>. No platform-wide schema is enforced.</li>
+<li>An engineer enters a query or uploads network data in <code>ChatWorkspace</code>.</li>
+<li>The query streams to <code>POST /api/v1/chat/stream</code> with BYOK credentials (<code>X-User-LLM-Key</code>).</li>
+<li>Mastra / Coordinator Agent parses intent, executes required tool calls through authorized gateways, and renders structured findings.</li>
+<li>Safety-critical actions require dual-control Maker-Checker signoff before execution.</li>
 </ol>
 <hr />
 <h2 id="glossary">Glossary</h2>
@@ -914,39 +821,39 @@ The Cloudflare Workers and KV Storage model (<code>TASK_STORE_KV</code>, <code>A
 <tbody>
 <tr>
 <td>Agent</td>
-<td>A specialized AI service that performs engineering studies (e.g., <code>load-flow-agent</code>).</td>
+<td>A specialized service that performs engineering analyses or conversation orchestration.</td>
 </tr>
 <tr>
 <td>Study</td>
-<td>A computational analysis or task (e.g., <code>load_flow</code>, <code>short_circuit</code>).</td>
+<td>A computational analysis (e.g., <code>load_flow</code>, <code>short_circuit</code>, <code>arc_flash</code>).</td>
 </tr>
 <tr>
 <td>Task</td>
-<td>A persisted record of a <code>Study</code> execution, including its status and results.</td>
+<td>A persisted record in PostgreSQL of a <code>Study</code> execution, including provenance and result metrics.</td>
 </tr>
 <tr>
 <td>API Key</td>
-<td>Authentication mechanism for accessing the platform's API.</td>
+<td>Authentication credential validating access to platform API endpoints.</td>
 </tr>
 <tr>
 <td>Engineering Service</td>
-<td>External service (Python runtime) that executes computational studies.</td>
+<td>FastAPI core executing numerical physics calculations and COM integration.</td>
 </tr>
 <tr>
-<td>KV Storage</td>
-<td>Key-value storage for persisting tasks, API keys, and metrics.</td>
+<td>Relational Storage</td>
+<td>PostgreSQL database (<code>api/database.py</code>) providing durable multi-tenant project and task storage.</td>
 </tr>
 <tr>
-<td><code>studyType</code></td>
-<td>The type of engineering analysis (e.g., <code>load_flow</code>, <code>short_circuit</code>).</td>
+<td><code>StudyType</code></td>
+<td>Canonical snake_case enumeration of supported engineering studies (<code>agents/models.py</code>).</td>
 </tr>
 <tr>
 <td><code>dryRun</code></td>
-<td>A mode where the study is validated but not executed by the <code>Engineering Service</code>.</td>
+<td>Validation mode verifying parameters without invoking computational solvers.</td>
 </tr>
 <tr>
 <td><code>taskId</code></td>
-<td>Unique identifier for a <code>Task</code>.</td>
+<td>Unique identifier for a persisted <code>Task</code> record.</td>
 </tr>
 </tbody>
 </table>

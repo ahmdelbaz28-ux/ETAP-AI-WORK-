@@ -20,7 +20,7 @@
     
     
       
-        <title>ETAP Deployment Guide - AhmedETAP Documentation</title>
+        <title>AhmedETAP Platform — Production Deployment Guide - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#etap-deployment-guide" class="md-skip">
+        <a href="#ahmedetap-platform-production-deployment-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ETAP Deployment Guide
+              AhmedETAP Platform — Production Deployment Guide
             
           </span>
         </div>
@@ -571,66 +571,24 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#container-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Container Security
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#manual-deployment-linux" class="md-nav__link">
+  <a href="#container-security-hardening" class="md-nav__link">
     <span class="md-ellipsis">
-      Manual Deployment (Linux)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Manual Deployment (Linux)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#steps_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Steps
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#production-checklist" class="md-nav__link">
-    <span class="md-ellipsis">
-      Production Checklist
+      Container Security &amp; Hardening
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#rollback-strategy" class="md-nav__link">
+  <a href="#standalone-host-deployment-linux-windows-server" class="md-nav__link">
     <span class="md-ellipsis">
-      Rollback Strategy
+      Standalone Host Deployment (Linux / Windows Server)
     </span>
   </a>
   
@@ -655,96 +613,69 @@
   
 
 
-<h1 id="etap-deployment-guide">ETAP Deployment Guide</h1>
+<h1 id="ahmedetap-platform-production-deployment-guide">AhmedETAP Platform — Production Deployment Guide</h1>
 <h2 id="docker-deployment-recommended">Docker Deployment (Recommended)</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
-<li>Docker 20.10+ and Docker Compose 2.0+</li>
-<li>Cryptographically generated API key and HMAC key</li>
+<li>Docker Engine 24.0+ and Docker Compose 2.20+</li>
+<li>Cryptographically generated secrets (<code>JWT_SECRET_KEY</code>, <code>ENGINEERING_SERVICE_API_KEY</code>)</li>
+<li>PostgreSQL database instance (e.g. Neon PostgreSQL, AWS RDS, or Azure Database for PostgreSQL)</li>
 </ul>
 <h3 id="steps">Steps</h3>
 <ol>
 <li>
-<p>Generate secrets:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">API_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EVIDENCE_HMAC_KEY</span><span class="o">=</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="k">)</span>
+<p>Configure production environment variables in <code>.env</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">JWT_SECRET_KEY</span><span class="o">=</span><span class="k">$(</span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import secrets; print(secrets.token_hex(32))"</span><span class="k">)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">ENGINEERING_SERVICE_API_KEY</span><span class="o">=</span><span class="k">$(</span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import secrets; print(secrets.token_hex(32))"</span><span class="k">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">"postgresql+asyncpg://etapuser:etappass@postgres:5432/etap_db"</span>
 </code></pre></div></p>
 </li>
 <li>
-<p>Deploy:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+<p>Start the full stack with Docker Compose:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
 </code></pre></div></p>
 </li>
 <li>
-<p>Verify:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>http://localhost:8000/api/health
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Expected: {"success":true,"data":{"status":"ok","version":"1.0.0"}}</span>
+<p>Verify service health:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>http://localhost:8000/health
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Expected: {"status":"healthy","version":"2.1.0"}</span>
 </code></pre></div></p>
 </li>
 </ol>
-<h3 id="container-security">Container Security</h3>
+<hr />
+<h2 id="container-security-hardening">Container Security &amp; Hardening</h2>
 <ul>
-<li>Runs as non-root <code>etap</code> user</li>
-<li>Read-only filesystem (except <code>/data</code> and <code>/logs</code> volumes)</li>
-<li>tmpfs for <code>/tmp</code> (100MB, ephemeral)</li>
-<li><code>no-new-privileges:true</code> security option</li>
-<li>Health check every 30s with 3 retries</li>
+<li>Container runs as non-root service user (<code>engsvc</code> / <code>hfuser</code>).</li>
+<li>Read-only root filesystem with ephemeral tmpfs volumes for temporary solver files.</li>
+<li>Fail-closed security architecture: Missing required API keys or invalid database strings terminate boot immediately.</li>
+<li>Dual-control Maker-Checker enforcement on critical substation switching operations.</li>
+<li>Health probes configured at <code>/health</code>, <code>/healthz</code>, and <code>/readyz</code>.</li>
 </ul>
-<h2 id="manual-deployment-linux">Manual Deployment (Linux)</h2>
-<h3 id="prerequisites_1">Prerequisites</h3>
-<ul>
-<li>Python 3.12+</li>
-<li>Node.js 18+ (for frontend build)</li>
-</ul>
-<h3 id="steps_1">Steps</h3>
+<hr />
+<h2 id="standalone-host-deployment-linux-windows-server">Standalone Host Deployment (Linux / Windows Server)</h2>
 <ol>
 <li>
-<p>Install:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>workflow<span class="o">]</span><span class="w">  </span><span class="c1"># optional</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>pip<span class="w"> </span>install<span class="w"> </span>etap<span class="o">[</span>memory<span class="o">]</span><span class="w">    </span><span class="c1"># optional</span>
+<p>Clone and install dependencies:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>ETAP-AI-WORK-
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">  </span><span class="c1"># or .venv\Scripts\activate on Windows</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
 </code></pre></div></p>
 </li>
 <li>
-<p>Configure:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Edit .env with production secrets</span>
+<p>Build the Chat-First v3.0 UI:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>ui
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>npm<span class="w"> </span>install
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>npm<span class="w"> </span>run<span class="w"> </span>build
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">cd</span><span class="w"> </span>..
 </code></pre></div></p>
 </li>
 <li>
-<p>Build frontend:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
+<p>Run with production ASGI server (Uvicorn / Gunicorn):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>uvicorn<span class="w"> </span>api.main:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
 </code></pre></div></p>
 </li>
-<li>
-<p>Start:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>uvicorn<span class="w"> </span>backend.app:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">4</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>Verify:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>http://localhost:8000/api/health
-</code></pre></div></p>
-</li>
-</ol>
-<h2 id="production-checklist">Production Checklist</h2>
-<ul>
-<li>[ ] <code>APP_ENV=production</code> set</li>
-<li>[ ] <code>API_KEY</code> is cryptographically generated (not <code>dev-test-key</code>)</li>
-<li>[ ] <code>EVIDENCE_HMAC_KEY</code> is cryptographically generated</li>
-<li>[ ] CORS origins explicitly configured (no wildcards)</li>
-<li>[ ] Secrets managed by secrets manager (not <code>.env</code> file)</li>
-<li>[ ] Frontend build served via FastAPI static mount</li>
-<li>[ ] Health check endpoint responding</li>
-<li>[ ] Database persistence volume configured</li>
-<li>[ ] Log aggregation configured</li>
-<li>[ ] Rate limits appropriate for traffic</li>
-</ul>
-<h2 id="rollback-strategy">Rollback Strategy</h2>
-<ol>
-<li>Docker: <code>docker compose down</code> → redeploy previous image</li>
-<li>Manual: Stop uvicorn, revert git commit, restart</li>
-<li>Database: SQLite WAL mode supports atomic rollback within a session</li>
 </ol>
 
 

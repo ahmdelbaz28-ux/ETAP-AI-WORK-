@@ -936,8 +936,8 @@
 
 <h1 id="agent-architecture-python-mastra-typescript-systems">Agent Architecture: Python &amp; Mastra TypeScript Systems</h1>
 <blockquote>
-<p><strong>Document version:</strong> 2026-03-04
-<strong>Project:</strong> AhmedETAP — AI-Powered Power Systems Engineering Platform</p>
+<p><strong>Document version:</strong> 2026-10-05<br />
+<strong>Project:</strong> AhmedETAP — AI-Powered Power Systems Engineering Platform  </p>
 </blockquote>
 <hr />
 <h2 id="table-of-contents">Table of Contents</h2>
@@ -983,17 +983,22 @@
 </tr>
 <tr>
 <td><strong>API surface</strong></td>
-<td>FastAPI (<code>/api/v1/studies/run</code>, <code>/api/v1/agents/</code>)</td>
-<td>Next.js API routes (<code>/api/v1/agents/*/chat</code>)</td>
+<td>FastAPI (<code>/api/v1/studies/run</code>, <code>/api/v1/chat/stream</code>)</td>
+<td>Mastra CLI / In-process Node runtime</td>
+</tr>
+<tr>
+<td><strong>Frontend UI</strong></td>
+<td>React 19 + Vite 6 (<code>ui/</code>)</td>
+<td>Unified ChatWorkspace UI (Chat-First v3.0)</td>
 </tr>
 <tr>
 <td><strong>Prompt management</strong></td>
-<td>Shared <code>prompts/</code> YAML + LangWatch</td>
-<td>Shared <code>prompts/</code> YAML + LangWatch</td>
+<td><code>prompts.json</code> manifest-first + Langfuse Cloud</td>
+<td><code>prompts.json</code> manifest-first + Langfuse Cloud</td>
 </tr>
 <tr>
 <td><strong>Requires LLM?</strong></td>
-<td>No — most agents are purely computational</td>
+<td>No — core study specialists are purely computational</td>
 <td>Yes — every agent is LLM-driven</td>
 </tr>
 </tbody>
@@ -1005,10 +1010,10 @@
 <p><strong>Python agents</strong> perform <strong>deterministic engineering calculations</strong> (Newton-Raphson load flow, IEC 60909 short-circuit analysis, IEEE 519 harmonic compliance, relay coordination). These computations require NumPy, domain-specific solvers, and direct access to the power system model. They must produce <strong>bit-exact, reproducible results</strong> — an LLM cannot replace a Newton-Raphson solver.</p>
 </li>
 <li>
-<p><strong>Mastra TypeScript agents</strong> provide <strong>conversational AI</strong> experiences. They interpret natural-language user requests, decide which specialist to route to, and use LLM reasoning to explain results, suggest corrective actions, and guide non-expert users through complex engineering workflows. They also serve as the <strong>web-facing gateway</strong> for the chat UI.</p>
+<p><strong>Mastra TypeScript agents</strong> provide <strong>conversational AI</strong> experiences. They interpret natural-language user requests, decide which specialist to route to, and use LLM reasoning to explain results, suggest corrective actions, and guide non-expert users through complex engineering workflows. They also serve as the <strong>conversational gateway</strong> for the chat UI.</p>
 </li>
 </ul>
-<p>Both systems share the same prompt management layer (<code>prompts/*.yaml</code> + LangWatch API) and the same domain knowledge, ensuring consistent behavior regardless of which system handles a request.</p>
+<p>Both systems share the same prompt management layer (<code>prompts.json</code> manifest-first + <code>prompts/*.yaml</code> + Langfuse API) and the same domain knowledge, ensuring consistent behavior regardless of which system handles a request.</p>
 <hr />
 <h2 id="2-python-agent-system-agents">2. Python Agent System (<code>agents/</code>)</h2>
 <h3 id="21-when-to-use">2.1 When to Use</h3>
@@ -1024,26 +1029,37 @@
 </ul>
 <h3 id="22-architecture">2.2 Architecture</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>agents/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── __init__.py
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── orchestrator.py              # BaseAgent, all core agents, ChiefEngineeringOrchestrator
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── prompt_loader.py             # 3-tier prompt loading (LangWatch → YAML → fallback)
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── etap_expert_agent.py         # Rule-based ETAP expert (Format A/B/C/D)
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── etap_gui_agent.py            # Computer Use Agent for desktop apps
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── code_guard_agent.py          # Automated code quality review
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── arc_flash_agent.py           # Standalone arc flash analysis
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── goal_planner_agent.py        # Goal decomposition
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── weather_agent.py             # Weather data agent
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── motor_starting_agent.py      # Motor starting analysis
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── cable_sizing_agent.py        # Cable sizing calculations
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── earth_grid_agent.py          # Earth grid design agent
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├── stability_agent.py           # Transient stability analysis
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>├── coordination_agent.py        # Protection coordination
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>├── predictive_agent.py          # Predictive maintenance
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>├── renewable_agent.py           # Renewable energy integration
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>├── battery_storage_agent.py     # Battery storage analysis
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>├── digital_twin_agent.py        # Digital twin agent
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>├── scada_agent.py               # SCADA integration
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>├── anomaly_agent.py             # Anomaly detection
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── __init__.py                  # Package exports &amp; STUDY_TYPE_AGENT_MAP
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── registry.py                  # Single source of truth for 27 canonical agent keys &amp; aliases
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── orchestrator.py              # ChiefEngineeringOrchestrator
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── router.py                    # Intent and LinUCB Bandit Router
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── workflow.py                  # Multi-step dependency execution graph
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── base.py                      # BaseAgent abstract class
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── models.py                    # Canonical StudyType, AgentResult, AgentStatus
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── prompt_loader.py             # Manifest-first prompt loading (prompts.json → YAML → fallback)
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── life_safety.py               # Life-safety hardware interlocks &amp; hazard classification
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── output_schema_guard.py       # Pydantic schema validation for agent outputs
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── etap_expert_agent.py         # Rule-based ETAP expert (Format A/B/C/D)
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── etap_gui_agent.py            # Computer Use Agent for desktop apps (CUA)
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├── code_guard_agent.py          # Automated code quality &amp; prompt-injection defense
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>├── arc_flash_agent.py           # Standalone arc flash analysis (IEEE 1584-2018)
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>├── goal_planner_agent.py        # Goal decomposition &amp; task planning
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>├── weather_agent.py             # Environmental / Weather data agent
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>├── motor_starting_agent.py      # Motor starting analysis (IEEE 399)
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>├── cable_sizing_agent.py        # Cable sizing calculations (IEC 60364)
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>├── earth_grid_agent.py          # Earth grid design agent (IEEE 80)
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>├── stability_agent.py           # Transient stability analysis (Swing Equation)
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>├── coordination_agent.py        # Protection coordination (IEC 60255)
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>├── predictive_agent.py          # Predictive maintenance
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>├── renewable_agent.py           # Renewable energy integration (IEEE 1547)
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>├── battery_storage_agent.py     # Battery storage analysis (IEC 62933)
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>├── digital_twin_agent.py        # Digital twin agent
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>├── scada_agent.py               # SCADA integration (IEC 61850)
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>├── anomaly_agent.py             # Anomaly detection
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>├── design_agent.py              # Generative substation design agent
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>├── ahmed_etap_orchestrator.py   # End-to-end multi-agent study orchestrator
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>├── optimizers/                  # Protection coordination &amp; dispatch optimizers
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>└── etap_expert/                 # ETAP Expert knowledge subsystems
 </code></pre></div>
 <h3 id="23-core-classes">2.3 Core Classes</h3>
 <h4 id="baseagent-abstract-base"><code>BaseAgent</code> (abstract base)</h4>
