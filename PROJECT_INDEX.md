@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-05T10:14:24.350053+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-05T10:47:48.843356+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -1077,7 +1077,7 @@ into real work
   - `POST /plan`
   - `POST /execute`
 
-#### 📄 `api/agents.py` _48.1 KB_
+#### 📄 `api/agents.py` _48.6 KB_
 > Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
@@ -1710,25 +1710,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _18.7 KB_
+#### 📄 `api/feature_flags.py` _18.0 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 366)
-- **Class** `FeatureFlagListOut` (line 375)
-- **Class** `FeatureFlagPatch` (line 383)
+- **Class** `FeatureFlagOut` (line 390)
+- **Class** `FeatureFlagListOut` (line 399)
+- **Class** `FeatureFlagPatch` (line 407)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 251)
-- **def** `is_feature_enabled()` (line 256)
-- **def** `is_strict_feature_enabled()` (line 277)
-- **def** `get_disabled_studies()` (line 297)
-- **def** `get_flag_metadata()` (line 314)
-- **def** `evaluate_flag_with_rollout()` (line 345)
-- **async def** `list_feature_flags()` (line 426)
-- **async def** `get_feature_flag()` (line 458)
-- **async def** `update_feature_flag()` (line 495)
+- **def** `is_enabled()` (line 276)
+- **def** `is_feature_enabled()` (line 281)
+- **def** `is_strict_feature_enabled()` (line 301)
+- **def** `get_disabled_studies()` (line 321)
+- **def** `get_flag_metadata()` (line 338)
+- **def** `evaluate_flag_with_rollout()` (line 369)
+- **async def** `list_feature_flags()` (line 462)
+- **async def** `get_feature_flag()` (line 481)
+- **async def** `update_feature_flag()` (line 504)
 
   **API Routes:**
   - `GET /{key}`
@@ -2044,25 +2044,25 @@ ten
 - **def** `set_project_id()` (line 62)
 - **def** `set_user_id()` (line 67)
 
-#### 📄 `api/results_store.py` _28.5 KB_
+#### 📄 `api/results_store.py` _28.8 KB_
 > api/results_store.py — P5 secure ResultStore.
 
 Result *metadata* (summary, TTL, ownership) lives in the ``results`` table;
 per-file metadata lives in 
 
 - **Class** `ResultRecord` (line 117)
-- **Class** `ResultFileRecord` (line 147)
-- **Class** `CreateResultRequest` (line 618)
-- **async def** `create_result()` (line 263)
-- **async def** `get_result()` (line 342)
-- **async def** `store_result_file()` (line 375)
-- **async def** `open_result_file()` (line 471)
-- **async def** `delete_result()` (line 508)
-- **async def** `cleanup_expired_results()` (line 537)
-- **async def** `persist_study_result()` (line 589)
-- **async def** `create_result_endpoint()` (line 655)
-- **async def** `read_result_endpoint()` (line 680)
-- **async def** `upload_result_file_endpoint()` (line 701)
+- **Class** `ResultFileRecord` (line 149)
+- **Class** `CreateResultRequest` (line 620)
+- **async def** `create_result()` (line 265)
+- **async def** `get_result()` (line 344)
+- **async def** `store_result_file()` (line 377)
+- **async def** `open_result_file()` (line 473)
+- **async def** `delete_result()` (line 510)
+- **async def** `cleanup_expired_results()` (line 539)
+- **async def** `persist_study_result()` (line 591)
+- **async def** `create_result_endpoint()` (line 657)
+- **async def** `read_result_endpoint()` (line 682)
+- **async def** `upload_result_file_endpoint()` (line 703)
 
 #### 📄 `api/risk_scoring.py` _5.5 KB_
 > Risk scoring for study results.
@@ -2076,25 +2076,25 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _56.6 KB_
+#### 📄 `api/routes.py` _57.2 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
 - **Class** `_BodySizeLimitMiddleware` (line 314)
-- **Class** `_TraceMiddleware` (line 467)
-- **Class** `HealthResponse` (line 514)
-- **Class** `ReadyResponse` (line 519)
-- **Class** `CUARollbackRequest` (line 1301)
-- **def** `get_celery_components()` (line 541)
-- **async def** `run_study_async()` (line 573)
-- **async def** `get_task_status()` (line 621)
-- **async def** `websocket_scada_endpoint_handler()` (line 663)
-- **async def** `websocket_cua_confirmation_handler()` (line 680)
-- **async def** `global_exception_handler()` (line 845)
-- **async def** `etap_health_probe()` (line 955)
-- **async def** `gis_status_probe()` (line 967)
-- **async def** `websocket_session_stream_handler()` (line 982)
-- **async def** `websocket_notifications_handler()` (line 990)
+- **Class** `_TraceMiddleware` (line 487)
+- **Class** `HealthResponse` (line 524)
+- **Class** `ReadyResponse` (line 529)
+- **Class** `CUARollbackRequest` (line 1323)
+- **def** `get_celery_components()` (line 551)
+- **async def** `run_study_async()` (line 583)
+- **async def** `get_task_status()` (line 631)
+- **async def** `websocket_scada_endpoint_handler()` (line 673)
+- **async def** `websocket_cua_confirmation_handler()` (line 690)
+- **async def** `global_exception_handler()` (line 855)
+- **async def** `etap_health_probe()` (line 965)
+- **async def** `gis_status_probe()` (line 977)
+- **async def** `websocket_session_stream_handler()` (line 992)
+- **async def** `websocket_notifications_handler()` (line 1076)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -2189,7 +2189,7 @@ Provides:
   - Methods: `create_session()`, `get_session()`, `update_session()`, `delete_session()`, `refresh_session()`
 - **Class** `SessionMiddleware` (line 174)
 
-#### 📄 `api/session_stream.py` _21.7 KB_
+#### 📄 `api/session_stream.py` _22.1 KB_
 > api/session_stream.py — Session Stream Hub (P3)
 ================================================
 
@@ -2198,15 +2198,15 @@ Secure real-time event streaming per engineering ses
 - **Class** `_Connection` (line 108)
 - **Class** `SessionStreamHub` (line 116)
   - Methods: `connect()`, `disconnect()`, `publish()`, `last_seq()`, `status()`, `replay()`, `latest_state()`, `client_count()`
-- **Class** `WsTicketRequest` (line 403)
+- **Class** `WsTicketRequest` (line 411)
 - **def** `get_hub()` (line 288)
 - **def** `reset_hub()` (line 296)
 - **def** `publish_token_usage()` (line 302)
 - **def** `issue_ws_ticket()` (line 327)
-- **def** `consume_ws_ticket()` (line 357)
-- **def** `reset_ws_tickets()` (line 398)
-- **async def** `create_ws_ticket()` (line 420)
-- **async def** `session_stream_ws()` (line 574)
+- **def** `consume_ws_ticket()` (line 377)
+- **def** `reset_ws_tickets()` (line 406)
+- **async def** `create_ws_ticket()` (line 428)
+- **async def** `session_stream_ws()` (line 611)
 
 #### 📄 `api/settings.py` _21.2 KB_
 > api/settings.py — Settings API for user-supplied API keys
@@ -3488,7 +3488,7 @@ Forwards security events to external SIEM systems such as Grafana Loki
   - Methods: `forward_event()`, `forward_auth_event()`, `forward_access_event()`, `forward_anomaly_event()`, `forward_data_event()`, `flush()`, `get_stats()`, `health_check()`
 - **def** `get_siem_forwarder()` (line 622)
 
-#### 📄 `security/wiring.py` _13.9 KB_
+#### 📄 `security/wiring.py` _13.6 KB_
 > Security Middleware Wiring
 ==========================
 يسجِّل RASP + ABAC middleware على FastAPI app.
@@ -3496,8 +3496,8 @@ Forwards security events to external SIEM systems such as Grafana Loki
 الـ RASP و ABAC موجودان في security/rasp.py + se
 
 - **Class** `RASPMiddleware` (line 45)
-- **def** `install_security_middleware()` (line 271)
-- **def** `verify_security_wiring()` (line 338)
+- **def** `install_security_middleware()` (line 329)
+- **def** `verify_security_wiring()` (line 354)
 
 ### 📦 `ml/`
 
@@ -4216,7 +4216,7 @@ Provides a common interface for ETAP integration with optional functionality.
 - **def** `get_etap_adapter()` (line 189)
 - **def** `get_etap_provider()` (line 201)
 
-#### 📄 `etap_integration/etap_com.py` _79.1 KB_
+#### 📄 `etap_integration/etap_com.py` _79.4 KB_
 > ETAP COM Automation Interface
 ==============================
 Provides direct integration with ETAP Power System software via COM automation.
@@ -4226,9 +4226,9 @@ Provides direct integration with ETAP Power System software via COM automation.
 - **Class** `_FallbackCOMError` (line 62)
 - **Class** `ETAPProject` (line 280)
   - Methods: `run_study()`, `get_bus_data()`, `get_all_buses()`, `save()`, `close()`
-- **Class** `ETAPAutomation` (line 1279)
+- **Class** `ETAPAutomation` (line 1287)
   - Methods: `add_allowed_project_directory()`, `launch()`, `open_project()`, `create_project()`, `get_active_project()`, `close_project()`, `close_all_projects()`, `shutdown()`
-- **def** `run_etap_study()` (line 1969)
+- **def** `run_etap_study()` (line 1977)
 
 #### 📄 `etap_integration/etap_compatibility.py` _11.4 KB_
 > ETAP Compatibility Checker
@@ -5602,9 +5602,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
+| ui-component | 280 |
 | ui-page | 61 |
 | api-route | 92 |
-| ui-component | 280 |
 | python-module | 41 |
 | **TOTAL** | **474** |
 
@@ -5617,7 +5617,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5648,7 +5648,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -6098,15 +6098,15 @@ Provides
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.2 KB | `2e2ae12f8e08` |
+| `pyproject.toml` | 11.4 KB | `1c27e6e07713` |
 | `requirements.txt` | 11.1 KB | `278ac86dfaf1` |
 | `requirements-prod.txt` | 3.1 KB | `e002c1d752b7` |
 | `requirements-dev.txt` | 0.9 KB | `bee5b6192082` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
 | `requirements-ml.txt` | 1.5 KB | `9e85f349ee9f` |
 | `requirements.hf.txt` | 1.5 KB | `e12e446004a1` |
-| `.github/workflows/security.yml` | 13.6 KB | `5aa65d23da4e` |
-| `.github/workflows/release.yml` | 2.3 KB | `b5f5e424ccd9` |
+| `.github/workflows/security.yml` | 13.6 KB | `7fdf0e3173b1` |
+| `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
 | `scripts/deploy-engineering-service.sh` | 10.3 KB | `0de0a3c9675b` |
@@ -6114,7 +6114,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.0 KB | `34f70676fe8d` |
+| `hf-space/app.py` | 78.0 KB | `f74ac7ac7a34` |
 | `ui/package.json` | 3.7 KB | `c82c013a02bb` |
 | `ui/vite.config.ts` | 2.9 KB | `d5ffbb7f3a8f` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
