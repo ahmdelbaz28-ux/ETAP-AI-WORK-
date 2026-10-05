@@ -96,7 +96,7 @@ jobs:
               -v /tmp/trivy-cache:/root/.cache/trivy \
               -w /repo \
               aquasec/trivy:0.58.0 \
-              fs --db-repository ghcr.io/aquasec/trivy-db:2 \
+              fs --db-repository ghcr.io/aquasecurity/trivy-db:2 \
                  --exit-code 1 --severity CRITICAL \
                  --ignore-unfixed \
                  --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \

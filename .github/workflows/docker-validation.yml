@@ -271,7 +271,7 @@ jobs:
               -v /tmp/trivy-cache:/root/.cache/trivy \
               -v "${PWD}:/repo" \
               aquasec/trivy:0.58.0 \
-              image --db-repository ghcr.io/aquasec/trivy-db:2 \
+              image --db-repository ghcr.io/aquasecurity/trivy-db:2 \
                     --severity CRITICAL,HIGH \
                     --ignore-unfixed \
                     --ignorefile /repo/.trivyignore \
