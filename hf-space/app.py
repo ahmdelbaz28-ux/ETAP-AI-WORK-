@@ -189,8 +189,16 @@ async def _startup_auth_fail_closed_check() -> None:
 
         redis_url = os.environ.get("REDIS_URL", "").strip()
         if not redis_url:
+            # OPERATIONAL CONSTRAINT (Single-Replica Pin):
+            # Production deployments without Redis MUST run pinned to exactly one replica (replicas=1).
+            # Running multiple replicas without REDIS_URL causes isolated in-memory rate limiting counters
+            # and token caches per worker, leading to race conditions, leaky bucket synchronization drift,
+            # and inconsistent quota enforcement across cluster nodes.
+            # To scale horizontally beyond a single instance, REDIS_URL must be configured.
             logger.critical(
-                "PRODUCTION DEPLOYMENT WITHOUT REDIS: Rate limiting will fall back to in-memory! Set REDIS_URL."
+                "PRODUCTION DEPLOYMENT WITHOUT REDIS: Rate limiting will fall back to in-memory! "
+                "Operational constraint: must run single-replica pinned (replicas=1) to prevent "
+                "multi-instance counter drift and race conditions. Configure REDIS_URL for distributed scale."
             )
 
         if missing_vars:
