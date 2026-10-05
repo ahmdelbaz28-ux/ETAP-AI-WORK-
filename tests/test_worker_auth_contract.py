@@ -206,4 +206,5 @@ def test_provider_result_dataclass_shape_matches_worker_response() -> None:
     consumed = {"success", "data", "warnings", "errors", "execution_time"}
     assert consumed <= response_fields
     result = ETAPResult(True, {}, [], [], 0.5)
-    assert {result.success is True} and result.execution_time == 0.5
+    assert result.success is True
+    assert result.execution_time == 0.5

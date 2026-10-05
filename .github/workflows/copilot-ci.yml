@@ -34,7 +34,7 @@ jobs:
   # =========================================================================
   test:
     name: Test (Python 3.13)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -108,7 +108,7 @@ jobs:
   # =========================================================================
   build:
     name: Build Docker Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -149,7 +149,7 @@ jobs:
   # =========================================================================
   summary:
     name: Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [test, build]
     if: always()

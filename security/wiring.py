@@ -223,25 +223,7 @@ if _HAS_STARLETTE:
                 await self.app(scope, receive, send)
                 return
 
-            # Filter out standard browser navigation / identity headers from RASP inspection
-            # to prevent false-positive matches on legitimate local dev or cross-origin URLs.
-            excluded_rasp_headers = {
-                "origin",
-                "referer",
-                "host",
-                "cookie",
-                "authorization",
-                "user-agent",
-                "sec-ch-ua",
-                "sec-ch-ua-mobile",
-                "sec-ch-ua-platform",
-                "sec-fetch-site",
-                "sec-fetch-mode",
-                "sec-fetch-dest",
-            }
-            safe_headers = {
-                k: v for k, v in request.headers.items() if k.lower() not in excluded_rasp_headers
-            }
+            safe_headers = _filter_safe_headers(request.headers)
             inspect_data: dict[str, Any] = {
                 "path": path,
                 "query": dict(request.query_params),
@@ -265,6 +247,82 @@ if _HAS_STARLETTE:
             await self.app(scope, downstream_receive, send)
 
 
+EXCLUDED_RASP_HEADERS = frozenset({
+    "origin",
+    "referer",
+    "host",
+    "cookie",
+    "authorization",
+    "user-agent",
+    "sec-ch-ua",
+    "sec-ch-ua-mobile",
+    "sec-ch-ua-platform",
+    "sec-fetch-site",
+    "sec-fetch-mode",
+    "sec-fetch-dest",
+})
+
+
+def _filter_safe_headers(headers: Any) -> dict[str, str]:
+    """Filter out standard browser navigation / identity headers from RASP inspection."""
+    return {
+        k: v for k, v in headers.items() if k.lower() not in EXCLUDED_RASP_HEADERS
+    }
+
+
+def _register_rasp_middleware(app: Any, enabled: bool) -> None:
+    if not (enabled and _HAS_STARLETTE):
+        return
+    try:
+        app.add_middleware(RASPMiddleware)
+        logger.info("✅ RASPMiddleware registered")
+    except Exception as exc:
+        logger.error("❌ Failed to register RASPMiddleware: %s", exc)
+        if os.environ.get("ENVIRONMENT") == "production":
+            raise RuntimeError(
+                f"RASP middleware registration failed in production: {exc}"
+            ) from exc
+
+
+def _register_abac_middleware(app: Any, enabled: bool) -> None:
+    if not (enabled and _HAS_STARLETTE):
+        return
+    try:
+        from security.abac import ABACMiddleware  # type: ignore
+
+        app.add_middleware(ABACMiddleware)
+        logger.info("✅ ABACMiddleware registered")
+    except ImportError as exc:
+        logger.error("❌ ABACMiddleware not available: %s", exc)
+        if os.environ.get("ENVIRONMENT") == "production":
+            raise RuntimeError(f"ABAC middleware not available in production: {exc}") from exc
+    except Exception as exc:
+        logger.error("❌ Failed to register ABACMiddleware: %s", exc)
+        if os.environ.get("ENVIRONMENT") == "production":
+            raise
+
+
+def _verify_production_middleware(
+    middleware_names: list[str], rasp_enabled: bool, abac_enabled: bool
+) -> None:
+    if os.environ.get("ENVIRONMENT") != "production":
+        return
+    required = []
+    if rasp_enabled:
+        required.append("RASPMiddleware")
+    if abac_enabled:
+        required.append("ABACMiddleware")
+
+    for req in required:
+        if req not in middleware_names:
+            raise RuntimeError(
+                f"Required middleware {req} is not registered in production. "
+                f"Registered: {middleware_names}"
+            )
+
+    logger.info("✅ All required production middleware verified")
+
+
 # ─── Install Function ─────────────────────────────────────────────
 
 
@@ -285,54 +343,12 @@ def install_security_middleware(app: Any) -> None:
     rasp_enabled = os.environ.get("RASP_ENABLED", "true").lower() == "true"
     abac_enabled = os.environ.get("ABAC_ENABLED", "true").lower() == "true"
 
-    # ─── 1. RASP Middleware ───────────────────────────────────────
-    if rasp_enabled and _HAS_STARLETTE:
-        try:
-            app.add_middleware(RASPMiddleware)
-            logger.info("✅ RASPMiddleware registered")
-        except Exception as exc:
-            logger.error("❌ Failed to register RASPMiddleware: %s", exc)
-            if os.environ.get("ENVIRONMENT") == "production":
-                raise RuntimeError(
-                    f"RASP middleware registration failed in production: {exc}"
-                ) from exc
+    _register_rasp_middleware(app, rasp_enabled)
+    _register_abac_middleware(app, abac_enabled)
 
-    # ─── 2. ABAC Middleware ──────────────────────────────────────
-    if abac_enabled and _HAS_STARLETTE:
-        try:
-            from security.abac import ABACMiddleware  # type: ignore
-
-            app.add_middleware(ABACMiddleware)
-            logger.info("✅ ABACMiddleware registered")
-        except ImportError as exc:
-            logger.error("❌ ABACMiddleware not available: %s", exc)
-            if os.environ.get("ENVIRONMENT") == "production":
-                raise RuntimeError(f"ABAC middleware not available in production: {exc}") from exc
-        except Exception as exc:
-            logger.error("❌ Failed to register ABACMiddleware: %s", exc)
-            if os.environ.get("ENVIRONMENT") == "production":
-                raise
-
-    # ─── Summary ─────────────────────────────────────────────────
     middleware_names = [m.cls.__name__ for m in app.user_middleware]
     logger.info("🛡️ Total middleware registered: %d", len(middleware_names))
-
-    # Verify required middleware in production
-    if os.environ.get("ENVIRONMENT") == "production":
-        required = []
-        if rasp_enabled:
-            required.append("RASPMiddleware")
-        if abac_enabled:
-            required.append("ABACMiddleware")
-
-        for req in required:
-            if req not in middleware_names:
-                raise RuntimeError(
-                    f"Required middleware {req} is not registered in production. "
-                    f"Registered: {middleware_names}"
-                )
-
-        logger.info("✅ All required production middleware verified")
+    _verify_production_middleware(middleware_names, rasp_enabled, abac_enabled)
 
 
 def verify_security_wiring(app: Any) -> dict[str, Any]:

@@ -54,7 +54,7 @@ permissions:
 jobs:
   daytona-review:
     name: "Daytona sandbox review"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Skip draft PRs unless explicitly dispatched; skip Dependabot PRs (no secrets)
     if: (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft) && github.actor != 'dependabot[bot]'
     timeout-minutes: 25
@@ -194,7 +194,7 @@ jobs:
           )
           sb.fs.upload_file("/tmp/pr-src.tar.gz", "/tmp/pr-src.tar.gz")
           print("▶ Extracting + installing deps in sandbox (V209: Node.js + libgeos + requirements.txt)…", flush=True)
-          # V209: install system deps (Node.js 20 for tsc, libgeos-dev for shapely, gcc for building C exts)
+          # V209: install system deps (Node.js 24 for tsc, libgeos-dev for shapely, gcc for building C exts)
           # BEFORE pip install. python:3.13-slim doesn't include any of these.
           # V209: install from requirements.txt first (more reliable than `pip install -e .` for deps),
           # then install the package itself with --no-deps (deps already installed above).
@@ -203,7 +203,7 @@ jobs:
               "export DEBIAN_FRONTEND=noninteractive && "
               "apt-get update -qq && "
               "apt-get install -y --no-install-recommends curl ca-certificates gnupg libgeos-dev gcc && "
-              "curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && "
+              "curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && "
               "apt-get install -y --no-install-recommends nodejs && "
               "rm -rf /var/lib/apt/lists/* && "
               "node --version && npm --version && "

@@ -15,10 +15,15 @@ permissions:
 jobs:
   scheduled-regression:
     name: Nightly Regression
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      ENVIRONMENT: testing
+      JWT_SECRET_KEY: ci-test-jwt-secret-key-for-github-actions-32-bytes-min
+      ENCRYPTION_KEY: integration-test-encryption-key-not-for-production-32b
+      DATABASE_URL: sqlite+aiosqlite:///./test_nightly.db
+      SKIP_LIVE_SCENARIO_TESTS: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -46,6 +51,7 @@ jobs:
             --ignore=tests/load \
             --ignore=tests/stress \
             --ignore=tests/chaos \
+            -m "not external and not database_required" \
             -q \
             -n auto \
             --timeout=60 \
@@ -57,7 +63,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: test-results-nightly-${{ github.sha }}
           path: test-results.xml

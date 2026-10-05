@@ -248,6 +248,31 @@ def _save_flags(flags: dict[str, dict[str, Any]]) -> None:
         logger.error("Failed to persist feature flags to %s: %s", path, e)
 
 
+def _check_env_override(key: str) -> bool | None:
+    env_override = os.getenv(f"FEATURE_FLAG_{key.upper()}")
+    if env_override is not None:
+        return env_override.strip().lower() in ("1", "true", "yes", "on")
+    return None
+
+
+def _is_dev_test_env() -> bool:
+    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    return env in ("development", "dev", "test", "")
+
+
+def _format_flag_item(key: str, cfg: dict[str, Any], env: str) -> dict[str, Any]:
+    enabled = bool(cfg.get("enabled", False))
+    effective = True if env in ("development", "dev", "test", "") else enabled
+    return {
+        "key": key,
+        "flag_id": key,
+        "enabled": enabled,
+        "status": cfg.get("status", "beta"),
+        "description": cfg.get("description", ""),
+        "effective_enabled": effective,
+    }
+
+
 def is_enabled(key: str, default: bool = True) -> bool:
     """Check if a feature flag is enabled."""
     return is_feature_enabled(key, default)
@@ -260,12 +285,11 @@ def is_feature_enabled(key: str, default: bool = True) -> bool:
     all flags return True unless explicitly disabled via the ENV override:
       FEATURE_FLAG_<KEY_UPPERCASE>=false
     """
-    env_override = os.getenv(f"FEATURE_FLAG_{key.upper()}")
-    if env_override is not None:
-        return env_override.strip().lower() in ("1", "true", "yes", "on")
+    override = _check_env_override(key)
+    if override is not None:
+        return override
 
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-    if env in ("development", "dev", "test", ""):
+    if _is_dev_test_env():
         return True
 
     flags = _load_flags()
@@ -284,9 +308,9 @@ def is_strict_feature_enabled(key: str, default: bool = False) -> bool:
     (M4.5: `use_model_cascade` was removed from the flag registry — LLM provider/model
     policy now lives exclusively in config/llm-provider-policy.json.)
     """
-    env_override = os.getenv(f"FEATURE_FLAG_{key.upper()}")
-    if env_override is not None:
-        return env_override.strip().lower() in ("1", "true", "yes", "on")
+    override = _check_env_override(key)
+    if override is not None:
+        return override
 
     flags = _load_flags()
     if key in flags:
@@ -423,25 +447,24 @@ def _require_admin():
     dependencies=[Depends(_require_permission("feature_flags", "read"))],
     include_in_schema=False,
 )
+def _apply_flag_patch(
+    flags: dict[str, dict[str, Any]], key: str, payload: FeatureFlagPatch
+) -> bool:
+    old_value = bool(flags[key].get("enabled", False))
+    if payload.enabled is not None:
+        flags[key]["enabled"] = bool(payload.enabled)
+    if payload.status is not None:
+        flags[key]["status"] = payload.status
+    flags[key]["updated_at"] = datetime.now(UTC).isoformat()
+    return old_value
+
+
 async def list_feature_flags(request: Request):
     """List all feature flags with their effective state for the current ENV."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
     flags = _load_flags()
-    items: list[dict[str, Any]] = []
-    for key, cfg in flags.items():
-        enabled = bool(cfg.get("enabled", False))
-        effective = True if env in ("development", "dev", "test", "") else enabled
-        items.append(
-            {
-                "key": key,
-                "flag_id": key,
-                "enabled": enabled,
-                "status": cfg.get("status", "beta"),
-                "description": cfg.get("description", ""),
-                "effective_enabled": effective,
-            }
-        )
+    items = [_format_flag_item(k, v, env) for k, v in flags.items()]
     return JSONResponse(
         content={
             "success": True,
@@ -465,26 +488,12 @@ async def get_feature_flag(request: Request, key: str):
             detail=f"Feature flag '{key}' not found",
         )
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-    cfg = flags[key]
-    enabled = bool(cfg.get("enabled", False))
-    effective = True if env in ("development", "dev", "test", "") else enabled
+    item = _format_flag_item(key, flags[key], env)
     return JSONResponse(
         content={
             "success": True,
-            "flag_id": key,
-            "key": key,
-            "enabled": enabled,
-            "status": cfg.get("status", "beta"),
-            "description": cfg.get("description", ""),
-            "effective_enabled": effective,
-            "data": {
-                "key": key,
-                "flag_id": key,
-                "enabled": enabled,
-                "status": cfg.get("status", "beta"),
-                "description": cfg.get("description", ""),
-                "effective_enabled": effective,
-            },
+            **item,
+            "data": item,
             "trace_id": trace_id,
         }
     )
@@ -507,12 +516,7 @@ async def update_feature_flag(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Feature flag '{key}' not found",
             )
-        old_value = bool(flags[key].get("enabled", False))
-        if payload.enabled is not None:
-            flags[key]["enabled"] = bool(payload.enabled)
-        if payload.status is not None:
-            flags[key]["status"] = payload.status
-        flags[key]["updated_at"] = datetime.now(UTC).isoformat()
+        old_value = _apply_flag_patch(flags, key, payload)
         _save_flags(flags)
 
     audit_logger = logging.getLogger("audit")
@@ -525,24 +529,15 @@ async def update_feature_flag(
     )
 
     env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-    effective = True if env in ("development", "dev", "test", "") else bool(flags[key]["enabled"])
+    item = _format_flag_item(key, flags[key], env)
+    item_data = dict(item)
+    item_data["previous_enabled"] = old_value
+    item_data["env"] = env
     return JSONResponse(
         content={
             "success": True,
-            "flag_id": key,
-            "key": key,
-            "enabled": bool(flags[key]["enabled"]),
-            "status": flags[key].get("status", "beta"),
-            "data": {
-                "key": key,
-                "flag_id": key,
-                "enabled": bool(flags[key]["enabled"]),
-                "previous_enabled": old_value,
-                "status": flags[key].get("status", "beta"),
-                "description": flags[key].get("description", ""),
-                "effective_enabled": effective,
-                "env": env,
-            },
+            **item,
+            "data": item_data,
             "trace_id": trace_id,
         }
     )

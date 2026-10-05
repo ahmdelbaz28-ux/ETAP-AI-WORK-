@@ -19,7 +19,7 @@ permissions:
 jobs:
   test-migrations:
     name: Test Migrations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     
     services:
@@ -75,7 +75,7 @@ jobs:
   deploy-migrations:
     name: Deploy Migrations to Production
     needs: test-migrations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     

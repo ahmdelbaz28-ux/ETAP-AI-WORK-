@@ -1193,6 +1193,70 @@ def _probe_mcp_server(server_id: str, server_config: dict) -> dict[str, Any]:
     return mcp_probe._probe_mcp_server(server_id, server_config, pool_factory=factory)
 
 
+def _load_mcp_server_config(
+    server_id: str, trace_id: str
+) -> tuple[dict[str, Any] | None, JSONResponse | None]:
+    from pathlib import Path as _Path
+
+    path = _Path(_resolve_mcp_config_path())
+    if not path.exists():
+        return None, JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "errors": ["MCP config not found"],
+                "trace_id": trace_id,
+            },
+        )
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        logger.exception("mcp_health_config_invalid error=%s", str(e))
+        return None, JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "errors": ["MCP config is not valid JSON"],
+                "trace_id": trace_id,
+            },
+        )
+
+    servers_raw = raw.get("mcpServers", raw.get("servers", {}))
+    server_config = servers_raw.get(server_id)
+    if server_config is None:
+        return None, JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "errors": ["MCP server not found"],
+                "trace_id": trace_id,
+            },
+        )
+    return server_config, None
+
+
+def _log_and_format_mcp_health(
+    server_id: str, data: dict[str, Any], trace_id: str
+) -> JSONResponse:
+    data["checked_at"] = datetime.now(timezone.utc).isoformat()
+    safe_server_id = re.sub(_SAFE_ID_REGEX, "", str(server_id or ""))[:32]
+    safe_transport = re.sub(_SAFE_ID_REGEX, "", str(data.get("transport") or ""))[:32]
+    safe_status = re.sub(_SAFE_ID_REGEX, "", str(data.get("status") or ""))[:32]
+    safe_trace = re.sub(_SAFE_ID_REGEX, "", str(trace_id or ""))[:36]
+    logger.info(
+        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
+        safe_server_id,
+        safe_transport,
+        safe_status,
+        safe_trace,
+    )
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "data": data, "trace_id": trace_id},
+    )
+
+
 @router.post("/mcp-servers/{server_id}/health")
 async def check_mcp_server_health(
     server_id: str,
@@ -1217,43 +1281,9 @@ async def check_mcp_server_health(
         the same ``get_api_key`` boundary as the server list endpoint.
     """
     trace_id = getattr(request.state, "trace_id", "unknown")
-    from pathlib import Path as _Path
-
-    path = _Path(_resolve_mcp_config_path())
-    if not path.exists():
-        return JSONResponse(
-            status_code=404,
-            content={
-                "success": False,
-                "errors": ["MCP config not found"],
-                "trace_id": trace_id,
-            },
-        )
-
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as e:
-        logger.exception("mcp_health_config_invalid error=%s", str(e))
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "errors": ["MCP config is not valid JSON"],
-                "trace_id": trace_id,
-            },
-        )
-
-    servers_raw = raw.get("mcpServers", raw.get("servers", {}))
-    server_config = servers_raw.get(server_id)
-    if server_config is None:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "success": False,
-                "errors": ["MCP server not found"],
-                "trace_id": trace_id,
-            },
-        )
+    server_config, err_resp = _load_mcp_server_config(server_id, trace_id)
+    if err_resp is not None:
+        return err_resp
 
     safe_server_id = re.sub(_SAFE_ID_REGEX, "", str(server_id or ""))[:32]
     try:
@@ -1270,21 +1300,7 @@ async def check_mcp_server_health(
             },
         )
 
-    data["checked_at"] = datetime.now(timezone.utc).isoformat()
-    safe_transport = re.sub(_SAFE_ID_REGEX, "", str(data.get("transport") or ""))[:32]
-    safe_status = re.sub(_SAFE_ID_REGEX, "", str(data.get("status") or ""))[:32]
-    safe_trace = re.sub(_SAFE_ID_REGEX, "", str(trace_id or ""))[:36]
-    logger.info(
-        "mcp_health_checked server=%s transport=%s status=%s trace_id=%s",
-        safe_server_id,
-        safe_transport,
-        safe_status,
-        safe_trace,
-    )
-    return JSONResponse(
-        status_code=200,
-        content={"success": True, "data": data, "trace_id": trace_id},
-    )
+    return _log_and_format_mcp_health(server_id, data, trace_id)
 
 
 @router.get("/ahmed-etap/info")

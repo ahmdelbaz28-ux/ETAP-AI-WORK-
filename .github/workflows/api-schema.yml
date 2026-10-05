@@ -51,7 +51,7 @@ jobs:
   # ── 1. GENERATE OPENAPI SCHEMA ───────────────────────────────────────────
   generate-schema:
     name: Generate OpenAPI Schema
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout code
@@ -116,7 +116,7 @@ jobs:
   # ── 2. VALIDATE SCHEMA ─────────────────────────────────────────────────────
   validate-schema:
     name: Validate OpenAPI Schema
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: generate-schema
     steps:
@@ -237,7 +237,7 @@ jobs:
   # ── 3. GENERATE MARKDOWN DOCS ─────────────────────────────────────────────
   generate-docs:
     name: Generate API Reference Markdown
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: validate-schema
     steps:
@@ -347,7 +347,7 @@ jobs:
   # ── 4. SUMMARY ────────────────────────────────────────────────────────────
   summary:
     name: API Schema Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [generate-schema, validate-schema, generate-docs]
     if: always()

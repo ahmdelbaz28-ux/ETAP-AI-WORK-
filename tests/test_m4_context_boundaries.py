@@ -432,7 +432,8 @@ async def test_execute_execution_plan_folds_in_independent_validation(monkeypatc
     trace = await orchestrator.execute_execution_plan(_single_node_plan())
 
     independent = [v for v in trace.validations if v.check_name == "independent_validation"]
-    assert independent and independent[0].passed is False
+    assert independent
+    assert independent[0].passed is False
     assert trace.overall_success is False
 
 

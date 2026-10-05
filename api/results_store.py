@@ -142,6 +142,8 @@ class ResultRecord(Base):
 MIME_OCTET_STREAM = "application/octet-stream"
 ERR_INVALID_FILE_PATH = "Invalid file path"
 ERR_RESULT_NOT_FOUND = "Result not found"
+ERR_FILE_NOT_FOUND = "File not found"
+ERR_PATH_TRAVERSAL = "Path traversal is not allowed"
 
 
 class ResultFileRecord(Base):
@@ -207,7 +209,7 @@ def _validate_file_path(rel_path: str) -> str:
         raise HTTPException(status_code=400, detail="Absolute paths are not allowed")
     raw_segments = candidate.split("/")
     if any(seg in ("", ".", "..") for seg in raw_segments):
-        raise HTTPException(status_code=400, detail="Path traversal is not allowed")
+        raise HTTPException(status_code=400, detail=ERR_PATH_TRAVERSAL)
     if "//" in candidate or candidate.endswith("/"):
         raise HTTPException(status_code=400, detail=ERR_INVALID_FILE_PATH)
     if len(candidate) > 400:
@@ -411,7 +413,7 @@ async def store_result_file(
     rdir_abs = os.path.abspath(str(rdir))
     target_abs = os.path.abspath(os.path.join(rdir_abs, rel_path))
     if not target_abs.startswith(rdir_abs + os.sep):
-        raise HTTPException(status_code=400, detail="Path traversal is not allowed")
+        raise HTTPException(status_code=400, detail=ERR_PATH_TRAVERSAL)
 
     target = Path(target_abs)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -674,7 +676,7 @@ async def create_result_endpoint(
     "/{result_id}",
     responses={
         400: {"description": "Invalid result request"},
-        404: {"description": "Result not found"},
+        404: {"description": ERR_RESULT_NOT_FOUND},
     },
 )
 async def read_result_endpoint(
@@ -693,7 +695,7 @@ async def read_result_endpoint(
     status_code=201,
     responses={
         400: {"description": "Invalid file upload request"},
-        404: {"description": "Result not found"},
+        404: {"description": ERR_RESULT_NOT_FOUND},
         413: {"description": "File exceeds size limit"},
         500: {"description": "File storage or persistence failed"},
     },
@@ -727,7 +729,7 @@ async def upload_result_file_endpoint(
 @router.get(
     "/{result_id}/files/{file_path:path}",
     responses={
-        400: {"description": "Invalid file path"},
+        400: {"description": ERR_INVALID_FILE_PATH},
         404: {"description": "File or result not found"},
     },
 )
@@ -739,7 +741,7 @@ async def stream_result_file_endpoint(
     """Stream a stored file. Cross-tenant/expired/missing → 404."""
     resolved = await open_result_file(user.tenant_id, result_id, file_path)
     if resolved is None:
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail=ERR_FILE_NOT_FOUND)
     target, meta = resolved
     mime = meta.mime if meta is not None else MIME_OCTET_STREAM
     return FileResponse(
@@ -753,7 +755,7 @@ async def stream_result_file_endpoint(
     "/{result_id}",
     responses={
         400: {"description": "Invalid result delete request"},
-        404: {"description": "Result not found"},
+        404: {"description": ERR_RESULT_NOT_FOUND},
     },
 )
 async def delete_result_endpoint(
@@ -771,6 +773,10 @@ async def delete_result_endpoint(
     "/cleanup/expired",
     summary="Remove expired results (cron call)",
     dependencies=[Depends(get_api_key)],
+    responses={
+        200: {"description": "Expired results removed"},
+        401: {"description": "Unauthorized — missing or invalid API key"},
+    },
 )
 async def run_cleanup_expired_endpoint() -> dict:
     """Production invocation point for automatic ResultStore cleanup.

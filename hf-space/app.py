@@ -690,6 +690,22 @@ async def root(request: Request):
 # {"status": "degraded"} when the DB is unhealthy. The check is wrapped in
 # try/except so a slow DB doesn't completely block the health probe — if
 # the ping itself raises, we report "degraded" rather than hanging.
+async def _trigger_health_alert(
+    alert_type: str, message: str, details: dict | None = None
+) -> None:
+    try:
+        from services.alerting_service import get_alerting_service
+
+        await get_alerting_service().trigger_alert(
+            alert_type=alert_type,
+            message=message,
+            severity="CRITICAL",
+            details=details,
+        )
+    except Exception:
+        pass
+
+
 @app.get("/healthz", tags=["Health"])
 async def healthz():
     try:
@@ -699,41 +715,31 @@ async def healthz():
     except Exception:
         # Import error or unexpected exception — report degraded and alert (FIX-26)
         logger.exception("healthz: check_db_health raised unexpectedly")
-        try:
-            from services.alerting_service import get_alerting_service
-
-            await get_alerting_service().trigger_alert(
-                alert_type="health_check_exception",
-                message="Health check failed with unexpected exception",
-                severity="CRITICAL",
-            )
-        except Exception:
-            pass
+        await _trigger_health_alert(
+            "health_check_exception", "Health check failed with unexpected exception"
+        )
         return JSONResponse(
             content={"status": "degraded", "detail": "health check error"},
             status_code=503,
         )
+
     if db_health.get("status") == "unhealthy":
         # Database is unhealthy — report degraded and trigger alert (FIX-26)
-        try:
-            from services.alerting_service import get_alerting_service
-
-            await get_alerting_service().trigger_alert(
-                alert_type="database_unhealthy",
-                message=f"Database backend {db_health.get('backend', 'unknown')} is unhealthy on /healthz",
-                severity="CRITICAL",
-                details=db_health,
-            )
-        except Exception:
-            pass
+        backend = db_health.get("backend", "unknown")
+        await _trigger_health_alert(
+            "database_unhealthy",
+            f"Database backend {backend} is unhealthy on /healthz",
+            details=db_health,
+        )
         return JSONResponse(
             content={
                 "status": "degraded",
                 "detail": "Database unavailable",
-                "backend": db_health.get("backend", "unknown"),
+                "backend": backend,
             },
             status_code=503,
         )
+
     return JSONResponse(
         content={"status": "ok", "backend": db_health.get("backend")}, status_code=200
     )
@@ -1665,9 +1671,10 @@ async def settings_get_key(provider: str):
 
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
+        safe_provider = html.escape(provider)
         return JSONResponse(
             status_code=400,
-            content={"success": False, "error": f"Unsupported provider: {provider}"},
+            content={"success": False, "error": f"Unsupported provider: {safe_provider}"},
         )
     config = api_key_store.get_key(provider)
     if not config:

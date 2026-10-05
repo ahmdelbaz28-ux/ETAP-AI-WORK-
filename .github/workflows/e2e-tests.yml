@@ -15,7 +15,7 @@ permissions:
 jobs:
   e2e-hf-space:
     name: E2E - HF Space Health & API
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
@@ -110,7 +110,7 @@ jobs:
 
   e2e-python-tests:
     name: E2E - Python Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
 
     services:
@@ -162,14 +162,14 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: test-results-e2e-${{ github.sha }}
           path: test-results.xml
 
   e2e-security:
     name: E2E - Security Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5

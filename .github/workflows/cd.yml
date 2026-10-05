@@ -24,7 +24,7 @@ permissions:
 jobs:
   guard:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
@@ -121,7 +121,7 @@ jobs:
 
   validate-secrets:
     needs: [guard]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Fail fast on missing deploy secrets (NO silent no-ops per FIX-19)
@@ -146,7 +146,7 @@ jobs:
 
   build-ui:
     needs: [guard]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -172,7 +172,7 @@ jobs:
 
   deploy-hf:
     needs: [guard, validate-secrets, build-ui]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: production
     outputs:
@@ -291,7 +291,7 @@ jobs:
 
   deploy-vercel:
     needs: [guard, validate-secrets, build-ui]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: production
     steps:
@@ -316,7 +316,7 @@ jobs:
 
   smoke-and-health-gate:
     needs: [guard, deploy-hf, deploy-vercel]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: write
@@ -428,7 +428,7 @@ jobs:
     name: "📢 Deployment Failure & Recovery Guide"
     needs: [guard, smoke-and-health-gate]
     if: failure()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Page + pin back (SP-6)

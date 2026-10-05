@@ -59,7 +59,7 @@ jobs:
   # ── 1. RESOLUTION TEST: Can pip/uv resolve all dependencies? ──────────────
   resolution-test:
     name: 🔧 Dependency Resolution
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -107,7 +107,7 @@ jobs:
   # ── 2. IMPORT TEST: Can all top-level packages be imported? ──────────────
   import-test:
     name: 📦 Import Sanity Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: resolution-test
     strategy:
@@ -162,7 +162,7 @@ jobs:
               # Data
               "numpy", "scipy", "pandas",
               # Document processing
-              "PyPDF2", "pdfplumber", "docx", "openpyxl", "reportlab",
+              "pypdf", "pdfplumber", "docx", "openpyxl", "reportlab",
               # Integrations
               "supabase", "neo4j", "huggingface_hub",
               # Utilities
@@ -309,7 +309,7 @@ jobs:
   # ── 3. PYPROJECT VALIDATION ──────────────────────────────────────────────
   pyproject-validation:
     name: 📋 pyproject.toml Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
@@ -320,11 +320,16 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: 📦 Install packaging for validation
+        run: python -m pip install --upgrade packaging
+
       - name: 🔍 Validate pyproject.toml structure
         run: |
           python - <<'PYEOF'
           import tomllib
           import sys
+          from packaging.specifiers import SpecifierSet
+          from packaging.version import Version
 
           with open('pyproject.toml', 'rb') as f:
               data = tomllib.load(f)
@@ -345,19 +350,11 @@ jobs:
 
           # Python version constraint
           rp = project.get('requires-python', '')
-          includes_313 = False
           try:
-              from packaging.specifiers import SpecifierSet
-              from packaging.version import Version
-              if Version('3.13') in SpecifierSet(rp):
-                  includes_313 = True
-          except Exception:
-              pass
-          if not includes_313 and ('3.13' in rp or ('3.12' in rp and '3.14' in rp)):
-              includes_313 = True
-
-          if not includes_313:
-              errors.append(f"requires-python should include 3.13 (got: {rp})")
+              if Version('3.13') not in SpecifierSet(rp):
+                  errors.append(f"requires-python should include 3.13 (got: {rp})")
+          except Exception as exc:
+              errors.append(f"Invalid requires-python specification '{rp}': {exc}")
 
           # Version format check (basic)
           version = project.get('version', '')
@@ -386,7 +383,7 @@ jobs:
   # ── 4. SUMMARY ───────────────────────────────────────────────────────────
   summary:
     name: 📊 Compatibility Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [resolution-test, import-test, pyproject-validation]
     if: always()

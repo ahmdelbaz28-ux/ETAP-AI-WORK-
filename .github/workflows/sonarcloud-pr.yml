@@ -37,7 +37,7 @@ permissions:
 jobs:
   sonarcloud:
     name: SonarCloud Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     # Skip draft PRs to save CI minutes (they will be scanned when marked ready).
     # Skip Dependabot PRs since secrets (SONAR_TOKEN) are not accessible to Dependabot workflows.
@@ -87,7 +87,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.5.0
         with:
           name: test-results-sonarcloud-${{ github.sha }}
           path: test-results.xml

@@ -44,7 +44,7 @@ jobs:
   # ── 1. LINT: hadolint on every Dockerfile ────────────────────────────────
   hadolint:
     name: 🔍 Hadolint Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
@@ -60,7 +60,7 @@ jobs:
   # ── 2. CONSISTENCY: verify Python version matches across Dockerfiles ─────
   version-consistency:
     name: 🐍 Python Version Consistency
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: 📥 Checkout code
@@ -151,7 +151,7 @@ jobs:
   # ── 3. BUILD: actually build each Dockerfile ─────────────────────────────
   build-test:
     name: 🏗️ Build Docker Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     needs: [hadolint, version-consistency]
     strategy:
@@ -225,7 +225,7 @@ jobs:
   # ── 4. SECURITY: scan built images with Trivy ────────────────────────────
   security-scan:
     name: 🔒 Container Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     needs: [hadolint, version-consistency]
     strategy:
@@ -287,7 +287,7 @@ jobs:
   # ── 5. SUMMARY ───────────────────────────────────────────────────────────
   summary:
     name: Docker Validation Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [hadolint, version-consistency, build-test, security-scan]
     if: always()

@@ -27,7 +27,7 @@ permissions:
 jobs:
   check-azure-credentials:
     name: Check Azure Credentials
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
       has-credentials: ${{ steps.check.outputs.has-credentials }}
@@ -47,7 +47,7 @@ jobs:
 
   tf-apply-dev:
     name: Terraform Apply (dev)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: check-azure-credentials
     if: needs.check-azure-credentials.outputs.has-credentials == 'true'
@@ -101,7 +101,7 @@ jobs:
 
   tf-apply-staging:
     name: Terraform Apply (staging)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: tf-apply-dev
     environment: staging
@@ -154,7 +154,7 @@ jobs:
 
   tf-apply-prod:
     name: Terraform Apply (prod)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: tf-apply-staging
     environment: production

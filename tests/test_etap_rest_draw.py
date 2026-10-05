@@ -137,7 +137,8 @@ async def test_apply_draw_success_verified():
     assert res.created_ids == ["E1"]
     assert res.drawing_id == "DRW-1"
     methods = [m for m, _ in calls]
-    assert "POST" in methods and "GET" in methods
+    assert "POST" in methods
+    assert "GET" in methods
 
 
 async def test_apply_draw_partial_create_fails():
@@ -224,7 +225,8 @@ def test_provider_rest_selected(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ETAP_REST_URL", "https://etap.test/etapapi")
     monkeypatch.setenv("ETAP_REST_TOKEN", "t")
     p = get_etap_provider()
-    assert isinstance(p, RestEtapProvider) and p.is_available()
+    assert isinstance(p, RestEtapProvider)
+    assert p.is_available()
 
 
 def test_provider_rest_missing_config_falls_back(monkeypatch: pytest.MonkeyPatch):
@@ -315,6 +317,8 @@ def test_status_and_pending(client: TestClient):
     r = client.post("/api/v1/etap/draw/propose", json=_plan())
     action_id = r.json()["action_id"]
     s = client.get(f"/api/v1/etap/draw/{action_id}/status")
-    assert s.status_code == 200 and s.json()["status"] == "pending"
+    assert s.status_code == 200
+    assert s.json()["status"] == "pending"
     p = client.get("/api/v1/etap/draw/pending")
-    assert p.status_code == 200 and p.json()["total"] >= 1
+    assert p.status_code == 200
+    assert p.json()["total"] >= 1

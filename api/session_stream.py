@@ -354,6 +354,26 @@ def issue_ws_ticket(
     }
 
 
+def _prune_expired_tickets(now: float) -> None:
+    if len(_consumed_tickets) > _MAX_CONSUMED_TRACKED:
+        for tid in [t for t, exp in _consumed_tickets.items() if exp <= now]:
+            _consumed_tickets.pop(tid, None)
+
+
+def _decode_and_verify_ticket_payload(ticket: str) -> Optional[Dict[str, Any]]:
+    payload_b64, _, signature = ticket.partition(".")
+    if not payload_b64 or not signature:
+        return None
+    try:
+        padding = "=" * (-len(payload_b64) % 4)
+        payload_compact = base64.urlsafe_b64decode(payload_b64 + padding).decode()
+        if not hmac.compare_digest(signature, _sign(payload_compact)):
+            return None
+        return json.loads(payload_compact)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def consume_ws_ticket(ticket: str, session_id: str) -> Optional[Dict[str, str]]:
     """Validate and burn a ticket (single-use).
 
@@ -362,33 +382,21 @@ def consume_ws_ticket(ticket: str, session_id: str) -> Optional[Dict[str, str]]:
     already used.
     """
     now = time.time()
+    _prune_expired_tickets(now)
 
-    # Opportunistic pruning of the consumed-tickets map.
-    if len(_consumed_tickets) > _MAX_CONSUMED_TRACKED:
-        for tid in [t for t, exp in _consumed_tickets.items() if exp <= now]:
-            _consumed_tickets.pop(tid, None)
+    claims = _decode_and_verify_ticket_payload(ticket)
+    if not claims:
+        return None
 
     try:
-        payload_b64, _, signature = ticket.partition(".")
-        if not payload_b64 or not signature:
-            return None
-        padding = "=" * (-len(payload_b64) % 4)
-        payload_compact = base64.urlsafe_b64decode(payload_b64 + padding).decode()
-        if not hmac.compare_digest(signature, _sign(payload_compact)):
-            return None
-        claims = json.loads(payload_compact)
         tid = claims["tid"]
         sid = claims["sid"]
         uid = claims["uid"]
         exp = float(claims["exp"])
-    except Exception:  # noqa: BLE001 - any parse/verify failure rejects
+    except (KeyError, ValueError, TypeError):
         return None
 
-    if exp <= now:
-        return None
-    if tid in _consumed_tickets:
-        return None
-    if session_id != sid:
+    if exp <= now or tid in _consumed_tickets or session_id != sid:
         return None
 
     _consumed_tickets[tid] = exp
@@ -571,6 +579,35 @@ def _send_initial_ws_events(
         hub._offer(conn, ev)
 
 
+async def _is_user_admin(user_id: str) -> bool:
+    from sqlalchemy import select
+
+    from api.auth import User
+    from api.database import async_session
+
+    try:
+        async with async_session() as db:
+            result = await db.execute(select(User).where(User.id == user_id))
+            db_user = result.scalar_one_or_none()
+            return bool(db_user and getattr(db_user, "role", "") == "admin")
+    except Exception:
+        return False
+
+
+async def _verify_session_access(
+    websocket: WebSocket, hub: SessionStreamHub, session_id: str, user_id: str
+) -> bool:
+    if hub.verify_ownership(session_id, user_id):
+        return True
+    if await _is_user_admin(user_id):
+        return True
+    await websocket.close(
+        code=_WS_CODE_POLICY_VIOLATION,
+        reason="Forbidden: session belongs to another user",
+    )
+    return False
+
+
 async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
     """Handle one connection to ``/ws/sessions/{session_id}``."""
     user_id = await _authenticate_user_id(websocket)
@@ -582,28 +619,8 @@ async def session_stream_ws(websocket: WebSocket, session_id: str) -> None:
         return
 
     hub = get_hub()
-    if not hub.verify_ownership(session_id, user_id):
-        from sqlalchemy import select
-
-        from api.auth import User
-        from api.database import async_session
-
-        is_admin = False
-        try:
-            async with async_session() as db:
-                result = await db.execute(select(User).where(User.id == user_id))
-                db_user = result.scalar_one_or_none()
-                if db_user and getattr(db_user, "role", "") == "admin":
-                    is_admin = True
-        except Exception:
-            pass
-
-        if not is_admin:
-            await websocket.close(
-                code=_WS_CODE_POLICY_VIOLATION,
-                reason="Forbidden: session belongs to another user",
-            )
-            return
+    if not await _verify_session_access(websocket, hub, session_id, user_id):
+        return
 
     await websocket.accept()
     conn = hub.connect(websocket, session_id)

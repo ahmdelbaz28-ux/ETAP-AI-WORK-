@@ -101,7 +101,8 @@ def test_all_17_study_types_covered_in_keyword_rules() -> None:
         assert isinstance(target, StudyType), f"Rule target {target} must be an instance of StudyType"
         assert len(keywords) > 0, f"Keyword list for {target} must not be empty"
         for kw in keywords:
-            assert isinstance(kw, str) and kw.strip(), f"Keyword '{kw}' for {target} must be a non-empty string"
+            assert isinstance(kw, str), f"Keyword '{kw}' for {target} must be a string"
+            assert kw.strip(), f"Keyword '{kw}' for {target} must be a non-empty string"
             assert kw == kw.lower(), f"Keyword '{kw}' must be lower-case for case-insensitive matching"
 
 
@@ -119,9 +120,8 @@ def test_all_17_study_types_mapped_in_registry() -> None:
     for st in all_study_types:
         assert st.value in STUDY_TYPE_MAPPING, f"StudyType.{st.name} value '{st.value}' missing from STUDY_TYPE_MAPPING"
         target_agent_key = STUDY_TYPE_MAPPING[st.value]
-        assert isinstance(target_agent_key, str) and target_agent_key.strip(), (
-            f"Mapped agent key for {st.value} must be a non-empty string"
-        )
+        assert isinstance(target_agent_key, str), f"Mapped agent key for {st.value} must be a string"
+        assert target_agent_key.strip(), f"Mapped agent key for {st.value} must be a non-empty string"
 
 
 def test_registry_get_agent_for_study(orchestrator: ChiefEngineeringOrchestrator) -> None:

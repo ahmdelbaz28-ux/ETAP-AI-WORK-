@@ -16,7 +16,8 @@ import pytest
 _app_path = Path(__file__).resolve().parent.parent / "hf-space" / "app.py"
 _spec = importlib.util.spec_from_file_location("hf_space_app", str(_app_path))
 _mod = importlib.util.module_from_spec(_spec)
-assert _spec and _spec.loader
+assert _spec
+assert _spec.loader
 _spec.loader.exec_module(_mod)
 
 _startup_auth_fail_closed_check = _mod._startup_auth_fail_closed_check

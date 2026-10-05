@@ -244,6 +244,8 @@ markers = [
     "unit: marks tests as unit tests",
     "timeout: marks tests with a timeout limit",
     "auth_enabled: marks tests that run with AUTH_ENABLED (no AUTH_DISABLED)",
+    "external: marks tests requiring external services or networks",
+    "database_required: marks tests requiring a live external database connection",
 ]
 
 [tool.coverage.run]

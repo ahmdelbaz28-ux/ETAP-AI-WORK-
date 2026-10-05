@@ -103,9 +103,11 @@ class TestConditionA_SourceStructure:
             f"Endpoint {method} {endpoint_path} is missing `require_role` dependency. "
             "CONDITION A requires role-based auth on all 5 dual-control REST endpoints."
         )
-        assert '"admin"' in endpoint_block and '"engineer"' in endpoint_block, (
-            f"Endpoint {method} {endpoint_path} must require roles admin AND engineer, "
-            "not just one or the other."
+        assert '"admin"' in endpoint_block, (
+            f"Endpoint {method} {endpoint_path} must require admin role."
+        )
+        assert '"engineer"' in endpoint_block, (
+            f"Endpoint {method} {endpoint_path} must require engineer role."
         )
         assert "Depends(" in endpoint_block, (
             f"Endpoint {method} {endpoint_path} must wrap require_role in Depends()."

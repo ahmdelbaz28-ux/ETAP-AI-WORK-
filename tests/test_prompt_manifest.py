@@ -90,7 +90,8 @@ def test_sync_to_langfuse_pushes_only_manifest_handles(
     spec = importlib.util.spec_from_file_location(
         "_sync_to_langfuse_under_test", ROOT / "scripts" / "sync_to_langfuse.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     with pytest.raises(SystemExit) as exc_info:
         spec.loader.exec_module(module)
@@ -106,6 +107,7 @@ def test_sync_to_langfuse_pushes_only_manifest_handles(
     messages = engineer["json"]["prompt"]
     system_msgs = [m["content"] for m in messages if m.get("role") == "system"]
     v2_system = _system_message(ROOT / "prompts" / "etap_engineer_agent_v2.yaml")
-    assert system_msgs and system_msgs[0].strip() == v2_system.strip(), (
+    assert system_msgs
+    assert system_msgs[0].strip() == v2_system.strip(), (
         "pushed etap_engineer_agent prompt must be the v2 system message"
     )

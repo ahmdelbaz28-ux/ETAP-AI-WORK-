@@ -429,7 +429,8 @@ async def test_workflow_engine_execute_stamps_contract_linkage_fields():
     for r in results:
         assert r.run_id == task.run_id
         assert r.plan_id == task.plan_id
-        assert r.node_id is not None and len(r.node_id) > 0
+        assert r.node_id is not None
+        assert len(r.node_id) > 0
 
     assert isinstance(engine.last_execution_trace, ExecutionTraceContract)
     assert engine.last_execution_trace.run_id == task.run_id
@@ -482,10 +483,14 @@ async def test_orchestrator_autonomous_workflow_exposes_contracts():
         system_data={"bus_count": 5},
     )
 
-    assert "run_id" in res and res["run_id"] is not None
-    assert "plan_id" in res and res["plan_id"] is not None
-    assert "execution_plan" in res and isinstance(res["execution_plan"], ExecutionPlanContract)
-    assert "execution_trace" in res and isinstance(res["execution_trace"], ExecutionTraceContract)
+    assert "run_id" in res
+    assert res["run_id"] is not None
+    assert "plan_id" in res
+    assert res["plan_id"] is not None
+    assert "execution_plan" in res
+    assert isinstance(res["execution_plan"], ExecutionPlanContract)
+    assert "execution_trace" in res
+    assert isinstance(res["execution_trace"], ExecutionTraceContract)
     assert res["execution_trace"].run_id == res["run_id"]
     assert res["execution_trace"].plan_id == res["plan_id"]
 

@@ -44,7 +44,7 @@ jobs:
   # -------------------------------------------------------------------------
   determine-checks:
     name: Determine Check Type
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
       run-daily: ${{ steps.decide.outputs.run-daily }}
@@ -123,7 +123,7 @@ jobs:
   # -------------------------------------------------------------------------
   daily-checks:
     name: Daily Health Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-daily == 'true'
@@ -176,7 +176,7 @@ jobs:
   # -------------------------------------------------------------------------
   weekly-checks:
     name: Weekly Health Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-weekly == 'true'
@@ -229,7 +229,7 @@ jobs:
   # -------------------------------------------------------------------------
   monthly-checks:
     name: Monthly Health Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: determine-checks
     if: needs.determine-checks.outputs.run-monthly == 'true'
@@ -282,7 +282,7 @@ jobs:
   # -------------------------------------------------------------------------
   summary:
     name: Health Check Summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: [daily-checks, weekly-checks, monthly-checks]
     if: always()

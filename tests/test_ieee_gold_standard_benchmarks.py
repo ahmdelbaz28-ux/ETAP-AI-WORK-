@@ -103,9 +103,8 @@ def test_iec_60909_short_circuit_benchmark():
     analytical_ik = (c_factor * un_kv) / (math.sqrt(3) * zk_ohm)
     diff = abs(expected_ik - analytical_ik)
     assert diff < 0.01, f"IEC 60909 calculation error {diff} exceeds tolerance"
-    assert expected_ik > 10.0 and expected_ik < 30.0, (
-        f"Fault current {expected_ik} kA out of expected range"
-    )
+    assert expected_ik > 10.0, f"Fault current {expected_ik} kA below lower bound"
+    assert expected_ik < 30.0, f"Fault current {expected_ik} kA above upper bound"
 
 
 def test_ieee_1584_arc_flash_benchmark():

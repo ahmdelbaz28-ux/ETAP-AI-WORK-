@@ -61,7 +61,7 @@ permissions:
 jobs:
   integration-smoke:
     name: 🌐 Integration Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -375,7 +375,7 @@ jobs:
 
   notify-on-failure:
     name: 🚨 Notify on Integration Failure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: integration-smoke
     if: failure() && github.event_name == 'schedule'
@@ -439,7 +439,7 @@ jobs:
 
   resolve-on-success:
     name: ✅ Auto-resolve Integration Failure Issue
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: integration-smoke
     if: success()

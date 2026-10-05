@@ -678,37 +678,45 @@ class ETAPProject:
         ETAPAutomation._check_result_size(result)
         return result
 
+    def _resolve_motor_starting_module(self) -> Any:
+        ms_module = getattr(self._com_project, "MotorStarting", None)
+        if ms_module is None:
+            ms_module = getattr(self._com_project, "MotorAcceleration", None)
+        if ms_module is None or not hasattr(ms_module, "Calculate"):
+            raise RuntimeError("MotorStarting module not available in ETAP project")
+        return ms_module
+
+    def _extract_com_motors(self) -> dict[str, dict[str, float]]:
+        motors: dict[str, dict[str, float]] = {}
+        for motor in getattr(self._com_project, "Motors", []):
+            motor_id = str(getattr(motor, "ID", ""))
+            if motor_id:
+                ctx = f"motor={motor_id}"
+                motors[motor_id] = {
+                    "starting_current_multiplier": ETAPAutomation._safe_com_float(
+                        motor, "StartingCurrentMult", 0.0, warn_if_absent=True, context=ctx
+                    ),
+                    "acceleration_time_sec": ETAPAutomation._safe_com_float(
+                        motor, "AccelTime", 0.0, warn_if_absent=True, context=ctx
+                    ),
+                    "min_voltage_during_start_pu": ETAPAutomation._safe_com_float(
+                        motor, "MinVoltagePU", 0.0, warn_if_absent=True, context=ctx
+                    ),
+                    "speed_at_end_of_start_percent": ETAPAutomation._safe_com_float(
+                        motor, "SpeedPercent", 0.0, warn_if_absent=True, context=ctx
+                    ),
+                }
+        return motors
+
     def _run_motor_starting(self, **kwargs) -> dict[str, Any]:
         """Run motor starting / acceleration study via ETAP COM.
 
         Raises RuntimeError if COM module is unavailable or returns no data.
         """
-        motors = {}
         try:
-            ms_module = getattr(self._com_project, "MotorStarting", None)
-            if ms_module is None:
-                ms_module = getattr(self._com_project, "MotorAcceleration", None)
-            if ms_module is None or not hasattr(ms_module, "Calculate"):
-                raise RuntimeError("MotorStarting module not available in ETAP project")
+            ms_module = self._resolve_motor_starting_module()
             ms_module.Calculate()
-            for motor in getattr(self._com_project, "Motors", []):
-                motor_id = str(getattr(motor, "ID", ""))
-                if motor_id:
-                    ctx = f"motor={motor_id}"
-                    motors[motor_id] = {
-                        "starting_current_multiplier": ETAPAutomation._safe_com_float(
-                            motor, "StartingCurrentMult", 0.0, warn_if_absent=True, context=ctx
-                        ),
-                        "acceleration_time_sec": ETAPAutomation._safe_com_float(
-                            motor, "AccelTime", 0.0, warn_if_absent=True, context=ctx
-                        ),
-                        "min_voltage_during_start_pu": ETAPAutomation._safe_com_float(
-                            motor, "MinVoltagePU", 0.0, warn_if_absent=True, context=ctx
-                        ),
-                        "speed_at_end_of_start_percent": ETAPAutomation._safe_com_float(
-                            motor, "SpeedPercent", 0.0, warn_if_absent=True, context=ctx
-                        ),
-                    }
+            motors = self._extract_com_motors()
         except (COM_ERROR, AttributeError) as e:
             raise RuntimeError(f"COM error during motor starting analysis: {e}") from e
         except RuntimeError:

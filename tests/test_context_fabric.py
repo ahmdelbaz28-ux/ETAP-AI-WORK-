@@ -216,7 +216,8 @@ def test_ml_agents_bind_to_context_not_study_types():
     assert sorted(bound) == ["digital_twin", "predictive"]
 
     hist = fabric.query(ContextType.ENGINEERING_HISTORY, "health", tenant_id="t1")
-    assert hist.available and hist.evidence[0].value == 0.87
+    assert hist.available
+    assert hist.evidence[0].value == 0.87
 
     # anomaly was not supplied → explicit unavailability, no fabrication
     unbound = bind_ml_agents(ContextFabric(), {})

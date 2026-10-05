@@ -464,6 +464,26 @@ def _resolve_client_id(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+async def _handle_rate_limit_check(
+    request: Request, trace_id: str, span: Any, scope: Any, receive: Any, send: Any
+) -> bool:
+    """Check rate limit; return True if allowed, False if rejected (response already sent)."""
+    if request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
+        return True
+    client_id = _resolve_client_id(request)
+    if not await _check_rate_limit(client_id):
+        span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
+        span.set_attribute("http.status_code", 429)
+        response = JSONResponse(
+            status_code=429,
+            content={"detail": "Rate limit exceeded", "trace_id": trace_id},
+            headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
+        )
+        await response(scope, receive, send)
+        return False
+    return True
+
+
 class _TraceMiddleware:
     """Trace + rate-limit middleware (pure ASGI — SSE-safe, chat P4b)."""
 
@@ -491,18 +511,8 @@ class _TraceMiddleware:
         ) as span:
             span.set_attribute("ahmedetap.trace_id", trace_id)
 
-            if not request.url.path.startswith(("/health", "/ready", "/healthz", "/readyz")):
-                client_id = _resolve_client_id(request)
-                if not await _check_rate_limit(client_id):
-                    span.set_status(Status(StatusCode.ERROR, "rate_limit_exceeded"))
-                    span.set_attribute("http.status_code", 429)
-                    response = JSONResponse(
-                        status_code=429,
-                        content={"detail": "Rate limit exceeded", "trace_id": trace_id},
-                        headers={"Retry-After": str(_RATE_LIMIT_WINDOW)},
-                    )
-                    await response(scope, receive, send)
-                    return
+            if not await _handle_rate_limit_check(request, trace_id, span, scope, receive, send):
+                return
 
             await self.app(scope, receive, send)
 
@@ -985,6 +995,82 @@ async def websocket_session_stream_handler(websocket: WebSocket, session_id: str
     await session_stream_ws(websocket, session_id)
 
 
+def _extract_ws_token_from_protocol_or_header(
+    auth_header: str, protocol: str
+) -> tuple[str, str | None]:
+    if auth_header.lower().startswith("bearer "):
+        return auth_header.split(" ", 1)[1], None
+    if not protocol:
+        return "", None
+    parts = [p.strip() for p in protocol.split(",")]
+    if len(parts) >= 2 and parts[0] == "access_token":
+        return parts[1], "access_token"
+    if len(parts) == 1 and parts[0] != "access_token":
+        return parts[0], None
+    if len(parts) >= 2:
+        return parts[-1], None
+    return "", None
+
+
+async def _authenticate_notifications_ws(
+    websocket: WebSocket,
+) -> tuple[Any | None, str | None]:
+    """Authenticate notifications WebSocket connection.
+
+    Returns (user_id, subprotocol) or (None, None) if rejected (already closed).
+    """
+    raw_query_token = websocket.query_params.get("token", "")
+    ticket = websocket.query_params.get("ticket", "")
+    auth_header = websocket.headers.get("authorization", "")
+    protocol = websocket.headers.get("sec-websocket-protocol", "")
+
+    if raw_query_token:
+        await websocket.close(
+            code=1008,
+            reason="JWT in query parameter is not allowed. Use Authorization header or short-lived ticket.",
+        )
+        return None, None
+
+    if ticket:
+        from api.session_stream import consume_ws_ticket
+
+        ticket_claims = consume_ws_ticket(ticket, "notifications")
+        if not ticket_claims:
+            await websocket.close(code=1008, reason="Invalid or expired ticket")
+            return None, None
+        return ticket_claims.get("uid") or ticket_claims.get("user_id"), None
+
+    token, subprotocol_to_accept = _extract_ws_token_from_protocol_or_header(auth_header, protocol)
+    if not token:
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return None, None
+
+    try:
+        from api.auth import _is_token_blacklisted
+        from api.dependencies import _validate_jwt_access_token
+
+        payload = await _validate_jwt_access_token(token)
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return None, None
+        jti = payload.get("jti")
+        if jti and await _is_token_blacklisted(jti):
+            await websocket.close(code=1008, reason="Token has been revoked")
+            return None, None
+        return payload.get("sub"), subprotocol_to_accept
+    except HTTPException as exc:
+        reason = (
+            "Token has been revoked"
+            if "revoked" in exc.detail.lower()
+            else "Invalid or expired token"
+        )
+        await websocket.close(code=1008, reason=reason)
+        return None, None
+    except Exception:
+        await websocket.close(code=1008, reason="Invalid token")
+        return None, None
+
+
 # WebSocket endpoint for real-time notifications
 @app.websocket("/ws/notifications")
 async def websocket_notifications_handler(websocket: WebSocket) -> None:
@@ -997,73 +1083,9 @@ async def websocket_notifications_handler(websocket: WebSocket) -> None:
       2. Sec-WebSocket-Protocol header: "access_token, <jwt>" or "<jwt>"
       3. Authorization: Bearer <jwt> header
     """
-    raw_query_token = websocket.query_params.get("token", "")
-    ticket = websocket.query_params.get("ticket", "")
-    auth_header = websocket.headers.get("authorization", "")
-    protocol = websocket.headers.get("sec-websocket-protocol", "")
-
-    # Fix 7: Reject raw JWT query param
-    if raw_query_token:
-        await websocket.close(
-            code=1008,
-            reason="JWT in query parameter is not allowed. Use Authorization header or short-lived ticket.",
-        )
+    user_id, subprotocol_to_accept = await _authenticate_notifications_ws(websocket)
+    if user_id is None:
         return
-
-    subprotocol_to_accept = None
-    user_id = None
-
-    if ticket:
-        from api.session_stream import consume_ws_ticket
-
-        ticket_claims = consume_ws_ticket(ticket, "notifications")
-        if not ticket_claims:
-            await websocket.close(code=1008, reason="Invalid or expired ticket")
-            return
-        user_id = ticket_claims.get("uid") or ticket_claims.get("user_id")
-    else:
-        token = ""
-        if auth_header.lower().startswith("bearer "):
-            token = auth_header.split(" ", 1)[1]
-        elif protocol:
-            parts = [p.strip() for p in protocol.split(",")]
-            if len(parts) >= 2 and parts[0] == "access_token":
-                token = parts[1]
-                subprotocol_to_accept = "access_token"
-            elif len(parts) == 1 and parts[0] != "access_token":
-                token = parts[0]
-            elif len(parts) >= 2:
-                token = parts[-1]
-
-        if not token:
-            await websocket.close(code=1008, reason="Missing authentication token")
-            return
-
-        try:
-            from api.auth import _is_token_blacklisted
-            from api.dependencies import _validate_jwt_access_token
-
-            payload = await _validate_jwt_access_token(token)
-            token_type = payload.get("type")
-            if token_type != "access":
-                await websocket.close(code=1008, reason="Invalid token type")
-                return
-            jti = payload.get("jti")
-            if jti and await _is_token_blacklisted(jti):
-                await websocket.close(code=1008, reason="Token has been revoked")
-                return
-            user_id = payload.get("sub")
-        except HTTPException as exc:
-            reason = (
-                "Token has been revoked"
-                if "revoked" in exc.detail.lower()
-                else "Invalid or expired token"
-            )
-            await websocket.close(code=1008, reason=reason)
-            return
-        except Exception:
-            await websocket.close(code=1008, reason="Invalid token")
-            return
 
     # Get user from database
     from api.database import async_session
