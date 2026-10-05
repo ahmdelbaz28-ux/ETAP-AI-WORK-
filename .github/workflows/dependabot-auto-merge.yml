@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Check if dependency is safe to auto-merge
         id: check-safe
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
         with:
           script: |
             if (context.actor !== 'dependabot[bot]') {
@@ -102,7 +102,7 @@ jobs:
       - name: Wait for status checks
         id: wait-for-status-checks
         if: steps.check-safe.outputs.safe == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
         with:
           script: |
             const prNumber = context.payload.pull_request.number;

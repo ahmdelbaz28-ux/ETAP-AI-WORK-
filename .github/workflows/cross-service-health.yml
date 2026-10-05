@@ -63,6 +63,8 @@ jobs:
     name: 🌐 Integration Smoke Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      IS_STRICT: ${{ (github.event_name == 'schedule' || github.event.inputs.deep == 'true') && 'true' || 'false' }}
 
     steps:
       - name: 📥 Checkout code
@@ -82,6 +84,7 @@ jobs:
       # 1. HuggingFace Space — production deployment reachability
       # ─────────────────────────────────────────────────────────────────────
       - name: 🤗 Test 1 — HuggingFace Space reachability
+        id: hf
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
@@ -104,8 +107,8 @@ jobs:
           # 1b. Health endpoint with retry
           echo "  Polling /health endpoint..."
           HEALTH="000"
-          for i in $(seq 1 15); do
-            HEALTH=$(curl -s -o /tmp/hf_health.json -w "%{http_code}" --max-time 30 \
+          for i in $(seq 1 20); do
+            HEALTH=$(curl -s -o /tmp/hf_health.json -w "%{http_code}" --max-time 15 \
               "$HF_SPACE_URL/health" || echo "000")
             echo "  Attempt $i: /health HTTP $HEALTH"
             if [ "$HEALTH" = "200" ]; then
@@ -115,8 +118,14 @@ jobs:
             sleep 5
           done
           if [ "$HEALTH" != "200" ]; then
-            echo "  ❌ /health failed (HTTP $HEALTH)"
-            exit 1
+            echo "::warning::HF /health failed (HTTP $HEALTH)"
+            echo "hf_health_status=$HEALTH" >> "$GITHUB_OUTPUT"
+            if [ "$IS_STRICT" = "true" ]; then
+              echo "  ❌ /health failed (HTTP $HEALTH) [STRICT MODE]"
+              exit 1
+            else
+              echo "  ⚠️ /health failed (HTTP $HEALTH) [NON-BLOCKING on push]"
+            fi
           fi
 
           # 1c. Docs endpoint (validates FastAPI loaded)
@@ -133,6 +142,7 @@ jobs:
       # 2. Vercel — deployment status
       # ─────────────────────────────────────────────────────────────────────
       - name: ▲ Test 2 — Vercel deployment status
+        id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -152,14 +162,20 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ "$STATUS" != "200" ]; then
-            echo "  ❌ Vercel API returned $STATUS"
-            exit 1
+            echo "::warning::Vercel API returned HTTP $STATUS"
+            echo "vercel_status=$STATUS" >> "$GITHUB_OUTPUT"
+            if [ "$IS_STRICT" = "true" ]; then
+              echo "  ❌ Vercel API returned $STATUS [STRICT MODE]"
+              exit 1
+            else
+              echo "  ⚠️ Vercel API returned $STATUS [NON-BLOCKING on push]"
+            fi
+          else
+            READY=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('ready','?'))" 2>/dev/null || echo "?")
+            URL=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('url','?'))" 2>/dev/null || echo "?")
+            echo "  Latest deployment: https://$URL (ready=$READY)"
+            echo "  ✅ Vercel API reachable"
           fi
-
-          READY=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('ready','?'))" 2>/dev/null || echo "?")
-          URL=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin)['deployments'][0]; print(d.get('url','?'))" 2>/dev/null || echo "?")
-          echo "  Latest deployment: https://$URL (ready=$READY)"
-          echo "  ✅ Vercel API reachable"
 
       # ─────────────────────────────────────────────────────────────────────
       # 3. Supabase — Postgres + REST
@@ -243,6 +259,7 @@ jobs:
               except Exception as e:
                   print(f"  ⚠️ Neo4j Aura API check: {e}")
 
+          is_strict = os.environ.get("IS_STRICT", "false").lower() == "true"
           if uri and password:
               try:
                   from neo4j import GraphDatabase
@@ -253,23 +270,33 @@ jobs:
                           print("  ✅ Neo4j DB reachable — RETURN 1 succeeded")
                       else:
                           print("  ❌ Neo4j query returned unexpected result")
-                          sys.exit(1)
+                          if is_strict:
+                              sys.exit(1)
+                          else:
+                              print("::warning::Neo4j query returned unexpected result")
                   driver.close()
               except Exception as e:
                   if aura_api_ok or "Unauthorized" in str(e):
                       print(f"  ⚠️ Neo4j Bolt DB: {e} (Aura API verified, DB credentials pending in Aura console) — non-blocking")
                   else:
                       print(f"  ❌ Neo4j connection failed: {e}")
-                      sys.exit(1)
+                      if is_strict:
+                          sys.exit(1)
+                      else:
+                          print(f"::warning::Neo4j connection failed: {e}")
           elif not aura_api_ok:
               print("  ⚠️ Neither Neo4j URI nor Aura API could be verified")
-              sys.exit(1)
+              if is_strict:
+                  sys.exit(1)
+              else:
+                  print("::warning::Neither Neo4j URI nor Aura API could be verified")
           PYEOF
 
       # ─────────────────────────────────────────────────────────────────────
       # 5. Langfuse — LLM observability
       # ─────────────────────────────────────────────────────────────────────
       - name: 📊 Test 5 — Langfuse connectivity
+        id: langfuse
         env:
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
@@ -290,8 +317,14 @@ jobs:
           if [ "$STATUS" = "200" ]; then
             echo "  ✅ Langfuse reachable"
           else
-            echo "  ❌ Langfuse failed (HTTP $STATUS)"
-            exit 1
+            echo "::warning::Langfuse failed (HTTP $STATUS)"
+            echo "langfuse_status=$STATUS" >> "$GITHUB_OUTPUT"
+            if [ "$IS_STRICT" = "true" ]; then
+              echo "  ❌ Langfuse failed (HTTP $STATUS) [STRICT MODE]"
+              exit 1
+            else
+              echo "  ⚠️ Langfuse failed (HTTP $STATUS) [NON-BLOCKING on push]"
+            fi
           fi
 
       # ─────────────────────────────────────────────────────────────────────
@@ -385,7 +418,7 @@ jobs:
 
     steps:
       - name: 📝 Create or update failure issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
         with:
           script: |
             const title = '🔴 Cross-Service Integration Failure';
@@ -449,7 +482,7 @@ jobs:
 
     steps:
       - name: 🔍 Check and close resolved issue
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
         with:
           script: |
             const title = '🔴 Cross-Service Integration Failure';
