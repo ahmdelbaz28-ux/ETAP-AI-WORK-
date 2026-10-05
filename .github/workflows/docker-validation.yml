@@ -85,6 +85,7 @@ jobs:
             fi
 
             # Extract all FROM python: lines
+            # Intentional: grep exit 1 on no-match must not fail the gate
             mapfile -t FROM_LINES < <(grep -E "^FROM python:" "$f" || true)
 
             if [ ${#FROM_LINES[@]} -eq 0 ]; then
@@ -218,6 +219,7 @@ jobs:
 
       - name: 🧹 Clean up
         if: always()
+        # Intentional: best-effort cleanup of stale test images
         run: docker rmi etap-${{ matrix.name }}:test 2>/dev/null || true
 
   # ── 4. SECURITY: scan built images with Trivy ────────────────────────────
@@ -279,6 +281,7 @@ jobs:
 
       - name: 🧹 Clean up
         if: always()
+        # Intentional: best-effort cleanup of stale test images
         run: docker rmi etap-${{ matrix.name }}:scan 2>/dev/null || true
 
   # ── 5. SUMMARY ───────────────────────────────────────────────────────────
