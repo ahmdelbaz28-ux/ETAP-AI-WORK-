@@ -7,8 +7,8 @@
 # Observability - OpenTelemetry (~=1.33.0 stack; aligned with requirements.txt)
 opentelemetry-api~=1.33.0
 opentelemetry-sdk~=1.33.0
-opentelemetry-exporter-otlp==1.33.*
-opentelemetry-exporter-otlp-proto-http~=1.33.0
+opentelemetry-exporter-otlp==1.45.*
+opentelemetry-exporter-otlp-proto-http~=1.45.0
 opentelemetry-semantic-conventions~=0.54b0
 opentelemetry-instrumentation-fastapi~=0.54b0
 
@@ -95,8 +95,8 @@ aiofiles>=25.1.0,<26.0.0
 
 # Security & Infrastructure
 pyotp~=2.9.0
-# WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=2.0.0,<3.0.0)
-webauthn>=2.0.0,<3.0.0
+# WebAuthn / FIDO2 — aligned with requirements.txt pin (webauthn>=3.0.1,<4.0.0)
+webauthn>=3.0.1,<4.0.0
 redis>=6.2.0
 websockets>=15,<16
 

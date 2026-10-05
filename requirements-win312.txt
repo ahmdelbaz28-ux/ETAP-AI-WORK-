@@ -11,10 +11,10 @@
 # with opentelemetry-instrumentation-fastapi 0.51b0 (line below).
 opentelemetry-api~=1.30.0
 opentelemetry-sdk~=1.30.0
-opentelemetry-exporter-otlp==1.30.0
+opentelemetry-exporter-otlp==1.45.0
 opentelemetry-semantic-conventions~=0.51b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
-opentelemetry-exporter-otlp-proto-http~=1.30.0
+opentelemetry-exporter-otlp-proto-http~=1.45.0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
@@ -258,7 +258,7 @@ lxml>=6.1.3
 pyotp~=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
-webauthn>=2.0.0,<3.0.0
+webauthn>=3.0.1,<4.0.0
 redis>=6.2.0
 httpx~=0.27.0
 
@@ -280,7 +280,7 @@ paho-mqtt~=2.1.0
 
 # GIS processing (optional — requires GDAL system libraries)
 # geopandas~=0.14.0
-# shapely~=2.0.0
+# shapely~=2.1.2
 
 # Retry and fault tolerance
 tenacity>=8.2,<9.2
@@ -392,14 +392,14 @@ paho-mqtt>=1.6.1
 # pyScada-opcua      # Commented out - not on PyPI
 # pyScada-modbus     # Commented out - not on PyPI
 # pyScada-ems        # Commented out - not on PyPI
-pymongo~=4.8.0
+pymongo~=4.18.2
 # arcpy  # Commented out - installed with ArcGIS Pro only
 pandas~=2.2.0
 numpy>=1.26.0,<2.6
 requests>=2.33.0
 flask>=3.1.3  # For potential web APIs (SECURITY: CVE-2026-27205 fixed in >=3.1.3)
 geopandas>=1.1.2  # For GIS operations (SECURITY: CVE-2025-69662 fixed in >=1.1.2)
-shapely~=2.0.0  # For geometric operations
+shapely~=2.1.2  # For geometric operations
 
 # Retry and fault tolerance (used by core/retry.py)
 tenacity>=8.2.0

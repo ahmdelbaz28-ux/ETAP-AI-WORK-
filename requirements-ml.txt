@@ -9,11 +9,11 @@ tensorflow>=2.21.0; python_version >= '3.9' and python_version < '3.13'
 prophet>=1.4.0                      # Facebook Prophet - seasonal load forecasting
 xgboost>=3.4.1                      # Gradient boosting - fault prediction
 shap>=0.52.0                        # Model explainability - SHAP values
-optuna>=4.9.0                       # Hyperparameter optimization
+optuna>=5.0.0                       # Hyperparameter optimization
 pyod>=3.6.6                         # 30+ anomaly detection algorithms
 
 # Phase 6c: ML/AI - Deep Learning & GNN
-torch>=2.14.0                        # PyTorch - deep learning foundation
+torch>=2.14.1                        # PyTorch - deep learning foundation
 torch-geometric>=2.8.0.post1              # Graph Neural Networks for power grids
 
 # Phase 6d: ML/AI - Model Management

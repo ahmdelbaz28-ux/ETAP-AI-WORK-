@@ -13,10 +13,10 @@
 # so the 1.30.x stack is unsatisfiable.
 opentelemetry-api~=1.33.0
 opentelemetry-sdk~=1.33.0
-opentelemetry-exporter-otlp==1.33.*
+opentelemetry-exporter-otlp==1.45.*
 opentelemetry-semantic-conventions~=0.54b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
-opentelemetry-exporter-otlp-proto-http~=1.33.0
+opentelemetry-exporter-otlp-proto-http~=1.45.0
 opentelemetry-instrumentation-fastapi~=0.54b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
@@ -203,7 +203,7 @@ aiofiles>=25.1.0,<26.0.0
 pyotp~=2.9.0
 # WebAuthn / FIDO2 — required for production MFA (HIGH #8 from AhmedETAP_Error_Report_AR.pdf).
 # Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
-webauthn>=2.0.0,<3.0.0
+webauthn>=3.0.1,<4.0.0
 redis>=6.2.0
 httpx~=0.27.0
 
