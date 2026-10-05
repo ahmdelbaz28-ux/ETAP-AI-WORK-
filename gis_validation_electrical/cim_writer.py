@@ -60,6 +60,7 @@ def _load_schneider_profile_config() -> dict[str, Any]:
             except Exception as exc:
                 logger.warning("Failed to parse %s: %s", p, exc)
 
+    logger.warning("config/cim_schneider_profiles.yaml not found or unreadable; using unified built-in fallback profile map.")
     # Built-in fallback matching the YAML schema if file is unavailable
     return {
         "default_version": "cim16",
@@ -85,11 +86,74 @@ def _load_schneider_profile_config() -> dict[str, Any]:
             },
         },
         "profile_class_map": {
-            "EQ": ["TopologicalNode", "ConnectivityNode", "Terminal", "ACLineSegment", "PowerTransformer", "Breaker", "Substation"],
-            "SSH": ["Breaker", "Terminal"],
-            "TP": ["TopologicalNode", "Terminal"],
-            "SV": ["SvVoltage", "SvPowerFlow", "SvStatus"],
-            "FULL": ["TopologicalNode", "ConnectivityNode", "Terminal", "ACLineSegment", "PowerTransformer", "Breaker", "Substation", "SvVoltage", "SvPowerFlow", "SvStatus"],
+            "EQ": {
+                "description": "Equipment Profile",
+                "classes": [
+                    "TopologicalNode",
+                    "ConnectivityNode",
+                    "Terminal",
+                    "ACLineSegment",
+                    "PowerTransformer",
+                    "PowerTransformerEnd",
+                    "Breaker",
+                    "Disconnector",
+                    "LoadBreakSwitch",
+                    "Substation",
+                    "VoltageLevel",
+                    "BaseVoltage",
+                    "PositionPoint",
+                    "Location",
+                ],
+            },
+            "SSH": {
+                "description": "Steady State Hypothesis",
+                "classes": [
+                    "Breaker",
+                    "Disconnector",
+                    "LoadBreakSwitch",
+                    "Terminal",
+                    "SvStatus",
+                ],
+            },
+            "TP": {
+                "description": "Topology Profile",
+                "classes": [
+                    "TopologicalNode",
+                    "TopologicalIsland",
+                    "Terminal",
+                ],
+            },
+            "SV": {
+                "description": "State Variables",
+                "classes": [
+                    "SvVoltage",
+                    "SvPowerFlow",
+                    "SvStatus",
+                    "SvTapStep",
+                ],
+            },
+            "FULL": {
+                "description": "Full Combined Model",
+                "classes": [
+                    "TopologicalNode",
+                    "ConnectivityNode",
+                    "Terminal",
+                    "ACLineSegment",
+                    "PowerTransformer",
+                    "PowerTransformerEnd",
+                    "Breaker",
+                    "Disconnector",
+                    "LoadBreakSwitch",
+                    "Substation",
+                    "VoltageLevel",
+                    "BaseVoltage",
+                    "PositionPoint",
+                    "Location",
+                    "SvVoltage",
+                    "SvPowerFlow",
+                    "SvStatus",
+                ],
+            },
         },
         "required_fields": {
             "SUBSTATION": ["name", "Lifecycle_Status", "AOR"],

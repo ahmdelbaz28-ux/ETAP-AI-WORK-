@@ -106,11 +106,14 @@ def map_adms_to_cim(  # NOSONAR
             key = (float(coords[0]), float(coords[1]))
             node_id = s.asset_id
             sub_coords_to_node[key] = node_id
+            cn_meta = dict(s.metadata)
+            if geom and "geometry" not in cn_meta:
+                cn_meta["geometry"] = geom
             cn = CIMConnectivityNode(
                 cim_id=f"CN::{node_id}",
                 label=str(node_id),
                 voltage_level_kv=None,
-                metadata=dict(s.metadata),
+                metadata=cn_meta,
             )
             connectivity_nodes[cn.cim_id] = cn
 

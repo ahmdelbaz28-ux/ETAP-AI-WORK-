@@ -13,8 +13,10 @@ Verifies:
 from __future__ import annotations
 
 import io
+import logging
 import re
 import uuid
+from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
@@ -279,8 +281,16 @@ async def test_export_endpoint_acceptance(export_client: TestClient):
         session.add(p)
         await session.commit()
 
-    res = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=EQ&version=cim16")
-    assert res.status_code == 200, f"Export failed: {res.text}"
+    with patch.object(export_mod, "record_approval_event", wraps=export_mod.record_approval_event) as mock_audit:
+        res = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=EQ&version=cim16")
+        assert res.status_code == 200, f"Export failed: {res.text}"
+        mock_audit.assert_called_once()
+        call_args, _ = mock_audit.call_args
+        assert call_args[0] == "EXPORT_REQUESTED"
+        assert call_args[2] == TEST_USER.user_id
+        assert call_args[3]["export_type"] == "cim-xml"
+        assert call_args[3]["profile"] == "EQ"
+
     assert "application/xml" in res.headers["Content-Type"]
     assert 'filename="EcoStruxure_Pilot_Grid_schneider_EQ.xml"' in res.headers["Content-Disposition"]
 
@@ -291,6 +301,51 @@ async def test_export_endpoint_acceptance(export_client: TestClient):
     buses, branches, metadata, warnings = _parse_cim_xml(content)
     assert len(buses) == 2, f"Expected 2 buses, parsed {len(buses)}"
     assert len(branches) == 1, f"Expected 1 branch, parsed {len(branches)}"
+
+    # Integration test for all profiles at endpoint level (P0-5)
+    # 1. SSH profile endpoint (breaker-less network: valid export, no ACLineSegment)
+    res_ssh = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=SSH")
+    assert res_ssh.status_code == 200, f"SSH export failed: {res_ssh.text}"
+    ssh_text = res_ssh.content.decode("utf-8")
+    assert "<cim:ACLineSegment" not in ssh_text
+
+    # 2. TP profile endpoint
+    res_tp = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=TP")
+    assert res_tp.status_code == 200, f"TP export failed: {res_tp.text}"
+    tp_text = res_tp.content.decode("utf-8")
+    assert "<cim:TopologicalNode" in tp_text
+
+    # 3. SV profile endpoint
+    res_sv = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=SV")
+    assert res_sv.status_code == 200, f"SV export failed: {res_sv.text}"
+    sv_text = res_sv.content.decode("utf-8")
+    assert "<cim:SvVoltage" in sv_text
+
+    # 4. FULL profile endpoint
+    res_full = export_client.post(f"/api/v1/export/{proj_id}/cim?profile=FULL")
+    assert res_full.status_code == 200, f"FULL export failed: {res_full.text}"
+    full_text = res_full.content.decode("utf-8")
+    assert "<cim:TopologicalNode" in full_text
+    assert "<cim:ACLineSegment" in full_text
+    assert "<cim:SvVoltage" in full_text
+
+
+def test_fallback_profile_preserves_position_points(sample_3bus_assets, monkeypatch, caplog):
+    """When config YAML is missing, built-in fallback preserves PositionPoint and logs warning (P0-4)."""
+    import gis_validation_electrical.cim_writer as cw
+
+    # Simulate missing YAML config file
+    monkeypatch.setattr(cw.Path, "exists", lambda self: False)
+
+    with caplog.at_level(logging.WARNING):
+        model = map_adms_to_cim(sample_3bus_assets)
+        xml_bytes = cw.build_cim_xml(model, profile="EQ")
+        xml_text = xml_bytes.decode("utf-8")
+
+    assert "config/cim_schneider_profiles.yaml not found" in caplog.text
+    assert "<cim:PositionPoint" in xml_text, "PositionPoint was dropped in fallback mode!"
+    assert "<cim:Location" in xml_text, "Location was dropped in fallback mode!"
+    assert "<cim:PositionPoint.xPosition>10.0" in xml_text
 
 
 # -----------------------------------------------------------------------------

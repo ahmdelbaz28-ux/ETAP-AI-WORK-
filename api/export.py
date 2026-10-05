@@ -685,12 +685,16 @@ def _extract_project_adms_assets(project: Any, studies: Sequence[Any]) -> list[A
                 if isinstance(item, ADMSAsset):
                     parsed_assets.append(item)
                 elif isinstance(item, dict):
+                    meta = dict(item.get("metadata") or {})
+                    geom = dict(item.get("geometry") or {})
+                    if geom and "geometry" not in meta:
+                        meta["geometry"] = geom
                     parsed_assets.append(
                         ADMSAsset(
                             asset_id=str(item.get("asset_id", uuid.uuid4().hex[:8])),
                             asset_type=ADMSAssetType(item.get("asset_type", "SUBSTATION")),
-                            geometry=dict(item.get("geometry") or {}),
-                            metadata=dict(item.get("metadata") or {}),
+                            geometry=geom,
+                            metadata=meta,
                         )
                     )
             substations = [a for a in parsed_assets if a.asset_type == ADMSAssetType.SUBSTATION]
@@ -766,6 +770,7 @@ def _extract_project_adms_assets(project: Any, studies: Sequence[Any]) -> list[A
                                 "base_kv": base_kv,
                                 "Lifecycle_Status": "In_Service",
                                 "AOR": "Default_AOR",
+                                "geometry": {"type": "Point", "coordinates": [lon, lat]},
                             },
                         )
                     )
@@ -940,6 +945,7 @@ def _extract_project_adms_assets(project: Any, studies: Sequence[Any]) -> list[A
                         "name": f"Bus {b_id}",
                         "base_kv": float(getattr(b_obj, "base_kv", 115.0) or 115.0),
                         "Lifecycle_Status": "In_Service",
+                        "geometry": {"type": "Point", "coordinates": [lon, lat]},
                     },
                 )
             )
@@ -983,7 +989,13 @@ async def export_cim(
     db: AsyncSession = Depends(get_db),
     auth=Depends(require_permission("export", "create")),
 ):
-    """Export project as Schneider EcoStruxure ADMS compatible CIM RDF/XML."""
+    """Export project as Schneider EcoStruxure ADMS compatible CIM RDF/XML.
+
+    Internal structural compatibility awaiting external ADMS/XSD validation.
+    Note: Round-trip verification via _parse_cim_xml verifies component count retention
+    (buses and branches), not topological line connectivity (from_bus/to_bus terminals
+    default to empty strings per importer contract).
+    """
     if not is_feature_enabled("data_export_cim", default=False):
         raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
 
@@ -1021,7 +1033,7 @@ async def export_cim(
         )
     except CIMTooLargeError as exc:
         raise HTTPException(
-            status_code=422,
+            status_code=413,
             detail=f"CIM_TOO_LARGE: {exc}",
         ) from exc
 
@@ -1033,6 +1045,8 @@ async def export_cim(
             status_code=422,
             detail=f"CIM_VERIFY_MISMATCH: Failed to re-parse generated CIM XML: {exc}",
         ) from exc
+
+    xml_str = xml_bytes.decode("utf-8", errors="replace")
 
     if norm_profile in ("EQ", "FULL"):
         expected_buses = len(cim_model.connectivity_nodes)
@@ -1050,6 +1064,33 @@ async def export_cim(
                     f"got {len(re_buses)} buses and {len(re_branches)} branches."
                 ),
             )
+    elif norm_profile == "SSH":
+        # Operational state profile: must contain Switch.open state if switches exist, and exclude ACLineSegment definitions
+        has_switches = bool(cim_model.breakers)
+        if has_switches and "<cim:Switch.open>" not in xml_str:
+            raise HTTPException(
+                status_code=422,
+                detail="CIM_VERIFY_MISMATCH: SSH profile must contain Switch.open state when switches are present.",
+            )
+        if "<cim:ACLineSegment" in xml_str:
+            raise HTTPException(
+                status_code=422,
+                detail="CIM_VERIFY_MISMATCH: SSH profile must exclude ACLineSegment equipment definitions.",
+            )
+    elif norm_profile == "TP":
+        # Topology profile: must contain TopologicalNode definitions
+        if "<cim:TopologicalNode" not in xml_str:
+            raise HTTPException(
+                status_code=422,
+                detail="CIM_VERIFY_MISMATCH: TP profile must contain TopologicalNode definitions.",
+            )
+    elif norm_profile == "SV":
+        # State variables profile: must contain SvVoltage state definitions
+        if "<cim:SvVoltage" not in xml_str:
+            raise HTTPException(
+                status_code=422,
+                detail="CIM_VERIFY_MISMATCH: SV profile must contain SvVoltage state definitions.",
+            )
 
     safe_name = _sanitize_filename(project.name)
     file_name = f"{safe_name}_schneider_{norm_profile}.xml"
@@ -1065,6 +1106,7 @@ async def export_cim(
     db.add(export)
     await db.flush()
 
+    # Record export event in persistent dual-control audit trail via record_approval_event
     record_approval_event(
         "EXPORT_REQUESTED",
         export.id,

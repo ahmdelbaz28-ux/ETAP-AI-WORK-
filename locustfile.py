@@ -170,7 +170,7 @@ class AuthenticatedUser(HttpUser):
     # Set LOCUST_TEST_USERNAME / LOCUST_TEST_PASSWORD before running load tests.
     # Defaults are intentionally invalid so tests fail loudly if env is not set.
     _TEST_USERNAME = os.environ.get("LOCUST_TEST_USERNAME", "loadtest_user")
-    _TEST_PASSWORD = os.environ.get("LOCUST_TEST_PASSWORD") or "CI-loadtest-2025!"
+    _TEST_PASSWORD = os.environ.get("LOCUST_TEST_PASSWORD", "")
 
     def on_start(self):
         """Authenticate on user start."""
