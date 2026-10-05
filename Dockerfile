@@ -48,10 +48,9 @@ RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
 
 # Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN playwright install chromium 2>&1 || \
-    echo "Playwright Chromium install failed — BrowserCUA will fall back to Format U" ; \
-    chmod -R 755 /ms-playwright 2>/dev/null || true ; \
-    chown -R user:user /ms-playwright 2>/dev/null || true
+RUN playwright install chromium && \
+    chmod -R 755 /ms-playwright && \
+    chown -R user:user /ms-playwright
 
 # Application code — copy only what hf-space/app.py needs
 # Source files owned by root (read-only) for security.
