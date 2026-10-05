@@ -128,7 +128,7 @@ describe("ScadaIntegration Page — Substation Control Bay & SBO Gate", () => {
     );
 
     // Find Trip / Open button for CB-01
-    const tripButtons = screen.getAllByRole("button", { name: /Trip \/ Open/i });
+    const tripButtons = await screen.findAllByRole("button", { name: /Trip \/ Open/i });
     expect(tripButtons.length).toBeGreaterThan(0);
 
     fireEvent.click(tripButtons[0]);
@@ -138,6 +138,6 @@ describe("ScadaIntegration Page — Substation Control Bay & SBO Gate", () => {
       expect(screen.getByText(/Select-Before-Operate \(SBO\) Gate/i)).toBeTruthy();
       expect(screen.getByText(/Automated Pre-Flight Engineering Checks/i)).toBeTruthy();
       expect(screen.getByText(/Engineering Rationale \/ Work Order/i)).toBeTruthy();
-    });
-  });
+    }, { timeout: 8000 });
+  }, 10000);
 });

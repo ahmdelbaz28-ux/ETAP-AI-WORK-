@@ -12,8 +12,8 @@ interface BrandLogoProps {
   readonly className?: string;
 }
 
-const NAVY = "#0A2E5C";
-const SKY = "#38BDF8";
+const NAVY = "var(--color-brand, #0A2E5C)";
+const SKY = "var(--color-accent, #38BDF8)";
 
 export function BrandLogo({ size = 44, withWordmark = false, className = "" }: BrandLogoProps) {
   return (

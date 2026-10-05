@@ -185,7 +185,7 @@ export function AutoViewPanel() {
               </div>
               <div className="h-44 rounded-lg bg-[var(--bg-input)] border border-[var(--border-primary)] flex flex-col items-center justify-center relative overflow-hidden p-4 text-center">
                 {/* Visual grid illustration */}
-                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px]" />
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(var(--color-success,#10b981)_1px,transparent_1px)] [background-size:16px_16px]" />
                 <Globe className="w-10 h-10 text-emerald-500/40 mb-2" />
                 <div className="font-semibold text-[var(--text-primary)] text-xs">ArcGIS Online / Pro Map Active</div>
                 <p className="text-[10px] text-[var(--text-tertiary)] max-w-xs mt-1">
@@ -221,7 +221,7 @@ export function AutoViewPanel() {
                 <span className="font-mono text-[10px] text-[var(--text-tertiary)]">ETAP Model Active</span>
               </div>
               <div className="h-44 rounded-lg bg-[var(--bg-input)] border border-[var(--border-primary)] flex flex-col items-center justify-center relative p-4 text-center">
-                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(var(--accent-primary,#3b82f6)_1px,transparent_1px)] [background-size:16px_16px]" />
                 <Network className="w-10 h-10 text-brand-500/40 mb-2" />
                 <div className="font-semibold text-[var(--text-primary)] text-xs">MV Bus & Branch Topology</div>
                 <p className="text-[10px] text-[var(--text-tertiary)] max-w-xs mt-1">

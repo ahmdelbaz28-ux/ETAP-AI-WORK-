@@ -320,22 +320,22 @@ const LOADING_CRIT = 100;
 
 function getVoltageCellColor(voltage: number): string {
   if (voltage < VOLTAGE_LOW || voltage > VOLTAGE_HIGH) {
-    return "#ef4444";
+    return "var(--color-danger, #ef4444)";
   }
   if (Math.abs(voltage - NOMINAL_VOLTAGE) < 0.02) {
-    return "#22c55e";
+    return "var(--color-success, #22c55e)";
   }
-  return "#f59e0b";
+  return "var(--color-warning, #f59e0b)";
 }
 
 function getLoadingCellColor(loading: number): string {
   if (loading >= LOADING_CRIT) {
-    return "#ef4444";
+    return "var(--color-danger, #ef4444)";
   }
   if (loading >= LOADING_WARN) {
-    return "#f59e0b";
+    return "var(--color-warning, #f59e0b)";
   }
-  return "#22c55e";
+  return "var(--color-success, #22c55e)";
 }
 
 function ChartsTab({ result }: { readonly result: ResultEntry }) {
@@ -576,7 +576,9 @@ function DiagramTab({ result }: { readonly result: ResultEntry }) {
             node.voltage_pu !== undefined &&
             (node.voltage_pu < VOLTAGE_LOW || node.voltage_pu > VOLTAGE_HIGH);
           const fillColor = isViolation ? "rgba(239,68,68,0.18)" : "rgba(34,197,94,0.10)";
-          const strokeColor = isViolation ? "#ef4444" : "#22c55e";
+          const strokeColor = isViolation
+            ? "var(--color-danger, #ef4444)"
+            : "var(--color-success, #22c55e)";
 
           return (
             <g key={node.id}>
@@ -606,7 +608,7 @@ function DiagramTab({ result }: { readonly result: ResultEntry }) {
                   y={pos.y + 8}
                   textAnchor="middle"
                   fontSize={8}
-                  fill={isViolation ? "#ef4444" : "var(--text-tertiary)"}
+                  fill={isViolation ? "var(--color-danger, #ef4444)" : "var(--text-tertiary)"}
                 >
                   {node.voltage_pu.toFixed(3)} p.u.
                 </text>
@@ -1090,7 +1092,7 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
             )}
           </div>
 
-          <div className="pt-4 flex items-center justify-between border-t border-[#2A3441]">
+          <div className="pt-4 flex items-center justify-between border-t border-[var(--border-primary,#2A3441)]">
             <span className="text-[10px] text-slate-500 font-mono">Rollback creates new revision</span>
             <Button
               variant="outline"

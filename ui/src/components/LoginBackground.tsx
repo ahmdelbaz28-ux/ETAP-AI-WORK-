@@ -29,15 +29,15 @@ type TooltipBuilder = (isRtl: boolean, isBreakerOpen: boolean) => TooltipContent
 
 // --- Module-scope breaker-state color helpers (extracted to replace inline
 // ternaries in the SVG and reduce LoginBackground's cognitive complexity). ---
-const ACTIVE_BUS_COLOR = "#00d4ff";
-const INACTIVE_BUS_COLOR = "#334155";
-const ACTIVE_STROKE = "#3b82f6";
-const INACTIVE_STROKE = "#1e293b";
-const FEEDER_ACTIVE = "#fbbf24";
-const FEEDER_INACTIVE_FILL = "#1e293b";
-const FEEDER_INACTIVE_STROKE = "#334155";
-const TRIP_COLOR = "#ef4444";
-const CLOSE_COLOR = "#22c55e";
+const ACTIVE_BUS_COLOR = "var(--accent-primary, #00d4ff)";
+const INACTIVE_BUS_COLOR = "var(--border-primary, #334155)";
+const ACTIVE_STROKE = "var(--accent-primary, #3b82f6)";
+const INACTIVE_STROKE = "var(--border-secondary, #1e293b)";
+const FEEDER_ACTIVE = "var(--color-warning, #fbbf24)";
+const FEEDER_INACTIVE_FILL = "var(--border-secondary, #1e293b)";
+const FEEDER_INACTIVE_STROKE = "var(--border-primary, #334155)";
+const TRIP_COLOR = "var(--color-danger, #ef4444)";
+const CLOSE_COLOR = "var(--color-success, #22c55e)";
 
 function busLvColor(open: boolean): string {
   return open ? INACTIVE_BUS_COLOR : ACTIVE_BUS_COLOR;
@@ -309,7 +309,7 @@ export function LoginBackground({
         className="absolute inset-0 opacity-[0.035]"
         style={{
           backgroundImage:
-            "linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)",
+            "linear-gradient(var(--accent-primary, #3b82f6) 1px, transparent 1px), linear-gradient(90deg, var(--accent-primary, #3b82f6) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
@@ -317,7 +317,7 @@ export function LoginBackground({
         className="absolute inset-0 opacity-[0.015]"
         style={{
           backgroundImage:
-            "linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)",
+            "linear-gradient(var(--accent-primary, #3b82f6) 1px, transparent 1px), linear-gradient(90deg, var(--accent-primary, #3b82f6) 1px, transparent 1px)",
           backgroundSize: "8px 8px",
         }}
       />
@@ -451,7 +451,7 @@ export function LoginBackground({
             fill="none"
             stroke="#00d4ff"
             strokeWidth="2.5"
-            className="transition-all duration-300 group-hover/trans:stroke-[#60a5fa]"
+            className="transition-all duration-300 group-hover/trans:stroke-[var(--accent-hover,#60a5fa)]"
           />
           <circle
             cx="400"
