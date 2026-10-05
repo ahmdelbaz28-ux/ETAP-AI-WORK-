@@ -127,7 +127,8 @@ def test_job_progress_received_during_simulated_job(client):
 
         # Sequence numbers increase monotonically.
         assert got_parsing["seq"] == ev_parsing["seq"]
-        assert got_solving["seq"] == ev_solving["seq"] > got_parsing["seq"]
+        assert got_solving["seq"] == ev_solving["seq"]
+        assert got_solving["seq"] > got_parsing["seq"]
 
 
 # ─── 3. Tickets: REST issuance + single-use enforcement ───────────────────

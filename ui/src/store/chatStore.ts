@@ -1017,16 +1017,9 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
 
   checkEmergencyStop: async () => {
     try {
-      let res: { active?: boolean; enabled?: boolean; is_active?: boolean } | null = null;
-      try {
-        res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
-          "/api/v1/admin/cua/kill-switch",
-        );
-      } catch {
-        res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
-          "/admin/cua/kill-switch",
-        );
-      }
+      const res = await request<{ active?: boolean; enabled?: boolean; is_active?: boolean }>(
+        "/admin/cua/kill-switch",
+      );
       const active = !!(res?.active ?? res?.enabled ?? res?.is_active);
       set({ emergencyStop: { ...get().emergencyStop, active, error: null } });
     } catch (err) {
@@ -1111,17 +1104,10 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
       session_id: get().sessionId,
     };
     try {
-      try {
-        await request<{ success: boolean }>("/api/v1/admin/cua/kill-switch/activate", {
-          method: "POST",
-          body: JSON.stringify(stopPayload),
-        });
-      } catch {
-        await request<{ success: boolean }>("/admin/cua/kill-switch/activate", {
-          method: "POST",
-          body: JSON.stringify(stopPayload),
-        });
-      }
+      await request<{ success: boolean }>("/admin/cua/kill-switch/activate", {
+        method: "POST",
+        body: JSON.stringify(stopPayload),
+      });
       set({
         emergencyStop: { active: true, activating: false, lastResult: "success", error: null },
       });

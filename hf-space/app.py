@@ -24,6 +24,7 @@ if not hasattr(datetime, "UTC"):
 
 import asyncio
 import hmac
+import html
 import json
 import logging
 import os
@@ -1790,9 +1791,10 @@ async def settings_test_key(provider: str, request: Request):
 
     provider = provider.lower().strip()
     if provider not in APIKeyStore.SUPPORTED_PROVIDERS:
+        safe_provider = html.escape(provider)
         return JSONResponse(
             status_code=400,
-            content={"success": False, "error": f"Unsupported provider: {provider}"},
+            content={"success": False, "error": f"Unsupported provider: {safe_provider}"},
         )
 
     # ─── Optional body: test an unsaved key ────────────────────────────────

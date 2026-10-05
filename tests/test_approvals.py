@@ -342,7 +342,8 @@ class TestTenantIsolation:
         denied = client.post(f"/api/v1/approvals/{action_id}/resolve", json={"decision": "approve"})
         assert denied.status_code == 403
         detail = denied.json()["detail"]
-        assert detail["code"] == approvals_mod.CROSS_TENANT_FORBIDDEN == "CROSS_TENANT_FORBIDDEN"
+        assert detail["code"] == approvals_mod.CROSS_TENANT_FORBIDDEN
+        assert approvals_mod.CROSS_TENANT_FORBIDDEN == "CROSS_TENANT_FORBIDDEN"
 
         events = [e["event_type"] for e in _audit_trail[marker:]]
         assert "CROSS_TENANT_RESOLVE_DENIED" in events

@@ -33,7 +33,11 @@ import os
 
 from gis_integration.base import GISProviderInterface
 from gis_integration.exceptions import NotImplementedFeature
-from gis_integration.providers.arcgis_provider import ArcGISOnlineProvider, ArcGISProvider
+from gis_integration.providers.arcgis_provider import (
+    MSG_ARCGIS_ARCHIVED,
+    ArcGISOnlineProvider,
+    ArcGISProvider,
+)
 from gis_integration.providers.mock_gis import MockGISProvider
 from gis_integration.providers.qgis_provider import QGISProvider
 
@@ -83,6 +87,22 @@ def _resolve_qgis_provider(mock_allowed: bool) -> GISProviderInterface:
     )
 
 
+def _resolve_arcgis_online() -> ArcGISOnlineProvider:
+    try:
+        from api.feature_flags import is_feature_enabled
+
+        enabled = is_feature_enabled("arcgis_provider", default=False)
+    except Exception:
+        logger.warning("feature_flags subsystem unavailable for arcgis_provider check")
+        enabled = False
+
+    if not enabled:
+        raise RuntimeError(
+            "ArcGIS Online provider is disabled in production by feature flag 'arcgis_provider'"
+        )
+    return ArcGISOnlineProvider()
+
+
 def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
     """Factory to resolve the appropriate GIS provider."""
     use_mock = os.getenv("USE_MOCK_GIS", "false").lower() == "true"
@@ -94,24 +114,10 @@ def get_gis_provider(provider_type: str | None = None) -> GISProviderInterface:
     p_type = (provider_type or os.getenv("GIS_PROVIDER", "qgis")).lower()
 
     if p_type == "arcgis":
-        raise NotImplementedFeature(
-            "ArcGISProvider is archived; use QGISProvider or MockGISProvider"
-        )
+        raise NotImplementedFeature(MSG_ARCGIS_ARCHIVED)
 
     if p_type in ("arcgis_online", "arcgis-online"):
-        try:
-            from api.feature_flags import is_feature_enabled
-
-            enabled = is_feature_enabled("arcgis_provider", default=False)
-        except Exception:
-            logger.warning("feature_flags subsystem unavailable for arcgis_provider check")
-            enabled = False
-
-        if not enabled:
-            raise RuntimeError(
-                "ArcGIS Online provider is disabled in production by feature flag 'arcgis_provider'"
-            )
-        return ArcGISOnlineProvider()
+        return _resolve_arcgis_online()
 
     if p_type == "qgis":
         return _resolve_qgis_provider(mock_allowed)

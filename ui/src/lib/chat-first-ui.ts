@@ -23,10 +23,6 @@ function isEnvOverride(): boolean {
 /** Resolve the effective ChatWorkspace state. FAIL CLOSED → OFF by default. */
 export async function isChatFirstUiEnabled(): Promise<boolean> {
   if (isEnvOverride()) return true;
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token") || localStorage.getItem("auth_token");
-    if (!token) return false;
-  }
   try {
     const res = await fetchFeatureFlags();
     const flag = (res?.data ?? []).find((f) => f.key === CHAT_FIRST_UI_KEY);
