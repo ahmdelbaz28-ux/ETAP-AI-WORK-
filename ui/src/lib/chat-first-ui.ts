@@ -12,6 +12,7 @@
  */
 import { useEffect, useState } from "react";
 import { fetchFeatureFlags } from "./api";
+import { getAuthToken } from "./tokenStorage";
 
 export const CHAT_FIRST_UI_KEY = "chat_first_ui";
 
@@ -20,9 +21,22 @@ function isEnvOverride(): boolean {
   return env?.VITE_CHAT_FIRST_UI === "true";
 }
 
+function isTestEnvironment(): boolean {
+  const proc = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
+  if (proc?.env?.NODE_ENV === "test" || proc?.env?.VITEST === "true") {
+    return true;
+  }
+  const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
+  return env?.MODE === "test";
+}
+
 /** Resolve the effective ChatWorkspace state. FAIL CLOSED → OFF by default. */
 export async function isChatFirstUiEnabled(): Promise<boolean> {
   if (isEnvOverride()) return true;
+  // If in browser and unauthenticated, fail closed without spamming 401 network requests
+  if (typeof window !== "undefined" && !isTestEnvironment() && !getAuthToken()) {
+    return false;
+  }
   try {
     const res = await fetchFeatureFlags();
     const flag = (res?.data ?? []).find((f) => f.key === CHAT_FIRST_UI_KEY);
@@ -60,6 +74,11 @@ export function useChatFirstUi(): ChatFirstUiState {
         typeof window !== "undefined" &&
         (window.location.pathname === "/login" || window.location.pathname === "/register")
       ) {
+        if (alive) setResolved(false);
+        return;
+      }
+
+      if (typeof window !== "undefined" && !isTestEnvironment() && !getAuthToken()) {
         if (alive) setResolved(false);
         return;
       }
