@@ -163,7 +163,8 @@ jobs:
               -v /tmp/trivy-cache:/root/.cache/trivy \
               -w /repo \
               aquasec/trivy:0.58.0 \
-              fs --severity CRITICAL \
+              fs --db-repository ghcr.io/aquasec/trivy-db:2 \
+                 --severity CRITICAL \
                  --ignore-unfixed \
                  --exit-code 1 \
                  --ignorefile .trivyignore \

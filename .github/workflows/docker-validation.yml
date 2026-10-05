@@ -260,22 +260,47 @@ jobs:
 
       - name: 🔬 Trivy vulnerability scan (via Docker)
         run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v /tmp/trivy-cache:/root/.cache/trivy \
-            -v "${PWD}:/repo" \
-            aquasec/trivy:0.58.0 \
-            image --severity CRITICAL,HIGH \
-                  --ignore-unfixed \
-                  --ignorefile /repo/.trivyignore \
-                  --exit-code 1 \
-                  --format sarif \
-                  --output /repo/trivy-${{ matrix.name }}.sarif \
-                  etap-${{ matrix.name }}:scan
+          mkdir -p /tmp/trivy-cache
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=0
+          until [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
+            echo "Running Trivy (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
+            if docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v /tmp/trivy-cache:/root/.cache/trivy \
+              -v "${PWD}:/repo" \
+              aquasec/trivy:0.58.0 \
+              image --db-repository ghcr.io/aquasec/trivy-db:2 \
+                    --severity CRITICAL,HIGH \
+                    --ignore-unfixed \
+                    --ignorefile /repo/.trivyignore \
+                    --exit-code 1 \
+                    --format sarif \
+                    --output /repo/trivy-${{ matrix.name }}.sarif \
+                    etap-${{ matrix.name }}:scan; then
+              SUCCESS=1
+              break
+            fi
+            EXIT_CODE=$?
+            if [ -f "trivy-${{ matrix.name }}.sarif" ]; then
+              echo "Trivy completed with exit code $EXIT_CODE and generated SARIF."
+              exit $EXIT_CODE
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+              echo "Transient failure detected (no SARIF generated). Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "Trivy execution failed after $MAX_RETRIES attempts."
+            exit 1
+          fi
 
       - name: 📤 Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
-        if: always()
+        if: always() && hashFiles(format('trivy-{0}.sarif', matrix.name)) != ''
         with:
           sarif_file: 'trivy-${{ matrix.name }}.sarif'
 
