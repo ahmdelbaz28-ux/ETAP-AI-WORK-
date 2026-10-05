@@ -6,18 +6,18 @@
 # =============================================================================
 
 # Observability - OpenTelemetry
-# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.33.x
-# requires opentelemetry-semantic-conventions 0.54b0 — which is compatible
-# with opentelemetry-instrumentation-fastapi 0.54b0.
+# Pin all OTel packages to compatible versions. opentelemetry-sdk 1.45.x
+# requires opentelemetry-semantic-conventions 0.66b0 — which is compatible
+# with opentelemetry-instrumentation-fastapi 0.66b0.
 # NOTE: langfuse requires compatible opentelemetry-exporter-otlp-proto-http,
-# so the 1.30.x stack is unsatisfiable.
-opentelemetry-api~=1.33.0
-opentelemetry-sdk~=1.33.0
+# so the 1.33.x stack is unsatisfiable (conflicts with exporter-otlp 1.45.*).
+opentelemetry-api~=1.45.0
+opentelemetry-sdk~=1.45.0
 opentelemetry-exporter-otlp==1.45.*
-opentelemetry-semantic-conventions~=0.54b0
+opentelemetry-semantic-conventions~=0.66b0
 # OTLP/HTTP exporter for the Langfuse OTLP endpoint (used by core/tracing.py)
 opentelemetry-exporter-otlp-proto-http~=1.45.0
-opentelemetry-instrumentation-fastapi~=0.54b0
+opentelemetry-instrumentation-fastapi~=0.66b0
 
 # LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
 # Used by integrations/langfuse_integration.py and agents/prompt_loader.py.
