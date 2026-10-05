@@ -26,21 +26,27 @@ can never silently change a safety-critical prompt (ADR-0003).
 
 ## File Resolution Order (per handle)
 
-Given a `handle` (e.g. `load_flow_agent`):
+Given a `handle` (e.g. `etap_engineer_agent`):
 
-1. `{prompts_dir}/{handle}.yaml`
-2. `{prompts_dir}/{handle}.prompt.yaml`
-3. `prompts.json` mapping: `prompts.prompts[handle]` → resolve path → read file
-4. If no file matches and `handle != "fallback_agent"`:
-   try `fallback_agent.yaml` / `fallback_agent.prompt.yaml`
-5. If still no match: use the hardcoded safety-net prompt below.
+1. **`prompts.json` manifest (Priority 1 — Canonical Bindings)**: Consulted first. Maps `prompts.prompts[handle]` → canonical path (e.g. `etap_engineer_agent` → `prompts/etap_engineer_agent_v2.yaml`).
+2. **Local YAML pattern fallback (Priority 2)**:
+   - `{prompts_dir}/{handle}.prompt.yaml`
+   - `{prompts_dir}/{handle}.yaml`
+3. **Fallback agent prompt**:
+   - `prompts/fallback_agent.prompt.yaml` / `fallback_agent.yaml`
+4. **Hardcoded safety-net**: Default prompt embedded in runtime code.
 
-### prompts.json
+### `prompts.json` Manifest
 
-Optional. At the project root. Maps handle → file path:
+Located at the repository root. Authoritatively pins each agent handle to its canonical prompt file:
 
 ```json
-{ "prompts": { "load_flow_agent": "prompts/load_flow_agent.prompt.yaml" } }
+{
+  "prompts": {
+    "etap_engineer_agent": "prompts/etap_engineer_agent_v2.yaml",
+    "load_flow_agent": "prompts/load_flow_agent.prompt.yaml"
+  }
+}
 ```
 
 ## System Message Extraction

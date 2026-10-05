@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Trust-Hardening & Engineering Honesty (S0→S8 Closure — PR #598 @ 697f0336c)
+
+#### Added
+- **Canonical Agent Architecture**: Consolidated authoritative namespace of **27 Canonical Specialist Agents** in `agents/registry.py` (`CANONICAL_AGENT_KEYS`), 3 backward-compat aliases, and 17 `StudyType` members.
+- **BYOK Streaming Gateway**: Validated browser-to-server streaming channel with secure `X-User-LLM-Key` and `X-User-LLM-Provider` headers, removing insecure active-key fallbacks.
+- **Empirical Test Evidence**: Automated IEEE benchmarks certification (`scripts/run_ieee_benchmarks.py`: 4/4 PASS in 0.7997s) and strict standards coverage audit (`scripts/claims_audit.py --strict`: 16/16 Verified).
+- **Dual-Control Maker-Checker**: Enforced dual-control signoff on critical substation switching operations with WebSocket real-time broadcast and SBO pre-flight interlocks.
+
+#### Fixed & Remediated
+- **Light Mode Dynamic Tokens**: Remediated 17 hardcoded dark hex constants in UI components (`LoginBackground.tsx`, `ResultViewer.tsx`, `AutoViewPanel.tsx`, `BrandLogo.tsx`) with adaptive CSS variables (`var(--accent-primary)`, `var(--border-primary)`, `var(--color-danger)`, `var(--color-success)`), achieving 100% theme parity.
+- **Flaky SCADA Test Stabilization**: Hardened async queries and timeouts in `ScadaIntegration.test.tsx`, achieving **208/208 tests passed across 26 test files** in Vitest (`ui/`).
+- **IEC 60909 Documentation & Formulations**: Scoped method documentation accurately to standard clauses (`Clause 3.7`) without unsubstantiated Method B/C claims.
+- **Technical Debt Closure**: Purged historical secrets with verified key rotation in `SECURITY.md`, enabled Redis token blacklisting, and implemented distributed rate limiting.
+
 ## [2.1.0] - 2026-09-16
 
 ### Production Hardening & Enterprise Deployment

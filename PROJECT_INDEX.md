@@ -28,6 +28,8 @@
 
 ## 🤖 AI Agents
 
+> **Architecture Note on Agent Count:** The table below reflects all 31 python modules automatically indexed in the `agents/` directory. The canonical architecture defines **27 Canonical Specialist Agents** declared in [`agents/registry.py`](agents/registry.py) (`CANONICAL_AGENT_KEYS`), plus 3 backward-compat aliases = 30 registered keys, and 17 canonical `StudyType` members. Framework base modules (such as `base.py`, `cua_base_executor.py`) provide infrastructure rather than standalone study capabilities.
+
 | Agent | File | Standards | Description |
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |

@@ -1,88 +1,64 @@
-# ETAP Deployment Guide
+# AhmedETAP Platform — Production Deployment Guide
 
 ## Docker Deployment (Recommended)
 
 ### Prerequisites
-- Docker 20.10+ and Docker Compose 2.0+
-- Cryptographically generated API key and HMAC key
+- Docker Engine 24.0+ and Docker Compose 2.20+
+- Cryptographically generated secrets (`JWT_SECRET_KEY`, `ENGINEERING_SERVICE_API_KEY`)
+- PostgreSQL database instance (e.g. Neon PostgreSQL, AWS RDS, or Azure Database for PostgreSQL)
 
 ### Steps
 
-1. Generate secrets:
+1. Configure production environment variables in `.env`:
 ```bash
-export API_KEY=$(openssl rand -hex 32)
-export EVIDENCE_HMAC_KEY=$(openssl rand -hex 32)
+JWT_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+ENGINEERING_SERVICE_API_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+DATABASE_URL="postgresql+asyncpg://etapuser:etappass@postgres:5432/etap_db"
 ```
 
-2. Deploy:
+2. Start the full stack with Docker Compose:
 ```bash
-docker compose up -d
+docker compose -f docker-compose.yml up -d --build
 ```
 
-3. Verify:
+3. Verify service health:
 ```bash
-curl http://localhost:8000/api/health
-# Expected: {"success":true,"data":{"status":"ok","version":"1.0.0"}}
+curl http://localhost:8000/health
+# Expected: {"status":"healthy","version":"2.1.0"}
 ```
 
-### Container Security
-- Runs as non-root `etap` user
-- Read-only filesystem (except `/data` and `/logs` volumes)
-- tmpfs for `/tmp` (100MB, ephemeral)
-- `no-new-privileges:true` security option
-- Health check every 30s with 3 retries
+---
 
-## Manual Deployment (Linux)
+## Container Security & Hardening
 
-### Prerequisites
-- Python 3.12+
-- Node.js 18+ (for frontend build)
+- Container runs as non-root service user (`engsvc` / `hfuser`).
+- Read-only root filesystem with ephemeral tmpfs volumes for temporary solver files.
+- Fail-closed security architecture: Missing required API keys or invalid database strings terminate boot immediately.
+- Dual-control Maker-Checker enforcement on critical substation switching operations.
+- Health probes configured at `/health`, `/healthz`, and `/readyz`.
 
-### Steps
+---
 
-1. Install:
+## Standalone Host Deployment (Linux / Windows Server)
+
+1. Clone and install dependencies:
 ```bash
+git clone https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-.git
+cd ETAP-AI-WORK-
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
-pip install etap[workflow]  # optional
-pip install etap[memory]    # optional
 ```
 
-2. Configure:
+2. Build the Chat-First v3.0 UI:
 ```bash
-cp .env.example .env
-# Edit .env with production secrets
+cd ui
+npm install
+npm run build
+cd ..
 ```
 
-3. Build frontend:
+3. Run with production ASGI server (Uvicorn / Gunicorn):
 ```bash
-cd frontend && npm install && npm run build
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
-
-4. Start:
-```bash
-uvicorn backend.app:app --host 0.0.0.0 --port 8000 --workers 4
-```
-
-5. Verify:
-```bash
-curl http://localhost:8000/api/health
-```
-
-## Production Checklist
-
-- [ ] `APP_ENV=production` set
-- [ ] `API_KEY` is cryptographically generated (not `dev-test-key`)
-- [ ] `EVIDENCE_HMAC_KEY` is cryptographically generated
-- [ ] CORS origins explicitly configured (no wildcards)
-- [ ] Secrets managed by secrets manager (not `.env` file)
-- [ ] Frontend build served via FastAPI static mount
-- [ ] Health check endpoint responding
-- [ ] Database persistence volume configured
-- [ ] Log aggregation configured
-- [ ] Rate limits appropriate for traffic
-
-## Rollback Strategy
-
-1. Docker: `docker compose down` → redeploy previous image
-2. Manual: Stop uvicorn, revert git commit, restart
-3. Database: SQLite WAL mode supports atomic rollback within a session

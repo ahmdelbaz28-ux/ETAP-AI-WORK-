@@ -6,12 +6,14 @@ This document describes every AI agent in the AhmedETAP, their capabilities, sta
 
 ## Agent Architecture
 
-The platform uses a **dual-runtime architecture**:
+The platform uses a **dual-runtime architecture** comprising **27 Canonical Specialist Agents**[^1]:
 
-1. **Mastra (TypeScript) Agents** — LLM-powered agents running in the Node.js runtime, handling user interaction, tool orchestration, and specialist routing.
-2. **Python Agents** — Computation-focused agents in the Python runtime, executing validated power-system calculations (Newton-Raphson, IEC 60909, IEEE 1584, etc.).
+1. **Mastra (TypeScript) Agents (11 agents)** — LLM-powered agents running in the Node.js runtime (`src/mastra/agents/`), handling user interaction, tool orchestration, and specialist routing.
+2. **Python Agents (27 canonical keys, 30 registry keys)** — Computation-focused agents in the Python runtime (`agents/registry.py`), executing validated power-system calculations (Newton-Raphson, IEC 60909, IEEE 1584, etc.) conforming to 17 canonical `StudyType` members.
 
-The **Engineering Service API** bridges both runtimes: Mastra agents call `POST /api/v1/studies/run` which dispatches to the appropriate Python agent.
+The **Engineering Service API** bridges both runtimes: Mastra agents call `POST /api/v1/studies/run` which dispatches to the appropriate Python agent via `engine/dispatch.py`.
+
+[^1]: **Canonical Agent Architecture Footnote:** Canonical architecture defines **27 Canonical Specialist Agents** declared in [`agents/registry.py`](agents/registry.py) (`CANONICAL_AGENT_KEYS`), with 3 backward-compat aliases (`AGENT_KEY_ALIASES`: `harmonic`, `opf`, `protection`) yielding 30 registered keys, 17 canonical `StudyType` members in [`agents/models.py`](agents/models.py), and 11 Mastra TypeScript LLM agents in [`src/mastra/agents/`](src/mastra/agents/). Historical documentation references (19 in early 2026-06 snapshots, 24 in v2.1.0 drafts, 25 in legacy numbered `AGENTS.md` sections, or 31 in `PROJECT_INDEX.md` script indexing) reflect prior milestones or raw file counts before full registry consolidation.
 
 ---
 
@@ -253,6 +255,18 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standards Referenced**: IEEE 141, IEEE 242, IEC 62271, IEC 60076, IEC 60364, IEC 60909
 - **Purpose**: Generative topology synthesis of substation Single-Line Diagrams (SLD), transformer sizing, switchgear rating, and protection scheme allocation from explicit user parameters.
 - **Honest Limits & Constraints**: Scaffold status only (commit `7617d30be`). Does not modify existing ETAP project files or mutate production topologies directly. Outputs are NOT field-validated against live utility configurations; human expert review and engineering stamp are strictly required prior to physical implementation. Fails closed (`AgentStatus.FAILED` with `reason="flag_disabled"`) whenever the `generative_design` feature flag is inactive.
+
+### 26. ETAP GUI Agent (`ETAPGUIAgent`)
+- **File**: `agents/etap_gui_agent.py`
+- **StudyType**: `ETAP_GUI`
+- **Key**: `etap_gui`
+- **Engine**: CUA Execution Engine (`agents/cua_executor.py`, `agents/browser_cua_executor.py`)
+- **Purpose**: Computer-Use Agent (CUA) automation for interacting with graphical desktop ETAP and browser-based interfaces with kill-switch safeguards.
+
+### 27. AhmedETAP Orchestration Agent (`AhmedETAPOrchestrationAgent`)
+- **File**: `agents/ahmed_etap_orchestrator.py`
+- **Key**: `ahmed_etap`
+- **Purpose**: Autonomous end-to-end multi-agent study orchestrator, synthesizing results across load flow, short circuit, and protection into unified deliverables.
 
 ---
 
