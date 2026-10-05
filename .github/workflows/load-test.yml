@@ -447,12 +447,15 @@ jobs:
         id: pr-finder
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           PR_NUM=""
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            PR_NUM=$(gh pr list --head "${{ github.event.workflow_run.head_branch }}" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            PR_NUM=$(gh pr list --head "$HEAD_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
           else
-            PR_NUM=$(gh pr list --head "${{ github.ref_name }}" --json number --jq '.[0].number' 2>/dev/null || echo "")
+            PR_NUM=$(gh pr list --head "$REF_NAME" --json number --jq '.[0].number' 2>/dev/null || echo "")
           fi
           echo "pr_number=$PR_NUM" >> "$GITHUB_OUTPUT"
 

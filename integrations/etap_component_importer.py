@@ -11,17 +11,15 @@ Uses defusedxml for entity expansion protection and secure parsing.
 
 from __future__ import annotations
 
-import importlib
 import logging
 import re
 import uuid
 from typing import Any, Optional
 
 try:
-    _defused_et = importlib.import_module("defusedxml.ElementTree")
-    ET = _defused_et
+    import defusedxml.ElementTree as ET
 except ImportError:
-    import xml.etree.ElementTree as ET  # type: ignore
+    ET = None  # type: ignore[assignment]
 
 logger = logging.getLogger("etap.component_importer")
 _ETAP_LIBRARY_NAME = "ETAP Library"
@@ -60,8 +58,11 @@ class ETAPComponentImporter:
         if isinstance(content, str):
             content = content.encode("utf-8")
 
+        if ET is None:
+            raise ValueError("XML parsing is disabled: defusedxml is not installed")
+
         try:
-            root = ET.fromstring(content)  # nosec B314 - uses defusedxml when installed
+            root = ET.fromstring(content)
         except Exception as err:
             logger.error("Failed to parse ETAP XML: %s", err)
             raise ValueError(f"Invalid ETAP XML: {err}") from err

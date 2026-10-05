@@ -28,7 +28,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional, Sequence
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import (
@@ -51,12 +51,13 @@ from api.dependencies import (
     pagination_params,
 )
 from api.dual_control import record_approval_event
-from api.feature_flags import is_feature_enabled
+from api.feature_flags import is_feature_enabled, is_strict_feature_enabled
 from api.rbac import require_permission
 from api.results_store import (
     create_result,
     store_result_file,
 )
+from gis_integration.models import ADMSAsset, ADMSAssetType
 
 logger = logging.getLogger("api.export")
 UTC = timezone.utc
@@ -157,6 +158,13 @@ EXPORT_FORMATS: list[ExportFormat] = [
         mime_type="application/json",
         extension=".json",
         description="Full power system model and study results in JSON format",
+    ),
+    ExportFormat(
+        id="cim-xml",
+        name="CIM XML for Schneider ADMS",
+        mime_type="application/xml",
+        extension=".xml",
+        description="Schneider EcoStruxure ADMS CIM RDF/XML export (EQ/SSH/TP/SV)",
     ),
 ]
 
@@ -342,7 +350,9 @@ _sanitize_csv_cell = _sanitize_csv_cell_impl
 @router.get("/formats", summary="List pre-declared supported export formats")
 async def list_export_formats() -> list[ExportFormat]:
     """Return all available export formats."""
-    return EXPORT_FORMATS
+    if is_strict_feature_enabled("data_export_cim", default=False):
+        return EXPORT_FORMATS
+    return [f for f in EXPORT_FORMATS if f.id != "cim-xml"]
 
 
 @router.get(
@@ -656,6 +666,425 @@ async def export_json(
     )
 
 
+def _extract_project_adms_assets(project: Any, studies: Sequence[Any]) -> list[ADMSAsset]:
+    """
+    Extract ADMSAsset objects from project definition and studies.
+
+    Enforces fail-closed validation: any bus without a valid GIS position
+    raises HTTP 422 ("N buses without GIS position"), matching the
+    validation_gateway rule SYNC_ADMS_ELECTRICAL_TOPOLOGY.
+    """
+    system_config = getattr(project, "system_config", None) or {}
+
+    # 1. Direct ADMS assets in system_config
+    if isinstance(system_config, dict):
+        raw_assets = system_config.get("adms_assets") or system_config.get("assets")
+        if isinstance(raw_assets, list) and len(raw_assets) > 0:
+            parsed_assets: list[ADMSAsset] = []
+            for item in raw_assets:
+                if isinstance(item, ADMSAsset):
+                    parsed_assets.append(item)
+                elif isinstance(item, dict):
+                    parsed_assets.append(
+                        ADMSAsset(
+                            asset_id=str(item.get("asset_id", uuid.uuid4().hex[:8])),
+                            asset_type=ADMSAssetType(item.get("asset_type", "SUBSTATION")),
+                            geometry=dict(item.get("geometry") or {}),
+                            metadata=dict(item.get("metadata") or {}),
+                        )
+                    )
+            substations = [a for a in parsed_assets if a.asset_type == ADMSAssetType.SUBSTATION]
+            missing_gis = sum(
+                1
+                for s in substations
+                if not (
+                    s.geometry
+                    and isinstance(s.geometry.get("coordinates"), (list, tuple))
+                    and len(s.geometry["coordinates"]) >= 2
+                )
+            )
+            if missing_gis > 0:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"{missing_gis} buses without GIS position",
+                )
+            return parsed_assets
+
+        # 2. Structured electrical buses/lines in system_config
+        raw_buses = system_config.get("buses") or system_config.get("nodes") or []
+        raw_lines = system_config.get("lines") or system_config.get("branches") or []
+        raw_tx = system_config.get("transformers") or []
+        raw_switches = system_config.get("switches") or []
+        gis_positions = (
+            system_config.get("gis_positions") or system_config.get("gis_coordinates") or {}
+        )
+
+        if raw_buses:
+            substation_assets: list[ADMSAsset] = []
+            missing_buses: list[str] = []
+            bus_coords: dict[str, list[float]] = {}
+
+            for bus in raw_buses:
+                bid = str(
+                    bus.get("bus_id")
+                    if isinstance(bus, dict)
+                    else getattr(bus, "bus_id", getattr(bus, "id", ""))
+                )
+                if not bid:
+                    continue
+                name = str(
+                    bus.get("name", f"Bus {bid}")
+                    if isinstance(bus, dict)
+                    else getattr(bus, "name", f"Bus {bid}")
+                )
+                base_kv = (
+                    float(bus.get("base_kv") or bus.get("voltage_kv") or 115.0)
+                    if isinstance(bus, dict)
+                    else float(getattr(bus, "base_kv", 115.0))
+                )
+
+                coords = None
+                if isinstance(bus, dict):
+                    coords = bus.get("coordinates") or bus.get("position")
+                    if not coords and isinstance(bus.get("geometry"), dict):
+                        coords = bus["geometry"].get("coordinates")
+                if not coords and isinstance(gis_positions, dict):
+                    coords = gis_positions.get(bid) or (
+                        gis_positions.get(int(bid)) if bid.isdigit() else None
+                    )
+
+                if isinstance(coords, (list, tuple)) and len(coords) >= 2:
+                    lon, lat = float(coords[0]), float(coords[1])
+                    bus_coords[bid] = [lon, lat]
+                    substation_assets.append(
+                        ADMSAsset(
+                            asset_id=bid,
+                            asset_type=ADMSAssetType.SUBSTATION,
+                            geometry={"type": "Point", "coordinates": [lon, lat]},
+                            metadata={
+                                "name": name,
+                                "base_kv": base_kv,
+                                "Lifecycle_Status": "In_Service",
+                                "AOR": "Default_AOR",
+                            },
+                        )
+                    )
+                else:
+                    missing_buses.append(bid)
+
+            if missing_buses:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"{len(missing_buses)} buses without GIS position",
+                )
+
+            line_assets: list[ADMSAsset] = []
+            for line in raw_lines:
+                lid = str(
+                    line.get("line_id", line.get("id", uuid.uuid4().hex[:8]))
+                    if isinstance(line, dict)
+                    else getattr(line, "line_id", getattr(line, "id", ""))
+                )
+                from_id = str(
+                    line.get("from_bus_id", line.get("from_bus", ""))
+                    if isinstance(line, dict)
+                    else getattr(line, "from_bus_id", getattr(line, "from_bus", ""))
+                )
+                to_id = str(
+                    line.get("to_bus_id", line.get("to_bus", ""))
+                    if isinstance(line, dict)
+                    else getattr(line, "to_bus_id", getattr(line, "to_bus", ""))
+                )
+                lname = str(
+                    line.get("name", f"Line {lid}")
+                    if isinstance(line, dict)
+                    else getattr(line, "name", f"Line {lid}")
+                )
+                c1 = bus_coords.get(from_id)
+                c2 = bus_coords.get(to_id)
+                if c1 and c2:
+                    line_assets.append(
+                        ADMSAsset(
+                            asset_id=lid,
+                            asset_type=ADMSAssetType.LINE,
+                            geometry={"type": "LineString", "coordinates": [c1, c2]},
+                            metadata={
+                                "name": lname,
+                                "Lifecycle_Status": "In_Service",
+                                "base_kv": float(
+                                    line.get("base_kv", 115.0)
+                                    if isinstance(line, dict)
+                                    else getattr(line, "base_kv", 115.0)
+                                ),
+                            },
+                        )
+                    )
+
+            for tx in raw_tx:
+                tid = str(
+                    tx.get("transformer_id", tx.get("id", uuid.uuid4().hex[:8]))
+                    if isinstance(tx, dict)
+                    else getattr(tx, "transformer_id", "")
+                )
+                from_id = str(
+                    tx.get("from_bus_id", tx.get("from_bus", ""))
+                    if isinstance(tx, dict)
+                    else getattr(tx, "from_bus_id", "")
+                )
+                to_id = str(
+                    tx.get("to_bus_id", tx.get("to_bus", ""))
+                    if isinstance(tx, dict)
+                    else getattr(tx, "to_bus_id", "")
+                )
+                tname = str(
+                    tx.get("name", f"Tx {tid}")
+                    if isinstance(tx, dict)
+                    else getattr(tx, "name", f"Tx {tid}")
+                )
+                c1 = bus_coords.get(from_id)
+                c2 = bus_coords.get(to_id)
+                if c1 and c2:
+                    line_assets.append(
+                        ADMSAsset(
+                            asset_id=tid,
+                            asset_type=ADMSAssetType.TRANSFORMER,
+                            geometry={"type": "LineString", "coordinates": [c1, c2]},
+                            metadata={"name": tname, "Lifecycle_Status": "In_Service"},
+                        )
+                    )
+
+            for sw in raw_switches:
+                sid = str(
+                    sw.get("switch_id", sw.get("id", uuid.uuid4().hex[:8]))
+                    if isinstance(sw, dict)
+                    else getattr(sw, "switch_id", "")
+                )
+                from_id = str(
+                    sw.get("from_bus_id", sw.get("from_bus", ""))
+                    if isinstance(sw, dict)
+                    else getattr(sw, "from_bus_id", "")
+                )
+                to_id = str(
+                    sw.get("to_bus_id", sw.get("to_bus", ""))
+                    if isinstance(sw, dict)
+                    else getattr(sw, "to_bus_id", "")
+                )
+                sname = str(
+                    sw.get("name", f"Switch {sid}")
+                    if isinstance(sw, dict)
+                    else getattr(sw, "name", f"Switch {sid}")
+                )
+                open_state = bool(
+                    sw.get("open_state", sw.get("open", False))
+                    if isinstance(sw, dict)
+                    else getattr(sw, "open_state", False)
+                )
+                c1 = bus_coords.get(from_id)
+                c2 = bus_coords.get(to_id)
+                if c1 and c2:
+                    line_assets.append(
+                        ADMSAsset(
+                            asset_id=sid,
+                            asset_type=ADMSAssetType.SWITCH,
+                            geometry={"type": "LineString", "coordinates": [c1, c2]},
+                            metadata={
+                                "name": sname,
+                                "open_state": open_state,
+                                "Lifecycle_Status": "In_Service",
+                            },
+                        )
+                    )
+
+            return substation_assets + line_assets
+
+    # 3. IEEE benchmark projects
+    p_id = getattr(project, "id", "")
+    if p_id and p_id.startswith("ieee-"):
+        from engine.benchmarks.ieee_cases import build_ieee_9bus_system, build_ieee_14bus_system
+
+        is_9bus = "9bus" in p_id
+        sys_model = build_ieee_9bus_system() if is_9bus else build_ieee_14bus_system()
+        gis_map = getattr(project, "system_config", None) or {}
+        gis_coords = (
+            gis_map.get("gis_positions")
+            or gis_map.get("gis_coordinates")
+            or {}
+            if isinstance(gis_map, dict)
+            else {}
+        )
+
+        missing_buses = [
+            str(bid)
+            for bid in sys_model.buses
+            if str(bid) not in gis_coords
+            and (int(bid) if str(bid).isdigit() else None) not in gis_coords
+        ]
+        if missing_buses:
+            raise HTTPException(
+                status_code=422,
+                detail=f"{len(missing_buses)} buses without GIS position",
+            )
+
+        bus_assets: list[ADMSAsset] = []
+        b_coords: dict[str, list[float]] = {}
+        for b_id, b_obj in sys_model.buses.items():
+            pos = gis_coords.get(str(b_id)) or gis_coords.get(b_id)
+            lon, lat = float(pos[0]), float(pos[1])
+            b_coords[str(b_id)] = [lon, lat]
+            bus_assets.append(
+                ADMSAsset(
+                    asset_id=str(b_id),
+                    asset_type=ADMSAssetType.SUBSTATION,
+                    geometry={"type": "Point", "coordinates": [lon, lat]},
+                    metadata={
+                        "name": f"Bus {b_id}",
+                        "base_kv": float(getattr(b_obj, "base_kv", 115.0) or 115.0),
+                        "Lifecycle_Status": "In_Service",
+                    },
+                )
+            )
+
+        l_assets: list[ADMSAsset] = []
+        for l_id, l_obj in sys_model.lines.items():
+            c1 = b_coords.get(str(l_obj.from_bus_id))
+            c2 = b_coords.get(str(l_obj.to_bus_id))
+            if c1 and c2:
+                l_assets.append(
+                    ADMSAsset(
+                        asset_id=str(l_id),
+                        asset_type=ADMSAssetType.LINE,
+                        geometry={"type": "LineString", "coordinates": [c1, c2]},
+                        metadata={
+                            "name": f"Line {l_id}",
+                            "base_kv": 115.0,
+                            "Lifecycle_Status": "In_Service",
+                        },
+                    )
+                )
+
+        return bus_assets + l_assets
+
+    raise HTTPException(status_code=422, detail="No electrical network model found in project")
+
+
+@router.post(
+    "/{project_id}/cim",
+    responses={
+        400: {"description": "Invalid CIM profile or version"},
+        403: {"description": ERR_EXPORT_DISABLED},
+        404: {"description": MSG_PROJECT_NOT_FOUND},
+        422: {"description": "Unprocessable Entity — missing GIS or CIM verification mismatch"},
+    },
+)
+async def export_cim(
+    project_id: str,
+    profile: str = Query("EQ", description="CIM profile: EQ, SSH, TP, SV, FULL"),
+    version: Optional[str] = Query(None, description="CIM standard version: cim16, cim17, cgmes_2_4_15"),
+    db: AsyncSession = Depends(get_db),
+    auth=Depends(require_permission("export", "create")),
+):
+    """Export project as Schneider EcoStruxure ADMS compatible CIM RDF/XML."""
+    if not is_feature_enabled("data_export_cim", default=False):
+        raise HTTPException(status_code=403, detail=ERR_EXPORT_DISABLED)
+
+    norm_profile = profile.strip().upper()
+    valid_profiles = ("EQ", "SSH", "TP", "SV", "FULL")
+    if norm_profile not in valid_profiles:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported profile '{profile}'. Supported: {', '.join(valid_profiles)}",
+        )
+
+    norm_version = (version or "cim16").strip().lower()
+    valid_versions = ("cim16", "cim17", "cgmes_2_4_15")
+    if norm_version not in valid_versions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported version '{version}'. Supported: {', '.join(valid_versions)}",
+        )
+
+    user: CurrentUser = auth[0] if isinstance(auth, tuple) else auth
+    project = await _load_owned_project(project_id, user, db)
+
+    studies = await _get_project_studies(project_id, db)
+    assets = _extract_project_adms_assets(project, studies)
+
+    from api.data_import import _parse_cim_xml
+    from gis_validation_electrical.cim_mapper import map_adms_to_cim
+    from gis_validation_electrical.cim_writer import CIMTooLargeError, build_cim_xml
+
+    cim_model = map_adms_to_cim(assets)
+
+    try:
+        xml_bytes = build_cim_xml(
+            cim_model, profile=norm_profile, namespace_version=norm_version
+        )
+    except CIMTooLargeError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"CIM_TOO_LARGE: {exc}",
+        ) from exc
+
+    # Immediate round-trip verification: verify re-parse survives with matching counts
+    try:
+        re_buses, re_branches, _, _ = _parse_cim_xml(xml_bytes)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"CIM_VERIFY_MISMATCH: Failed to re-parse generated CIM XML: {exc}",
+        ) from exc
+
+    if norm_profile in ("EQ", "FULL"):
+        expected_buses = len(cim_model.connectivity_nodes)
+        expected_branches = sum(
+            1
+            for ce in cim_model.conducting_equipment.values()
+            if ce.kind in ("line", "feeder")
+        )
+        if len(re_buses) != expected_buses or len(re_branches) != expected_branches:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"CIM_VERIFY_MISMATCH: Round-trip verification failed. "
+                    f"Expected {expected_buses} buses and {expected_branches} branches, "
+                    f"got {len(re_buses)} buses and {len(re_branches)} branches."
+                ),
+            )
+
+    safe_name = _sanitize_filename(project.name)
+    file_name = f"{safe_name}_schneider_{norm_profile}.xml"
+
+    export = ExportHistory(
+        id=str(uuid.uuid4()),
+        project_id=project_id,
+        export_type="cim-xml",
+        file_name=file_name,
+        file_size_bytes=len(xml_bytes),
+        created_by=user.user_id,
+    )
+    db.add(export)
+    await db.flush()
+
+    record_approval_event(
+        "EXPORT_REQUESTED",
+        export.id,
+        user.user_id,
+        {
+            "project_id": project_id,
+            "export_type": "cim-xml",
+            "file_name": file_name,
+            "profile": norm_profile,
+            "version": norm_version,
+        },
+    )
+
+    return StreamingResponse(
+        io.BytesIO(xml_bytes),
+        media_type="application/xml",
+        headers={"Content-Disposition": f'attachment; filename="{file_name}"'},
+    )
+
+
 @router.get("/history", response_model=ExportHistoryResponse)
 async def export_history(
     db: AsyncSession = Depends(get_db),
@@ -720,10 +1149,12 @@ async def export_format(
         return await export_csv(project_id, db, auth)
     elif fmt == "json":
         return await export_json(project_id, db, auth)
+    elif fmt in ("cim", "cim-xml"):
+        return await export_cim(project_id=project_id, db=db, auth=auth)
     else:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported format '{format}'. Supported formats: pdf, excel, csv, json",
+            detail=f"Unsupported format '{format}'. Supported formats: pdf, excel, csv, json, cim-xml",
         )
 
 

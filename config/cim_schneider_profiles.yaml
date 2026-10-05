@@ -1,0 +1,112 @@
+# config/cim_schneider_profiles.yaml
+# Schneider EcoStruxure ADMS CIM Profile Configuration
+# References: IEC 61970 (CIM16, CIM17) and ENTSO-E CGMES 2.4.15
+
+default_version: "cim16"
+default_profile: "EQ"
+
+versions:
+  cim16:
+    name: "CIM 16 (IEC 61970-301)"
+    namespace: "http://iec.ch/TC57/2013/CIM-schema-cim16#"
+    rdf_namespace: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    entsoe_namespace: "http://entsoe.eu/CIM/SchemaExtension/3/1#"
+    schema_version: "16"
+  cim17:
+    name: "CIM 17 (IEC 61970-301:2020 / CIM100)"
+    namespace: "http://iec.ch/TC57/CIM100#"
+    rdf_namespace: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    entsoe_namespace: "http://entsoe.eu/CIM/SchemaExtension/3/2#"
+    schema_version: "17"
+  cgmes_2_4_15:
+    name: "ENTSO-E CGMES v2.4.15"
+    namespace: "http://iec.ch/TC57/2013/CIM-schema-cim16#"
+    rdf_namespace: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    entsoe_namespace: "http://entsoe.eu/CIM/SchemaExtension/3/1#"
+    schema_version: "2.4.15"
+
+profile_class_map:
+  EQ:
+    description: "Equipment Profile: Physical assets, substations, connectivity and equipment attributes"
+    classes:
+      - "TopologicalNode"
+      - "ConnectivityNode"
+      - "Terminal"
+      - "ACLineSegment"
+      - "PowerTransformer"
+      - "PowerTransformerEnd"
+      - "Breaker"
+      - "Disconnector"
+      - "LoadBreakSwitch"
+      - "Substation"
+      - "VoltageLevel"
+      - "BaseVoltage"
+      - "PositionPoint"
+      - "Location"
+  SSH:
+    description: "Steady State Hypothesis: Operating states, switch positions, and injection setpoints"
+    classes:
+      - "Breaker"
+      - "Disconnector"
+      - "LoadBreakSwitch"
+      - "Terminal"
+      - "SvStatus"
+  TP:
+    description: "Topology Profile: Bus-branch / topological node connectivity"
+    classes:
+      - "TopologicalNode"
+      - "TopologicalIsland"
+      - "Terminal"
+  SV:
+    description: "State Variables: Solution state, bus voltages, power flows"
+    classes:
+      - "SvVoltage"
+      - "SvPowerFlow"
+      - "SvStatus"
+      - "SvTapStep"
+  FULL:
+    description: "Full Combined Model: EQ + SSH + TP + SV"
+    classes:
+      - "TopologicalNode"
+      - "ConnectivityNode"
+      - "Terminal"
+      - "ACLineSegment"
+      - "PowerTransformer"
+      - "PowerTransformerEnd"
+      - "Breaker"
+      - "Disconnector"
+      - "LoadBreakSwitch"
+      - "Substation"
+      - "VoltageLevel"
+      - "BaseVoltage"
+      - "PositionPoint"
+      - "Location"
+      - "SvVoltage"
+      - "SvPowerFlow"
+      - "SvStatus"
+
+required_fields:
+  SUBSTATION:
+    - "name"
+    - "Lifecycle_Status"
+    - "AOR"
+  FEEDER:
+    - "name"
+    - "Lifecycle_Status"
+    - "base_kv"
+  LINE:
+    - "name"
+    - "Lifecycle_Status"
+    - "base_kv"
+  TRANSFORMER:
+    - "name"
+    - "Lifecycle_Status"
+  SWITCH:
+    - "name"
+    - "Lifecycle_Status"
+
+# Schneider ADMS specific attribute defaults when not supplied in metadata
+schneider_defaults:
+  Lifecycle_Status: "In_Service"
+  AOR: "Default_AOR"
+  normalOpen: false
