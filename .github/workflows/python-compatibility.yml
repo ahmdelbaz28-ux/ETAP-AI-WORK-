@@ -133,7 +133,7 @@ jobs:
       - name: 🔧 Install dependencies
         run: |
           uv pip install --python $(which python) -r requirements.txt
-          uv pip install --python $(which python) -r requirements-dev.txt || true
+          uv pip install --python $(which python) -r requirements-dev.txt
 
       - name: 🧪 Test imports (core packages)
         run: |
