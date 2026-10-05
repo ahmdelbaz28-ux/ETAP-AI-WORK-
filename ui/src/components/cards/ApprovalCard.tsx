@@ -148,16 +148,16 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
           data-testid="qr-modal"
         >
-          <div className="bg-[#181E26] border border-[#334155] rounded-xl p-5 max-w-xs w-full shadow-2xl text-center space-y-4">
-            <div className="flex items-center justify-between border-b border-[#2E3846] pb-2">
-              <span className="text-xs font-semibold text-slate-100 flex items-center gap-1.5">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-xl p-5 max-w-xs w-full shadow-2xl text-center space-y-4">
+            <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-2">
+              <span className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                 <QrCode className="w-4 h-4 text-brand-400" />
                 2nd Approver Dual-Control
               </span>
               <button
                 type="button"
                 onClick={() => setShowQrModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -165,11 +165,11 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
             <div className="p-3 bg-white rounded-lg inline-block mx-auto shadow-inner">
               <QRCodeSVG value={qrUri} size={160} level="M" />
             </div>
-            <div className="text-[11px] text-slate-300 space-y-1">
+            <div className="text-[11px] text-[var(--text-primary)] space-y-1">
               <div className="font-mono text-emerald-400 font-semibold">
                 Time remaining: {formatTimer(secondsRemaining)}
               </div>
-              <p className="text-slate-400 text-[10px]">
+              <p className="text-[var(--text-tertiary)] text-[10px]">
                 Senior engineer can scan via AhmedETAP mobile or secondary control console to verify cryptographic signature.
               </p>
             </div>

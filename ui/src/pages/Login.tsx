@@ -237,21 +237,21 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex bg-[#070b14] relative overflow-hidden"
+      className="min-h-screen flex bg-[var(--bg-primary)] relative overflow-hidden"
       dir={isRtl ? "rtl" : "ltr"}
     >
       {/* Top Controls Overlay (z-50 pointer-events-auto ensures direct pointer reachability above side panels) */}
       <div
         className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50 flex items-center gap-3 pointer-events-auto`}
       >
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-900/60 text-slate-400 text-[10px] font-mono">
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)]/80 text-[var(--text-tertiary)] text-[10px] font-mono">
           <Shield className="w-3.5 h-3.5 text-blue-500" />
           <span>CAD SIM V2.1</span>
         </div>
         <button
           type="button"
           onClick={toggleLanguage}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold cursor-pointer"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)]/80 hover:bg-[var(--bg-hover)] text-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all text-xs font-semibold cursor-pointer"
         >
           <Globe className="w-3.5 h-3.5" />
           <span>{isRtl ? "English" : "العربية"}</span>
@@ -268,7 +268,7 @@ export default function Login() {
 
       {/* LEFT SIDE PANEL: Live Engineering Console (CAD HUD) */}
       <div
-        className={`hidden lg:flex lg:w-[48%] flex-col justify-between p-12 relative z-10 border-slate-800/40 backdrop-blur-[2px] bg-slate-950/20 ${isRtl ? "border-r" : "border-l"}`}
+        className={`hidden lg:flex lg:w-[48%] flex-col justify-between p-12 relative z-10 border-[var(--border-primary)] backdrop-blur-[2px] bg-[var(--bg-card)]/20 ${isRtl ? "border-r" : "border-l"}`}
       >
         {/* Brand Logo Header */}
         <motion.div
@@ -279,8 +279,8 @@ export default function Login() {
         >
           <BrandLogo size={48} />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white font-sans">AhmedETAP</h1>
-            <p className="text-[10px] text-slate-500 tracking-wider uppercase font-semibold">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] font-sans">AhmedETAP</h1>
+            <p className="text-[10px] text-[var(--text-muted)] tracking-wider uppercase font-semibold">
               {t("app.description")}
             </p>
           </div>
@@ -295,7 +295,7 @@ export default function Login() {
         >
           {/* Engineering Title */}
           <div className="space-y-3">
-            <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight text-white tracking-tight">
+            <h2 className="text-3xl xl:text-4xl font-extrabold leading-tight text-[var(--text-primary)] tracking-tight">
               {isRtl ? (
                 <>
                   تحليل أنظمة الطاقة
@@ -310,7 +310,7 @@ export default function Login() {
                 </>
               )}
             </h2>
-            <p className="text-xs xl:text-sm text-slate-400 leading-relaxed">
+            <p className="text-xs xl:text-sm text-[var(--text-tertiary)] leading-relaxed">
               {isRtl
                 ? "منصة تشغيل حسابات تدفق الحمل (Load Flow)، تيار القصر (Short Circuit)، الوميض القوسي (Arc Flash)، وتنسيق أجهزة الحماية، متوافقة كلياً مع معايير IEEE و IEC."
                 : "Analyze, simulate, and design electrical networks with high-precision engines for load flow, short circuit, protection coordination, and arc flash analysis."}
@@ -325,7 +325,7 @@ export default function Login() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.05 + i * 0.05 }}
-                className="px-2.5 py-1 text-[10px] font-mono text-slate-400 bg-slate-900/60 border border-slate-800 rounded-md"
+                className="px-2.5 py-1 text-[10px] font-mono text-[var(--text-tertiary)] bg-[var(--bg-hover)] border border-[var(--border-primary)] rounded-md"
               >
                 {s}
               </motion.span>
@@ -333,13 +333,13 @@ export default function Login() {
           </div>
 
           {/* Live FastAPI Telemetry Dashboard */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4 backdrop-blur-md">
-            <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <span className="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
+          <div className="bg-[var(--bg-card)]/80 border border-[var(--border-primary)] rounded-xl p-5 space-y-4 backdrop-blur-md">
+            <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-3">
+              <span className="text-[10px] font-mono font-bold tracking-wider text-[var(--text-tertiary)] uppercase">
                 {isRtl ? "حالة النظام المباشر" : "Live System Diagnostics"}
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className="text-[10px] text-[var(--text-muted)] font-mono">
                   {isRtl ? "الشبكة الهندسية:" : "API Core:"}
                 </span>
                 <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold">
@@ -350,11 +350,11 @@ export default function Login() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-1.5 text-slate-500">
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                   <Server className="w-3.5 h-3.5" />
                   <span className="text-[10px] font-sans font-semibold">Latency</span>
                 </div>
-                <div className="font-mono text-xs font-bold text-white">
+                <div className="font-mono text-xs font-bold text-[var(--text-primary)]">
                   {latency !== null ? `${latency} ms` : "—"}
                 </div>
               </div>
@@ -427,20 +427,20 @@ export default function Login() {
             <div className="flex items-center gap-3.5">
               <BrandLogo size={40} />
               <div>
-                <span className="text-xl font-bold text-white tracking-tight">AhmedETAP</span>
-                <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">
+                <span className="text-xl font-bold text-[var(--text-primary)] tracking-tight">AhmedETAP</span>
+                <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
                   {t("app.description")}
                 </p>
               </div>
             </div>
             {/* Mobile value proposition — visible only on small screens */}
-            <div className="bg-slate-900/40 border border-slate-800/60 rounded-xl p-4 space-y-2">
-              <p className="text-sm font-semibold text-white leading-snug">
+            <div className="bg-[var(--bg-card)]/80 border border-[var(--border-primary)] rounded-xl p-4 space-y-2">
+              <p className="text-sm font-semibold text-[var(--text-primary)] leading-snug">
                 Power Systems Analysis
                 <br />
                 <span className="text-blue-400">Built for Professionals</span>
               </p>
-              <p className="text-[10px] text-slate-400 leading-relaxed">
+              <p className="text-[10px] text-[var(--text-tertiary)] leading-relaxed">
                 Analyze, simulate, and design electrical networks with high-precision engines for
                 load flow, short circuit, protection coordination, and arc flash analysis.
               </p>
@@ -449,7 +449,7 @@ export default function Login() {
                 {["IEEE 1584", "IEC 60909", "IEEE 519"].map((s) => (
                   <span
                     key={s}
-                    className="px-2 py-0.5 text-[9px] font-mono text-slate-500 bg-slate-950/50 border border-slate-800 rounded"
+                    className="px-2 py-0.5 text-[9px] font-mono text-[var(--text-muted)] bg-[var(--bg-input)] border border-[var(--border-primary)] rounded"
                   >
                     {s}
                   </span>
@@ -460,8 +460,8 @@ export default function Login() {
 
           {/* Form Header Title */}
           <div className="mb-8">
-            <h3 className="text-2xl font-bold text-white tracking-tight">{t("auth.loginTitle")}</h3>
-            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{t("auth.loginTitle")}</h3>
+            <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">
               {t("auth.loginSubtitle")}
             </p>
           </div>
@@ -483,7 +483,7 @@ export default function Login() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="mb-6 p-4 rounded-xl bg-slate-950/60 border border-slate-800"
+              className="mb-6 p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-primary)]"
             >
               {forgotSent ? (
                 <div className="text-center py-2">
@@ -498,7 +498,7 @@ export default function Login() {
                       setForgotSent(false);
                       setForgotEmail("");
                     }}
-                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                    className="text-xs font-semibold text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                     type="button"
                   >
                     {t("auth.backToLogin")}
@@ -506,7 +506,7 @@ export default function Login() {
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-3">
-                  <p className="text-xs font-semibold text-white">{t("auth.resetPasswordTitle")}</p>
+                  <p className="text-xs font-semibold text-[var(--text-primary)]">{t("auth.resetPasswordTitle")}</p>
                   <input
                     type="email"
                     value={forgotEmail}
@@ -514,7 +514,7 @@ export default function Login() {
                     placeholder={t("auth.resetEmailPlaceholder")}
                     required
                     dir="ltr"
-                    className="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500 placeholder-slate-600 transition-colors"
+                    className="w-full px-3 py-2.5 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg text-xs text-[var(--text-primary)] focus:outline-none focus:border-blue-500 placeholder-[var(--text-muted)] transition-colors"
                   />
                   <div className="flex gap-2 pt-1">
                     <button
@@ -531,7 +531,7 @@ export default function Login() {
                         setForgotSent(false);
                         setForgotEmail("");
                       }}
-                      className="px-3 py-2 text-slate-400 hover:text-white text-[11px] font-semibold transition-colors"
+                      className="px-3 py-2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-[11px] font-semibold transition-colors"
                     >
                       {t("auth.cancel")}
                     </button>
@@ -545,12 +545,12 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email / Username */}
             <div className="space-y-1.5">
-              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-400">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-[var(--text-tertiary)]">
                 {t("auth.emailLabel")}
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`}
+                  className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none`}
                 />
                 <input
                   id="login-email"
@@ -563,7 +563,7 @@ export default function Login() {
                   dir="ltr"
                   className={`w-full ${
                     isRtl ? "pr-9 pl-3" : "pl-9 pr-3"
-                  } py-2.5 login-input-enhanced text-xs text-white placeholder:text-slate-600/70 focus:outline-none transition-all`}
+                  } py-2.5 login-input-enhanced text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-all`}
                 />
               </div>
             </div>
@@ -572,13 +572,13 @@ export default function Login() {
             <div className="space-y-1.5">
               <label
                 htmlFor="login-password"
-                className="block text-xs font-semibold text-slate-400"
+                className="block text-xs font-semibold text-[var(--text-tertiary)]"
               >
                 {t("auth.passwordLabel")}
               </label>
               <div className="relative">
                 <Lock
-                  className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none`}
+                  className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none`}
                 />
                 <input
                   id="login-password"
@@ -590,12 +590,12 @@ export default function Login() {
                   dir="ltr"
                   className={`w-full ${
                     isRtl ? "pr-9 pl-10" : "pl-9 pr-10"
-                  } py-2.5 login-input-enhanced text-xs text-white placeholder:text-slate-600/70 focus:outline-none transition-all`}
+                  } py-2.5 login-input-enhanced text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-all`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors`}
+                  className={`absolute ${isRtl ? "left-2.5" : "right-2.5"} top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors`}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -605,10 +605,10 @@ export default function Login() {
 
             {/* Remember & Forgot Row */}
             <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 text-slate-500 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-[var(--text-muted)] cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500/10"
+                  className="rounded border-[var(--border-primary)] bg-[var(--bg-input)] text-blue-600 focus:ring-blue-500/10"
                 />
                 <span>{t("auth.rememberMe")}</span>
               </label>
@@ -644,8 +644,8 @@ export default function Login() {
           </form>
 
           {/* Footer Navigation */}
-          <div className="mt-8 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-sans">
+          <div className="mt-8 pt-5 border-t border-[var(--border-primary)] flex items-center justify-between text-xs">
+            <span className="text-[var(--text-muted)] font-sans">
               {t("auth.noAccount")}{" "}
               <Link
                 to="/register"

@@ -226,22 +226,22 @@ export function IntegrationStatusPills() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in-50"
           data-testid="integration-detail-modal"
         >
-          <div className="bg-[#1A1F26] border border-[#334155] rounded-xl w-full max-w-md shadow-2xl overflow-hidden font-sans">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#334155] bg-[#14181F]">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl w-full max-w-md shadow-2xl overflow-hidden font-sans">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
               <div className="flex items-center gap-2">
                 <span className="w-6 h-6 rounded bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
                   {activeModal === "scada" && <Activity className="w-3.5 h-3.5" />}
                   {activeModal === "etap" && <Server className="w-3.5 h-3.5" />}
                   {activeModal === "gis" && <Globe className="w-3.5 h-3.5" />}
                 </span>
-                <span className="font-semibold text-slate-100 uppercase tracking-wide text-xs">
+                <span className="font-semibold text-[var(--text-primary)] uppercase tracking-wide text-xs">
                   {activeModal} Subsystem Telemetry
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors"
+                className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] p-1 rounded-md hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -257,9 +257,9 @@ export function IntegrationStatusPills() {
                 }
                 return (
                   <>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[#20262E] border border-[#334155]">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--bg-hover)] border border-[var(--border-primary)]">
                       <div className="space-y-1">
-                        <div className="text-[10px] uppercase text-slate-400 font-mono">
+                        <div className="text-[10px] uppercase text-[var(--text-tertiary)] font-mono">
                           Channel Status
                         </div>
                         <div className="flex items-center gap-2">
@@ -269,7 +269,7 @@ export function IntegrationStatusPills() {
                               getStatusColor(current.status),
                             )}
                           />
-                          <span className="font-semibold text-slate-100 uppercase">
+                          <span className="font-semibold text-[var(--text-primary)] uppercase">
                             {current.status}
                           </span>
                         </div>
@@ -280,19 +280,19 @@ export function IntegrationStatusPills() {
                     </div>
 
                     <div className="space-y-2">
-                      <div className="text-[10px] uppercase text-slate-400 font-mono">
+                      <div className="text-[10px] uppercase text-[var(--text-tertiary)] font-mono">
                         Subsystem Parameters
                       </div>
-                      <div className="p-3 bg-[#14181F] rounded-lg border border-[#2A3441] font-mono text-[11px] space-y-1.5 text-slate-300">
+                      <div className="p-3 bg-[var(--bg-input)] rounded-lg border border-[var(--border-primary)] font-mono text-[11px] space-y-1.5 text-[var(--text-primary)]">
                         {Object.entries(current.details).map(([key, val]) => (
                           <div key={key} className="flex justify-between items-center">
-                            <span className="text-slate-400">{key}:</span>
-                            <span className="text-slate-100">{String(val)}</span>
+                            <span className="text-[var(--text-tertiary)]">{key}:</span>
+                            <span className="text-[var(--text-primary)]">{String(val)}</span>
                           </div>
                         ))}
-                        <div className="flex justify-between items-center pt-1 border-t border-[#2A3441]">
-                          <span className="text-slate-500">Last heartbeat:</span>
-                          <span className="text-slate-400">{current.lastChecked || "N/A"}</span>
+                        <div className="flex justify-between items-center pt-1 border-t border-[var(--border-primary)]">
+                          <span className="text-[var(--text-muted)]">Last heartbeat:</span>
+                          <span className="text-[var(--text-tertiary)]">{current.lastChecked || "N/A"}</span>
                         </div>
                       </div>
                     </div>
@@ -301,7 +301,7 @@ export function IntegrationStatusPills() {
               })()}
             </div>
 
-            <div className="px-4 py-3 bg-[#14181F] border-t border-[#334155] flex items-center justify-between">
+            <div className="px-4 py-3 bg-[var(--bg-elevated)] border-t border-[var(--border-primary)] flex items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"

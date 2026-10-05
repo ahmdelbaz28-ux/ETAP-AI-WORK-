@@ -7,6 +7,7 @@ import { Badge, Button, Card, Modal } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { API_BASE_URL } from "../lib/api-config";
 import { getAuthToken } from "../lib/tokenStorage";
+import { cn } from "../utils/helpers";
 
 interface Asset {
   id: string;
@@ -244,7 +245,7 @@ export default function AssetLibrary() {
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
@@ -255,20 +256,23 @@ export default function AssetLibrary() {
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[var(--text-muted)]" />
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] text-sm"
-          >
-            <option value="all">All Types</option>
-            {assetTypes.map((t) => (
-              <option key={t} value={t}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Filter className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
+          {["all", ...assetTypes].map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setTypeFilter(type)}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-xs font-medium transition-colors capitalize",
+                typeFilter === type
+                  ? "bg-brand-600 text-white"
+                  : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] border border-[var(--border-primary)] bg-[var(--bg-card)]",
+              )}
+            >
+              {type === "all" ? "All Types" : type}
+            </button>
+          ))}
         </div>
       </div>
 

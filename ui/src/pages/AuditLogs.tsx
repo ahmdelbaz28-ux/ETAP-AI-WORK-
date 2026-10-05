@@ -13,6 +13,7 @@ import {
 } from "../components/ui";
 import { useNotify } from "../context/NotificationContext";
 import { type AuditEntry, fetchAuditLogs } from "../lib/api";
+import { cn } from "../utils/helpers";
 
 type StatusFilter = "all" | "2xx" | "4xx" | "5xx";
 
@@ -249,6 +250,24 @@ export default function AuditLogs() {
           </div>
           <div className="mt-3">
             <DatePicker label="To Date" value={dateTo} onChange={(v) => setDateTo(v)} />
+          </div>
+          <div className="mt-3 pt-3 border-t border-[var(--border-primary)] flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-[var(--text-muted)] font-medium">Quick Status:</span>
+            {(["all", "2xx", "4xx", "5xx"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStatusFilter(s)}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                  statusFilter === s
+                    ? "bg-brand-600 text-white"
+                    : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] border border-[var(--border-primary)] bg-[var(--bg-card)]",
+                )}
+              >
+                {s === "all" ? "All Statuses" : s.toUpperCase()}
+              </button>
+            ))}
           </div>
         </Card>
       )}

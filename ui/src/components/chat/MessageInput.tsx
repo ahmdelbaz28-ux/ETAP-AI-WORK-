@@ -11,7 +11,7 @@
  * - Displays ImportPreviewResponse in ActionCard with Approval Gateway guarded execution
  * - Never stores secrets or credentials in component or browser state
  */
-import { FileText, Play, Send, ShieldAlert, ShieldCheck, Upload, Wrench, X } from "lucide-react";
+import { FileText, FolderKanban, Play, Send, ShieldAlert, ShieldCheck, Upload, Wrench, X } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from "react";
 import { API_BASE_URL } from "../../lib/api-config";
 import { getAuthToken } from "../../lib/tokenStorage";
@@ -75,6 +75,7 @@ export function MessageInput({
   const approvals = useChatStore((s) => s.approvals);
   const autoApprove = useChatStore((s) => s.autoApprove);
   const emergencyStop = useChatStore((s) => s.emergencyStop);
+  const projectId = useChatStore((s) => s.projectId);
 
   const isEmergencyStopped = emergencyStop.active;
   const busy = disabled || sending || storeStreaming || executing || isEmergencyStopped;
@@ -395,12 +396,12 @@ export function MessageInput({
           if (matches.length === 0) return null;
           return (
             <div
-              className="px-3 pt-2 pb-1 border-b border-[#2A3441] bg-[#161B22]"
+              className="px-3 pt-2 pb-1 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]"
               data-testid="command-suggestions"
             >
-              <div className="text-[10px] font-mono text-slate-400 mb-1.5 flex justify-between items-center">
+              <div className="text-[10px] font-mono text-[var(--text-tertiary)] mb-1.5 flex justify-between items-center">
                 <span className="text-brand-400 font-semibold uppercase">⚡ Engineering Commands</span>
-                <span>Click or Press <kbd className="px-1 py-0.5 bg-[#20262E] rounded border border-[#334155] text-slate-300">Tab ⇥</kbd></span>
+                <span>Click or Press <kbd className="px-1 py-0.5 bg-[var(--bg-hover)] rounded border border-[var(--border-primary)] text-[var(--text-primary)]">Tab ⇥</kbd></span>
               </div>
               <div className="flex flex-wrap gap-1.5 pb-1">
                 {matches.map((item, idx) => (
@@ -411,17 +412,80 @@ export function MessageInput({
                       setDraft(item.cmd + " ");
                       textareaRef.current?.focus();
                     }}
-                    className="px-2 py-1 rounded bg-[#20262E] hover:bg-brand-600/30 hover:border-brand-500/50 border border-[#334155] text-left text-xs transition-colors flex items-center gap-1.5 group"
+                    className="px-2 py-1 rounded bg-[var(--bg-hover)] hover:bg-brand-600/30 hover:border-brand-500/50 border border-[var(--border-primary)] text-left text-xs transition-colors flex items-center gap-1.5 group cursor-pointer"
                     data-testid={`cmd-suggestion-${idx}`}
                   >
                     <span className="font-mono text-brand-400 font-semibold">{item.label}</span>
-                    <span className="text-[10px] text-slate-400 group-hover:text-slate-300">({item.desc.split("(")[0].trim()})</span>
+                    <span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)]">({item.desc.split("(")[0].trim()})</span>
                   </button>
                 ))}
               </div>
             </div>
           );
         })()
+      )}
+      {/* Prompt Bar Context Chips (@project) — scoped context without model picker / dictation */}
+      <div
+        className="flex items-center justify-between px-3 py-1 border-b border-[var(--border-secondary)] bg-[var(--bg-input)]/60 text-xs"
+        data-testid="prompt-bar-chips"
+      >
+        <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+          <span className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-wider shrink-0">
+            Scope:
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              const scopeTag = projectId ? `@project:${projectId}` : "@project";
+              if (!draft.includes(scopeTag)) {
+                setDraft((prev) => (prev ? `${scopeTag} ${prev}` : `${scopeTag} `));
+              }
+              textareaRef.current?.focus();
+            }}
+            title={
+              projectId
+                ? `تضمين معرّف المشروع (${projectId}) في سياق الاستفسار`
+                : "تضمين سياق المشروع في الرسالة (@project)"
+            }
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono transition-all border cursor-pointer select-none",
+              draft.includes("@project")
+                ? "bg-brand-500/20 text-brand-400 border-brand-500/40 shadow-sm"
+                : projectId
+                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/25 hover:bg-cyan-500/20"
+                  : "bg-[var(--bg-hover)] text-[var(--text-tertiary)] border-[var(--border-primary)] hover:text-[var(--text-primary)]"
+            )}
+            data-testid="prompt-chip-project"
+          >
+            <FolderKanban className="w-3 h-3 shrink-0" />
+            <span>@project{projectId ? ` (${projectId})` : ""}</span>
+          </button>
+        </div>
+
+        <div className="text-[10px] text-[var(--text-muted)] font-mono hidden sm:inline-block">
+          AhmedETAP Chat-First v3.0
+        </div>
+      </div>
+
+      {/* Quick @ mention suggestion when typing @ */}
+      {draft.includes("@") && !draft.includes("@project") && (
+        <div
+          className="px-3 py-1.5 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)] flex items-center gap-2"
+          data-testid="mention-suggestions"
+        >
+          <span className="text-[10px] font-mono text-[var(--text-tertiary)]">Mention context:</span>
+          <button
+            type="button"
+            onClick={() => {
+              const scopeTag = projectId ? `@project:${projectId}` : "@project";
+              setDraft((prev) => prev.replace(/@\w*$/, `${scopeTag} `));
+              textareaRef.current?.focus();
+            }}
+            className="px-2 py-0.5 rounded bg-[var(--bg-hover)] hover:bg-brand-600/30 hover:border-brand-500/50 border border-[var(--border-primary)] text-xs font-mono text-brand-400 transition-colors cursor-pointer"
+          >
+            @{projectId ? `project:${projectId}` : "project"}
+          </button>
+        </div>
       )}
 
       <form onSubmit={submit} className="flex items-end gap-2 p-3" data-testid="message-input-form">

@@ -302,7 +302,7 @@ export function LoginBackground({
     <div
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="absolute inset-0 z-0 bg-[#070b14] overflow-hidden select-none"
+      className="absolute inset-0 z-0 bg-[var(--bg-primary)] overflow-hidden select-none"
     >
       {/* CAD Workbench Grid */}
       <div

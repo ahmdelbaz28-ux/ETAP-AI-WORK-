@@ -117,7 +117,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
       <dialog
         open
         className={cn(
-          "w-full max-w-md h-full bg-[#1A1F26] border-0 border-l border-[#334155] shadow-2xl flex flex-col m-0 p-0 text-slate-100",
+          "w-full max-w-md h-full bg-[var(--bg-card)] border-0 border-l border-[var(--border-primary)] shadow-2xl flex flex-col m-0 p-0 text-[var(--text-primary)]",
           "animate-in slide-in-from-right duration-300",
         )}
         onClick={(e) => e.stopPropagation()}
@@ -127,13 +127,13 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
         data-testid="parameters-drawer"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#334155] bg-[#14181F]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/30 text-brand-400 flex items-center justify-center">
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h2 id="parameters-drawer-title" className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+              <h2 id="parameters-drawer-title" className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                 Solver Parameters
                 <Badge variant="info" size="sm">
                   Newton-Raphson
@@ -144,15 +144,15 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
                   </Badge>
                 )}
               </h2>
-              <p className="text-[11px] text-slate-400">
-                Project: <span className="font-mono text-slate-300">{targetProject || "UNASSIGNED"}</span> • Power-Flow Convergence Settings
+              <p className="text-[11px] text-[var(--text-tertiary)]">
+                Project: <span className="font-mono text-[var(--text-primary)]">{targetProject || "UNASSIGNED"}</span> • Power-Flow Convergence Settings
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-[#20262E] transition-colors"
+            className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
             data-testid="parameters-drawer-close"
           >
             <X className="w-4 h-4" />
@@ -189,7 +189,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
           {/* Convergence Tolerance */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <label htmlFor="convergence-tolerance" className="font-medium text-slate-200">
+              <label htmlFor="convergence-tolerance" className="font-medium text-[var(--text-primary)]">
                 Convergence Tolerance (ε)
               </label>
               <span className="font-mono text-brand-400 bg-brand-950/50 px-2 py-0.5 rounded border border-brand-500/30 text-[11px]">
@@ -213,12 +213,12 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
               className="w-full accent-brand-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="input-tolerance"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
               <span>1e-6 (Precision)</span>
               <span>1e-4</span>
               <span>1e-3 (Fast)</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
               Mismatches in MW and Mvar must be less than this tolerance for convergence.
             </p>
           </div>
@@ -226,7 +226,7 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
           {/* Max Iterations */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <label htmlFor="max-iterations" className="font-medium text-slate-200">
+              <label htmlFor="max-iterations" className="font-medium text-[var(--text-primary)]">
                 Maximum Iterations
               </label>
               <span className="font-mono text-brand-400 bg-brand-950/50 px-2 py-0.5 rounded border border-brand-500/30 text-[11px]">
@@ -250,26 +250,26 @@ export function ParametersDrawer({ open, onClose, projectId: propProjectId }: Pa
               className="w-full accent-brand-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="input-iterations"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+            <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
               <span>10 iters</span>
               <span>100</span>
               <span>200 iters</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
               Cutoff limit before declaring non-convergence or voltage collapse.
             </p>
           </div>
 
           {/* Title Block Reference Note */}
-          <div className="p-3 rounded-lg bg-[#20262E] border border-[#334155] text-[11px] text-slate-300 font-mono">
-            <div className="text-slate-400 font-semibold mb-1">COMPLIANCE SPECIFICATION:</div>
+          <div className="p-3 rounded-lg bg-[var(--bg-input)] border border-[var(--border-primary)] text-[11px] text-[var(--text-primary)] font-mono">
+            <div className="text-[var(--text-tertiary)] font-semibold mb-1">COMPLIANCE SPECIFICATION:</div>
             <div>STANDARD: IEEE 3002.7 (Industrial Power Systems Load Flow)</div>
             <div>FORMULATION: Full Newton-Raphson with Polar Coordinates</div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[#334155] bg-[#14181F] flex items-center justify-between">
+        <div className="p-4 border-t border-[var(--border-primary)] bg-[var(--bg-elevated)] flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"

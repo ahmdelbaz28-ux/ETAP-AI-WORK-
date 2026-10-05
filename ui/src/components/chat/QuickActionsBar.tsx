@@ -145,7 +145,7 @@ export function QuickActionsBar() {
   };
 
   return (
-    <div className="relative px-4 py-2 border-t border-[#2A3441] bg-[#12161D]/90 backdrop-blur-xs select-none" data-testid="quick-actions-bar">
+    <div className="relative px-4 py-2 border-t border-[var(--border-primary)] bg-[var(--bg-input)] backdrop-blur-xs select-none" data-testid="quick-actions-bar">
       {/* Inline Warning Banner if no project selected */}
       {warningToast && (
         <div
@@ -159,7 +159,7 @@ export function QuickActionsBar() {
       )}
 
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
+        <span className="text-[11px] font-mono text-[var(--text-tertiary)] uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
           {t("chat.quickActions.title", "STUDIES:")}
         </span>
 
@@ -186,18 +186,18 @@ export function QuickActionsBar() {
               data-testid={`quick-action-${action.id}`}
               className={cn(
                 "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium font-sans whitespace-nowrap transition-all",
-                "bg-[#1A202A] border-[#2A3544] text-slate-200",
+                "bg-[var(--bg-hover)] border-[var(--border-primary)] text-[var(--text-primary)]",
                 !isDisabled && action.accentClass,
                 !isDisabled && "cursor-pointer active:scale-95",
                 isDisabledByFlag &&
-                  "opacity-45 cursor-not-allowed border-dashed border-slate-700 text-slate-500 bg-[#14181F]",
+                  "opacity-45 cursor-not-allowed border-dashed border-[var(--border-primary)] text-[var(--text-muted)] bg-[var(--bg-card)]",
                 isStreaming && !isDisabledByFlag && "opacity-60 cursor-not-allowed"
               )}
             >
-              <Icon className={cn("w-3.5 h-3.5", isDisabledByFlag ? "text-slate-500" : "shrink-0")} />
+              <Icon className={cn("w-3.5 h-3.5", isDisabledByFlag ? "text-[var(--text-muted)]" : "shrink-0")} />
               <span>{t(action.labelKey, action.defaultLabel)}</span>
               {isDisabledByFlag && (
-                <span className="text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">
+                <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--bg-card)] text-[var(--text-tertiary)] font-mono border border-[var(--border-primary)]">
                   BETA
                 </span>
               )}

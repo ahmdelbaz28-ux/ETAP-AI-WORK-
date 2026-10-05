@@ -153,13 +153,13 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
 
   return (
     <div
-      className={cn("h-screen flex flex-col bg-[var(--bg-primary)] text-slate-100 overflow-hidden", isRtl && "font-sans")}
+      className={cn("h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden", isRtl && "font-sans")}
       dir={isRtl ? "rtl" : "ltr"}
       data-testid="chat-workspace"
     >
       {/* Top Header */}
       <header
-        className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 border-b border-[var(--border-primary)] shrink-0 bg-[#161B22]"
+        className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 h-14 border-b border-[var(--border-primary)] shrink-0 bg-[var(--bg-elevated)]"
         data-testid="chat-header"
       >
         <div className="flex items-center gap-2 shrink-0">
@@ -246,7 +246,7 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
           <button
             type="button"
             onClick={() => setMobileFeedOpen((prev) => !prev)}
-            className="2xl:hidden p-1.5 rounded-lg border border-[#334155] bg-[#1E2530] text-slate-300 hover:text-white relative cursor-pointer"
+            className="2xl:hidden p-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-hover)] text-[var(--text-primary)] hover:text-[var(--text-primary)] relative cursor-pointer"
             data-testid="toggle-feed-drawer"
             title={t("chat.sessionHistory", "Session History")}
           >
@@ -256,7 +256,7 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
           <button
             type="button"
             onClick={() => setMobileActivityOpen((prev) => !prev)}
-            className="2xl:hidden p-1.5 rounded-lg border border-[#334155] bg-[#1E2530] text-slate-300 hover:text-white relative cursor-pointer"
+            className="2xl:hidden p-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-hover)] text-[var(--text-primary)] hover:text-[var(--text-primary)] relative cursor-pointer"
             data-testid="toggle-activity-drawer"
             title={t("chat.sessionActivity", "Session Activity")}
           >
@@ -284,34 +284,34 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
 
       {/* Engineering Title Block Signature Strip */}
       <div
-        className="flex items-center justify-between px-4 py-1 bg-[#12161D] border-b border-[#2A3441] text-[10px] font-mono text-slate-400 shrink-0 select-none overflow-x-auto no-scrollbar"
+        className="flex items-center justify-between px-4 py-1 bg-[var(--bg-input)] border-b border-[var(--border-primary)] text-[10px] font-mono text-[var(--text-tertiary)] shrink-0 select-none overflow-x-auto no-scrollbar"
         data-testid="title-block-strip"
       >
         <div className="flex items-center gap-3 shrink-0">
           <div>
-            <span className="text-slate-500">{t("chat.project", "PROJECT")}:</span>{" "}
-            <span className="text-slate-200 font-semibold">{projectId || t("chat.unassigned", "UNASSIGNED")}</span>
+            <span className="text-[var(--text-muted)]">{t("chat.project", "PROJECT")}:</span>{" "}
+            <span className="text-[var(--text-primary)] font-semibold">{projectId || t("chat.unassigned", "UNASSIGNED")}</span>
           </div>
-          <div className="h-3 w-px bg-slate-700" />
+          <div className="h-3 w-px bg-[var(--border-primary)]" />
           <div>
-            <span className="text-slate-500">REV:</span>{" "}
-            <span className="text-slate-300">—</span>
+            <span className="text-[var(--text-muted)]">REV:</span>{" "}
+            <span className="text-[var(--text-primary)]">—</span>
           </div>
-          <div className="h-3 w-px bg-slate-700" />
+          <div className="h-3 w-px bg-[var(--border-primary)]" />
           <div>
-            <span className="text-slate-500">STANDARD:</span>{" "}
-            <span className="text-emerald-400">IEC 60909 / IEEE 1584 / IEEE 3002.7</span>
+            <span className="text-[var(--text-muted)]">STANDARD:</span>{" "}
+            <span className="text-emerald-500 font-semibold">IEC 60909 / IEEE 1584 / IEEE 3002.7</span>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-4">
           <div>
-            <span className="text-slate-500">GATEWAY:</span>{" "}
-            <span className="text-cyan-400">DUAL-CONTROL ENFORCED</span>
+            <span className="text-[var(--text-muted)]">GATEWAY:</span>{" "}
+            <span className="text-cyan-500 font-semibold">DUAL-CONTROL ENFORCED</span>
           </div>
-          <div className="h-3 w-px bg-slate-700" />
+          <div className="h-3 w-px bg-[var(--border-primary)]" />
           <div>
-            <span className="text-slate-500">SESSION:</span>{" "}
-            <span className="text-slate-300">{sessionId ? sessionId.slice(0, 10) : "N/A"}…</span>
+            <span className="text-[var(--text-muted)]">SESSION:</span>{" "}
+            <span className="text-[var(--text-primary)]">{sessionId ? sessionId.slice(0, 10) : "N/A"}…</span>
           </div>
         </div>
       </div>
@@ -326,7 +326,7 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
               Stream: <span data-testid="stream-status-label" className="font-mono">{streamStatus}</span>
             </div>
             {streamStatus === "streaming" && (
-              <span className="text-emerald-400 animate-pulse text-[10px] font-mono">
+              <span className="text-emerald-500 animate-pulse text-[10px] font-mono">
                 ● Live Streaming Response…
               </span>
             )}
@@ -345,13 +345,13 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
         </ErrorBoundary>
 
         {/* Static Sidebars for 2xl (>1500px) */}
-        <aside className="hidden 2xl:flex flex-col w-72 border-l border-[var(--border-primary)] overflow-y-auto p-3 space-y-3 shrink-0 bg-[#14181F]">
+        <aside className="hidden 2xl:flex flex-col w-72 border-l border-[var(--border-primary)] overflow-y-auto p-3 space-y-3 shrink-0 bg-[var(--bg-card)]">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
             {t("chat.sessionActivity", "Session Activity")}
           </h2>
           <SessionFeed />
         </aside>
-        <aside className="hidden 2xl:flex flex-col w-80 border-l border-[var(--border-primary)] overflow-y-auto p-3 shrink-0 bg-[#14181F]">
+        <aside className="hidden 2xl:flex flex-col w-80 border-l border-[var(--border-primary)] overflow-y-auto p-3 shrink-0 bg-[var(--bg-card)]">
           <ActivityDrawer />
         </aside>
 
@@ -362,17 +362,17 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
             onClick={() => setMobileFeedOpen(false)}
           >
             <div
-              className="w-80 h-full bg-[#161B22] border-l border-[#334155] p-4 overflow-y-auto shadow-2xl animate-in slide-in-from-right"
+              className="w-80 h-full bg-[var(--bg-elevated)] border-l border-[var(--border-primary)] p-4 overflow-y-auto shadow-2xl animate-in slide-in-from-right"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#334155]">
-                <h3 className="text-xs font-semibold uppercase text-slate-300">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-primary)]">
+                <h3 className="text-xs font-semibold uppercase text-[var(--text-primary)]">
                   {t("chat.sessionActivity", "Session Activity")}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setMobileFeedOpen(false)}
-                  className="p-1 rounded text-slate-400 hover:text-white"
+                  className="p-1 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -388,17 +388,17 @@ export function ChatWorkspace({ onExitToLegacy }: ChatWorkspaceProps) {
             onClick={() => setMobileActivityOpen(false)}
           >
             <div
-              className="w-80 h-full bg-[#161B22] border-l border-[#334155] p-4 overflow-y-auto shadow-2xl animate-in slide-in-from-right"
+              className="w-80 h-full bg-[var(--bg-elevated)] border-l border-[var(--border-primary)] p-4 overflow-y-auto shadow-2xl animate-in slide-in-from-right"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#334155]">
-                <h3 className="text-xs font-semibold uppercase text-slate-300">
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-primary)]">
+                <h3 className="text-xs font-semibold uppercase text-[var(--text-primary)]">
                   {t("chat.sessionStream", "Session Stream & Progress")}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setMobileActivityOpen(false)}
-                  className="p-1 rounded text-slate-400 hover:text-white"
+                  className="p-1 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

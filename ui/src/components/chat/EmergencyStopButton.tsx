@@ -26,7 +26,7 @@
  *   POST /admin/cua/kill-switch/activate (activate kill-switch)
  */
 import { AlertOctagon, CheckCircle2, Loader2, OctagonX, WifiOff } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../../store/chatStore";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
@@ -61,6 +61,23 @@ export function EmergencyStopButton() {
   // the streamStatus reflects a non-streaming state.
   const localAbortConfirmed = streamAbortedRef.current && streamAbortedState;
 
+  const [activatingElapsed, setActivatingElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!activating) {
+      setActivatingElapsed(0);
+      return;
+    }
+    const start = Date.now();
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) return;
+
+    const interval = setInterval(() => {
+      setActivatingElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [activating]);
+
   return (
     <div className="flex flex-col gap-1.5" data-testid="emergency-stop">
       <div className="flex items-center gap-2">
@@ -79,9 +96,9 @@ export function EmergencyStopButton() {
       </div>
 
       {activating && (
-        <span className="text-xs text-[var(--text-muted)] inline-flex items-center gap-1">
+        <span className="text-xs text-[var(--text-muted)] inline-flex items-center gap-1 font-mono">
           <Loader2 className="w-3 h-3 animate-spin" />
-          Contacting backend…
+          Contacting backend… {activatingElapsed > 0 && `(${activatingElapsed}s)`}
         </span>
       )}
 

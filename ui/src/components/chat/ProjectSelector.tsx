@@ -135,21 +135,21 @@ export function ProjectSelector() {
         <div
           className={cn(
             "absolute left-0 mt-1.5 w-72 rounded-xl shadow-2xl z-50 overflow-hidden",
-            "bg-[#1A1F26] border border-[#334155] backdrop-blur-md",
+            "bg-[var(--bg-card)] border border-[var(--border-primary)] backdrop-blur-md",
             "animate-in fade-in-50 zoom-in-95 duration-150",
           )}
           role="listbox"
           data-testid="project-selector-dropdown"
         >
-          <div className="p-2 border-b border-[#334155] bg-[#14181F]">
+          <div className="p-2 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)]">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[var(--text-tertiary)]" />
               <input
                 type="text"
                 placeholder="Search projects by name / ID…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#20262E] text-xs text-slate-200 placeholder:text-slate-500 rounded-md pl-8 pr-2.5 py-1.5 border border-[#334155] focus:outline-none focus:border-brand-500 font-mono"
+                className="w-full bg-[var(--bg-input)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] rounded-md pl-8 pr-2.5 py-1.5 border border-[var(--border-primary)] focus:outline-none focus:border-brand-500 font-mono"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ export function ProjectSelector() {
                 <p className="text-xs text-rose-300 font-medium leading-relaxed">
                   تعذر تحميل المشاريع — أعد المحاولة
                 </p>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-[var(--text-tertiary)]">
                   Failed to load projects from server.
                 </p>
                 <button
@@ -177,7 +177,7 @@ export function ProjectSelector() {
                 </button>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-500 space-y-3">
+              <div className="py-6 text-center text-xs text-[var(--text-muted)] space-y-3">
                 <div data-testid="no-matching-projects-text">
                   {search ? "No matching projects found" : "No projects created yet"}
                 </div>
@@ -208,10 +208,10 @@ export function ProjectSelector() {
                     role="option"
                     aria-selected={isSelected}
                     className={cn(
-                      "w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors text-xs",
+                      "w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors text-xs cursor-pointer",
                       isSelected
-                        ? "bg-brand-600/20 border border-brand-500/40 text-white"
-                        : "hover:bg-[#20262E] text-slate-300",
+                        ? "bg-brand-600/20 border border-brand-500/40 text-[var(--text-primary)]"
+                        : "hover:bg-[var(--bg-hover)] text-[var(--text-primary)]",
                     )}
                     data-testid={`project-option-${proj.id}`}
                   >
@@ -224,10 +224,10 @@ export function ProjectSelector() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-slate-100 truncate">{proj.name}</div>
-                      <div className="font-mono text-[10px] text-slate-400 truncate">{proj.id}</div>
+                      <div className="font-semibold text-[var(--text-primary)] truncate">{proj.name}</div>
+                      <div className="font-mono text-[10px] text-[var(--text-tertiary)] truncate">{proj.id}</div>
                       {proj.description && (
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                        <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
                           {proj.description}
                         </p>
                       )}
@@ -241,7 +241,7 @@ export function ProjectSelector() {
             )}
           </div>
 
-          <div className="px-3 py-2 bg-[#14181F] border-t border-[#334155] flex items-center justify-between text-[11px] text-slate-400">
+          <div className="px-3 py-2 bg-[var(--bg-elevated)] border-t border-[var(--border-primary)] flex items-center justify-between text-[11px] text-[var(--text-tertiary)]">
             <span>Total Projects: {projects.length}</span>
             <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

@@ -144,7 +144,7 @@ function RegisterView({
 
   return (
     <div
-      className="min-h-screen flex bg-[#070b14] relative overflow-hidden"
+      className="min-h-screen flex bg-[var(--bg-primary)] relative overflow-hidden"
       dir={isRtl ? "rtl" : "ltr"}
     >
       <div className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} z-50`}>
@@ -153,7 +153,7 @@ function RegisterView({
             const nextLang = i18n.language === "ar" ? "en" : "ar";
             i18n.changeLanguage(nextLang);
           }}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700/50 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all text-xs font-semibold"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)]/80 hover:bg-[var(--bg-hover)] text-[var(--text-primary)] hover:text-[var(--text-primary)] transition-all text-xs font-semibold"
           type="button"
         >
           <Globe className="w-3.5 h-3.5" />
@@ -168,7 +168,7 @@ function RegisterView({
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-[380px] bg-slate-900/30 backdrop-blur-md border border-slate-800/40 p-8 rounded-2xl shadow-2xl"
+          className="w-full max-w-[380px] bg-[var(--bg-card)]/80 backdrop-blur-md border border-[var(--border-primary)] p-8 rounded-2xl shadow-2xl"
         >
           <MobileHeader />
           <TitleSection />
@@ -216,15 +216,15 @@ function NameField({
   const { t } = useTranslation();
   return (
     <div>
-      <label htmlFor="register-name" className="block text-xs font-semibold text-slate-400 mb-1.5">
+      <label htmlFor="register-name" className="block text-xs font-semibold text-[var(--text-tertiary)] mb-1.5">
         {t("auth.fullNameLabel")}
       </label>
       <div className="relative">
         <User
           className={
             isRtl
-              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
-              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
+              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
           }
         />
         <input
@@ -234,7 +234,7 @@ function NameField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={t("auth.fullNamePlaceholder")}
           required
-          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
         />
       </div>
     </div>
@@ -253,15 +253,15 @@ function RegisterEmailField({
   const { t } = useTranslation();
   return (
     <div>
-      <label htmlFor="register-email" className="block text-xs font-semibold text-slate-400 mb-1.5">
+      <label htmlFor="register-email" className="block text-xs font-semibold text-[var(--text-tertiary)] mb-1.5">
         {t("auth.emailLabel")}
       </label>
       <div className="relative">
         <Mail
           className={
             isRtl
-              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
-              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
+              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
           }
         />
         <input
@@ -272,7 +272,7 @@ function RegisterEmailField({
           placeholder={t("auth.emailPlaceholder")}
           required
           dir="ltr"
-          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
         />
       </div>
     </div>
@@ -297,7 +297,7 @@ function RegisterPasswordField({
     <div>
       <label
         htmlFor="register-password"
-        className="block text-xs font-semibold text-slate-400 mb-1.5"
+        className="block text-xs font-semibold text-[var(--text-tertiary)] mb-1.5"
       >
         {t("auth.passwordLabel")}
       </label>
@@ -305,8 +305,8 @@ function RegisterPasswordField({
         <Lock
           className={
             isRtl
-              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
-              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
+              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
           }
         />
         <input
@@ -317,15 +317,15 @@ function RegisterPasswordField({
           placeholder="••••••••"
           required
           dir="ltr"
-          className={`w-full ${isRtl ? "pr-9 pl-10" : "pl-9 pr-10"} py-2 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+          className={`w-full ${isRtl ? "pr-9 pl-10" : "pl-9 pr-10"} py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
         />
         <button
           type="button"
           onClick={onToggle}
           className={
             isRtl
-              ? "absolute left-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors"
-              : "absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-300 transition-colors"
+              ? "absolute left-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              : "absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           }
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
@@ -354,7 +354,7 @@ function ConfirmPasswordField({
     <div>
       <label
         htmlFor="register-confirm-password"
-        className="block text-xs font-semibold text-slate-400 mb-1.5"
+        className="block text-xs font-semibold text-[var(--text-tertiary)] mb-1.5"
       >
         {t("auth.confirmPasswordLabel")}
       </label>
@@ -362,8 +362,8 @@ function ConfirmPasswordField({
         <Lock
           className={
             isRtl
-              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
-              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 pointer-events-none"
+              ? "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+              : "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
           }
         />
         <input
@@ -374,7 +374,7 @@ function ConfirmPasswordField({
           placeholder={t("auth.confirmPasswordPlaceholder")}
           required
           dir="ltr"
-          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-slate-950/40 border border-slate-800/80 rounded-xl text-xs text-white placeholder-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
+          className={`w-full ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"} py-2 bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-xl text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/10 transition-all`}
         />
       </div>
       {confirmPassword && password === confirmPassword && (
@@ -425,7 +425,7 @@ function MobileHeader() {
   return (
     <div className="lg:hidden flex items-center gap-2.5 mb-8">
       <BrandLogo size={36} />
-      <span className="text-lg font-bold text-white">AhmedETAP</span>
+      <span className="text-lg font-bold text-[var(--text-primary)]">AhmedETAP</span>
     </div>
   );
 }
@@ -434,8 +434,8 @@ function TitleSection() {
   const { t } = useTranslation();
   return (
     <div className="mb-6">
-      <h3 className="text-2xl font-bold text-white tracking-tight">{t("auth.registerTitle")}</h3>
-      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{t("auth.registerSubtitle")}</p>
+      <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{t("auth.registerTitle")}</h3>
+      <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">{t("auth.registerSubtitle")}</p>
     </div>
   );
 }
@@ -456,8 +456,8 @@ function ErrorAlert({ message }: { readonly message: string }) {
 function Footer() {
   const { t } = useTranslation();
   return (
-    <div className="mt-6 pt-5 border-t border-slate-800/40 flex items-center justify-between text-xs">
-      <span className="text-slate-500">
+    <div className="mt-6 pt-5 border-t border-[var(--border-primary)] flex items-center justify-between text-xs">
+      <span className="text-[var(--text-muted)]">
         {t("auth.hasAccount")}{" "}
         <Link
           to="/login"
@@ -466,7 +466,7 @@ function Footer() {
           {t("auth.loginLink")}
         </Link>
       </span>
-      <span className="text-[10px] text-slate-700 font-mono">v2.1.0</span>
+      <span className="text-[10px] text-[var(--text-muted)] font-mono">v2.1.0</span>
     </div>
   );
 }

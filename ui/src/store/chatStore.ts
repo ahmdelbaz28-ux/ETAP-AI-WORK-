@@ -85,6 +85,10 @@ export interface ActivityProgress {
   readonly pct: number;
   readonly tool?: string;
   readonly ts?: string;
+  readonly trace?: string[];
+  readonly started_at?: number;
+  readonly tools_count?: number;
+  readonly messages_count?: number;
 }
 
 /** A `result_ready` event optionally enriched with the ResultStore payload. */
@@ -363,20 +367,48 @@ function handleResultReadyEvent(
   });
 }
 
+function sanitizeTrace(line: string): string {
+  if (!line || typeof line !== "string") return "";
+  return line
+    .replace(/[A-Za-z]:\\[^:\n\r\t]+(?=[^a-zA-Z0-9_-]|$)/g, "[local_path]")
+    .replace(/\/(?:home|Users|var|tmp|etc)\/[^\s:]+/g, "[system_path]")
+    .replace(/(?:bearer\s+|token\s+|pat_|sk-|api[_-]?key[:=]\s*)[a-zA-Z0-9_\-\.]{8,}/gi, "[redacted_credential]");
+}
+
 function handleJobProgressEvent(
   payload: Record<string, unknown>,
   ts: string,
   get: StoreGet,
   set: StoreSet,
 ): void {
+  const execId = typeof payload.execution_id === "string" ? payload.execution_id : undefined;
+  const currentActivity = get().activity;
+  const existing = execId ? currentActivity.find((a) => a.execution_id === execId) : undefined;
+
+  const rawTrace = Array.isArray(payload.trace)
+    ? (payload.trace as string[])
+    : typeof payload.message === "string"
+    ? [payload.message]
+    : [];
+  const sanitizedTrace = rawTrace.map(sanitizeTrace);
+  const mergedTrace = existing?.trace
+    ? Array.from(new Set([...existing.trace, ...sanitizedTrace]))
+    : sanitizedTrace;
+
   const progress: ActivityProgress = {
-    execution_id: typeof payload.execution_id === "string" ? payload.execution_id : undefined,
-    phase: typeof payload.phase === "string" ? payload.phase : "running",
-    pct: typeof payload.pct === "number" ? payload.pct : 0,
-    tool: typeof payload.tool === "string" ? payload.tool : undefined,
+    execution_id: execId,
+    phase: typeof payload.phase === "string" ? payload.phase : (existing?.phase ?? "running"),
+    pct: typeof payload.pct === "number" ? payload.pct : (existing?.pct ?? 0),
+    tool: typeof payload.tool === "string" ? payload.tool : existing?.tool,
     ts,
+    started_at: existing?.started_at ?? Date.now(),
+    trace: mergedTrace.length > 0 ? mergedTrace : undefined,
+    tools_count: typeof payload.tools_count === "number" ? payload.tools_count : existing?.tools_count,
+    messages_count: typeof payload.messages_count === "number" ? payload.messages_count : existing?.messages_count,
   };
-  set({ activity: [progress, ...get().activity].slice(0, MAX_LIST_ITEMS) });
+
+  const filtered = execId ? currentActivity.filter((a) => a.execution_id !== execId) : currentActivity;
+  set({ activity: [progress, ...filtered].slice(0, MAX_LIST_ITEMS) });
 }
 
 function handleActionProposedEvent(

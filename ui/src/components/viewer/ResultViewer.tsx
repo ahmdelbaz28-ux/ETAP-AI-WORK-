@@ -35,7 +35,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -65,13 +65,14 @@ import {
 
 // ─── Tab IDs ────────────────────────────────────────────────────────────────
 
-type TabId = "overview" | "table" | "charts" | "diagram" | "versions" | "history" | "raw";
+type TabId = "overview" | "table" | "charts" | "diagram" | "diff" | "versions" | "history" | "raw";
 
 const TAB_DEFS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <Grid3X3 className="w-3.5 h-3.5" /> },
   { id: "table", label: "Table", icon: <BarChart3 className="w-3.5 h-3.5" /> },
   { id: "charts", label: "Charts", icon: <Activity className="w-3.5 h-3.5" /> },
   { id: "diagram", label: "Diagram", icon: <GitBranch className="w-3.5 h-3.5" /> },
+  { id: "diff", label: "Diff Table", icon: <GitCompare className="w-3.5 h-3.5" /> },
   { id: "versions", label: "Versions", icon: <History className="w-3.5 h-3.5" /> },
   { id: "history", label: "History", icon: <FileText className="w-3.5 h-3.5" /> },
   { id: "raw", label: "Raw JSON", icon: <Code2 className="w-3.5 h-3.5" /> },
@@ -635,6 +636,214 @@ function RawJsonTab({ result }: { readonly result: ResultEntry }) {
   );
 }
 
+// ─── Diff / Comparison Tab ───────────────────────────────────────────────────
+
+function DiffTab({ result }: { readonly result: ResultEntry }) {
+  const allResults = useChatStore((s) => s.results);
+  const candidates = useMemo(
+    () => allResults.filter((r) => r.resultId !== result.resultId && Boolean(r.summary)),
+    [allResults, result.resultId],
+  );
+
+  const [baselineId, setBaselineId] = useState<string | null>(candidates[0]?.resultId ?? null);
+
+  const baselineResult = useMemo(
+    () => candidates.find((c) => c.resultId === baselineId) ?? null,
+    [candidates, baselineId],
+  );
+
+  const diffRows = useMemo(() => {
+    if (!result.summary || !baselineResult?.summary) return [];
+    const curr = result.summary;
+    const base = baselineResult.summary;
+
+    const allKeys = Array.from(new Set([...Object.keys(curr), ...Object.keys(base)])).filter(
+      (k) => !["network_snapshot", "buses", "branches", "raw", "history"].includes(k),
+    );
+
+    return allKeys
+      .map((key) => {
+        const cVal = curr[key];
+        const bVal = base[key];
+
+        const cStr = cVal !== undefined && cVal !== null ? String(cVal) : "—";
+        const bStr = bVal !== undefined && bVal !== null ? String(bVal) : "—";
+
+        const cNum = typeof cVal === "number" ? cVal : Number.parseFloat(String(cVal));
+        const bNum = typeof bVal === "number" ? bVal : Number.parseFloat(String(bVal));
+
+        const isNumeric = !Number.isNaN(cNum) && !Number.isNaN(bNum);
+        let delta: number | null = null;
+        let deltaPercent: number | null = null;
+        let status: "improved" | "degraded" | "changed" | "unchanged" = "unchanged";
+
+        if (isNumeric) {
+          delta = cNum - bNum;
+          if (bNum !== 0) {
+            deltaPercent = (delta / Math.abs(bNum)) * 100;
+          }
+          if (Math.abs(delta) > 1e-6) {
+            const lowerIsBetter = /loss|error|violat|resid|overload|drop|time/i.test(key);
+            if (lowerIsBetter) {
+              status = delta < 0 ? "improved" : "degraded";
+            } else {
+              status = delta > 0 ? "improved" : "degraded";
+            }
+          }
+        } else if (cStr !== bStr) {
+          status = "changed";
+        }
+
+        return {
+          key,
+          baselineVal: bStr,
+          currentVal: cStr,
+          delta,
+          deltaPercent,
+          status,
+        };
+      })
+      .filter(Boolean);
+  }, [result.summary, baselineResult]);
+
+  const stats = useMemo(() => {
+    const improved = diffRows.filter((r) => r.status === "improved").length;
+    const degraded = diffRows.filter((r) => r.status === "degraded").length;
+    const changed = diffRows.filter((r) => r.status === "changed").length;
+    const unchanged = diffRows.filter((r) => r.status === "unchanged").length;
+    return { improved, degraded, changed, unchanged };
+  }, [diffRows]);
+
+  if (!result.summary) {
+    return <EmptyPane />;
+  }
+
+  if (candidates.length === 0) {
+    return (
+      <div className="p-6 text-center rounded-xl border border-[var(--border-primary)] bg-[var(--bg-elevated)] space-y-3" data-testid="result-viewer-diff-table">
+        <GitCompare className="w-10 h-10 text-[var(--text-muted)] mx-auto" />
+        <h4 className="text-sm font-semibold text-[var(--text-primary)]">
+          لا توجد دراسات سابقة للمقارنة (No Baseline Available)
+        </h4>
+        <p className="text-xs text-[var(--text-tertiary)] max-w-md mx-auto">
+          تتطلب مقارنة الفروق (Diff Table) تشغيل دراستين على الأقل لتسجيل الانحرافات والتغيرات في الحمل والجهد والفواقد.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 text-xs font-sans" data-testid="result-viewer-diff-table">
+      {/* Baseline Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-elevated)]">
+        <div className="flex items-center gap-2">
+          <GitCompare className="w-4 h-4 text-brand-400 shrink-0" />
+          <span className="font-semibold text-[var(--text-primary)]">
+            مقارنة نتائج الدراسة (Study Diff & Topology Variation):
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-[var(--text-tertiary)]">Baseline:</span>
+          <select
+            value={baselineId || ""}
+            onChange={(e) => setBaselineId(e.target.value)}
+            className="px-2.5 py-1 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs font-mono"
+          >
+            {candidates.map((c) => (
+              <option key={c.resultId} value={c.resultId}>
+                {c.tool || "Study"} ({c.resultId.slice(0, 10)}) — {c.ts ? new Date(c.ts).toLocaleTimeString() : "Run"}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Summary KPI Badges */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="p-2.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)]">
+          <span className="text-[10px] text-[var(--text-tertiary)] uppercase font-mono">Parameters</span>
+          <p className="text-base font-bold text-[var(--text-primary)] font-mono">{diffRows.length}</p>
+        </div>
+        <div className="p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10">
+          <span className="text-[10px] text-emerald-400 uppercase font-mono">Improved</span>
+          <p className="text-base font-bold text-emerald-300 font-mono">+{stats.improved}</p>
+        </div>
+        <div className="p-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10">
+          <span className="text-[10px] text-rose-400 uppercase font-mono">Degraded</span>
+          <p className="text-base font-bold text-rose-300 font-mono">-{stats.degraded}</p>
+        </div>
+        <div className="p-2.5 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-card)]">
+          <span className="text-[10px] text-[var(--text-tertiary)] uppercase font-mono">Unchanged</span>
+          <p className="text-base font-bold text-[var(--text-secondary)] font-mono">{stats.unchanged}</p>
+        </div>
+      </div>
+
+      {/* Diff Table */}
+      <div className="rounded-xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-card)]">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-[11px]">
+            <thead className="bg-[var(--bg-elevated)] text-[var(--text-tertiary)] border-b border-[var(--border-primary)]">
+              <tr>
+                <th className="p-2.5">Parameter</th>
+                <th className="p-2.5">Baseline ({baselineResult?.resultId.slice(0, 8)})</th>
+                <th className="p-2.5">Current ({result.resultId.slice(0, 8)})</th>
+                <th className="p-2.5">Delta</th>
+                <th className="p-2.5 text-right">Evaluation</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-primary)] text-[var(--text-primary)]">
+              {diffRows.map((row) => (
+                <tr key={row.key} className="hover:bg-[var(--bg-hover)] transition-colors">
+                  <td className="p-2.5 font-sans font-medium text-[var(--text-primary)]">
+                    {row.key.replace(/_/g, " ")}
+                  </td>
+                  <td className="p-2.5 text-[var(--text-secondary)]">{row.baselineVal}</td>
+                  <td className="p-2.5 font-semibold text-[var(--text-primary)]">{row.currentVal}</td>
+                  <td className="p-2.5">
+                    {row.delta !== null ? (
+                      <span
+                        className={cn(
+                          "px-1.5 py-0.5 rounded text-[10px] font-bold",
+                          row.status === "improved"
+                            ? "bg-emerald-500/15 text-emerald-400"
+                            : row.status === "degraded"
+                              ? "bg-rose-500/15 text-rose-400"
+                              : "bg-[var(--bg-hover)] text-[var(--text-secondary)]",
+                        )}
+                      >
+                        {row.delta > 0 ? `+${row.delta.toFixed(4)}` : row.delta.toFixed(4)}
+                        {row.deltaPercent !== null ? ` (${row.deltaPercent > 0 ? "+" : ""}${row.deltaPercent.toFixed(1)}%)` : ""}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--text-muted)]">—</span>
+                    )}
+                  </td>
+                  <td className="p-2.5 text-right">
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 rounded-full text-[10px] uppercase font-bold",
+                        row.status === "improved"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : row.status === "degraded"
+                            ? "bg-rose-500/20 text-rose-300"
+                            : row.status === "changed"
+                              ? "bg-brand-500/20 text-brand-300"
+                              : "bg-[var(--bg-hover)] text-[var(--text-muted)]",
+                      )}
+                    >
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Versions Tab ───────────────────────────────────────────────────────────
 
 interface StudyVersionItem {
@@ -772,13 +981,13 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
 
   return (
     <div className="space-y-4 text-xs font-sans" data-testid="result-viewer-tab-versions">
-      <div className="flex items-center justify-between p-3 rounded-xl bg-[#181E26] border border-[#2E3846]">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-primary)]">
         <div>
-          <div className="font-semibold text-slate-100 flex items-center gap-2">
+          <div className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
             <History className="w-4 h-4 text-brand-400" />
             Study Version History & Provenance
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-[var(--text-tertiary)]">
             Immutable version snapshots tracked per IEEE audit guidelines. Compare diffs and rollback safely.
           </p>
         </div>
@@ -796,16 +1005,16 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Version List */}
         <div className="space-y-2">
-          <div className="text-[10px] uppercase font-mono text-slate-400">
+          <div className="text-[10px] uppercase font-mono text-[var(--text-tertiary)]">
             Available Revisions {loading && "(loading...)"}
           </div>
           {versions.map((ver) => {
             const isSelected = ver.id === selectedVer;
-            let versionBg = "bg-[#14181F] border-[#2A3441] hover:border-slate-600";
+            let versionBg = "bg-[var(--bg-card)] border-[var(--border-primary)] hover:border-slate-500";
             if (ver.version === 3 || ver.version === versions[0]?.version) {
               versionBg = "bg-brand-600/10 border-brand-500/30";
             } else if (isSelected) {
-              versionBg = "bg-[#20262E] border-slate-400";
+              versionBg = "bg-[var(--bg-hover)] border-[var(--border-primary)]";
             }
             return (
               <div
@@ -825,13 +1034,13 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
                 data-testid={`version-item-${ver.id}`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-[var(--text-primary)]">
                     Rev {ver.version}: {ver.label}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400">{ver.timestamp}</span>
+                  <span className="text-[10px] font-mono text-[var(--text-tertiary)]">{ver.timestamp}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">{ver.diffSummary}</p>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#26303D] text-[10px] font-mono text-slate-500">
+                <p className="text-[11px] text-[var(--text-tertiary)] mt-1">{ver.diffSummary}</p>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--border-primary)] text-[10px] font-mono text-[var(--text-muted)]">
                   <span>Author: {ver.author}</span>
                   {ver.version === versions[0]?.version ? (
                     <span className="text-emerald-400 font-semibold">Active Snapshot</span>
@@ -845,18 +1054,18 @@ function VersionsTab({ result }: { readonly result: ResultEntry }) {
         </div>
 
         {/* Diff & Rollback Panel */}
-        <div className="p-3.5 bg-[#14181F] rounded-xl border border-[#2A3441] flex flex-col justify-between">
+        <div className="p-3.5 bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-[#2A3441] pb-2">
-              <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-2">
+              <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
                 <GitCompare className="w-3.5 h-3.5 text-cyan-400" />
                 Comparison Diff: Rev {versions[0]?.version || 3} vs{" "}
                 {versions.find((v) => v.id === selectedVer)?.label || selectedVer}
               </span>
             </div>
 
-            <div className="font-mono text-[11px] space-y-2 p-2.5 rounded bg-[#101318] border border-[#26303D]">
-              <div className="text-slate-400">Parameter Deltas:</div>
+            <div className="font-mono text-[11px] space-y-2 p-2.5 rounded bg-[var(--bg-input)] border border-[var(--border-primary)]">
+              <div className="text-[var(--text-tertiary)]">Parameter Deltas:</div>
               <div className="text-emerald-400">+ tolerance: 1e-5 (Current)</div>
               <div className="text-rose-400">
                 - tolerance:{" "}
@@ -985,13 +1194,13 @@ function ExportHistoryTab() {
 
   return (
     <div className="space-y-3 text-xs font-sans" data-testid="result-viewer-tab-history">
-      <div className="text-[11px] text-slate-400">
+      <div className="text-[11px] text-[var(--text-tertiary)]">
         Archived calculation deliverables and certified export packages for this project.{" "}
         {loading && "(updating...)"}
       </div>
-      <div className="rounded-xl border border-[#2A3441] overflow-hidden bg-[#14181F]">
+      <div className="rounded-xl border border-[var(--border-primary)] overflow-hidden bg-[var(--bg-card)]">
         <table className="w-full text-left font-mono text-[11px]">
-          <thead className="bg-[#1A1F26] text-slate-400 border-b border-[#2A3441]">
+          <thead className="bg-[var(--bg-elevated)] text-[var(--text-tertiary)] border-b border-[var(--border-primary)]">
             <tr>
               <th className="p-2.5">Format</th>
               <th className="p-2.5">Filename</th>
@@ -1000,13 +1209,13 @@ function ExportHistoryTab() {
               <th className="p-2.5 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#26303D] text-slate-300">
+          <tbody className="divide-y divide-[var(--border-primary)] text-[var(--text-primary)]">
             {history.map((item) => (
-              <tr key={item.id} className="hover:bg-[#1A1F26] transition-colors">
+              <tr key={item.id} className="hover:bg-[var(--bg-hover)] transition-colors">
                 <td className="p-2.5 font-semibold text-brand-400">{item.format}</td>
                 <td className="p-2.5">{item.filename}</td>
-                <td className="p-2.5 text-slate-400">{item.sizeKb} KB</td>
-                <td className="p-2.5 text-slate-400">{item.created_at}</td>
+                <td className="p-2.5 text-[var(--text-tertiary)]">{item.sizeKb} KB</td>
+                <td className="p-2.5 text-[var(--text-tertiary)]">{item.created_at}</td>
                 <td className="p-2.5 text-right">
                   <Button
                     variant="ghost"
@@ -1189,17 +1398,17 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-[#14181F] border border-[#334155] rounded-lg p-0.5 text-xs font-mono">
+            <div className="flex items-center bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg p-0.5 text-xs font-mono">
               {(["pdf", "excel", "csv", "json"] as const).map((fmt) => (
                 <button
                   key={fmt}
                   type="button"
                   onClick={() => setExportFormat(fmt)}
                   className={cn(
-                    "px-2.5 py-1 rounded text-xs uppercase transition-colors",
+                    "px-2.5 py-1 rounded text-xs uppercase transition-colors cursor-pointer",
                     exportFormat === fmt
                       ? "bg-brand-600 text-white font-semibold"
-                      : "text-slate-400 hover:text-slate-200",
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]",
                   )}
                   data-testid={`export-format-${fmt}`}
                 >
@@ -1229,18 +1438,18 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
         {/* Inline Edit & Re-run Drawer */}
         {editDrawerOpen && (
           <div
-            className="p-4 rounded-xl bg-[#14181F] border border-brand-500/40 space-y-3 font-sans animate-in fade-in-50"
+            className="p-4 rounded-xl bg-[var(--bg-card)] border border-brand-500/40 space-y-3 font-sans animate-in fade-in-50"
             data-testid="inline-rerun-drawer"
           >
-            <div className="flex items-center justify-between border-b border-[#2A3441] pb-2">
-              <span className="font-semibold text-sm text-slate-100 flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-2">
+              <span className="font-semibold text-sm text-[var(--text-primary)] flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-brand-400" />
                 Edit Calculation Inputs & Re-run Study
               </span>
               <button
                 type="button"
                 onClick={() => setEditDrawerOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1248,7 +1457,7 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
               <div className="space-y-1">
-                <label htmlFor="edit-bus-voltage" className="text-slate-400">Bus Voltage (pu):</label>
+                <label htmlFor="edit-bus-voltage" className="text-[var(--text-tertiary)]">Bus Voltage (pu):</label>
                 <input
                   id="edit-bus-voltage"
                   type="text"
@@ -1256,11 +1465,11 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                   onChange={(e) =>
                     setEditParams((p) => ({ ...p, busVoltage: e.target.value }))
                   }
-                  className="w-full bg-[#20262E] border border-[#334155] rounded px-2 py-1 text-slate-100"
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded px-2 py-1 text-[var(--text-primary)]"
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor="edit-fault-impedance" className="text-slate-400">Fault Imp Rf (Ω):</label>
+                <label htmlFor="edit-fault-impedance" className="text-[var(--text-tertiary)]">Fault Imp Rf (Ω):</label>
                 <input
                   id="edit-fault-impedance"
                   type="text"
@@ -1268,11 +1477,11 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                   onChange={(e) =>
                     setEditParams((p) => ({ ...p, faultImpedance: e.target.value }))
                   }
-                  className="w-full bg-[#20262E] border border-[#334155] rounded px-2 py-1 text-slate-100"
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded px-2 py-1 text-[var(--text-primary)]"
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor="edit-tolerance" className="text-slate-400">Tolerance:</label>
+                <label htmlFor="edit-tolerance" className="text-[var(--text-tertiary)]">Tolerance:</label>
                 <input
                   id="edit-tolerance"
                   type="text"
@@ -1280,11 +1489,11 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                   onChange={(e) =>
                     setEditParams((p) => ({ ...p, tolerance: e.target.value }))
                   }
-                  className="w-full bg-[#20262E] border border-[#334155] rounded px-2 py-1 text-slate-100"
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded px-2 py-1 text-[var(--text-primary)]"
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor="edit-max-iter" className="text-slate-400">Max Iterations:</label>
+                <label htmlFor="edit-max-iter" className="text-[var(--text-tertiary)]">Max Iterations:</label>
                 <input
                   id="edit-max-iter"
                   type="text"
@@ -1292,12 +1501,12 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
                   onChange={(e) =>
                     setEditParams((p) => ({ ...p, maxIter: e.target.value }))
                   }
-                  className="w-full bg-[#20262E] border border-[#334155] rounded px-2 py-1 text-slate-100"
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded px-2 py-1 text-[var(--text-primary)]"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#2A3441]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[var(--border-primary)]">
               <Button variant="ghost" size="sm" onClick={() => setEditDrawerOpen(false)}>
                 Cancel
               </Button>
@@ -1336,6 +1545,11 @@ export function ResultViewer({ result, onClose }: ResultViewerProps) {
           {activeTab === "diagram" && (
             <div data-testid="result-viewer-tab-diagram">
               <DiagramTab result={result} />
+            </div>
+          )}
+          {activeTab === "diff" && (
+            <div data-testid="result-viewer-tab-diff">
+              <DiffTab result={result} />
             </div>
           )}
           {activeTab === "versions" && (

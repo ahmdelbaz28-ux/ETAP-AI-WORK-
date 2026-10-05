@@ -52,19 +52,19 @@ export default function ResetPassword() {
   if (!token) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center bg-[#070b14]"
+        className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]"
         dir={isRtl ? "rtl" : "ltr"}
       >
-        <div className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 text-center">
-          <h1 className="text-lg font-bold text-white mb-2">
+        <div className="max-w-md w-full mx-4 p-6 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] text-center shadow-lg">
+          <h1 className="text-lg font-bold text-[var(--text-primary)] mb-2">
             {isRtl ? "رابط غير صالح" : "Invalid link"}
           </h1>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-[var(--text-tertiary)] mb-4">
             {isRtl
               ? "رابط إعادة التعيين ناقص أو غير صالح. اطلب رابطاً جديداً من صفحة الدخول."
               : "This reset link is missing or invalid. Request a new one from the login page."}
           </p>
-          <Link to="/login" className="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+          <Link to="/login" className="text-blue-500 hover:text-blue-400 text-sm font-semibold">
             {isRtl ? "العودة لصفحة الدخول" : "Back to Login"}
           </Link>
         </div>
@@ -116,22 +116,22 @@ export default function ResetPassword() {
   if (done) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center bg-[#070b14]"
+        className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]"
         dir={isRtl ? "rtl" : "ltr"}
       >
         <div
-          className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 text-center"
+          className="max-w-md w-full mx-4 p-6 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] text-center shadow-lg"
           data-testid="reset-success"
         >
-          <h1 className="text-lg font-bold text-green-400 mb-2">
+          <h1 className="text-lg font-bold text-green-500 mb-2">
             {isRtl ? "تمت إعادة التعيين بنجاح" : "Password reset successful"}
           </h1>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-[var(--text-tertiary)] mb-4">
             {isRtl
               ? "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة."
               : "You can now sign in with your new password."}
           </p>
-          <Link to="/login" className="text-blue-400 hover:text-blue-300 text-sm font-semibold">
+          <Link to="/login" className="text-blue-500 hover:text-blue-400 text-sm font-semibold">
             {isRtl ? "تسجيل الدخول" : "Sign In"}
           </Link>
         </div>
@@ -141,23 +141,23 @@ export default function ResetPassword() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-[#070b14]"
+      className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]"
       dir={isRtl ? "rtl" : "ltr"}
     >
       <form
         onSubmit={handleSubmit}
-        className="max-w-md w-full mx-4 p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-4"
+        className="max-w-md w-full mx-4 p-6 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-card)] space-y-4 shadow-lg"
       >
-        <h1 className="text-lg font-bold text-white text-center">
+        <h1 className="text-lg font-bold text-[var(--text-primary)] text-center">
           {isRtl ? "إعادة تعيين كلمة المرور" : "Reset Password"}
         </h1>
         {error && (
-          <p data-testid="reset-error" className="text-sm text-red-400 text-center">
+          <p data-testid="reset-error" className="text-sm text-red-500 text-center">
             {error}
           </p>
         )}
         <div>
-          <label htmlFor="reset-new-password" className="block text-xs text-slate-400 mb-1">
+          <label htmlFor="reset-new-password" className="block text-xs text-[var(--text-tertiary)] mb-1">
             {isRtl ? "كلمة المرور الجديدة" : "New Password"}
           </label>
           <input
@@ -167,11 +167,11 @@ export default function ResetPassword() {
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
           />
         </div>
         <div>
-          <label htmlFor="reset-confirm-password" className="block text-xs text-slate-400 mb-1">
+          <label htmlFor="reset-confirm-password" className="block text-xs text-[var(--text-tertiary)] mb-1">
             {isRtl ? "تأكيد كلمة المرور" : "Confirm Password"}
           </label>
           <input
@@ -181,7 +181,7 @@ export default function ResetPassword() {
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+            className="w-full bg-[var(--bg-input)] border border-[var(--border-primary)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-blue-500"
           />
         </div>
         <button
@@ -193,7 +193,7 @@ export default function ResetPassword() {
           {getSubmitButtonText(loading, isRtl)}
         </button>
         <div className="text-center">
-          <Link to="/login" className="text-slate-400 hover:text-slate-300 text-xs">
+          <Link to="/login" className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-xs">
             {isRtl ? "العودة لصفحة الدخول" : "Back to Login"}
           </Link>
         </div>

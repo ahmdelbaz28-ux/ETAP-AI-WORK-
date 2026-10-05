@@ -96,16 +96,16 @@ function MarkdownCode({
 }) {
   const match = /language-(\w+)/.exec(className || "");
   return !inline && match ? (
-    <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 my-4 shadow-sm bg-[#1e1e1e]">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] text-gray-400 text-xs font-mono border-b border-gray-700">
+    <div className="rounded-xl overflow-hidden border border-[var(--border-primary)] dark:border-gray-700 my-4 shadow-sm bg-[var(--bg-tertiary)] dark:bg-[#1e1e1e]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[var(--bg-hover)] dark:bg-[#2d2d2d] text-[var(--text-tertiary)] dark:text-gray-400 text-xs font-mono border-b border-[var(--border-primary)] dark:border-gray-700">
         <span>{match[1]}</span>
         <button
           onClick={() => handleCopy(messageId + children, String(children))}
-          className="hover:text-white transition-colors flex items-center gap-1.5"
+          className="hover:text-[var(--text-primary)] dark:hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           type="button"
         >
           {copiedId === messageId + children ? (
-            <Check className="w-3.5 h-3.5 text-green-400" />
+            <Check className="w-3.5 h-3.5 text-green-500" />
           ) : (
             <Copy className="w-3.5 h-3.5" />
           )}
@@ -113,7 +113,7 @@ function MarkdownCode({
         </button>
       </div>
       <pre
-        className="p-4 overflow-x-auto text-sm font-mono text-gray-200 dark:text-gray-300"
+        className="p-4 overflow-x-auto text-sm font-mono text-[var(--text-primary)] dark:text-gray-300"
         {...props}
       >
         {String(children).replace(/\n$/, "")}
@@ -578,7 +578,7 @@ export default function AIAssistant() {
                         <Bot className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 space-y-4 max-w-[100%] overflow-hidden">
-                        <div className="prose prose-sm sm:prose-base dark:prose-invert prose-p:leading-relaxed prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl overflow-hidden max-w-none text-[15px]">
+                        <div className="prose prose-sm sm:prose-base dark:prose-invert prose-p:leading-relaxed prose-pre:bg-[var(--bg-tertiary)] dark:prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl overflow-hidden max-w-none text-[15px]">
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{

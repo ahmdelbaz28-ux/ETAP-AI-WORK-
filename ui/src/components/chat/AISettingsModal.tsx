@@ -40,21 +40,21 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
       data-testid="ai-settings-modal"
       aria-modal="true"
     >
-      <div className="bg-[#14181F] border border-[#334155] rounded-xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden font-sans">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#334155] bg-[#1A1F26] shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)] shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center">
               <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                 <span>AI Engine & Agents Configuration</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Live Sync
                 </span>
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[var(--text-tertiary)]">
                 Configure provider credentials, model selection, and active power-system specialist agents without restarting the session.
               </p>
             </div>
@@ -62,7 +62,7 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-[#20262E] transition-colors"
+            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors cursor-pointer"
             data-testid="ai-settings-modal-close"
           >
             <X className="w-5 h-5" />
@@ -70,15 +70,15 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 px-5 py-2.5 border-b border-[#2A3441] bg-[#161B22] shrink-0">
+        <div className="flex items-center gap-2 px-5 py-2.5 border-b border-[var(--border-primary)] bg-[var(--bg-elevated)] shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("providers")}
             className={cn(
-              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer",
               activeTab === "providers"
                 ? "bg-brand-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-[#20262E]",
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]",
             )}
             data-testid="ai-tab-providers"
           >
@@ -89,10 +89,10 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
             type="button"
             onClick={() => setActiveTab("agents")}
             className={cn(
-              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer",
               activeTab === "agents"
                 ? "bg-brand-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200 hover:bg-[#20262E]",
+                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]",
             )}
             data-testid="ai-tab-agents"
           >
@@ -102,14 +102,14 @@ export function AISettingsModal({ open, onClose }: AISettingsModalProps) {
         </div>
 
         {/* Content Panel */}
-        <div className="flex-1 overflow-y-auto p-5 bg-[#0F1318]">
+        <div className="flex-1 overflow-y-auto p-5 bg-[var(--bg-input)]">
           {activeTab === "providers" && <ProvidersTab />}
           {activeTab === "agents" && <AgentsTab />}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-[#334155] bg-[#1A1F26] shrink-0">
-          <div className="text-[11px] text-slate-400 flex items-center gap-2">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border-primary)] bg-[var(--bg-elevated)] shrink-0">
+          <div className="text-[11px] text-[var(--text-tertiary)] flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>Keys and agents sync automatically with the backend stream.</span>
           </div>
