@@ -392,7 +392,7 @@ paho-mqtt>=1.6.1
 # pyScada-opcua      # Commented out - not on PyPI
 # pyScada-modbus     # Commented out - not on PyPI
 # pyScada-ems        # Commented out - not on PyPI
-pymongo~=4.8.0
+pymongo~=4.18.2
 # arcpy  # Commented out - installed with ArcGIS Pro only
 pandas~=2.2.0
 numpy>=1.26.0,<2.6
