@@ -67,6 +67,7 @@
     "vitest": "^4.1.11",
     "zod-to-json-schema": "3.25.2"
   },
+  "//": "TODO(expires:2027-01-03): Temporary risk acceptance for CVE-2026-93687. See docs/security/RISK-ACCEPTANCE-braces-CVE-2026-93687.md",
   "pnpm": {
     "auditConfig": {
       "ignoreGhsas": [
