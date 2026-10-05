@@ -602,6 +602,22 @@ class TestForgotPassword:
             "AUTH_RETURN_RESET_TOKEN=false — it should only be sent via email"
         )
 
+    def test_forgot_password_never_returns_token_in_production(
+        self, client, registered_user, monkeypatch
+    ):
+        """Security hardening: In production environment, reset_token must NEVER
+        be returned in response even if AUTH_RETURN_RESET_TOKEN=true.
+        """
+        monkeypatch.setenv("ENVIRONMENT", "production")
+        monkeypatch.setenv("AUTH_RETURN_RESET_TOKEN", "true")
+        resp = client.post(
+            "/api/v1/auth/forgot-password",
+            json={"email": "testuser@example.com"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "reset_token" not in data, "reset_token must NEVER be returned in production"
+
 
 # ===========================================================================
 # 9. POST /api/v1/auth/reset-password

@@ -163,7 +163,12 @@ class AgentMetaResponse(BaseModel):
 @router.get("")
 @router.get("/", include_in_schema=False)
 @router.get("/info", include_in_schema=False)
-async def get_agents_list(request: Request):
+async def get_agents_list(
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
     """Return the full list of all 25 agents for frontend administration.
 
     Uses the canonical AGENTS list from api.shared_handlers so that every
@@ -307,7 +312,13 @@ async def list_mcp_servers(
 
 
 @router.get("/{agent_id}")
-async def get_agent_by_id(agent_id: str, request: Request):
+async def get_agent_by_id(
+    agent_id: str,
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
     """Return metadata for a specific agent by ID."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
@@ -356,7 +367,12 @@ async def get_agent_by_id(agent_id: str, request: Request):
 
 
 @router.get("/info")
-async def get_agents_info(request: Request):
+async def get_agents_info(
+    request: Request,
+    _: str = Depends(
+        get_api_key
+    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+):
     """Return metadata for all agents including prompt integration status.
 
     This endpoint verifies that prompts are loaded into agents at runtime

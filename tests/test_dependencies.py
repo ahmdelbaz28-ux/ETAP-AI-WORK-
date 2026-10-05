@@ -241,3 +241,46 @@ def test_decode_jwt_algorithm_confusion_rejected():
     with pytest.raises(ValueError, match="Only HS256 algorithm is supported"):
         _decode_jwt(fake_token, algorithms=["RS256"])
 
+
+def test_jwt_secret_key_missing_fails_closed(monkeypatch):
+    """Missing JWT_SECRET_KEY must raise RuntimeError without silent dev fallback."""
+    import os
+    import subprocess
+    import sys
+
+    # Run in subprocess to test import-time fail-closed check cleanly
+    code = "import api.dependencies"
+    env = os.environ.copy()
+    env.pop("JWT_SECRET_KEY", None)
+    env.pop("ALLOW_EPHEMERAL_JWT_IN_DEV", None)
+    env["ENVIRONMENT"] = "development"
+    res = subprocess.run(
+        [sys.executable, "-c", code],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode != 0
+    assert "Fail-Closed Security Guard" in res.stderr
+    assert "JWT_SECRET_KEY must be set" in res.stderr
+
+
+def test_jwt_secret_key_ephemeral_dev_opt_in():
+    """Setting ALLOW_EPHEMERAL_JWT_IN_DEV=true allows development fallback."""
+    import os
+    import subprocess
+    import sys
+
+    code = "import api.dependencies; assert len(api.dependencies.JWT_SECRET_KEY) >= 32"
+    env = os.environ.copy()
+    env.pop("JWT_SECRET_KEY", None)
+    env["ALLOW_EPHEMERAL_JWT_IN_DEV"] = "true"
+    env["ENVIRONMENT"] = "development"
+    res = subprocess.run(
+        [sys.executable, "-c", code],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0
+

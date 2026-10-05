@@ -111,10 +111,17 @@ class TestMcpListRoutePrecedence:
 
 
 class TestAgentLookupUnchanged:
-    """The fix must not break ordinary /{agent_id} lookup behavior."""
+    """The fix must not break ordinary /{agent_id} lookup behavior, and auth is enforced."""
+
+    def test_unauthenticated_agent_lookup_is_401(self, route_client: Any) -> None:
+        resp = route_client.get("/api/v1/agents/load-flow-agent")
+        assert resp.status_code == 401
 
     def test_real_agent_id_still_resolves(self, route_client: Any) -> None:
-        resp = route_client.get("/api/v1/agents/load-flow-agent")
+        resp = route_client.get(
+            "/api/v1/agents/load-flow-agent",
+            headers={"X-API-Key": TEST_API_KEY},
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert body.get("success") is True
@@ -122,6 +129,9 @@ class TestAgentLookupUnchanged:
         assert "capabilities" in body["agent"]
 
     def test_unknown_agent_id_still_catch_all_404(self, route_client: Any) -> None:
-        resp = route_client.get("/api/v1/agents/definitely-not-an-agent")
+        resp = route_client.get(
+            "/api/v1/agents/definitely-not-an-agent",
+            headers={"X-API-Key": TEST_API_KEY},
+        )
         assert resp.status_code == 404
         assert resp.json().get("error") == "Agent not found"

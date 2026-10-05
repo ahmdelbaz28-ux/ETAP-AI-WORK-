@@ -131,6 +131,7 @@ class TestProtectedEndpoints:
             ("GET", "/api/v1/knowledge", None),
             ("GET", "/api/v1/ml/capabilities", None),
             ("GET", "/api/v1/settings/keys", None),
+            ("GET", "/api/v1/agents", None),
         ],
     )
     def test_endpoint_requires_auth(self, hf_client, method, path, body):

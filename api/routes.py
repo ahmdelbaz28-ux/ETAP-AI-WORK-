@@ -49,7 +49,12 @@ from api.email_dashboard import router as email_dashboard_router
 from api.email_digest import router as email_digest_router
 from api.email_otp import router as email_otp_router
 from api.email_webhooks import router as email_webhooks_router
-from api.environment import DEV_ENVIRONMENTS, is_dev_environment, is_production_environment
+from api.environment import (
+    DEV_ENVIRONMENTS,
+    auth_disabled_allowed,
+    is_dev_environment,
+    is_production_environment,
+)
 from api.equipment import router as equipment_router
 from api.etap_draw import router as etap_draw_router
 from api.export import exports_router, reports_router
@@ -249,7 +254,8 @@ def _validate_bearer_auth(auth_header: str, path: str) -> bool:
 
 
 def _validate_api_key_auth(request: Request, path: str) -> None:
-    if not _API_KEY_CONFIGURED:
+    expected_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", _EXPECTED_API_KEY)
+    if not expected_key:
         if is_production_environment():
             raise HTTPException(
                 status_code=401,
@@ -260,7 +266,7 @@ def _validate_api_key_auth(request: Request, path: str) -> None:
         return
 
     provided = request.headers.get("x-api-key") or ""
-    if not hmac.compare_digest(provided, _EXPECTED_API_KEY):
+    if not hmac.compare_digest(provided, expected_key):
         raise HTTPException(
             status_code=401,
             detail=_INVALID_API_KEY_MSG,
@@ -273,16 +279,8 @@ def _validate_api_key_auth(request: Request, path: str) -> None:
 
 def _require_api_key(request: Request) -> None:
     """Validate API key or Admin Bearer token when configured."""
-    auth_disabled = _AUTH_DISABLED or os.environ.get(
-        "ENGINEERING_SERVICE_AUTH_DISABLED", ""
-    ).lower() in ("true", "1", "yes")
     path = request.scope.get("path") or request.url.path
-    if auth_disabled:
-        if not is_dev_environment():
-            raise HTTPException(
-                status_code=503,
-                detail="Authentication disabled is not permitted in this environment",
-            )
+    if auth_disabled_allowed():
         _check_admin_path_restricted(path)
         return
 
@@ -1486,7 +1484,10 @@ from fastapi.openapi.utils import get_openapi
 
 
 @app.get("/api/v1/openapi.json", include_in_schema=False)
-async def openapi_schema():
+async def openapi_schema(request: Request):
+    if not _enable_docs:
+        raise HTTPException(status_code=404, detail="Not Found")
+    _require_api_key(request)
     return get_openapi(
         title="AhmedETAP Engineering API",
         version="2.1.0",
@@ -1502,10 +1503,16 @@ async def openapi_schema():
 
 
 @app.get("/api/v1/docs", include_in_schema=False)
-async def swagger_ui():
+async def swagger_ui(request: Request):
+    if not _enable_docs:
+        raise HTTPException(status_code=404, detail="Not Found")
+    _require_api_key(request)
     return get_swagger_ui_html(openapi_url="/api/v1/openapi.json", title="AhmedETAP API")
 
 
 @app.get("/api/v1/redoc", include_in_schema=False)
-async def redoc_ui():
+async def redoc_ui(request: Request):
+    if not _enable_docs:
+        raise HTTPException(status_code=404, detail="Not Found")
+    _require_api_key(request)
     return get_redoc_html(openapi_url="/api/v1/openapi.json", title="AhmedETAP API")
