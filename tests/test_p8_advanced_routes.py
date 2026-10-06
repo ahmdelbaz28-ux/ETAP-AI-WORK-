@@ -252,3 +252,25 @@ class TestLegacyCompatibility:
         schema = client.get("/openapi.json").json()
         assert "/api/v1/scada/live" in schema["paths"]
         assert "/api/v1/digital-twin/status" in schema["paths"]
+
+    def test_api_v1_openapi_requires_auth(self, client):
+        resp = client.get("/api/v1/openapi.json")
+        assert resp.status_code == 401
+
+    def test_api_v1_openapi_authorized(self, client):
+        resp = client.get("/api/v1/openapi.json", headers=self._headers)
+        assert resp.status_code == 200
+        schema = resp.json()
+        assert "/api/v1/scada/live" in schema["paths"]
+        assert "/api/v1/digital-twin/status" in schema["paths"]
+
+    def test_api_v1_docs_authorized(self, client):
+        resp = client.get("/api/v1/docs", headers=self._headers)
+        assert resp.status_code == 200
+
+    def test_api_v1_openapi_disabled_when_docs_disabled(self, client, monkeypatch):
+        import api.routes as r_mod
+
+        monkeypatch.setattr(r_mod, "_enable_docs", False)
+        resp = client.get("/api/v1/openapi.json", headers=self._headers)
+        assert resp.status_code == 404

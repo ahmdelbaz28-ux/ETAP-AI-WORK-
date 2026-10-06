@@ -42,6 +42,7 @@ from api._messages import (
     MSG_USER_NOT_FOUND,
     MSG_USER_NOT_FOUND_OR_DEACTIVATED,
 )
+from api.environment import is_dev_environment
 from api.rate_limit import (
     get_authenticated_or_ip_key,
     get_login_rate_limit_key,
@@ -1953,11 +1954,14 @@ async def forgot_password(
                 "password_reset_email_failed email=%s err=%s", user.email, exc
             )
 
-        # In production, the reset token is sent via email (above) and NOT
+        # In production, the reset token is sent via email (above) and NEVER
         # returned in the response. The default is FALSE to prevent token
         # leakage through proxies, APM tools, browser extensions, etc.
-        # Set AUTH_RETURN_RESET_TOKEN=true ONLY for local development/testing.
-        if os.getenv("AUTH_RETURN_RESET_TOKEN", "false").lower() == "true":
+        # Restricted strictly to explicit development/test environments.
+        if (
+            is_dev_environment()
+            and os.getenv("AUTH_RETURN_RESET_TOKEN", "false").lower() == "true"
+        ):
             return {
                 "message": _MSG_RESET_TOKEN_SENT,
                 "reset_token": reset_token,
