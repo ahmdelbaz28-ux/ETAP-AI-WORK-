@@ -1,3 +1,10 @@
+---
+title: "AhmedETAP Troubleshooting & Diagnostics Guide"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Troubleshooting Guide
 
 ## Table of Contents

@@ -1,13 +1,30 @@
+---
+title: "AhmedETAP Security Operations Manual"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Security Team"
+---
+
 # SECURITY OPERATIONS MANUAL
 
 ## AhmedETAP — Security Operations
 
 **Document ID:** SEC-OPS-001  
-**Version:** 1.0  
-**Date:** 2026-06-10  
+**Version:** 2.1.0  
+**Date:** 2026-10-06  
 **Classification:** Internal — Confidential  
 **Owner:** Security Operations Lead  
 **Review Cycle:** Quarterly
+
+---
+
+## 📋 Table of Contents
+
+- [1. Secret Rotation Policy](#1-secret-rotation-policy)
+- [2. WAF & DDoS Mitigation Procedures](#2-waf-and-ddos-mitigation)
+- [3. Incident Response Playbook](#3-incident-response)
+- [4. Audit Logging & Compliance](#4-audit-logging)
+- [5. Access Control & Key Management](#5-access-control)
 
 ---
 

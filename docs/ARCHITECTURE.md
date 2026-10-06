@@ -1,4 +1,24 @@
+---
+title: "AhmedETAP Complete System Architecture"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # AhmedETAP - Complete System Architecture
+
+## 📋 Table of Contents
+
+- [1. System Overview](#1-system-overview)
+- [2. System Architecture Diagram](#2-system-architecture-diagram)
+- [3. Core Architecture Layers](#3-core-architecture-layers)
+- [4. AI Agent Framework & Dual-Runtime Architecture](#4-ai-agent-framework)
+- [5. Engineering Computation Engines](#5-engineering-computation-engines)
+- [6. Data Layer & Persistence](#6-data-layer)
+- [7. Security Architecture & Zero-Trust](#7-security-architecture)
+- [8. Deployment & Infrastructure Architecture](#8-deployment-architecture)
+
+---
 
 ## 1. System Overview
 

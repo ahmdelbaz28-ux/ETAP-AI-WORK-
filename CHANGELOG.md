@@ -1,8 +1,24 @@
+---
+title: "AhmedETAP Changelog"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Changelog
 
 All notable changes to AhmedETAP will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## Table of Contents
+
+- [[Unreleased] — Trust-Hardening & Engineering Honesty](#unreleased)
+- [[2.1.0] — 2026-09-16: Production Hardening & Enterprise Deployment](#210---2026-09-16)
+- [[2.0.0] — 2026-08-01: Major Architecture Evolution](#200---2026-08-01)
+- [[1.0.0] — 2026-06-15: Initial Enterprise Launch](#100---2026-06-15)
+
+---
 
 ## [Unreleased]
 

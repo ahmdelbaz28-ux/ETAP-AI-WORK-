@@ -1,4 +1,4 @@
-# Final Deployment Guide — Standalone ARM64 AppImage
+﻿# Final Deployment Guide — Standalone ARM64 AppImage
 
 > [!NOTE]
 > This guide is specifically for the standalone Linux ARM64 (aarch64) desktop AppImage package (`ETAP Digital Twin v1.0.0`).

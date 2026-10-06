@@ -1,4 +1,4 @@
-# Security Checklist - AhmedETAP Platform
+﻿# Security Checklist - AhmedETAP Platform
 
 ## ✅ Completed Security Improvements
 

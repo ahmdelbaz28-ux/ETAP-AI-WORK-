@@ -1,4 +1,4 @@
-# Security Remediation Report
+﻿# Security Remediation Report
 
 ## Source: npm audit
 ## Date: 2026-06-12

@@ -1,4 +1,4 @@
-# ⚡ AhmedETAP — Resend Email Integration v2
+﻿# ⚡ AhmedETAP — Resend Email Integration v2
 
 تكامل كامل ومحسّن بين منصة AhmedETAP وخدمة [Resend](https://resend.com) — مع هوية AhmedETAP البصرية (⚡ أصفر→أحمر) وميزات متقدمة.
 

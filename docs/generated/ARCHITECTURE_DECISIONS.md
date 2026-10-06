@@ -1,4 +1,4 @@
-# Architecture Decisions — AhmedETAP
+﻿# Architecture Decisions — AhmedETAP
 
 سجلّ القرارات المعمارية المقصودة (Architecture Decision Records). كل قرار يُوثّق
 السياق، والاختيار، والبدائل المُهملة، وعواقب التنفيذ — وفق الفصل P0 من خطة التنفيذ

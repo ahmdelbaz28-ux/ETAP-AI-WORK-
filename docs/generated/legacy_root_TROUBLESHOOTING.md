@@ -1,4 +1,4 @@
-# ETAP Troubleshooting Guide
+﻿# ETAP Troubleshooting Guide
 
 This guide provides solutions to common issues encountered when using ETAP. Since ETAP is a safety-critical system, pay special attention to any issues that could affect safety calculations.
 

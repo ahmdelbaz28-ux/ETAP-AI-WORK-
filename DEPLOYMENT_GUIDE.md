@@ -359,13 +359,13 @@ docker buildx create --name etap-multiarch --driver docker-container --use
 ```
 
 The script creates the app in your org, sets `ENGINEERING_SERVICE_API_KEY`
-as a Fly secret if `$ENGINEERING_SERVICE_API_KEY` is set, patches
-[`fly.toml`](fly.toml) to point at your GHCR image, and runs `fly deploy`.
+as a Fly secret if `$ENGINEERING_SERVICE_API_KEY` is set, configures
+`fly.toml` to point at your GHCR image, and runs `fly deploy`.
 You'll get a public URL like `https://etap-eng-prod.fly.dev`.
 
 ### 2. Render (one-click button)
 
-The repo ships a [Render Blueprint](render.yaml). Click:
+The repo supports Render Blueprints (`render.yaml`). Click:
 
 ```
 https://render.com/deploy?repo=https://github.com/ahmdelbaz28/my-awesome-agent

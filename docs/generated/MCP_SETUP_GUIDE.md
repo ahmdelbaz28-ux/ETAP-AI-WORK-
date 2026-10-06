@@ -1,4 +1,4 @@
-# 🤖 MCP (Model Context Protocol) Setup Guide
+﻿# 🤖 MCP (Model Context Protocol) Setup Guide
 
 This guide explains how to set up the MCP servers for the AhmedETAP project, including TestSprite, LangWatch, and Mastra.
 

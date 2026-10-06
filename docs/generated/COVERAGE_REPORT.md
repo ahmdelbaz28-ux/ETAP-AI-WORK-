@@ -1,4 +1,4 @@
-# Coverage Report
+﻿# Coverage Report
 
 ## Date: 2026-06-12
 ## Tool: pytest-cov 5.0.0 + coverage.py

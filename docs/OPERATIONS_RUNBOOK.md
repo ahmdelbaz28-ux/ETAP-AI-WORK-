@@ -1,3 +1,10 @@
+---
+title: "AhmedETAP Operations Runbook"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Operations Runbook
 
 ## Table of Contents

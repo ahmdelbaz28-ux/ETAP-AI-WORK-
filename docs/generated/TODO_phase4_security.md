@@ -1,4 +1,4 @@
-# Phase 4: Security & Execution Fixes
+﻿# Phase 4: Security & Execution Fixes
 
 ## ✅ secure_executor.py Timeout Handling
 - [x] Replaced signal-based timeout (SIGALRM) with cross-platform `ThreadPoolExecutor` + `future.result(timeout=...)`

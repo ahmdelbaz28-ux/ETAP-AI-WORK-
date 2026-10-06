@@ -1,3 +1,10 @@
+---
+title: "Contributing to AhmedETAP"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Contributing to AhmedETAP
 
 Thank you for your interest in contributing to AhmedETAP! This document provides guidelines and instructions for contributing.
@@ -6,6 +13,7 @@ Thank you for your interest in contributing to AhmedETAP! This document provides
 
 - [Code of Conduct](#code-of-conduct)
 - [How to Contribute](#how-to-contribute)
+- [Working on Technical Debt](#working-on-technical-debt)
 - [Development Setup](#development-setup)
 - [Coding Standards](#coding-standards)
 - [Commit Convention](#commit-convention)
@@ -31,6 +39,18 @@ This project adheres to our [Code of Conduct](CODE_OF_CONDUCT.md). By participat
 ### First-Time Contributors
 
 Look for issues labeled `good-first-issue` or `help-wanted`.
+
+## Working on Technical Debt
+
+AhmedETAP tracks engineering technical debt, architectural remediation, and production readiness gaps systematically:
+
+- **Authoritative Source:** Consult [`docs/STATUS.md`](docs/STATUS.md) for the active roster of technical debt items (`TD-xxx`), including severity, scope, and required remediation evidence.
+- **Labeling Issues & Pull Requests:**
+  - Apply the label `tech-debt` to any Issue or Pull Request addressing a technical debt item.
+  - Reference the debt identifier explicitly in the PR title and description (e.g., `fix(security): resolve TD-003 token blacklisting`).
+- **Validation Criteria for Debt PRs:**
+  - Every technical debt PR must provide empirical proof of closure (e.g., automated test run logs, benchmarks, or static security scan output).
+  - No technical debt PR will be merged without updating both `docs/STATUS.md` and `ROADMAP.md` to reflect the verified closure state.
 
 ## Development Setup
 

@@ -1,4 +1,4 @@
-# 🔧 CAD/BIM API INTEGRATION GUIDE
+﻿# 🔧 CAD/BIM API INTEGRATION GUIDE
 
 **Date:** 2026-06-16  
 **Status:** ✅ COMPLETE — Ready for Integration  

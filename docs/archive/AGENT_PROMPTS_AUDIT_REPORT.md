@@ -1,4 +1,4 @@
-# Expert Pre-Launch Review — Agent Prompts Audit
+﻿# Expert Pre-Launch Review — Agent Prompts Audit
 
 **Reviewer:** Expert Pre-Launch Reviewer
 **Date:** 2026-07-22
@@ -126,7 +126,7 @@ scenarios with rotor-angle stability scenarios.
 (`ai_agent_instructions.md`, `ai_system_prompt.md`, `ai_quick_reference.md`)
 were 95%-duplicate Arabic documents that all referenced:
 ```
-file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/...
+../../...
 ```
 
 These paths exist only on the original developer's Windows machine. On

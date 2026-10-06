@@ -1,4 +1,4 @@
-# AI Agent Index — AhmedETAP
+﻿# AI Agent Index — AhmedETAP
 
 > **Purpose:** Complete project intelligence document for AI coding agents.
 > **Last Updated:** 2026-06-16

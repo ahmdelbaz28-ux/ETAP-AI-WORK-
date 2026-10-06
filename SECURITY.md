@@ -1,11 +1,20 @@
+---
+title: "AhmedETAP Security Policy & Vulnerability Disclosure"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Security Policy
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 1.0.x | ✅ Yes |
-| < 1.0 | ❌ No |
+| Version | Supported | Status |
+|---|:---:|---|
+| **2.1.x** | ✅ Yes | Current Stable Production |
+| **2.0.x** | ✅ Yes | Active Maintenance |
+| **1.x** | ⚠️ Limited | Security Patches Only |
+| **< 1.0** | ❌ No | End of Life |
 
 ## Reporting a Vulnerability
 

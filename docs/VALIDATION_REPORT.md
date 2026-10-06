@@ -1,8 +1,25 @@
+---
+title: "Scientific Validation & Numerical Benchmark Report"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "AhmedETAP Power Systems & Validation Team"
+---
+
 # Scientific Validation & Numerical Benchmark Report
 **AhmedETAP Virtual Power System Engineering Platform**  
 *Document Ref: VAL-REP-2026-V1*  
 *Git Commit Hash: 697f0336c460c3f2a9b30fde05ae51f86d7edd6f (PR #598) / HEAD 9d2198e8c | Benchmark Date: 2026-10-05*  
 *Standards Coverage: 16/16 Verified (`claims_audit.py --strict`)*
+
+---
+
+## Table of Contents
+- [1. Executive Summary](#1-executive-summary)
+- [2. Certified Benchmark Suite (`scripts/run_ieee_benchmarks.py`)](#2-certified-benchmark-suite-scriptsrun_ieee_benchmarkspy)
+- [3. IEEE 9-Bus WSCC Detailed Bus Voltages](#3-ieee-9-bus-wscc-detailed-bus-voltages)
+- [4. IEEE 1584-2018 Arc Flash Gold Standard Test Cases](#4-ieee-1584-2018-arc-flash-gold-standard-test-cases)
+- [5. Automated Claims Audit Verification](#5-automated-claims-audit-verification)
+- [6. How to Reproduce Validation Locally](#6-how-to-reproduce-validation-locally)
 
 ---
 
@@ -56,9 +73,9 @@ Execution converged in 4 iterations using Newton-Raphson full Jacobian formulati
 
 ## 4. IEEE 1584-2018 Arc Flash Gold Standard Test Cases
 
-AhmedETAP uses the published IEEE 1584-2018 standard test cases loaded directly from [`tests/gold_cases/ieee1584_st_published.json`](file:///c:/Users/EWS-01/Desktop/etap/tests/gold_cases/ieee1584_st_published.json).
+AhmedETAP uses the published IEEE 1584-2018 standard test cases loaded directly from [`tests/gold_cases/ieee1584_st_published.json`](../tests/gold_cases/ieee1584_st_published.json).
 
-Verified via automated test suite [`tests/test_arcflash_1584_st_cases.py`](file:///c:/Users/EWS-01/Desktop/etap/tests/test_arcflash_1584_st_cases.py):
+Verified via automated test suite [`tests/test_arcflash_1584_st_cases.py`](../tests/test_arcflash_1584_st_cases.py):
 - **Case ST-1** (VCB, 0.48 kV, open air enclosure): Validated arcing current $I_{arc}$ within $\pm 5\%$ and incident energy $E$ within $\pm 15\%$ of published Annex D reference.
 - **Case ST-2** (VCBB, 0.48 kV, barrier configuration): Verified non-linear electrode boundary effects.
 - **Case ST-3** (HCB, 0.48 kV, horizontal electrodes): Verified horizontal convection directional arc flash multiplier.
@@ -71,7 +88,7 @@ Verified via automated test suite [`tests/test_arcflash_1584_st_cases.py`](file:
 
 ## 5. Automated Claims Audit Verification
 
-The repository enforces strict zero-untested-claims via [`scripts/claims_audit.py`](file:///c:/Users/EWS-01/Desktop/etap/scripts/claims_audit.py):
+The repository enforces strict zero-untested-claims via [`scripts/claims_audit.py`](../scripts/claims_audit.py):
 - **Citations Audited**: 336 standard references across engines, agents, and core modules.
 - **Test Corroborations**: 83 empirical test implementations across the test suite.
 - **Verified Standard Count**: **16 / 16 (100%)**.
@@ -95,3 +112,4 @@ Run the IEEE 1584 published cases and gold standard test suite:
 ```powershell
 pytest tests/test_arcflash_1584_st_cases.py tests/test_ieee_gold_standard_benchmarks.py -v
 ```
+

@@ -1,4 +1,4 @@
-# Security Requirements — AhmedETAP Platform
+﻿# Security Requirements — AhmedETAP Platform
 
 Derived from a STRIDE-based threat analysis of the codebase (API layer, agent runtime, backend/infra).
 Generated with the `security-requirement-extraction` skill (Template 1: Security Requirement Model).

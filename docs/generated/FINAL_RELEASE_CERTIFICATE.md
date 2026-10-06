@@ -1,4 +1,4 @@
-# Final Release Certificate
+﻿# Final Release Certificate
 
 ## Application: ETAP Digital Twin
 ## Version: 1.0.0

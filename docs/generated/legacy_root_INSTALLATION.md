@@ -1,4 +1,4 @@
-# Installation Guide for ETAP Platform
+﻿# Installation Guide for ETAP Platform
 
 ## System Requirements
 

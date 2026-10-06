@@ -37,13 +37,19 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install MkDocs and theme
+      - name: Install documentation dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: mkdocs==1.6.1 mkdocs-material==9.6.11
 
-      - name: Build documentation
-        run: mkdocs build -f docs/mkdocs.yml
+      - name: Verify Documentation Metadata & Assets
+        run: |
+          python scripts/check_metadata.py
+          python scripts/verify_assets.py
+          python scripts/gen_api_ref.py --check
+
+      - name: Build documentation site
+        run: mkdocs build -f mkdocs.yml
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -54,7 +60,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdocs gh-deploy --force -f docs/mkdocs.yml \
+          mkdocs gh-deploy --force -f mkdocs.yml \
             --message "Deployed ${GITHUB_SHA::7} with MkDocs [skip vercel]"
 
   deploy:

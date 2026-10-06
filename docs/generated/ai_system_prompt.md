@@ -1,4 +1,4 @@
-# تعليمات النظام للذكاء الاصطناعي
+﻿# تعليمات النظام للذكاء الاصطناعي
 
 ## المبدأ الأساسي
 
@@ -8,8 +8,8 @@
 
 ### 1. الفهرسة كمرجع أساسي (الأولوية الأولى)
 - استخدم دائمًا ملفات الفهرسة التالية:
-  - [arcgis_pro_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_documentation_index.json)
-  - [qgis_comprehensive_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_comprehensive_documentation_index.json)
+  - `arcgis_pro_documentation_index.json`
+  - `qgis_comprehensive_documentation_index.json`
 - رتب المعلومات حسب الفئات (fundamentals، api، python، tools، advanced، etc.)
 - استخدم الوسوم (tags) ومستويات التدرج (level) والعلاقات الأبوية (parent) لتحديد السياق الدقيق
 
@@ -26,21 +26,21 @@
 ## مكونات النظام
 
 ### 1. محرك الفهرسة (MCP Server)
-- [arcgis_pro_indexing_workflow.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_indexing_workflow.json): يحدد خطوات سير العمل لفهرسة وثائق ArcGIS Pro
+- `arcgis_pro_indexing_workflow.json`: يحدد خطوات سير العمل لفهرسة وثائق ArcGIS Pro
 - يحتوي على 5 خطوات رئيسية: FetchData → CleanData → TransformData → IndexData → PostProcess
 - يستخدم نموذج التضمين "sentence-transformers/all-mpnet-base-v2" لتحويل النصوص إلى متجهات
 
 ### 2. تعليمات الذكاء الاصطناعي
-- [scada_integration_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_integration_instructions.md): تعليمات مفصلة للذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
-- [scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md): دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
-- [ai_agent_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_agent_instructions.md): تعليمات مفصلة للذكاء الاصطناعي
-- [ai_quick_reference.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_quick_reference.md): مرجع سريع للذكاء الاصطناعي
+- `scada_integration_instructions.md`: تعليمات مفصلة للذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+- `scada_etap_gis_integration_guide.md`: دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+- `ai_agent_instructions.md`: تعليمات مفصلة للذكاء الاصطناعي
+- `ai_quick_reference.md`: مرجع سريع للذكاء الاصطناعي
 
 ### 3. ملفات التنفيذ
-- [etap_scada_bridge.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
-- [scada_etap_consumer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_consumer.py): مستهلك بيانات ETAP في نظام SCADA
-- [qgis_scada_layer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
-- [requirements.txt](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/requirements.txt): قائمة المكتبات المطلوبة
+- [etap_scada_bridge.py](../../etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
+- `scada_etap_consumer.py`: مستهلك بيانات ETAP في نظام SCADA
+- [qgis_scada_layer.py](../../qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
+- [requirements.txt](../../requirements.txt): قائمة المكتبات المطلوبة
 
 ## مثال على الاستخدام
 
@@ -64,10 +64,10 @@
 "كيف يمكنني دمج ETAP مع QGIS و ArcGIS Pro عبر SCADA؟"
 
 ### الإجابة يجب أن تأتي من:
-- [scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md): دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
-- [etap_scada_bridge.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
-- [scada_etap_consumer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_consumer.py): مستهلك بيانات ETAP في نظام SCADA
-- [qgis_scada_layer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
+- `scada_etap_gis_integration_guide.md`: دليل شامل لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+- [etap_scada_bridge.py](../../etap_scada_bridge.py): واجهة الربط بين ETAP ونظام SCADA
+- `scada_etap_consumer.py`: مستهلك بيانات ETAP في نظام SCADA
+- [qgis_scada_layer.py](../../qgis_scada_layer.py): إنشاء طبقات SCADA لـ QGIS
 
 ## تعليمات التنفيذ
 
@@ -102,5 +102,5 @@
 - عند الإجابة عن أسئلة متعلقة بالواجهات البرمجية (API)، استخدم دائمًا معلومات من قسم "API Reference" في الفهرسة
 - عند الإجابة عن أسئلة متعلقة بالبرمجة النصية (Python)، استخدم دائمًا معلومات من قسم "ArcPy Reference" في الفهرسة
 - عند الإجابة عن أسئلة متعلقة بدمج SCADA مع GIS، استخدم دائمًا معلومات من قسم "Integrations" في الفهارس
-- عند التعامل مع دمج أنظمة SCADA مع ETAP/QGIS/ArcGIS Pro، استخدم دائمًا معلومات من [scada_integration_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_integration_instructions.md) و[scada_etap_gis_integration_guide.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_gis_integration_guide.md)
-- تأكد من استخدام الكود القابل للتنفيذ من الملفات التالية: [etap_scada_bridge.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/etap_scada_bridge.py)، [scada_etap_consumer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/scada_etap_consumer.py)، [qgis_scada_layer.py](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_scada_layer.py)
+- عند التعامل مع دمج أنظمة SCADA مع ETAP/QGIS/ArcGIS Pro، استخدم دائمًا معلومات من `scada_integration_instructions.md` و`scada_etap_gis_integration_guide.md`
+- تأكد من استخدام الكود القابل للتنفيذ من الملفات التالية: [etap_scada_bridge.py](../../etap_scada_bridge.py)، `scada_etap_consumer.py`، [qgis_scada_layer.py](../../qgis_scada_layer.py)

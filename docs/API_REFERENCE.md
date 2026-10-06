@@ -1,6 +1,15 @@
+---
+title: "AhmedETAP — Full Canonical API Reference"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Team"
+---
+
 # AhmedETAP — Full API Reference
 
-## Overview
+> **Canonical API Source:** This document is the single authoritative source of truth for the AhmedETAP Engineering Service API.  
+> Quick cheat-sheet: [`docs/API_QUICKREF.md`](API_QUICKREF.md).
+
 
 The AhmedETAP exposes a comprehensive RESTful API and WebSocket interface for power system analysis, agent orchestration, SCADA integration, predictive analytics, and system management. This document provides complete specifications for every endpoint, including request/response schemas, authentication requirements, rate limits, and usage examples.
 
@@ -15,6 +24,27 @@ The AhmedETAP exposes a comprehensive RESTful API and WebSocket interface for po
 ### API Versioning
 
 All endpoints are versioned under `/api/v1/`. The current version is **v1**.
+
+---
+
+## 📋 Table of Contents
+
+- [Authentication](#authentication)
+- [Health & System Status](#health--system-status)
+- [Studies & Engineering Analysis](#studies--engineering-analysis)
+  - [Run Study (`POST /api/v1/studies/run`)](#run-study)
+  - [Get Study Result (`GET /api/v1/studies/{task_id}`)](#get-study-result)
+  - [Batch Studies (`POST /api/v1/studies/batch`)](#batch-studies)
+- [Agent Orchestration](#agent-orchestration)
+  - [List Agents (`GET /api/v1/agents`)](#list-agents)
+  - [Dispatch Agent (`POST /api/v1/agents/{agent_id}/run`)](#dispatch-agent)
+- [SCADA & Real-Time Telemetry](#scada--real-time-telemetry)
+  - [Get Telemetry (`GET /api/v1/scada/points`)](#get-telemetry)
+  - [Execute Control Action (`POST /api/v1/scada/control`)](#execute-control-action)
+- [ETAP COM Integration](#etap-com-integration)
+- [Reporting & Deliverables](#reporting--deliverables)
+- [WebSocket Interface](#websocket-interface)
+- [Error Codes & Diagnostics](#error-codes--diagnostics)
 
 ---
 

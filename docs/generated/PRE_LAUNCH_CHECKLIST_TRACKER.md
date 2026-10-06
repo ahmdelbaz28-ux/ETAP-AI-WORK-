@@ -1,4 +1,4 @@
-# 🔴 PRE-LAUNCH SECURITY & COMPLIANCE CHECKLIST
+﻿# 🔴 PRE-LAUNCH SECURITY & COMPLIANCE CHECKLIST
 ## OWASP + Best Practices - Implementation Tracker
 
 **Generated:** 2026-06-16  

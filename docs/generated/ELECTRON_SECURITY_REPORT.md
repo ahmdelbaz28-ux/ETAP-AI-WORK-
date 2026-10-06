@@ -1,4 +1,4 @@
-# Electron Security Report
+﻿# Electron Security Report
 
 ## Date: 2026-06-12
 ## Target: frontend/electron/compiled/main.js, frontend/electron/compiled/preload.js

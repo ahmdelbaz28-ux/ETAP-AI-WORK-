@@ -1,4 +1,4 @@
-# Security Exceptions — Known Vulnerabilities in Transitive Dependencies
+﻿# Security Exceptions — Known Vulnerabilities in Transitive Dependencies
 
 This document records known Dependabot alerts for **transitive dependencies**
 where an override would risk breaking the parent package. These exceptions are

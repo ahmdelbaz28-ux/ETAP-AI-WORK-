@@ -43,7 +43,7 @@
    اعتماد كود `v2` ودمجه عبر `git merge --no-ff` للحفاظ على التاريخ النظيف وشجرة المراجعة.
 2. **الخطوة الثانية (إعادة التشكيل):**
    إعادة تموضع (rebase) فرع `fix/study-executor-study-type-gate` فوق رأس فرع `v2` المدمج، بدلاً من دمجهما بالتوازي.
-   - **السبب:** فرع `fix` يعدل [services/study_executor.py](../../services/study_executor.py) واختباراته [tests/test_study_executor_deep.py](../../tests/test_study_executor_deep.py). بينما فرع `v2` تجنب لمس `services/study_executor.py` واعتمد على المغلف المستقل [services/study_executor_copilot.py](../../services/study_executor_copilot.py).
+   - **السبب:** فرع `fix` يعدل `services/study_executor.py` واختباراته `tests/test_study_executor_deep.py`. بينما فرع `v2` تجنب لمس `services/study_executor.py` واعتمد على المغلف المستقل `services/study_executor_copilot.py` (في الفرع المؤرشف).
    - هذا الفصل يضمن انعدام التعارض النصي أثناء الدمج.
 
 ---
@@ -54,7 +54,7 @@
 
 ### 1. سلوك `run_ingest` عند تعطيل العلم:
 * **السلوك:** يلقي استثناء `DspyIngestError("flag_disabled")` ولا ينتج أبداً أي مواصفة شبكة أو كود تنفيذي.
-* **الشاهد الصريح:** في [services/dspy_copilot/runtime.py:131-133](../../services/dspy_copilot/runtime.py#L131-L133):
+* **الشاهد الصريح:** في `services/dspy_copilot/runtime.py:131-133` (الفرع المؤرشف):
   ```python
   # Contract: run_ingest raises DspyIngestError on flag_disabled (fail-closed, never produces executable spec)
   if not is_enabled():
@@ -63,7 +63,7 @@
 
 ### 2. سلوك `run_diagnose` عند تعطيل العلم:
 * **السلوك:** يعيد كائن تشخيص يحتوي على `code="FLAG_DISABLED"` مع رسالة واضحة دون أي استدعاء لنموذج الذكاء الاصطناعي (Graceful Degrade).
-* **الشاهد الصريح:** في [services/dspy_copilot/runtime.py:202-214](../../services/dspy_copilot/runtime.py#L202-L214):
+* **الشاهد الصريح:** في `services/dspy_copilot/runtime.py:202-214` (الفرع المؤرشف):
   ```python
   # Contract: run_diagnose returns DiagnosticOutput with code=FLAG_DISABLED on flag_disabled (graceful degrade)
   if not is_enabled():
@@ -83,7 +83,7 @@
       )
   ```
 
-* **فحص الاسم التاريخي "RC-1":** كما نبهت التعليمات، تم التأكد بالبحث أن نص "RC-1" غير موجود، وأن الاختبار يستند للسلوك الحقيقي المبرهن أعلاه والموثق في [tests/test_dspy_fallback.py:46-70](../../tests/test_dspy_fallback.py#L46-L70).
+* **فحص الاسم التاريخي "RC-1":** كما نبهت التعليمات، تم التأكد بالبحث أن نص "RC-1" غير موجود، وأن الاختبار يستند للسلوك الحقيقي المبرهن أعلاه والموثق في `tests/test_dspy_fallback.py:46-70` (الفرع المؤرشف).
 
 ---
 

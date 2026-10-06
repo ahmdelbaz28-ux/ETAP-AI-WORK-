@@ -10,37 +10,37 @@ This document summarizes all work completed on the ETAP Engineering Intelligence
 #### Phase 1: Architecture Remediation (Initial)
 - **Issue Addressed**: Multiple workflow-side calculations and parallel engineering engines
 - **Solution Implemented**: Consolidated to single canonical pipeline
-- **Documentation Created**: [ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md)
+- **Documentation Created**: [ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md](../ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md)
 - **Status**: ✅ COMPLETED
 
 #### Phase 2: Evidence Reconciliation (Secondary)
 - **Issue Addressed**: Critical bypasses and architectural inconsistencies
 - **Solution Implemented**: Comprehensive audit and reconciliation
-- **Documentation Created**: [FINAL_EVIDENCE_RECONCILIATION_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_EVIDENCE_RECONCILIATION_REPORT.md)
+- **Documentation Created**: [FINAL_EVIDENCE_RECONCILIATION_REPORT.md](../FINAL_EVIDENCE_RECONCILIATION_REPORT.md)
 - **Status**: ✅ COMPLETED
 
 #### Phase 3: Production Readiness (Tertiary)
 - **Issue Addressed**: Platform readiness for production deployment
 - **Solution Implemented**: Production hardening and deployment preparation
-- **Documentation Created**: [FINAL_RELEASE_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_RELEASE_REPORT.md), [PRODUCTION_DEPLOYMENT_GUIDE.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PRODUCTION_DEPLOYMENT_GUIDE.md), [PLATFORM_ROADMAP.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PLATFORM_ROADMAP.md)
+- **Documentation Created**: [FINAL_RELEASE_REPORT.md](../FINAL_RELEASE_REPORT.md), [PRODUCTION_DEPLOYMENT_GUIDE.md](../PRODUCTION_DEPLOYMENT_GUIDE.md), [PLATFORM_ROADMAP.md](../PLATFORM_ROADMAP.md)
 - **Status**: ✅ COMPLETED
 
 #### Phase 4: Platform Evolution Initiation (Current)
 - **Issue Addressed**: Transformation from fire-alarm tool to engineering intelligence platform
 - **Solution Implemented**: Strategic architecture and migration planning
-- **Documentation Created**: [VISION_ARCHITECTURE.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/VISION_ARCHITECTURE.md), [ETAP_5_YEAR_ROADMAP.md](file:///c:/Users\EWS-01\Desktop\revit-main\revit-main\docs\ETAP_5_YEAR_ROADMAP.md), [PLATFORM_MIGRATION_PLAN.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PLATFORM_MIGRATION_PLAN.md)
+- **Documentation Created**: [PLATFORM_ROADMAP.md](../PLATFORM_ROADMAP.md)
 - **Status**: ✅ COMPLETED
 
 #### Phase 5: Architecture Audit (Recent)
 - **Issue Addressed**: Verification of platform readiness for engineering intelligence
 - **Solution Implemented**: Comprehensive audit identifying critical gaps
-- **Documentation Created**: [FINAL_PRE_RELEASE_AUDIT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_PRE_RELEASE_AUDIT.md)
+- **Documentation Created**: [FINAL_PRE_RELEASE_AUDIT.md](../FINAL_PRE_RELEASE_AUDIT.md)
 - **Status**: ✅ COMPLETED
 
 #### Phase 6: Critical Infrastructure Fix (Current)
 - **Issue Addressed**: Python version incompatibility (3.8.4 vs required 3.12+)
 - **Solution Implemented**: Detailed remediation plan
-- **Documentation Created**: [PYTHON_COMPATIBILITY_PLAN.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PYTHON_COMPATIBILITY_PLAN.md)
+- **Documentation Created**: [PYTHON_COMPATIBILITY_PLAN.md](../PYTHON_COMPATIBILITY_PLAN.md)
 - **Status**: 🔄 IN PROGRESS
 
 ### CRITICAL FINDINGS ADDRESSED
@@ -69,16 +69,13 @@ This document summarizes all work completed on the ETAP Engineering Intelligence
 
 | Document | Purpose | Status | Criticality |
 |----------|---------|--------|-------------|
-| [ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md) | Remediate workflow calculations | Complete | High |
-| [FINAL_EVIDENCE_RECONCILIATION_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_EVIDENCE_RECONCILIATION_REPORT.md) | Audit critical bypasses | Complete | High |
-| [FINAL_RELEASE_REPORT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_RELEASE_REPORT.md) | Production readiness | Complete | High |
-| [PRODUCTION_DEPLOYMENT_GUIDE.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PRODUCTION_DEPLOYMENT_GUIDE.md) | Deployment instructions | Complete | High |
-| [PLATFORM_ROADMAP.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PLATFORM_ROADMAP.md) | Strategic direction | Complete | Medium |
-| [VISION_ARCHITECTURE.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/VISION_ARCHITECTURE.md) | Target architecture | Complete | High |
-| [ETAP_5_YEAR_ROADMAP.md](file:///c:/Users\EWS-01\Desktop\revit-main\revit-main\docs\ETAP_5_YEAR_ROADMAP.md) | Long-term planning | Complete | High |
-| [PLATFORM_MIGRATION_PLAN.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PLATFORM_MIGRATION_PLAN.md) | Migration strategy | Complete | High |
-| [FINAL_PRE_RELEASE_AUDIT.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/FINAL_PRE_RELEASE_AUDIT.md) | Architecture verification | Complete | Critical |
-| [PYTHON_COMPATIBILITY_PLAN.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/docs/PYTHON_COMPATIBILITY_PLAN.md) | Environment fix | In Progress | Critical |
+| [ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md](../ARCHITECTURE_REMEDIATION_COMPLETION_REPORT.md) | Remediate workflow calculations | Complete | High |
+| [FINAL_EVIDENCE_RECONCILIATION_REPORT.md](../FINAL_EVIDENCE_RECONCILIATION_REPORT.md) | Audit critical bypasses | Complete | High |
+| [FINAL_RELEASE_REPORT.md](../FINAL_RELEASE_REPORT.md) | Production readiness | Complete | High |
+| [PRODUCTION_DEPLOYMENT_GUIDE.md](../PRODUCTION_DEPLOYMENT_GUIDE.md) | Deployment instructions | Complete | High |
+| [PLATFORM_ROADMAP.md](../PLATFORM_ROADMAP.md) | Strategic direction | Complete | Medium |
+| [FINAL_PRE_RELEASE_AUDIT.md](../FINAL_PRE_RELEASE_AUDIT.md) | Architecture verification | Complete | Critical |
+| [PYTHON_COMPATIBILITY_PLAN.md](../PYTHON_COMPATIBILITY_PLAN.md) | Environment fix | In Progress | Critical |
 
 ### NEXT STEPS
 

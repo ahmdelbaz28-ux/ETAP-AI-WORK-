@@ -1,5 +1,8 @@
 ---
-title: AhmedETAP
+title: "AhmedETAP Platform"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 emoji: "⚡"
 colorFrom: yellow
 colorTo: red
@@ -10,6 +13,10 @@ app_port: 7860
 ---
 
 <div align="center">
+
+[English](README.md) | [العربية](README.ar.md)
+
+<br/>
 
 <h1>⚡ AhmedETAP Platform</h1>
 <h3>Enterprise AI-Powered Power Systems Engineering Intelligence</h3>
@@ -22,7 +29,7 @@ app_port: 7860
 
 <br/>
 
-[![Version](https://img.shields.io/badge/version-2.1.0-gold?style=for-the-badge&logo=semantic-release&logoColor=white)](#)
+[![Version](https://img.shields.io/badge/version-2.1.0-gold?style=for-the-badge&logo=semantic-release&logoColor=white)](README.md)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
@@ -45,8 +52,9 @@ app_port: 7860
 **[🚀 Live UI — Vercel](https://etap-ai-work.vercel.app)** &nbsp;•&nbsp;
 **[🧠 Live API — HF Space](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)** &nbsp;•&nbsp;
 **[📚 Documentation](docs/)** &nbsp;•&nbsp;
-**[🔧 API Reference](docs/API_REFERENCE.md)** &nbsp;•&nbsp;
-**[📋 Project Index](PROJECT_INDEX.md)** &nbsp;•&nbsp;
+**[🔧 API QuickRef](docs/API_QUICKREF.md)** &nbsp;•&nbsp;
+**[📖 Tutorials](docs/TUTORIALS/)** &nbsp;•&nbsp;
+**[📖 Glossary](docs/GLOSSARY.md)** &nbsp;•&nbsp;
 **[📝 Changelog](CHANGELOG.md)**
 
 </div>

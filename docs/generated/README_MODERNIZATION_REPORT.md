@@ -1,4 +1,4 @@
-# README Modernization Report
+﻿# README Modernization Report
 
 ## Date: 2026-06-12
 ## Repository: ahmdelbaz28-ux/revit

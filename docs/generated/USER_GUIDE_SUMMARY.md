@@ -1,4 +1,4 @@
-# User Guide System - Implementation Complete
+﻿# User Guide System - Implementation Complete
 
 ## Files Modified/Created:
 

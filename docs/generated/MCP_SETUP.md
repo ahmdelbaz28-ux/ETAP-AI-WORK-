@@ -1,4 +1,4 @@
-# MCP (Model Context Protocol) Setup Guide
+﻿# MCP (Model Context Protocol) Setup Guide
 
 This guide explains how to properly install and test MCP servers for the ETAP-AI Engineering Platform.
 
@@ -8,7 +8,7 @@ Model Context Protocol (MCP) is a standard for connecting AI models with tools a
 
 ## Current MCP Configuration
 
-The project includes a configuration file [`.mcp.json`](file:///c:/Users/Repair%20SC/Desktop/test/ahmedetap-hf/.mcp.json) that defines available MCP servers:
+The project includes a configuration file template [`.mcp.json.example`](../../.mcp.json.example) that defines available MCP servers:
 
 ```json
 {

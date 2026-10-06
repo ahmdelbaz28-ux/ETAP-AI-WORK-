@@ -1,4 +1,4 @@
-# Final Artifact Manifest
+﻿# Final Artifact Manifest
 
 ## Application: ETAP Digital Twin v1.0.0
 ## Build ID: 2e1cb39a-982c103f

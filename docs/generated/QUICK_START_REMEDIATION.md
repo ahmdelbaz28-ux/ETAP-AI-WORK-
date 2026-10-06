@@ -1,4 +1,4 @@
-# 🚀 QUICK START - Pre-Launch Security Remediation
+﻿# 🚀 QUICK START - Pre-Launch Security Remediation
 
 This document provides immediate next steps to fix all identified issues.
 

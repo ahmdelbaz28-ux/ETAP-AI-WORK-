@@ -1,11 +1,11 @@
-# مرجع سريع للذكاء الاصطناعي
+﻿# مرجع سريع للذكاء الاصطناعي
 
 ## المبدأ الأساسي
 استخدم الفهرسة كمرجع أساسي لجميع الاستعلامات المتعلقة بـ ArcGIS Pro و QGIS.
 
 ## الملفات المهمة
-- [arcgis_pro_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_documentation_index.json)
-- [qgis_comprehensive_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_comprehensive_documentation_index.json)
+- `arcgis_pro_documentation_index.json`
+- `qgis_comprehensive_documentation_index.json`
 
 ## تعليمات الاستخدام
 1. ابحث في الفهرسة أولاً قبل تقديم أي معلومة

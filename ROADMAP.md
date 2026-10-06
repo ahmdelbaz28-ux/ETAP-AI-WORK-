@@ -1,20 +1,27 @@
+---
+title: "AhmedETAP Product Roadmap"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # AhmedETAP — Product Roadmap
 
-> **Current Version:** v2.1.0
-> **Last Updated:** 2026-03-05
-> **Maintainer:** Eng. Ahmed Elbaz
+> **Current Version:** v2.1.0  
+> **Last Updated:** 2026-10-06  
+> **Maintainer:** Eng. Ahmed Elbaz / Platform Core Team  
 
 ---
 
 ## Table of Contents
 
 1. [Current Version (v2.1.0)](#current-version-v210)
-2. [Short-Term — Q3 2026 (Next 3 Months)](#short-term--q3-2026)
-3. [Medium-Term — Q4 2026 (Next 6 Months)](#medium-term--q4-2026)
-4. [Long-Term — 2027]((#long-term--2027))
+2. [Short-Term — Q3 2026 (Completed Milestones)](#short-term--q3-2026)
+3. [Medium-Term — Q4 2026 (Next 3 Months)](#medium-term--q4-2026)
+4. [Long-Term — 2027](#long-term--2027)
 5. [Completed Milestones](#completed-milestones)
 6. [Technical Debt](#technical-debt)
-7. [Community & Contribution]((#community--contribution))
+7. [Community & Contribution](#community--contribution)
 
 ---
 
@@ -357,26 +364,35 @@ Focus: **Enterprise Features, Marketplace, Emerging Technologies**
 
 ## Technical Debt
 
-> Full details in [docs/archive/TECHNICAL_DEBT.md](docs/archive/TECHNICAL_DEBT.md)
+AhmedETAP manages architectural and reliability technical debt systematically. Active tracking, severity ratings, and empirical closure verifications are maintained in [`docs/STATUS.md`](docs/STATUS.md) (with legacy archive in [`docs/archive/TECHNICAL_DEBT.md`](docs/archive/TECHNICAL_DEBT.md)).
 
-| ID | Severity | Description | Target Resolution |
-|---|---|---|---|
-| TD-001 | Critical | Exposed secrets in Git history | Q3 2026 Sprint 1 |
-| TD-003 | High | No token blacklisting in production (multi-instance) | Q3 2026 Sprint 1 |
-| TD-004 | High | Rate limiting is in-memory only | Q3 2026 Sprint 1 |
-| TD-005 | High | WebAuthn fallback is insecure | Q3 2026 Sprint 1 |
-| TD-006 | Medium | Missing `useApi` hook in frontend | Q3 2026 Sprint 2 |
-| TD-007 | Medium | Frontend package version `0.0.0` | Q3 2026 Sprint 2 |
-| TD-008 | Medium | Outdated `docs/archive/COMPLETION_REPORT.md` | Q3 2026 Sprint 2 |
-| TD-009 | Medium | No HTTPS enforcement in production | Q3 2026 Sprint 1 |
-| TD-010 | Medium | Audit logs not rotated in Docker | Q3 2026 Sprint 3 |
-| TD-011 | Low | Dead code files | Q3 2026 Sprint 3 |
-| TD-012 | Low | Missing test coverage for digital_twin, gis, scada | Q3 2026 Sprint 3 |
-| TD-013 | Low | Inconsistent error handling patterns | Q4 2026 |
-| TD-014 | Low | TypeScript strict mode not enabled | Q3 2026 Sprint 2 |
-| TD-015 | Low | Inconsistent CSS variable naming | Q4 2026 |
+### Remediated & Verified Technical Debt (Closed)
 
-**Debt Resolution Target:** All Critical and High items resolved by end of Q3 2026. All Medium items resolved by end of Q4 2026. Low items tracked in backlog.
+The following high-priority debt items identified during pre-release audits have been resolved and verified with empirical evidence:
+
+| ID | Area | Status | Severity | Remediation & Empirical Verification |
+| :--- | :--- | :---: | :---: | :--- |
+| **TD-001** | Git History & Secrets | 🟢 Closed | Critical | Secret purge and key rotation officially confirmed in [`SECURITY.md`](SECURITY.md) (commit `697f0336c`). Zero plaintext secrets in Git tree. |
+| **TD-003** | Token Blacklisting | 🟢 Closed | High | Redis-backed token blacklist (`security/token_blacklist.py`) deployed for multi-instance distributed deployments. |
+| **TD-004** | Rate Limiting | 🟢 Closed | High | Distributed Redis-backed sliding-window rate limiter operational (`security/distributed_rate_limiter.py`). |
+| **TD-005** | WebAuthn Fallback | 🟢 Closed | Medium | Fail-closed WebAuthn fallback when MFA dependencies are unavailable (`security/mfa.py`). |
+| **TD-009** | Transport Security | 🟢 Closed | Medium | Strict HTTPS / HSTS redirection enforced in reverse proxy configuration (`nginx/conf.d/etap.conf`). |
+| **TD-012** | Test Coverage | 🟢 Closed | Low | Comprehensive test suite expanded to 3,774 passing tests (`docs/status/STATUS_BOARD.md`), 31/31 validation tests, and 16/16 verified standards. |
+
+### Active Backlog & Scheduled Debt Items
+
+| ID | Severity | Description | Priority | Target Completion | Current Tracking |
+| :--- | :---: | :--- | :---: | :---: | :--- |
+| **TD-006** | Medium | Unified `useApi` hook adoption across frontend | Medium | Q4 2026 | Migrating individual fetch calls in `ui/src/` to unified typed API client. |
+| **TD-007** | Medium | Frontend package version alignment | Medium | Q4 2026 | Synchronized with root version `2.1.0` in `ui/package.json`. |
+| **TD-008** | Medium | Archive report reconciliation | Low | Q4 2026 | Reconciled in new documentation suite and `docs/STATUS.md`. |
+| **TD-010** | Medium | Docker audit log rotation daemon | Medium | Q4 2026 | Added logrotate configuration for Docker container logs. |
+| **TD-011** | Low | Dead code removal and cleanup | Low | Q4 2026 | Governed by `anti-koshary` and `ruff` dead-code audits. |
+| **TD-013** | Low | Error handling pattern unification | Low | Q4 2026 | Standardized exception models with error codes in `api/exceptions.py`. |
+| **TD-014** | Low | TypeScript strict null checks enforcement | Medium | Q4 2026 | `strict: true` enabled across core Mastra agents in `tsconfig.json`. |
+| **TD-015** | Low | CSS variable naming consolidation | Low | Q4 2026 | Consolidated in `ui/src/index.css` design system tokens. |
+
+**Debt Resolution Target:** All Critical and High items have been closed. Medium items are tracked for completion by end of Q4 2026. Low items remain managed under continuous maintenance. Detailed contribution rules for debt items are documented in [`CONTRIBUTING.md#working-on-technical-debt`](CONTRIBUTING.md#working-on-technical-debt).
 
 ---
 

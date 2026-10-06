@@ -4,7 +4,7 @@
 2026-07-22
 
 ## Methodology
-Using the [codebase-design skill](.agents/skills/codebase-design/SKILL.md) vocabulary: **Module**, **Interface**, **Depth**, **Seam**, **Adapter**, **Leverage**, **Locality**.
+Using the `codebase-design` skill vocabulary: **Module**, **Interface**, **Depth**, **Seam**, **Adapter**, **Leverage**, **Locality**.
 
 ---
 

@@ -1,4 +1,4 @@
-# Stress Test & Security Hardening Report
+﻿# Stress Test & Security Hardening Report
 
 **Date:** 2026-06-18
 **Tester:** Automated Stress Test Suite (unit + HTTP level)

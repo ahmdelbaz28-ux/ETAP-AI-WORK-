@@ -1,4 +1,4 @@
-# AhmedETAP Remediation Plan — Audit Prompt 2026-08-10
+﻿# AhmedETAP Remediation Plan — Audit Prompt 2026-08-10
 
 **Repo:** `C:\Users\Repair SC\Desktop\etap` (ETAP-AI-WORK-, cloned at HEAD `8c920b00f`)
 **Mode:** Plan (approved for exploration only). All findings below were re-verified against live code on 2026-08-10.

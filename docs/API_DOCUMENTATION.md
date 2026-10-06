@@ -1,8 +1,34 @@
-# AhmedETAP - API Documentation
+---
+title: "AhmedETAP - API Documentation (Deprecated)"
+version: "1.0.0 (Deprecated)"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Team"
+---
+
+# AhmedETAP - API Documentation (DEPRECATED)
+
+> ⚠️ **DEPRECATION NOTICE (Effective 2026-10-06):**  
+> This file is deprecated and retained for backward compatibility only.  
+> The single canonical source of truth for the AhmedETAP API is:  
+> **👉 [`docs/API_REFERENCE.md`](API_REFERENCE.md)**  
+> For a quick cheat-sheet summary, see **[`docs/API_QUICKREF.md`](API_QUICKREF.md)**.  
+> Do not edit this document; all updates must be made in `API_REFERENCE.md`.
+
+---
+
+## 📋 Table of Contents
+
+- [Deprecation Notice](#ahmedetap---api-documentation-deprecated)
+- [Base URL](#base-url)
+- [Authentication](#authentication)
+- [Engineering Endpoints](#load-flow-analysis)
+- [Canonical Reference Guide](API_REFERENCE.md)
+
+---
 
 ## Base URL
 ```
-Development: http://localhost:3000
+Development: http://localhost:8000
 Production: https://etap.yourdomain.com
 ```
 

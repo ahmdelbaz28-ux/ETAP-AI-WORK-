@@ -1,4 +1,4 @@
-# خطة شاملة لتحسين UI/UX وتطوير صفحة تسجيل الدخول
+﻿# خطة شاملة لتحسين UI/UX وتطوير صفحة تسجيل الدخول
 # Comprehensive UI/UX and Login Page Enhancement Plan
 
 ## الملخص / Summary

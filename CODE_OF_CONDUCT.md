@@ -1,4 +1,23 @@
+---
+title: "AhmedETAP Contributor Code of Conduct"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # Contributor Covenant Code of Conduct
+
+## Table of Contents
+
+- [Our Pledge](#our-pledge)
+- [Our Standards](#our-standards)
+- [Enforcement Responsibilities](#enforcement-responsibilities)
+- [Scope](#scope)
+- [Enforcement](#enforcement)
+- [Enforcement Guidelines](#enforcement-guidelines)
+- [Attribution](#attribution)
+
+---
 
 ## Our Pledge
 

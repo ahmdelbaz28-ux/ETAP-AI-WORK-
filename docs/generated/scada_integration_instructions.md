@@ -1,4 +1,4 @@
-# تعليمات الذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
+﻿# تعليمات الذكاء الاصطناعي لدمج SCADA مع ETAP/QGIS/ArcGIS Pro
 
 ## المبدأ الأساسي
 
@@ -8,10 +8,10 @@
 
 ### 1. الفهارس كمرجع أساسي (الأولوية الأولى)
 - استخدم دائمًا ملفات الفهارس التالية:
-  - [arcgis_pro_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_documentation_index.json)
-  - [qgis_comprehensive_documentation_index.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/qgis_comprehensive_documentation_index.json)
-  - [arcgis_pro_sdk_repositories_analysis.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_sdk_repositories_analysis.json)
-  - [mcp_server_intelligent_index_system.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/mcp_server_intelligent_index_system.json)
+  - `arcgis_pro_documentation_index.json`
+  - `qgis_comprehensive_documentation_index.json`
+  - `arcgis_pro_sdk_repositories_analysis.json`
+  - `mcp_server_intelligent_index_system.json`
 
 ### 2. استرجاع المعلومات
 - عند استلام استعلام حول SCADA، قم أولاً بتحليل الفهارس للعثور على القسم أو الوظيفة المقابلة
@@ -26,7 +26,7 @@
 ## مكونات النظام
 
 ### 1. محرك الفهرسة (MCP Server)
-- [arcgis_pro_indexing_workflow.json](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/arcgis_pro_indexing_workflow.json): يحدد خطوات سير العمل لفهرسة وثائق ArcGIS Pro
+- `arcgis_pro_indexing_workflow.json`: يحدد خطوات سير العمل لفهرسة وثائق ArcGIS Pro
 - يحتوي على 5 خطوات رئيسية: FetchData → CleanData → TransformData → IndexData → PostProcess
 - يستخدم نموذج التضمين "sentence-transformers/all-mpnet-base-v2" لتحويل النصوص إلى متجهات
 
@@ -36,9 +36,9 @@
 
 > **ملاحظة (2026-07-22):** الملفات العربية السابقة `ai_agent_instructions.md` و`ai_system_prompt.md` و`ai_quick_reference.md` تم حذفها لأنها كانت مكررة بنسبة 95% وتحتوي على مسارات Windows مكسورة (`file:///c:/Users/Repair%20SC/Desktop/...`) لا تعمل إلا على جهاز المطور الأصلي.
 
-- [ai_agent_instructions.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_agent_instructions.md): تعليمات مفصلة للذكاء الاصطناعي
-- [ai_quick_reference.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_quick_reference.md): مرجع سريع للذكاء الاصطناعي
-- [ai_system_prompt.md](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/ai_system_prompt.md): تعليمات النظام الشاملة
+- `ai_agent_instructions.md`: تعليمات مفصلة للذكاء الاصطناعي
+- `ai_quick_reference.md`: مرجع سريع للذكاء الاصطناعي
+- `ai_system_prompt.md`: تعليمات النظام الشاملة
 
 ## مثال على الاستخدام
 

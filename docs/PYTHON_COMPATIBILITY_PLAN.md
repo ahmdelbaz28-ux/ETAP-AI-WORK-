@@ -21,7 +21,7 @@
 
 ### SAFETY CONTRACT COMPLIANCE
 
-According to the safety contract in [agent.md](file:///c:/Users/EWS-01/Desktop/revit-main/revit-main/agent.md) §X.Y, the system must operate in a Python 3.12+ environment to ensure:
+According to the safety contract in [AGENTS.md](../AGENTS.md), the system must operate in a Python 3.12+ environment to ensure:
 - Proper async/await handling for concurrent engineering calculations
 - Latest security patches and vulnerability fixes
 - Modern typing system for engineering precision

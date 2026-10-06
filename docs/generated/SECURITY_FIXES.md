@@ -1,4 +1,4 @@
-# Security Fixes Implementation Plan
+﻿# Security Fixes Implementation Plan
 
 ## Issue 0: LangChain 0.3.x → 1.x Major Upgrade (Dependabot alerts)
 **Status**: FIXED — committed alongside this CHANGELOG entry

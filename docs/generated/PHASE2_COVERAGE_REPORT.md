@@ -1,4 +1,4 @@
-# Phase 2 Coverage Report — ETAP Test Coverage Improvements
+﻿# Phase 2 Coverage Report — ETAP Test Coverage Improvements
 # Generated: 2026-06-13
 
 ## Module Coverage Summary

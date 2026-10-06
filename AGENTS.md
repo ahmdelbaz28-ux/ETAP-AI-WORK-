@@ -1,6 +1,28 @@
+---
+title: "AhmedETAP Agent Reference"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
+
 # AGENTS.md — AhmedETAP Agent Reference
 
 This document describes every AI agent in the AhmedETAP, their capabilities, standards compliance, and the prompt loading system.
+
+---
+
+## 📋 Table of Contents
+
+- [Agent Architecture](#agent-architecture)
+- [Prompt Management System](#prompt-management-system)
+  - [Prompt File Structure](#prompt-file-structure)
+  - [Available Prompt Files](#available-prompt-files)
+- [Mastra (TypeScript) Agents](#mastra-typescript-agents)
+- [Python Agents](#python-agents)
+- [Orchestrator](#orchestrator)
+- [Adding a New Agent](#adding-a-new-agent)
+- [Observability](#observability)
+- [Chat-First Architecture & Rollout (v3.0)](#chat-first-architecture--rollout-v30)
 
 ---
 

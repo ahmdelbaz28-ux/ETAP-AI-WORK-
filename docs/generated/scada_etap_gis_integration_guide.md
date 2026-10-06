@@ -1,4 +1,4 @@
-# دليل دمج SCADA مع ETAP/QGIS/ArcGIS Pro
+﻿# دليل دمج SCADA مع ETAP/QGIS/ArcGIS Pro
 
 ## 1) المتطلبات الأساسية (Pre-Requisites)
 
@@ -909,6 +909,6 @@ echo "Check scada_export/tags.geojson for QGIS import"
 ## 7) ملاحظات إضافية
 
 - جميع الملفات يجب أن تستخدم متغيرات البيئة لتخزين البيانات الحساسة
-- يجب إضافة ملف [.gitignore](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/.gitignore) يحتوي على الملفات الحساسة
-- يجب إنشاء ملف [requirements.txt](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/requirements.txt) يحتوي على جميع المكتبات المطلوبة
-- يجب إنشاء ملف [Dockerfile](file:///c:/Users/Repair%20SC/Desktop/ETAP-AI-WORK--main/Dockerfile) لتسهيل النشر
+- يجب إضافة ملف [.gitignore](../../.gitignore) يحتوي على الملفات الحساسة
+- يجب إنشاء ملف [requirements.txt](../../requirements.txt) يحتوي على جميع المكتبات المطلوبة
+- يجب إنشاء ملف [Dockerfile](../../Dockerfile) لتسهيل النشر

@@ -1,4 +1,4 @@
-# Windows Release Validation Report
+﻿# Windows Release Validation Report
 
 ## Date: 2026-06-12
 ## Build Platform: Linux aarch64 (ARM64)
