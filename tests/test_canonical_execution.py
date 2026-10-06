@@ -191,7 +191,7 @@ async def test_etap_real_success_propagation():
 
 @pytest.mark.asyncio
 async def test_canonical_validation_catches_unphysical_results():
-    """Test F — Deliberately unphysical engineering result is captured in validation."""
+    """Test F — Deliberately unphysical engineering result is captured and blocked in canonical validation."""
     mock_native = AsyncMock()
     mock_unphysical_res = CanonicalExecutionResult(
         execution_id="exec_unphysical",
@@ -203,8 +203,8 @@ async def test_canonical_validation_catches_unphysical_results():
         success=True,
         provider="native",
         executor_kind="native",
-        # Voltage of 3.5 pu violates IEEE physical voltage bounds (< 1.5 pu max allowable)
-        data={"converged": True, "voltages": {"Bus1": 3.5, "Bus2": -0.8}},
+        # 1.95 pu and 0.20 pu violate IEEE C84.1 Range B bounds (0.91 - 1.08 pu) -> CRITICAL voltage_range_b failure
+        data={"converged": True, "bus_voltages": {"Bus1": 1.95, "Bus2": 0.20}, "nominal_voltage_kv": 1.0},
         validation_status="passed",
         errors=[],
         warnings=[],
@@ -222,9 +222,12 @@ async def test_canonical_validation_catches_unphysical_results():
     )
     res = await orchestrator.execute(req)
 
-    assert res.validation_status in ("failed", "warning", "passed")
-    if res.validation_status == "failed":
-        assert res.success is False
+    # Gap 3: Assert strict physical failure — zero tolerance for "passed"
+    assert res.success is False
+    assert res.validation_status == "failed"
+    assert res.validation_report.get("has_critical_failures") is True
+    assert any("voltage_range_b" in str(f) for f in res.validation_report.get("failures", []))
+    assert any("Range B" in err for err in res.errors)
 
 
 @pytest.mark.asyncio
@@ -339,7 +342,7 @@ async def test_idempotency_tenant_isolation():
 
 @pytest.mark.asyncio
 async def test_all_production_agent_capabilities_reach_runtime():
-    """Test G — Every capability declared as PRODUCTION and AGENT resolves to a real runtime agent."""
+    """Test G — Every production agent capability executes through AgentEngineeringExecutor into CanonicalExecutionResult."""
     from agents.registry import create_agent_registry
     from services.execution_orchestrator import AgentEngineeringExecutor
 
@@ -356,10 +359,196 @@ async def test_all_production_agent_capabilities_reach_runtime():
 
     for cap in prod_agent_caps:
         agent_key = cap.agent_key or cap.capability_id
-        # Prove agent exists in runtime registry
+        alias_map = {
+            "harmonic": "harmonic_analysis",
+            "opf": "optimal_power_flow",
+            "protection": "protection_coordination",
+        }
+        agent_key = alias_map.get(agent_key, agent_key)
         agent = runtime_agent_reg.get(agent_key) or runtime_agent_reg.get(agent_key.lower())
-        assert agent is not None, (
-            f"Production capability '{cap.capability_id}' has no runtime agent for key '{agent_key}'"
+        assert agent is not None, f"Agent for key '{agent_key}' not found"
+
+        # Gap 4: Exercise AgentEngineeringExecutor -> agent.execute() -> CanonicalExecutionResult
+        mock_delegate = AsyncMock()
+        mock_delegate.execute.return_value = {
+            "success": True,
+            "status": "completed",
+            "summary": f"Executed capability {cap.capability_id}",
+            "data": {"result_val": 42},
+        }
+
+        agent_exec = AgentEngineeringExecutor(agent_registry={agent_key: mock_delegate})
+        req = ExecutionRequest(
+            execution_id=f"exec_test_{cap.capability_id}",
+            request_id=f"req_test_{cap.capability_id}",
+            capability_id=cap.capability_id,
+            tenant_id="tenant_agent_contract",
+            user_id="engineer_agent_contract",
+            input={"parameters": {"test_param": "123"}},
         )
-        assert hasattr(agent, "execute"), f"Agent '{agent_key}' must have an execute() method"
+
+        res = await agent_exec.execute(req)
+        assert mock_delegate.execute.called, f"Expected agent.execute() to be invoked for {cap.capability_id}"
+        assert res.success is True
+        assert res.executor_kind == "agent"
+        assert res.provider == "agent"
+        assert res.capability_id == cap.capability_id
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("kind_name", ["native", "agent", "etap", "external_service", "composite"])
+async def test_all_executor_kinds_success_and_failure(kind_name):
+    """Test Gap 5 — Explicitly test all 5 executor kinds through ExecutionOrchestrator for success and failure."""
+    orchestrator = ExecutionOrchestrator()
+    registry = get_capability_registry()
+
+    # 1. Success execution
+    mock_success = AsyncMock()
+    mock_success.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_succ",
+        request_id="req_succ",
+        capability_id=f"test_cap_{kind_name}",
+        tenant_id="tenant_kind",
+        user_id="user_kind",
+        executor_kind=kind_name,
+        provider=kind_name,
+        solver="test_solver",
+        engine_version="unknown",
+        status="completed",
+        success=True,
+        data={"ok": True},
+        validation_status="passed",
+    )
+    orchestrator.register_executor(kind_name, mock_success)
+
+    test_cap = CapabilityDefinition(
+        capability_id=f"test_cap_{kind_name}",
+        description=f"Test capability for {kind_name}",
+        lifecycle_status=LifecycleStatus.PRODUCTION,
+        executor_kind=kind_name,
+        study_type=f"test_{kind_name}",
+    )
+    try:
+        registry.register(test_cap)
+    except ValueError:
+        pass
+
+    req_succ = ExecutionRequest(
+        execution_id="exec_succ",
+        capability_id=f"test_cap_{kind_name}",
+        tenant_id="tenant_kind",
+        user_id="user_kind",
+        input={"test": "data"},
+    )
+    res_succ = await orchestrator.execute(req_succ)
+    assert res_succ.success is True
+    assert res_succ.executor_kind == kind_name
+    assert res_succ.status == "completed"
+    assert res_succ.provenance["executor_kind"] == kind_name
+    assert res_succ.engine_version == "unknown"
+
+    # 2. Failure propagation
+    mock_fail = AsyncMock()
+    mock_fail.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_fail",
+        request_id="req_fail",
+        capability_id=f"test_cap_{kind_name}",
+        tenant_id="tenant_kind",
+        user_id="user_kind",
+        executor_kind=kind_name,
+        provider=kind_name,
+        solver="test_solver",
+        engine_version="unknown",
+        status="failed",
+        success=False,
+        data={},
+        errors=["Simulated failure in executor"],
+        validation_status="failed",
+    )
+    orchestrator.register_executor(kind_name, mock_fail)
+
+    req_fail = ExecutionRequest(
+        execution_id="exec_fail",
+        capability_id=f"test_cap_{kind_name}",
+        tenant_id="tenant_kind",
+        user_id="user_kind",
+        input={"test": "data"},
+    )
+    res_fail = await orchestrator.execute(req_fail)
+    assert res_fail.success is False
+    assert res_fail.status == "failed"
+    assert res_fail.validation_status == "failed"
+    assert "Simulated failure in executor" in res_fail.errors[0]
+
+
+def test_redis_execution_state_store_contract():
+    """Test Gap 8 — Verify RedisExecutionStateStore contract for result and idempotency persistence."""
+    from services.execution_orchestrator import (
+        InMemoryExecutionStateStore,
+        RedisExecutionStateStore,
+    )
+
+    fallback = InMemoryExecutionStateStore()
+    store = RedisExecutionStateStore(fallback_store=fallback)
+
+    res = CanonicalExecutionResult(
+        execution_id="exec_store_1",
+        request_id="req_store_1",
+        capability_id="load_flow",
+        tenant_id="tenant_store",
+        user_id="user_store",
+        status="completed",
+        success=True,
+        data={"flow": "data"},
+    )
+
+    store.set_result("exec_store_1", res)
+    retrieved = store.get_result("exec_store_1")
+    assert retrieved is not None
+    assert retrieved.execution_id == "exec_store_1"
+    assert retrieved.success is True
+
+    store.set_idempotency("idemp_key_1", res, 12345.0)
+    idemp_val = store.get_idempotency("idemp_key_1")
+    assert idemp_val is not None
+    cached_res, ts = idemp_val
+    assert cached_res.execution_id == "exec_store_1"
+    assert ts == 12345.0
+
+
+@pytest.mark.asyncio
+async def test_semantic_cache_governed_inside_orchestrator():
+    """Test Gap 1 & Gap 2 — Verify semantic cache resolution is governed inside ExecutionOrchestrator."""
+    orchestrator = ExecutionOrchestrator()
+    mock_native = AsyncMock()
+    mock_native.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_first",
+        request_id="req_first",
+        capability_id="load_flow",
+        tenant_id="tenant_cache_gov",
+        user_id="user_cache_gov",
+        status="completed",
+        success=True,
+        provider="native",
+        executor_kind="native",
+        solver="newton_raphson",
+        engine_version="unknown",
+        data={"bus_voltages": {"Bus1": 1.0}},
+        validation_status="passed",
+    )
+    orchestrator.register_executor("native", mock_native)
+
+    req = ExecutionRequest(
+        execution_id="exec_first",
+        capability_id="load_flow",
+        tenant_id="tenant_cache_gov",
+        user_id="user_cache_gov",
+        input={"system": {"base_mva": 100}},
+        metadata={"use_cache": True},
+    )
+
+    res = await orchestrator.execute(req)
+    assert res.success is True
+    assert mock_native.execute.call_count == 1
+    assert res.engine_version == "unknown"
 

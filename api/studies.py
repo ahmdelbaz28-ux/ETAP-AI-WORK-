@@ -32,7 +32,7 @@ from api.dependencies import (
     get_api_key,
     get_optional_current_user_from_header,
 )
-from api.feature_flags import get_disabled_studies, is_feature_enabled
+from api.feature_flags import get_disabled_studies
 from core.metrics import count_executions, track_skill_operation
 from core_model.bus import Bus  # noqa: F401 — re-exported for backward compat
 from core_model.generator import Generator  # noqa: F401
@@ -249,53 +249,20 @@ async def run_study(
             or "anonymous"
         )
 
-        # Phase 2: Semantic Cache lookup (guarded by token_governance flag)
-        if req is not None and is_feature_enabled("token_governance", default=False):
-            try:
-                from api.semantic_cache_redis import (
-                    get_distributed_semantic_cache as get_semantic_cache,
-                )
-
-                cache = get_semantic_cache()
-
-                sys_data = payload.system.model_dump() if payload.system else {}
-                cached = await cache.lookup(
-                    system_data=sys_data,
-                    parameters=payload.parameters or {},
-                    agent_handle=payload.study_type,
-                    tenant_id=tenant_id,
-                    provider=getattr(payload, "provider", "native") or "native",
-                )
-                if cached:
-                    cached_data = cached.result
-                    cached_result = (
-                        StudyResult(**cached_data)
-                        if not isinstance(cached_data, StudyResult)
-                        else cached_data
-                    )
-                    cached_provider = getattr(cached_result, "provider", "native") or "native"
-                    req_provider = getattr(payload, "provider", "native") or "native"
-                    if (
-                        cached_result.success
-                        and cached_provider.lower() == req_provider.lower()
-                    ):
-                        cached_result.trace_id = trace_id
-                        await _persist_study_result(req, payload, cached_result, trace_id, user)
-                        return cached_result
-            except Exception as cache_lookup_err:
-                logger.warning(
-                    "Semantic cache lookup error: %s (falling back to execution)", cache_lookup_err
-                )
-
-        # Phase 15: Route execution through Canonical Execution Orchestrator
+        # Phase 15: Route execution strictly through Canonical Execution Orchestrator
+        # (Semantic cache governance is owned by the orchestrator at Step 10b)
         from services.execution_request import ExecutionRequest
 
+        user_role = getattr(user, "role", "") if user is not None else ""
         exec_request = ExecutionRequest.from_study_request(
             study_request=payload,
             user_id=user_id,
             tenant_id=tenant_id,
             trace_id=trace_id,
         )
+        if user_role:
+            exec_request.metadata["role"] = user_role
+
         orchestrator = get_execution_orchestrator()
         canonical_res = await orchestrator.execute(exec_request)
 
@@ -312,27 +279,6 @@ async def run_study(
         # new result_id on the response.
         if req is not None and result and getattr(result, "success", False):
             await _persist_study_result(req, payload, result, trace_id, user)
-            # Store successful result in semantic cache for future lookups
-            try:
-                from api.semantic_cache_redis import (
-                    get_distributed_semantic_cache as get_semantic_cache,
-                )
-
-                cache = get_semantic_cache()
-                await cache.store(
-                    system_data=payload.system.model_dump() if payload.system else {},
-                    parameters=payload.parameters or {},
-                    agent_handle=payload.study_type,
-                    result=result,
-                    metadata={
-                        "tokens_used": getattr(result, "tokens_used", 2000),
-                        "trace_id": trace_id,
-                    },
-                    tenant_id=tenant_id,
-                    provider=getattr(payload, "provider", "native") or "native",
-                )
-            except Exception as e:
-                logger.debug("Semantic cache store skipped: %s", e)
         return result
 
     except HTTPException:

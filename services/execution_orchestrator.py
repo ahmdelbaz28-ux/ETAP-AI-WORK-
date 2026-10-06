@@ -12,7 +12,10 @@ Governs execution and delegates to specialized executors.
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -106,11 +109,100 @@ class InMemoryExecutionStateStore(IExecutionStateStore):
         self.results.clear()
 
 
+
+class RedisExecutionStateStore(IExecutionStateStore):
+    """Distributed, Redis-backed state store for multi-replica cluster deployments (Gap 8).
+
+    Ensures that idempotency keys, execution states, and canonical results
+    are synchronized across distributed worker replicas.
+    """
+
+    def __init__(
+        self,
+        fallback_store: Optional[IExecutionStateStore] = None,
+        ttl_seconds: int = 86400,
+    ) -> None:
+        self._fallback = fallback_store or InMemoryExecutionStateStore()
+        self._ttl_seconds = ttl_seconds
+
+    def _sync_get_redis(self) -> Any:
+        try:
+            import redis
+
+            url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+            return redis.from_url(url, decode_responses=True)
+        except Exception:
+            return None
+
+    def get_idempotency(self, key: str) -> Optional[Tuple[CanonicalExecutionResult, float]]:
+        r = self._sync_get_redis()
+        if r is not None:
+            try:
+                raw = r.get(f"etap:idemp:{key}")
+                if raw:
+                    payload = json.loads(raw)
+                    res = CanonicalExecutionResult.model_validate(payload["result"])
+                    return (res, float(payload["timestamp"]))
+            except Exception as e:
+                logger.debug("Redis get_idempotency error: %s (using fallback)", e)
+        return self._fallback.get_idempotency(key)
+
+    def set_idempotency(self, key: str, result: CanonicalExecutionResult, timestamp: float) -> None:
+        self._fallback.set_idempotency(key, result, timestamp)
+        r = self._sync_get_redis()
+        if r is not None:
+            try:
+                payload = {
+                    "result": result.model_dump(),
+                    "timestamp": timestamp,
+                }
+                r.set(f"etap:idemp:{key}", json.dumps(payload, default=str), ex=self._ttl_seconds)
+            except Exception as e:
+                logger.debug("Redis set_idempotency error: %s", e)
+
+    def get_result(self, execution_id: str) -> Optional[CanonicalExecutionResult]:
+        r = self._sync_get_redis()
+        if r is not None:
+            try:
+                raw = r.get(f"etap:res:{execution_id}")
+                if raw:
+                    return CanonicalExecutionResult.model_validate(json.loads(raw))
+            except Exception as e:
+                logger.debug("Redis get_result error: %s (using fallback)", e)
+        return self._fallback.get_result(execution_id)
+
+    def set_result(self, execution_id: str, result: CanonicalExecutionResult) -> None:
+        self._fallback.set_result(execution_id, result)
+        r = self._sync_get_redis()
+        if r is not None:
+            try:
+                r.set(
+                    f"etap:res:{execution_id}",
+                    json.dumps(result.model_dump(), default=str),
+                    ex=self._ttl_seconds,
+                )
+            except Exception as e:
+                logger.debug("Redis set_result error: %s", e)
+
+    def reset(self) -> None:
+        self._fallback.reset()
+
+
 _GLOBAL_EXECUTION_STATE_STORE: IExecutionStateStore = InMemoryExecutionStateStore()
 
 
 def get_execution_state_store() -> IExecutionStateStore:
-    """Return active canonical execution state store."""
+    """Return active canonical execution state store.
+
+    Automatically provides RedisExecutionStateStore when running in
+    multi-replica mode (DEPLOYMENT_TOPOLOGY in cluster/multi_replica)
+    or when explicit centralized state is configured.
+    """
+    global _GLOBAL_EXECUTION_STATE_STORE
+    topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").lower()
+    if topo in ("multi_replica", "cluster", "distributed"):
+        if not isinstance(_GLOBAL_EXECUTION_STATE_STORE, RedisExecutionStateStore):
+            _GLOBAL_EXECUTION_STATE_STORE = RedisExecutionStateStore(fallback_store=_GLOBAL_EXECUTION_STATE_STORE)
     return _GLOBAL_EXECUTION_STATE_STORE
 
 
@@ -171,6 +263,15 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
             # Direct synchronous execution fallback
             data = executor._dispatch(study_type, built_system, params)
 
+        solver_method = (
+            request.solver_options.get("solver")
+            or request.solver_options.get("method")
+            or params.get("solver")
+            or params.get("method")
+            or (data.get("solver") if isinstance(data, dict) else None)
+            or ("newton_raphson" if "load_flow" in str(study_type).lower() else "native")
+        )
+
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
             request_id=request.request_id,
@@ -180,7 +281,8 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
             user_id=request.user_id,
             executor_kind="native",
             provider="native",
-            solver="newton_raphson" if "load_flow" in study_type else "native",
+            solver=solver_method,
+            engine_version="unknown",
             status="completed",
             success=True,
             data=data if isinstance(data, dict) else (data.to_dict() if hasattr(data, "to_dict") else {}),
@@ -473,6 +575,9 @@ class ExternalServiceExecutor(IEngineeringExecutor):
                 tenant_id=request.tenant_id,
                 user_id=request.user_id,
                 executor_kind="external_service",
+                provider="external_service",
+                solver="external",
+                engine_version="unknown",
                 status="failed",
                 success=False,
                 data={},
@@ -487,9 +592,12 @@ class ExternalServiceExecutor(IEngineeringExecutor):
             tenant_id=request.tenant_id,
             user_id=request.user_id,
             executor_kind="external_service",
+            provider="external_service",
+            solver="external",
+            engine_version="unknown",
             status="completed",
             success=True,
-            data=data,
+            data=data if isinstance(data, dict) else {},
             trace_id=request.trace_id,
         )
 
@@ -501,7 +609,9 @@ class CompositeEngineeringExecutor(IEngineeringExecutor):
         self._agent_executor = agent_executor or AgentEngineeringExecutor()
 
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
-        return await self._agent_executor.execute(request)
+        res = await self._agent_executor.execute(request)
+        res.executor_kind = "composite"
+        return res
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -671,14 +781,29 @@ class ExecutionOrchestrator:
             )
 
         # ── 5. Validate Authorization ────────────────────────────────────────
-        if cap.authorization_policy == "admin" and request.user_id != "admin":
-            return self._build_rejection(
-                request,
-                reason="AUTHORIZATION_DENIED",
-                message="Administrator privileges required for this capability",
-                cap=cap,
-                raise_on_error=raise_on_error,
-            )
+        if cap.authorization_policy:
+            auth_policy = str(cap.authorization_policy).lower().strip()
+            user_role = (
+                getattr(request, "user_role", None)
+                or (request.metadata or {}).get("role", "")
+            ).lower().strip()
+            if auth_policy == "admin" and request.user_id != "admin" and user_role != "admin":
+                return self._build_rejection(
+                    request,
+                    reason="AUTHORIZATION_DENIED",
+                    message="Administrator privileges required for this capability",
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
+            elif auth_policy in ("engineer", "lead_engineer"):
+                if user_role and user_role not in ("engineer", "lead_engineer", "admin"):
+                    return self._build_rejection(
+                        request,
+                        reason="AUTHORIZATION_DENIED",
+                        message=f"'{auth_policy}' role required for this capability (current: '{user_role}')",
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
 
         # ── 6. Validate Approval Requirements ────────────────────────────────
         if cap.approval_policy in ("maker_checker", "dual_control"):
@@ -781,6 +906,112 @@ class ExecutionOrchestrator:
             "provider_policy": str(provider_policy),
             "execution_policy": str(execution_policy),
         }
+
+        # ── 12b. Canonical Semantic Cache Resolution (Gap 1 & Gap 2) ─────────
+        import json
+
+        def _safe_hash(obj: Any) -> str:
+            if not obj:
+                return ""
+            try:
+                s = json.dumps(obj, sort_keys=True, default=str)
+                return hashlib.sha256(s.encode("utf-8")).hexdigest()
+            except Exception:
+                return hashlib.sha256(str(obj).encode("utf-8")).hexdigest()
+
+        param_hash = _safe_hash(params)
+        sys_hash = _safe_hash(request.system_snapshot or request.get_system())
+        input_hash = _safe_hash(request.input)
+
+        use_cache = False
+        try:
+            from api.feature_flags import is_feature_enabled, is_strict_feature_enabled
+
+            use_cache = is_strict_feature_enabled("token_governance") or is_feature_enabled("token_governance", default=False)
+        except Exception:
+            use_cache = False
+
+        if request.metadata.get("use_cache", True) and use_cache:
+            try:
+                from api.semantic_cache_redis import get_distributed_semantic_cache
+
+                cache = get_distributed_semantic_cache()
+                sys_dict = (
+                    request.system.model_dump()
+                    if hasattr(request.system, "model_dump")
+                    else (request.system_snapshot if isinstance(request.system_snapshot, dict) else {})
+                )
+                prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
+                cached_entry = await cache.lookup(
+                    system_data=sys_dict,
+                    parameters=params,
+                    agent_handle=cap.study_type or request.capability_id,
+                    tenant_id=request.tenant_id,
+                    provider=prov_key,
+                    capability_id=request.capability_id,
+                    capability_version=cap.version,
+                    executor_kind=executor_kind_str,
+                    solver=getattr(cap, "handler", executor_kind_str),
+                    engine_version="unknown",
+                    standards_hash=param_hash,
+                )
+                if cached_entry and getattr(cached_entry, "result", None):
+                    cached_raw = cached_entry.result
+                    cached_tenant = cached_raw.get("tenant_id") if isinstance(cached_raw, dict) else getattr(cached_raw, "tenant_id", None)
+                    cached_prov = cached_raw.get("provider") if isinstance(cached_raw, dict) else getattr(cached_raw, "provider", None)
+                    cached_succ = cached_raw.get("success", False) if isinstance(cached_raw, dict) else getattr(cached_raw, "success", False)
+                    cached_val_status = cached_raw.get("validation_status") if isinstance(cached_raw, dict) else getattr(cached_raw, "validation_status", "passed")
+                    cached_cap = cached_raw.get("capability_id") if isinstance(cached_raw, dict) else getattr(cached_raw, "capability_id", None)
+                    cached_kind = cached_raw.get("executor_kind") if isinstance(cached_raw, dict) else getattr(cached_raw, "executor_kind", None)
+
+                    if (
+                        cached_succ
+                        and (not cached_tenant or str(cached_tenant) == str(request.tenant_id))
+                        and (not cached_prov or str(cached_prov).lower() == prov_key)
+                        and (not cached_cap or str(cached_cap).lower() == request.capability_id.lower())
+                        and (not cached_kind or str(cached_kind).lower() == executor_kind_str.lower())
+                        and cached_val_status not in ("failed", "rejected")
+                    ):
+                        cached_data = cached_raw.get("data", cached_raw) if isinstance(cached_raw, dict) else (getattr(cached_raw, "data", None) or cached_raw)
+                        logger.info("Canonical cache hit for capability %s tenant %s", request.capability_id, request.tenant_id)
+                        return CanonicalExecutionResult(
+                            execution_id=execution_id,
+                            request_id=request.request_id,
+                            capability_id=request.capability_id,
+                            capability_version=cap.version,
+                            tenant_id=request.tenant_id,
+                            user_id=request.user_id,
+                            executor_kind=executor_kind_str,
+                            provider=prov_key,
+                            solver=getattr(cap, "handler", executor_kind_str),
+                            engine_version="unknown",
+                            input_snapshot_hash=input_hash,
+                            system_snapshot_hash=sys_hash,
+                            parameter_hash=param_hash,
+                            status="completed",
+                            success=True,
+                            data=cached_data if isinstance(cached_data, dict) else {},
+                            validation_status="passed",
+                            validation_report={"cached": True, "source": "canonical_semantic_cache"},
+                            risk_class=cap.risk_class,
+                            risk_score=0.1,
+                            provenance={
+                                "executor_kind": executor_kind_str,
+                                "capability_id": cap.capability_id,
+                                "capability_version": cap.version,
+                                "provider": prov_key,
+                                "solver": getattr(cap, "handler", executor_kind_str),
+                                "engine_version": "unknown",
+                                "cached": True,
+                                "completed_at": datetime.now(timezone.utc).isoformat(),
+                                "tenant_id": request.tenant_id,
+                                "user_id": request.user_id,
+                            },
+                            audit_context={**audit_context, "cached": True},
+                            execution_time_sec=time.perf_counter() - start_time,
+                        )
+            except Exception as cache_err:
+                logger.debug("Canonical semantic cache lookup error: %s", cache_err)
 
         # ── 13. Execute Selected Executor ────────────────────────────────────
         try:
@@ -891,8 +1122,6 @@ class ExecutionOrchestrator:
         }
 
         # ── 16. Attach Provenance & Compute Input Hashes ──────────────────────
-        import hashlib
-        import json
 
         def _safe_hash(obj: Any) -> str:
             if not obj:
@@ -907,14 +1136,18 @@ class ExecutionOrchestrator:
         sys_hash = _safe_hash(request.system_snapshot or request.get_system())
         input_hash = _safe_hash(request.input)
 
+        final_provider = getattr(exec_res, "provider", None) or getattr(cap, "provider_policy", None) or executor_kind_str
+        final_solver = getattr(exec_res, "solver", None) or getattr(cap, "handler", None) or executor_kind_str
+        final_engine_version = getattr(exec_res, "engine_version", None) or getattr(cap, "engine_version", None) or "unknown"
+
         provenance = {
             "executor_kind": executor_kind_str,
             "handler": cap.handler,
             "capability_id": cap.capability_id,
             "capability_version": cap.version,
-            "provider": getattr(exec_res, "provider", executor_kind_str) if 'exec_res' in locals() else executor_kind_str,
-            "solver": getattr(exec_res, "solver", cap.handler) if 'exec_res' in locals() else cap.handler,
-            "engine_version": getattr(exec_res, "engine_version", "2.1.0") if 'exec_res' in locals() else "2.1.0",
+            "provider": final_provider,
+            "solver": final_solver,
+            "engine_version": final_engine_version,
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "trace_id": request.trace_id,
             "tenant_id": request.tenant_id,
@@ -930,9 +1163,9 @@ class ExecutionOrchestrator:
             tenant_id=request.tenant_id,
             user_id=request.user_id,
             executor_kind=executor_kind_str,
-            provider=getattr(exec_res, "provider", executor_kind_str) if 'exec_res' in locals() else executor_kind_str,
-            solver=getattr(exec_res, "solver", cap.handler) if 'exec_res' in locals() else cap.handler,
-            engine_version=getattr(exec_res, "engine_version", "2.1.0") if 'exec_res' in locals() else "2.1.0",
+            provider=final_provider,
+            solver=final_solver,
+            engine_version=final_engine_version,
             input_snapshot_hash=input_hash,
             system_snapshot_hash=sys_hash,
             parameter_hash=param_hash,
@@ -961,6 +1194,35 @@ class ExecutionOrchestrator:
 
         self._state_store.set_result(execution_id, result)
         self._state_store.set_idempotency(idempotency_key, result, time.time())
+
+        # ── 17b. Store Validated Result in Canonical Semantic Cache ──────────
+        if success and validation_status in ("passed", "warning") and use_cache and request.metadata.get("use_cache", True):
+            try:
+                from api.semantic_cache_redis import get_distributed_semantic_cache
+
+                cache = get_distributed_semantic_cache()
+                sys_dict = (
+                    request.system.model_dump()
+                    if hasattr(request.system, "model_dump")
+                    else (request.system_snapshot if isinstance(request.system_snapshot, dict) else {})
+                )
+                prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
+                await cache.store(
+                    system_data=sys_dict,
+                    parameters=params,
+                    agent_handle=cap.study_type or request.capability_id,
+                    result=result.model_dump() if hasattr(result, "model_dump") else result.dict(),
+                    tenant_id=request.tenant_id,
+                    provider=prov_key,
+                    capability_id=request.capability_id,
+                    capability_version=cap.version,
+                    executor_kind=executor_kind_str,
+                    solver=final_solver,
+                    engine_version=final_engine_version,
+                    standards_hash=param_hash,
+                )
+            except Exception as store_err:
+                logger.debug("Failed to store canonical result in semantic cache: %s", store_err)
 
         # ── 18. Emit Execution Events ────────────────────────────────────────
         self._emit_event("execution_completed", result)

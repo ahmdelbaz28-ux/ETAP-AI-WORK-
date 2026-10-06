@@ -56,6 +56,13 @@ class DistributedSemanticCache:
         agent_handle: str,
         tenant_id: Optional[str] = None,
         provider: Optional[str] = None,
+        capability_id: Optional[str] = None,
+        capability_version: Optional[str] = None,
+        executor_kind: Optional[str] = None,
+        solver: Optional[str] = None,
+        engine_version: Optional[str] = None,
+        standards_hash: Optional[str] = None,
+        **kwargs: Any,
     ) -> str:
         canonical_sys = _canonicalize_value(system_data or {})
         canonical_params = _canonicalize_value(parameters or {})
@@ -63,6 +70,12 @@ class DistributedSemanticCache:
             "tenant_id": (tenant_id or "default").strip(),
             "provider": (provider or "native").strip().lower(),
             "agent_handle": agent_handle.strip().lower(),
+            "capability_id": (capability_id or agent_handle).strip().lower(),
+            "capability_version": str(capability_version or "1.0.0").strip(),
+            "executor_kind": str(executor_kind or "native").strip().lower(),
+            "solver": str(solver or "").strip().lower(),
+            "engine_version": str(engine_version or "unknown").strip().lower(),
+            "standards_hash": str(standards_hash or "").strip(),
             "system": canonical_sys,
             "parameters": canonical_params,
         }
@@ -135,6 +148,12 @@ class DistributedSemanticCache:
         norm_handle: str,
         norm_tenant: str = "default",
         norm_provider: str = "native",
+        capability_id: Optional[str] = None,
+        capability_version: Optional[str] = None,
+        executor_kind: Optional[str] = None,
+        solver: Optional[str] = None,
+        engine_version: Optional[str] = None,
+        standards_hash: Optional[str] = None,
     ) -> Optional[Tuple[str, Dict[str, Any], float]]:
         """Scan cache entries to find best matching vector above threshold."""
         cursor = 0
@@ -165,6 +184,19 @@ class DistributedSemanticCache:
                     continue
                 if entry.get("provider", "native") != norm_provider:
                     continue
+                # Gap 2: Enforce execution identity constraints
+                if capability_id and entry.get("capability_id") and entry.get("capability_id") != capability_id.strip().lower():
+                    continue
+                if capability_version and entry.get("capability_version") and entry.get("capability_version") != str(capability_version).strip():
+                    continue
+                if executor_kind and entry.get("executor_kind") and entry.get("executor_kind") != str(executor_kind).strip().lower():
+                    continue
+                if solver and entry.get("solver") and entry.get("solver") != str(solver).strip().lower():
+                    continue
+                if engine_version and entry.get("engine_version") and entry.get("engine_version") != str(engine_version).strip().lower():
+                    continue
+                if standards_hash and entry.get("standards_hash") and entry.get("standards_hash") != str(standards_hash).strip():
+                    continue
                 if time.time() - entry["cached_at"] > entry.get("ttl", self.ttl):
                     await r.hdel(f"{self.namespace}:entries", k)
                     continue
@@ -187,12 +219,29 @@ class DistributedSemanticCache:
         agent_handle: str,
         tenant_id: Optional[str] = None,
         provider: Optional[str] = None,
+        capability_id: Optional[str] = None,
+        capability_version: Optional[str] = None,
+        executor_kind: Optional[str] = None,
+        solver: Optional[str] = None,
+        engine_version: Optional[str] = None,
+        standards_hash: Optional[str] = None,
+        **kwargs: Any,
     ) -> Optional[CachedResult]:
         norm_handle = agent_handle.strip().lower()
         norm_tenant = (tenant_id or "default").strip()
         norm_provider = (provider or "native").strip().lower()
         key = self._make_cache_key(
-            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+            system_data,
+            parameters,
+            norm_handle,
+            tenant_id=norm_tenant,
+            provider=norm_provider,
+            capability_id=capability_id,
+            capability_version=capability_version,
+            executor_kind=executor_kind,
+            solver=solver,
+            engine_version=engine_version,
+            standards_hash=standards_hash,
         )
 
         try:
@@ -213,7 +262,17 @@ class DistributedSemanticCache:
                 query_emb = self._embed(sys_str, param_str)
 
                 best_match = await self._scan_vector_similarity(
-                    r, query_emb, norm_handle, norm_tenant=norm_tenant, norm_provider=norm_provider
+                    r,
+                    query_emb,
+                    norm_handle,
+                    norm_tenant=norm_tenant,
+                    norm_provider=norm_provider,
+                    capability_id=capability_id,
+                    capability_version=capability_version,
+                    executor_kind=executor_kind,
+                    solver=solver,
+                    engine_version=engine_version,
+                    standards_hash=standards_hash,
                 )
                 if best_match:
                     matched_key, entry, sim = best_match
@@ -230,6 +289,12 @@ class DistributedSemanticCache:
                 agent_handle,
                 tenant_id=norm_tenant,
                 provider=norm_provider,
+                capability_id=capability_id,
+                capability_version=capability_version,
+                executor_kind=executor_kind,
+                solver=solver,
+                engine_version=engine_version,
+                standards_hash=standards_hash,
             )
 
     async def store(
@@ -242,12 +307,29 @@ class DistributedSemanticCache:
         custom_ttl: Optional[int] = None,
         tenant_id: Optional[str] = None,
         provider: Optional[str] = None,
+        capability_id: Optional[str] = None,
+        capability_version: Optional[str] = None,
+        executor_kind: Optional[str] = None,
+        solver: Optional[str] = None,
+        engine_version: Optional[str] = None,
+        standards_hash: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         norm_handle = agent_handle.strip().lower()
         norm_tenant = (tenant_id or "default").strip()
         norm_provider = (provider or "native").strip().lower()
         key = self._make_cache_key(
-            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+            system_data,
+            parameters,
+            norm_handle,
+            tenant_id=norm_tenant,
+            provider=norm_provider,
+            capability_id=capability_id,
+            capability_version=capability_version,
+            executor_kind=executor_kind,
+            solver=solver,
+            engine_version=engine_version,
+            standards_hash=standards_hash,
         )
         meta = metadata or {}
         tokens_used = meta.get("tokens_used", 2000)
@@ -266,6 +348,12 @@ class DistributedSemanticCache:
             "agent_handle": norm_handle,
             "tenant_id": norm_tenant,
             "provider": norm_provider,
+            "capability_id": (capability_id or norm_handle).strip().lower(),
+            "capability_version": str(capability_version or "1.0.0").strip(),
+            "executor_kind": str(executor_kind or "native").strip().lower(),
+            "solver": str(solver or "").strip().lower(),
+            "engine_version": str(engine_version or "unknown").strip().lower(),
+            "standards_hash": str(standards_hash or "").strip(),
             "ttl": custom_ttl or self.ttl,
             "metadata": meta,
         }
@@ -286,6 +374,12 @@ class DistributedSemanticCache:
                 custom_ttl,
                 tenant_id=norm_tenant,
                 provider=norm_provider,
+                capability_id=capability_id,
+                capability_version=capability_version,
+                executor_kind=executor_kind,
+                solver=solver,
+                engine_version=engine_version,
+                standards_hash=standards_hash,
             )
 
     def get_stats(self) -> CacheStats:

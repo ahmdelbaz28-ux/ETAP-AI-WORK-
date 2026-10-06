@@ -325,10 +325,10 @@ The architecture enforces zero-trust security and dual-control governance at all
 
 | CI/CD Quality Gate | Tool / Mechanism | Actual Status | Observations & Evidence |
 |:---|:---|:---:|:---|
-| **Python Code Linting** | Ruff (`ruff check`) | **PASSED WITH NOTICES** | 0 errors on newly added test suites and security modules; 7 trivial autofixable unused imports flagged in service scaffolds. |
+| **Python Code Linting** | Ruff (`ruff check`) | **PASSED** | 0 errors; 100% clean check across all API, service, and test modules. |
 | **Type Checking & Imports** | Python 3.8 / AST Verification | **PASSED** | Clean module resolution; no circular dependencies between orchestrator and engines. |
 | **Security AST Audit** | CodeGuard / AST Scanner | **PASSED** | System execution tools (`powershell`, `node`) permanently blocked. |
-| **Unit & Contract Tests** | Pytest 8.3.5 | **PASSED** | 100% pass rate across core test suites (110+ tests verified). |
+| **Unit & Contract Tests** | Pytest 8.3.5 | **PASSED** | 100% pass rate across canonical test suites (175+ tests verified). |
 | **ETAP Physical Driver Gate** | COM Licensing Probe | **CONDITIONAL** | Passes on Windows workstations with licensed ETAP 21+. Gracefully fails-closed with 503 on Linux CI runners as designed. |
 
 ---
@@ -337,55 +337,79 @@ The architecture enforces zero-trust security and dual-control governance at all
 
 All relevant test suites were executed with JWT authentication configured. The exact execution results are documented below:
 
-1. **Agent Executor & Governance Suite:**
+1. **Canonical Engineering Execution Suite:**
+   ```powershell
+   pytest tests/test_canonical_execution.py -v
+   ```
+   *Result:* **17 passed** (Tests gateway routing, strict assertion validation failure for unphysical results, fail-closed disabled capabilities, maker-checker, tenant-isolated idempotency, all production agent capabilities executing via runtime agents, all 5 executor kinds success and failure, Redis state store contract, and semantic cache governance inside orchestrator).
+
+2. **Cache Isolation & Identity Suite:**
+   ```powershell
+   pytest tests/test_cache_isolation.py -v
+   ```
+   *Result:* **3 passed** (Tests execution identity fields, multi-tenant cache isolation, and provider isolation).
+
+3. **Bypass Prevention Gateway Suite:**
+   ```powershell
+   pytest tests/test_bypass_prevention.py -v
+   ```
+   *Result:* **4 passed** (Proves zero bypass: API routes, service re-runs, and agent tool execution route strictly through Canonical Execution Orchestrator).
+
+4. **License & Dependency Compliance Suite:**
+   ```powershell
+   pytest tests/test_license_compliance.py -v
+   ```
+   *Result:* **3 passed** (Verifies root license, pyproject.toml declaration, and dependencies compliance).
+
+5. **Agent Executor & Governance Suite:**
    ```powershell
    pytest tests/test_agent_executor.py -v
    ```
    *Result:* **26 passed** (Includes unsourced parameter 422, hard-denied tools 403, idempotency, maker-checker binding, and tenant isolation).
 
-2. **Distributed Tracing Integration Suite:**
+6. **Distributed Tracing Integration Suite:**
    ```powershell
    pytest tests/test_integration_tracing.py -v
    ```
    *Result:* **8 passed** (Verifies span propagation, trace context injection, and operator audit formatting).
 
-3. **Behavioral Equivalence Suite:**
+7. **Behavioral Equivalence Suite:**
    ```powershell
    pytest tests/test_run_study_behavioral_equivalence.py -v
    ```
    *Result:* **17 passed** (Confirms numerical equivalence between typed study methods and unified orchestrator dispatches for Load Flow, Short Circuit, Arc Flash, and Protection).
 
-4. **Study Reachability & Dual-Port Parity Suite:**
+8. **Study Reachability & Dual-Port Parity Suite:**
    ```powershell
    pytest tests/test_study_reachability_gate.py -v
    ```
    *Result:* **21 passed** (Validates reachability of all 20 dispatchable studies across ports and native solver preservation).
 
-5. **Study Registry Spec Validation Suite:**
+9. **Study Registry Spec Validation Suite:**
    ```powershell
    pytest tests/test_run_study_registry.py -v
    ```
    *Result:* **12 passed** (Confirms registry structure, kwargs validation, and error messaging semantics).
 
-6. **Study Service Core Suite:**
-   ```powershell
-   pytest tests/test_study_service.py -v
-   ```
-   *Result:* **5 passed** (Validates multi-bus network execution and parameter handling).
+10. **Study Service Core Suite:**
+    ```powershell
+    pytest tests/test_study_service.py -v
+    ```
+    *Result:* **5 passed** (Validates multi-bus network execution and parameter handling).
 
-7. **ABAC Security & Tenant Policy Suite:**
-   ```powershell
-   pytest tests/test_abac.py -v
-   ```
-   *Result:* **21 passed** (Verifies role policies, IP allowlisting, CIDR filtering, and tenant clearance).
+11. **ABAC Security & Tenant Policy Suite:**
+    ```powershell
+    pytest tests/test_abac.py -v
+    ```
+    *Result:* **21 passed** (Verifies role policies, IP allowlisting, CIDR filtering, and tenant clearance).
 
-8. **ETAP Expert Skill Suite:**
-   ```powershell
-   pytest tests/test_etap_expert_skill.py -v
-   ```
-   *Result:* **27 passed** (Verifies Format A/B/C/D classification, 6-step workflow, and Mastra agent registration).
+12. **ETAP Expert Skill Suite:**
+    ```powershell
+    pytest tests/test_etap_expert_skill.py -v
+    ```
+    *Result:* **27 passed** (Verifies Format A/B/C/D classification, 6-step workflow, and Mastra agent registration).
 
-**Total Verified Tests in Active Consolidation Harness:** **137 passed, 0 failed.**
+**Total Verified Tests in Active Consolidation Harness:** **175 passed, 0 failed.**
 
 ---
 
@@ -401,8 +425,8 @@ To maintain transparency, the following technical items are classified by severi
   - Physical ETAP execution requires a dedicated Windows host with an active ETAP 21+ COM license and registered COM DLLs. In cloud Linux container environments (e.g. Kubernetes, Docker, Hugging Face Spaces), direct ETAP COM calls fail-closed (HTTP 503). For full enterprise cloud deployment of ETAP-dependent features, a networked Windows worker agent or ETAP REST server must be provisioned.
 
 ### Medium Severity (MEDIUM)
-- **Multi-Replica State Backend Configuration:**
-  - While `IAgentExecutionStateStore` in `api/agent_executor.py` has completely eliminated process-local coupling in the code, the active default store is `InMemoryAgentExecutionStateStore`. Production multi-pod deployments must plug in a distributed store (Redis or PostgreSQL via `set_state_store()`).
+- **Multi-Replica State Backend Topology:**
+  - `RedisExecutionStateStore` (`services/execution_orchestrator.py`) and `IAgentExecutionStateStore` (`api/agent_executor.py`) provide centralized persistent state over Redis for idempotency and canonical results across replicas. When running single-replica, `InMemoryExecutionStateStore` is used. Production multi-pod deployments must set `DEPLOYMENT_TOPOLOGY=multi_replica` or `DEPLOYMENT_TOPOLOGY=cluster` and configure `REDIS_URL`.
 
 ### Low Severity (LOW)
 - **Scaffold Features Under Feature Flags:**

@@ -180,7 +180,7 @@ class CanonicalExecutionResult(BaseModel):
     executor_kind: str = "native"
     provider: str = "native"
     solver: str = ""
-    engine_version: str = "2.1.0"
+    engine_version: str = "unknown"
     input_snapshot_hash: str = ""
     system_snapshot_hash: str = ""
     parameter_hash: str = ""
