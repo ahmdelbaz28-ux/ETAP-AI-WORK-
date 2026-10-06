@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-06T13:37:43.673161+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-06T14:45:43.639641+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -11,14 +11,14 @@
 |:---|---:|
 | Python | Packages | 41 |
 | Python | Files | 382 |
-| Python | Classes | 932 |
+| Python | Classes | 933 |
 | Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 267 |
-| Total | Tests | 3829 |
+| Total | Tests | 3835 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 444 |
+| Environment | Variables | 445 |
 | Scripts | | 166 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **444** variables
+Total: **445** variables
 
 ### General
 
@@ -384,6 +384,7 @@ Total: **444** variables
 - `FORGOT_PASSWORD_RATE_LIMIT_MAX`
 - `FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC`
 - `GIS_PROVIDER`
+- `GITHUB_ACTIONS`
 - `GITHUB_PAT`
 - `HF_API_KEY`
 - `HF_SPACE_API_KEY`
@@ -1058,7 +1059,7 @@ Extracts the repeated patt
 - **def** `normalize_template_var()` (line 142)
 - **def** `get_api_key_auth()` (line 171)
 
-#### 📄 `api/agent_executor.py` _37.3 KB_
+#### 📄 `api/agent_executor.py` _37.9 KB_
 > api/agent_executor.py — Secure Agent Execution Path (P4a).
 
 The narrow gateway through which an autonomous agent may turn a *tool plan*
@@ -1494,23 +1495,23 @@ Executes `alembic upgrade head` before accepting traffic in FastAPI lif
 - **async def** `run_alembic_startup_gate()` (line 57)
 - **async def** `check_schema_health()` (line 76)
 
-#### 📄 `api/dependencies.py` _19.0 KB_
+#### 📄 `api/dependencies.py` _19.1 KB_
 > api/dependencies.py — Shared FastAPI dependencies.
 
 Provides reusable dependency callables for:
 
 * JWT-based current-user resolution (``get_current_us
 
-- **Class** `PaginationParams` (line 109)
+- **Class** `PaginationParams` (line 114)
   - Methods: `offset()`
-- **Class** `CurrentUser` (line 141)
-- **def** `pagination_params()` (line 128)
-- **async def** `get_current_user()` (line 251)
-- **async def** `get_current_user_from_header()` (line 318)
-- **async def** `get_optional_current_user_from_header()` (line 331)
-- **def** `require_role()` (line 365)
-- **async def** `get_api_key()` (line 398)
-- **async def** `set_session_tenant_context()` (line 508)
+- **Class** `CurrentUser` (line 146)
+- **def** `pagination_params()` (line 133)
+- **async def** `get_current_user()` (line 256)
+- **async def** `get_current_user_from_header()` (line 323)
+- **async def** `get_optional_current_user_from_header()` (line 336)
+- **def** `require_role()` (line 370)
+- **async def** `get_api_key()` (line 403)
+- **async def** `set_session_tenant_context()` (line 513)
 
   **API Routes:**
   - `DELETE /users/{user_id}`
@@ -2301,19 +2302,19 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _12.3 KB_
+#### 📄 `api/studies.py` _14.0 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 338)
-- **def** `pre_flight_check()` (line 140)
-- **async def** `run_study()` (line 208)
-- **async def** `run_study_async()` (line 316)
-- **async def** `get_study_types()` (line 327)
-- **async def** `re_run_study()` (line 345)
+- **Class** `StudyReRunRequest` (line 362)
+- **def** `pre_flight_check()` (line 141)
+- **async def** `run_study()` (line 209)
+- **async def** `run_study_async()` (line 340)
+- **async def** `get_study_types()` (line 351)
+- **async def** `re_run_study()` (line 369)
 
   **API Routes:**
   - `GET /types`
@@ -2780,7 +2781,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _29.1 KB_
+#### 📄 `engine/capability_registry.py` _29.5 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2791,8 +2792,8 @@ Single source of tr
 - **Class** `CapabilityDefinition` (line 50)
 - **Class** `CapabilityRegistry` (line 117)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 729)
-- **def** `get_capability_definition()` (line 739)
+- **def** `get_capability_registry()` (line 738)
+- **def** `get_capability_definition()` (line 748)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3273,35 +3274,36 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _55.9 KB_
+#### 📄 `services/execution_orchestrator.py` _67.2 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
 Coo
 
-- **Class** `IExecutionStateStore` (line 49)
+- **Class** `CentralizedStateUnavailableError` (line 49)
+- **Class** `IExecutionStateStore` (line 55)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `InMemoryExecutionStateStore` (line 78)
+- **Class** `InMemoryExecutionStateStore` (line 84)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `RedisExecutionStateStore` (line 113)
+- **Class** `RedisExecutionStateStore` (line 119)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `NativeEngineeringExecutor` (line 219)
+- **Class** `NativeEngineeringExecutor` (line 280)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 293)
+- **Class** `AgentEngineeringExecutor` (line 400)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 422)
+- **Class** `EtapEngineeringExecutor` (line 529)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 552)
+- **Class** `ExternalServiceExecutor` (line 659)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 605)
+- **Class** `CompositeEngineeringExecutor` (line 761)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 621)
+- **Class** `ExecutionOrchestrator` (line 812)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
-- **def** `get_execution_state_store()` (line 194)
-- **def** `set_execution_state_store()` (line 209)
-- **def** `get_execution_orchestrator()` (line 1307)
+- **def** `get_execution_state_store()` (line 255)
+- **def** `set_execution_state_store()` (line 270)
+- **def** `get_execution_orchestrator()` (line 1566)
 
-#### 📄 `services/execution_request.py` _11.1 KB_
+#### 📄 `services/execution_request.py` _11.3 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3309,9 +3311,9 @@ Establishes:
 
 - **Class** `ExecutionRequest` (line 26)
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
-- **Class** `CanonicalExecutionResult` (line 166)
+- **Class** `CanonicalExecutionResult` (line 169)
   - Methods: `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 250)
+- **Class** `IEngineeringExecutor` (line 253)
   - Methods: `execute()`
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
@@ -5671,10 +5673,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
 | ui-component | 280 |
 | python-module | 41 |
+| api-route | 92 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5686,7 +5688,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5706,7 +5708,7 @@ Provides
 | `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5717,7 +5719,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5776,7 +5778,7 @@ Provides
 | `test_cache_service.py` | 7 | 0 | **7** |
 | `test_caching.py` | 0 | 2 | **21** |
 | `test_cad_simready.py` | 3 | 0 | **3** |
-| `test_canonical_execution.py` | 13 | 0 | **13** |
+| `test_canonical_execution.py` | 19 | 0 | **19** |
 | `test_cdn_base.py` | 0 | 6 | **29** |
 | `test_celery_tasks.py` | 0 | 9 | **65** |
 | `test_certified_reports_and_pe_stamp.py` | 16 | 0 | **16** |
@@ -6060,7 +6062,7 @@ Provides
 | `scripts/fix_eol_strings.py` | py | 3.0 KB | Fix broken EOL string literals in validation_campaign.py. |
 | `scripts/fix_future_imports.py` | py | 1.6 KB | Fix __future__ import placement. |
 | `scripts/gen_api_ref.ps1` | ps1 | 7.1 KB |  |
-| `scripts/gen_api_ref.py` | py | 7.5 KB | Generate API Quick Reference Cheat-Sheet (docs/API_QUICKREF. |
+| `scripts/gen_api_ref.py` | py | 7.2 KB | Generate API Quick Reference Cheat-Sheet (docs/API_QUICKREF. |
 | `scripts/gen_api_ref.sh` | sh | 0.3 KB | !/usr/bin/env bash |
 | `scripts/generate-certs.sh` | sh | 0.9 KB | !/usr/bin/env bash |
 | `scripts/hf_build_guard.py` | py | 11.0 KB | HF Space Build Guard |
