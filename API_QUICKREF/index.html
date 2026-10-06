@@ -1,0 +1,1675 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Enterprise AI-Powered Power Systems Engineering Platform">
+      
+      
+        <meta name="author" content="Eng. Ahmed Elbaz / Platform Core Team">
+      
+      
+      
+        <link rel="prev" href="../API_REFERENCE/">
+      
+      
+        <link rel="next" href="../API_DOCUMENTATION/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.11">
+    
+    
+      
+        <title>AhmedETAP API Quick Reference Cheat-Sheet - AhmedETAP Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ahmedetap-api-quick-reference-cheat-sheet" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AhmedETAP Documentation" class="md-header__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AhmedETAP Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              AhmedETAP API Quick Reference Cheat-Sheet
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../QUICKSTART/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../TUTORIALS/" class="md-tabs__link">
+          
+  
+  
+  Engineering Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../API_REFERENCE/" class="md-tabs__link">
+          
+  
+  
+  API Specifications
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ARCHITECTURE/" class="md-tabs__link">
+          
+  
+  
+  Architecture & Agents
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../OPERATIONS_RUNBOOK/" class="md-tabs__link">
+          
+  
+  
+  Operations & Reliability
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../STANDARDS_COMPLIANCE_MATRIX/" class="md-tabs__link">
+          
+  
+  
+  Standards & Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AhmedETAP Documentation" class="md-nav__button md-logo" aria-label="AhmedETAP Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AhmedETAP Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Engineering Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Engineering Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIALS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIALS/01_load_flow_short_circuit_protection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    01 - Load Flow to Protection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIALS/02_motor_starting_voltage_drop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    02 - Motor Starting Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIALS/03_arc_flash_hazard_evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    03 - Arc Flash Evaluation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Specifications
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API Specifications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_REFERENCE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Canonical Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    QuickRef Cheat-Sheet
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    QuickRef Cheat-Sheet
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints-quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoints Quick Reference
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-curl-recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick cURL Recipes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick cURL Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-health-readiness-probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Health &amp; Readiness Probe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-run-newton-raphson-load-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Run Newton-Raphson Load Flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-run-iec-60909-short-circuit" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Run IEC 60909 Short Circuit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-query-active-agents-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Query Active Agents Registry
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websocket-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Protocol
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API_DOCUMENTATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deprecated Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Architecture & Agents
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Architecture & Agents
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AGENT_ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Agent Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STATUS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Status & Launch Readiness
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Operations & Reliability
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Operations & Reliability
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OPERATIONS_RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Operations Runbook
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY_OPERATIONS_MANUAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security Operations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ENTERPRISE_CERTIFICATION_REPORT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Enterprise Certification
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Standards & Governance
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Standards & Governance
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../STANDARDS_COMPLIANCE_MATRIX/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Standards Compliance Matrix
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GLOSSARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Platform Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DOCUMENTATION_STANDARDS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Documentation Standards
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints-quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoints Quick Reference
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-curl-recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick cURL Recipes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick cURL Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-health-readiness-probe" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Health &amp; Readiness Probe
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-run-newton-raphson-load-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Run Newton-Raphson Load Flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-run-iec-60909-short-circuit" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Run IEC 60909 Short Circuit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-query-active-agents-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Query Active Agents Registry
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websocket-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      WebSocket Protocol
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ahmedetap-api-quick-reference-cheat-sheet">⚡ AhmedETAP API Quick Reference (Cheat-Sheet)</h1>
+<blockquote>
+<p><strong>Note:</strong> This cheat-sheet is automatically derived from the authoritative <a href="../API_REFERENCE/">API Reference</a>.
+For complete request/response JSON schemas, error codes, and field validations, consult <a href="../API_REFERENCE/">docs/API_REFERENCE.md</a>.</p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#authentication-overview">Authentication Overview</a></li>
+<li><a href="#endpoints-quick-reference">Endpoints Quick Reference</a></li>
+<li><a href="#quick-curl-recipes">Quick cURL Recipes</a></li>
+<li><a href="#websocket-protocol">WebSocket Protocol</a></li>
+</ul>
+<hr />
+<h2 id="authentication-overview">Authentication Overview</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Mechanism</th>
+<th style="text-align: left;">Header Format</th>
+<th style="text-align: left;">Typical Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>JWT Bearer</strong></td>
+<td style="text-align: left;"><code>Authorization: Bearer &lt;jwt_token&gt;</code></td>
+<td style="text-align: left;">UI, Interactive Sessions, RBAC</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>API Key</strong></td>
+<td style="text-align: left;"><code>X-API-Key: &lt;api_key&gt;</code></td>
+<td style="text-align: left;">Automated CI/CD, Microservices, COM Scripts</td>
+</tr>
+</tbody>
+</table>
+<p>Obtain token via <code>POST /api/auth/login</code> with username &amp; password.</p>
+<hr />
+<h2 id="endpoints-quick-reference">Endpoints Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Method</th>
+<th style="text-align: left;">Endpoint</th>
+<th style="text-align: left;">Category</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: center;">Canonical Ref</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/auth/login</code></td>
+<td style="text-align: left;">📋 Table of Contents</td>
+<td style="text-align: left;">Authenticate and obtain a JWT access token.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiauthlogin">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/health</code></td>
+<td style="text-align: left;">Health &amp; Readiness Endpoints</td>
+<td style="text-align: left;">Full health check with service dependency status.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-health">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/healthz</code></td>
+<td style="text-align: left;">Health &amp; Readiness Endpoints</td>
+<td style="text-align: left;">Lightweight liveness probe for Kubernetes.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-healthz">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/readyz</code></td>
+<td style="text-align: left;">Health &amp; Readiness Endpoints</td>
+<td style="text-align: left;">Readiness probe that checks all dependencies.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-readyz">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/ready</code></td>
+<td style="text-align: left;">Health &amp; Readiness Endpoints</td>
+<td style="text-align: left;">Detailed readiness check with service health information.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-ready">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/metrics</code></td>
+<td style="text-align: left;">Health &amp; Readiness Endpoints</td>
+<td style="text-align: left;">Prometheus-compatible metrics endpoint.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-metrics">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/studies/run</code></td>
+<td style="text-align: left;">Engineering Study Endpoints</td>
+<td style="text-align: left;">Execute a power system engineering study. This is the primary endpoint for running all analysis types through the native Python engine or ETAP COM automation.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1studiesrun">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/system/validate</code></td>
+<td style="text-align: left;">Engineering Study Endpoints</td>
+<td style="text-align: left;">Validate a power system model without running a study. Checks data integrity, connectivity, and basic feasibility.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1systemvalidate">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/studies/run</code> <em>(Short Circuit)</em></td>
+<td style="text-align: left;">Short Circuit Analysis</td>
+<td style="text-align: left;">Execute a short circuit analysis compliant with IEC 60909.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1studiesrun-short-circuit">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/studies/run</code> <em>(Arc Flash)</em></td>
+<td style="text-align: left;">Arc Flash Analysis</td>
+<td style="text-align: left;">Execute an arc flash hazard analysis per IEEE 1584-2018 and NFPA 70E.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1studiesrun-arc-flash">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/studies/run</code> <em>(Harmonic)</em></td>
+<td style="text-align: left;">Harmonic Analysis</td>
+<td style="text-align: left;">Execute harmonic distortion analysis per IEEE 519-2022.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1studiesrun-harmonic">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/agents</code></td>
+<td style="text-align: left;">Agent Management Endpoints</td>
+<td style="text-align: left;">List all available engineering agents and their capabilities.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1agents">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/agents/{agent_id}/chat</code></td>
+<td style="text-align: left;">Agent Management Endpoints</td>
+<td style="text-align: left;">Send a message to a specific agent for conversational engineering assistance.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1agentsagent_idchat">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/providers</code></td>
+<td style="text-align: left;">Provider Management Endpoints</td>
+<td style="text-align: left;">List configured LLM providers and their health status.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1providers">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/audit/logs</code></td>
+<td style="text-align: left;">Audit Logging Endpoints</td>
+<td style="text-align: left;">Retrieve audit log entries for compliance and security review.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1auditlogs">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/scada/measurements</code></td>
+<td style="text-align: left;">SCADA Real-Time Endpoints</td>
+<td style="text-align: left;">Retrieve real-time measurement data from SCADA integration.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1scadameasurements">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/scada/alarms</code></td>
+<td style="text-align: left;">SCADA Real-Time Endpoints</td>
+<td style="text-align: left;">Retrieve active SCADA alarms and events.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1scadaalarms">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/scada/state-estimation</code></td>
+<td style="text-align: left;">SCADA Real-Time Endpoints</td>
+<td style="text-align: left;">Run state estimation on current SCADA measurements.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1scadastate-estimation">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/predictive/load-forecast</code></td>
+<td style="text-align: left;">Predictive Analytics Endpoints</td>
+<td style="text-align: left;">Generate load forecast using ML models.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1predictiveload-forecast">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/predictive/anomaly-detect</code></td>
+<td style="text-align: left;">Predictive Analytics Endpoints</td>
+<td style="text-align: left;">Detect anomalies in measurement data streams.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1predictiveanomaly-detect">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/predictive/fault-predict</code></td>
+<td style="text-align: left;">Predictive Analytics Endpoints</td>
+<td style="text-align: left;">Predict fault type from measurement signatures.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1predictivefault-predict">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>WS</code></td>
+<td style="text-align: left;"><code>/ws/study/{study_id}</code></td>
+<td style="text-align: left;">WebSocket Endpoints</td>
+<td style="text-align: left;">Subscribe to real-time updates for a running study.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#ws-wsstudystudy_id">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/reports/generate</code></td>
+<td style="text-align: left;">Report Generation</td>
+<td style="text-align: left;">Generate an engineering report from analysis results.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1reportsgenerate">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/reports/download/{filename}</code></td>
+<td style="text-align: left;">Report Generation</td>
+<td style="text-align: left;">Download a generated report file.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1reportsdownloadfilename">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/knowledge/search</code></td>
+<td style="text-align: left;">Knowledge Base Endpoints</td>
+<td style="text-align: left;">Search the engineering knowledge base using RAG.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1knowledgesearch">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/knowledge/add</code></td>
+<td style="text-align: left;">Knowledge Base Endpoints</td>
+<td style="text-align: left;">Add a document to the engineering knowledge base.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1knowledgeadd">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/users/register</code></td>
+<td style="text-align: left;">User Management Endpoints</td>
+<td style="text-align: left;">Register a new user account.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1usersregister">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>GET</code></td>
+<td style="text-align: left;"><code>/api/v1/users/profile</code></td>
+<td style="text-align: left;">User Management Endpoints</td>
+<td style="text-align: left;">Get current user profile information.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#get-apiv1usersprofile">Docs</a></td>
+</tr>
+<tr>
+<td style="text-align: center;"><code>POST</code></td>
+<td style="text-align: left;"><code>/api/v1/webhooks/subscribe</code></td>
+<td style="text-align: left;">Webhook Endpoints</td>
+<td style="text-align: left;">Subscribe to platform events.</td>
+<td style="text-align: center;"><a href="../API_REFERENCE/#post-apiv1webhookssubscribe">Docs</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="quick-curl-recipes">Quick cURL Recipes</h2>
+<h3 id="1-health-readiness-probe">1. Health &amp; Readiness Probe</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/healthz
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/readyz
+</code></pre></div>
+<h3 id="2-run-newton-raphson-load-flow">2. Run Newton-Raphson Load Flow</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/studies/run<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"study_type": "LOAD_FLOW", "project_id": "substation_alpha", "parameters": {"max_iterations": 20, "tolerance": 0.0001}}'</span>
+</code></pre></div>
+<h3 id="3-run-iec-60909-short-circuit">3. Run IEC 60909 Short Circuit</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/api/v1/studies/run<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">'{"study_type": "SHORT_CIRCUIT", "project_id": "substation_alpha", "parameters": {"standard": "IEC_60909", "fault_type": "3PHASE"}}'</span>
+</code></pre></div>
+<h3 id="4-query-active-agents-registry">4. Query Active Agents Registry</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://localhost:8000/api/v1/agents<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">"Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">"</span>
+</code></pre></div>
+<hr />
+<h2 id="websocket-protocol">WebSocket Protocol</h2>
+<ul>
+<li><strong>Study Streaming:</strong> <code>ws://localhost:8000/ws/study/{study_id}</code></li>
+<li>Subscribes to real-time iteration logs, convergence metrics, and progress percentages.</li>
+<li>See <a href="../API_REFERENCE/#ws-wsstudystudyid">WebSocket Protocol in API_REFERENCE.md</a>.</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
