@@ -349,6 +349,9 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
         # Parse outcome semantics
         is_dict = isinstance(data, dict)
         dict_data = data if is_dict else (data.to_dict() if hasattr(data, "to_dict") else {})
+        from core.bootstrap import _to_jsonable
+
+        dict_data = _to_jsonable(dict_data) or {}
         success = True
         errors: list[str] = []
         warnings: list[str] = []
@@ -369,13 +372,18 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
                 warnings.extend(str(w) for w in data["warnings"])
 
         solver_opts = getattr(request, "solver_options", {}) if hasattr(request, "solver_options") else {}
-        solver_method = (
-            solver_opts.get("solver") if isinstance(solver_opts, dict) else None
-            or params.get("solver")
-            or params.get("method")
-            or (dict_data.get("solver") if is_dict else None)
-            or ("newton_raphson" if "load_flow" in str(study_type).lower() else "native")
-        )
+        solver_method = None
+        if isinstance(solver_opts, dict):
+            solver_method = solver_opts.get("solver")
+        if not solver_method:
+            solver_method = (
+                params.get("solver")
+                or params.get("method")
+                or (dict_data.get("solver") if is_dict else None)
+                or ("newton_raphson" if "load_flow" in str(study_type).lower() else "native")
+            )
+        if not solver_method:
+            solver_method = "native"
 
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
@@ -997,7 +1005,7 @@ class ExecutionOrchestrator:
                         raise_on_error=raise_on_error,
                     )
             elif auth_policy in ("lead_engineer", "lead"):
-                if user_role not in ("lead_engineer", "lead", "admin"):
+                if user_role not in ("lead_engineer", "lead", "admin", "service_principal"):
                     return self._build_rejection(
                         request,
                         reason="AUTHORIZATION_DENIED",
@@ -1006,7 +1014,7 @@ class ExecutionOrchestrator:
                         raise_on_error=raise_on_error,
                     )
             elif auth_policy in ("engineer", "standard"):
-                if user_role not in ("engineer", "lead_engineer", "lead", "admin"):
+                if user_role not in ("engineer", "lead_engineer", "lead", "admin", "service_principal"):
                     return self._build_rejection(
                         request,
                         reason="AUTHORIZATION_DENIED",
@@ -1260,6 +1268,7 @@ class ExecutionOrchestrator:
                 logger.debug("Canonical semantic cache lookup error: %s", cache_err)
 
         # ── 13. Execute Selected Executor ────────────────────────────────────
+        exec_res: Optional[CanonicalExecutionResult] = None
         try:
             exec_res = await executor.execute(request)
             data = exec_res.data

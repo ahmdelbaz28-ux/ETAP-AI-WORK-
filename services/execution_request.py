@@ -211,12 +211,14 @@ class CanonicalExecutionResult(BaseModel):
 
     def to_study_result(self) -> Any:
         """Convert CanonicalExecutionResult to legacy StudyResult for API backwards compatibility."""
+        from core.bootstrap import _to_jsonable
         from core_model.specs import StudyResult
 
+        clean_data = _to_jsonable(self.data)
         return StudyResult(
             success=self.success,
-            data=self.data,
-            results=self.data,
+            data=clean_data,
+            results=clean_data,
             warnings=self.warnings,
             errors=self.errors,
             execution_time_sec=self.execution_time_sec,

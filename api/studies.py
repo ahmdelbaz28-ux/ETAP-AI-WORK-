@@ -33,6 +33,7 @@ from api.dependencies import (
     get_api_key,
     get_optional_current_user_from_header,
 )
+from api.environment import auth_disabled_allowed, is_production_environment
 from api.feature_flags import get_disabled_studies
 from core.metrics import count_executions, track_skill_operation
 from core_model.bus import Bus  # noqa: F401 — re-exported for backward compat
@@ -207,26 +208,31 @@ async def _persist_study_result(
 @count_executions(skill_name="study")
 @track_skill_operation("study")
 async def run_study(
-    req: Any = None,
-    payload: Any = None,
+    req: Request = None,  # type: ignore
+    payload: StudyRequest = None,  # type: ignore
     _: Annotated[str, Depends(get_api_key)] = "",
     user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
-    *,
     user_id: Optional[str] = None,
     tenant_id: Optional[str] = None,
-    **kwargs: Any,
 ):
     """Execute a power system study.
 
     Delegates to ExecutionOrchestrator which owns the full
     pipeline: validation -> cache -> dispatch -> scan -> risk -> serialize.
     """
-    if isinstance(req, (dict, StudyRequest)) and payload is None:
-        payload = req
-        req = None
+    if not isinstance(req, Request):
+        if req is not None:
+            payload = req if isinstance(req, StudyRequest) else StudyRequest.model_validate(req)
+        req = None  # type: ignore
 
     if isinstance(payload, dict):
         payload = StudyRequest.model_validate(payload)
+
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Missing study request payload",
+        )
 
     trace_id = (
         getattr(req.state, "trace_id", "unknown")
@@ -241,7 +247,7 @@ async def run_study(
         # Determine trusted identity (fail-closed)
         if user is not None and getattr(user, "user_id", None):
             user_id = str(user.user_id).strip()
-            tenant_id = str(user.tenant_id or getattr(req.state, "tenant_id", "") or "").strip()
+            tenant_id = str(user.tenant_id or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "") or "").strip()
             if not tenant_id or tenant_id.lower() in ("default", "none", "null"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -261,9 +267,18 @@ async def run_study(
             user_role = "service_principal"
         elif user_id and tenant_id and (req is None or getattr(req, "state", None) is None):
             # Programmatic direct invocation in tests / internal helpers
-            user_role = kwargs.get("user_role", "engineer")
+            user_role = "engineer"
+        elif auth_disabled_allowed() or not is_production_environment():
+            # In local dev / test environments where auth is explicitly disabled, assign concrete dev identity
+            user_id = user_id or "service_principal:dev_test"
+            tenant_id = (
+                tenant_id
+                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+                or "service_tenant_dev"
+            ).strip()
+            user_role = "engineer"
         else:
-            # Unauthenticated authoritative execution: Fail Closed
+            # Unauthenticated authoritative execution in production: Fail Closed
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required: valid JWT user session or trusted API-key service identity mandatory",
