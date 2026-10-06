@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-06T10:56:44.736844+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-06T12:48:38.578721+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -11,11 +11,11 @@
 |:---|---:|
 | Python | Packages | 41 |
 | Python | Files | 382 |
-| Python | Classes | 929 |
-| Python | Functions | 831 |
+| Python | Classes | 931 |
+| Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 267 |
-| Total | Tests | 3815 |
+| Total | Tests | 3826 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 443 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -1057,7 +1057,7 @@ Extracts the repeated patt
 - **def** `normalize_template_var()` (line 142)
 - **def** `get_api_key_auth()` (line 171)
 
-#### 📄 `api/agent_executor.py` _37.2 KB_
+#### 📄 `api/agent_executor.py` _37.3 KB_
 > api/agent_executor.py — Secure Agent Execution Path (P4a).
 
 The narrow gateway through which an autonomous agent may turn a *tool plan*
@@ -1500,16 +1500,16 @@ Provides reusable dependency callables for:
 
 * JWT-based current-user resolution (``get_current_us
 
-- **Class** `PaginationParams` (line 105)
+- **Class** `PaginationParams` (line 109)
   - Methods: `offset()`
-- **Class** `CurrentUser` (line 137)
-- **def** `pagination_params()` (line 124)
-- **async def** `get_current_user()` (line 247)
-- **async def** `get_current_user_from_header()` (line 314)
-- **async def** `get_optional_current_user_from_header()` (line 327)
-- **def** `require_role()` (line 361)
-- **async def** `get_api_key()` (line 394)
-- **async def** `set_session_tenant_context()` (line 504)
+- **Class** `CurrentUser` (line 141)
+- **def** `pagination_params()` (line 128)
+- **async def** `get_current_user()` (line 251)
+- **async def** `get_current_user_from_header()` (line 318)
+- **async def** `get_optional_current_user_from_header()` (line 331)
+- **def** `require_role()` (line 365)
+- **async def** `get_api_key()` (line 398)
+- **async def** `set_session_tenant_context()` (line 508)
 
   **API Routes:**
   - `DELETE /users/{user_id}`
@@ -2147,7 +2147,7 @@ Implements defense-in-depth HTTP security headers and Host header validation
 - **Class** `HostValidationMiddleware` (line 21)
 - **Class** `SecurityHeadersMiddleware` (line 45)
 
-#### 📄 `api/semantic_cache.py` _13.7 KB_
+#### 📄 `api/semantic_cache.py` _14.7 KB_
 > api/semantic_cache.py — Semantic Cache Layer (Phase 2).
 
 Provides semantic caching for power system studies and LLM agent outputs.
@@ -2158,10 +2158,10 @@ Key features:
 - **Class** `CacheStats` (line 48)
 - **Class** `SemanticCache` (line 84)
   - Methods: `lookup()`, `store()`, `get_stats()`, `clear()`
-- **def** `get_semantic_cache()` (line 360)
-- **def** `reset_semantic_cache()` (line 370)
+- **def** `get_semantic_cache()` (line 382)
+- **def** `reset_semantic_cache()` (line 392)
 
-#### 📄 `api/semantic_cache_redis.py` _10.6 KB_
+#### 📄 `api/semantic_cache_redis.py` _11.9 KB_
 > api/semantic_cache_redis.py — Distributed Semantic Cache using Redis.
 
 Replaces in-memory SemanticCache for multi-instance horizontal scaling,
@@ -2169,8 +2169,8 @@ with se
 
 - **Class** `DistributedSemanticCache` (line 34)
   - Methods: `validate_redis_client()`, `format_cached_response()`, `lookup()`, `store()`, `get_stats()`, `clear()`
-- **def** `get_distributed_semantic_cache()` (line 291)
-- **def** `reset_distributed_semantic_cache()` (line 299)
+- **def** `get_distributed_semantic_cache()` (line 325)
+- **def** `reset_distributed_semantic_cache()` (line 333)
 
 #### 📄 `api/session_ownership.py` _7.2 KB_
 > api/session_ownership.py — Unified authority for session ownership and auto-approval.
@@ -2300,19 +2300,19 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _14.2 KB_
+#### 📄 `api/studies.py` _14.8 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 382)
+- **Class** `StudyReRunRequest` (line 392)
 - **def** `pre_flight_check()` (line 140)
 - **async def** `run_study()` (line 208)
-- **async def** `run_study_async()` (line 360)
-- **async def** `get_study_types()` (line 371)
-- **async def** `re_run_study()` (line 389)
+- **async def** `run_study_async()` (line 370)
+- **async def** `get_study_types()` (line 381)
+- **async def** `re_run_study()` (line 399)
 
   **API Routes:**
   - `GET /types`
@@ -2506,7 +2506,7 @@ Supports project
 - **async def** `load_solver_params()` (line 31)
 - **async def** `save_solver_params()` (line 69)
 
-#### 📄 `api/services/study_execution_service.py` _6.4 KB_
+#### 📄 `api/services/study_execution_service.py` _6.7 KB_
 > Study Execution Service for Edit & Re-run workflows.
 
 Orchestrates:
@@ -3272,27 +3272,33 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _27.3 KB_
+#### 📄 `services/execution_orchestrator.py` _43.1 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
 Coo
 
-- **Class** `NativeEngineeringExecutor` (line 44)
+- **Class** `IExecutionStateStore` (line 46)
+  - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
+- **Class** `InMemoryExecutionStateStore` (line 75)
+  - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
+- **Class** `NativeEngineeringExecutor` (line 127)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 104)
+- **Class** `AgentEngineeringExecutor` (line 191)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 138)
+- **Class** `EtapEngineeringExecutor` (line 320)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 167)
+- **Class** `ExternalServiceExecutor` (line 450)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 201)
+- **Class** `CompositeEngineeringExecutor` (line 497)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 238)
+- **Class** `ExecutionOrchestrator` (line 511)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
-- **def** `get_execution_orchestrator()` (line 655)
+- **def** `get_execution_state_store()` (line 112)
+- **def** `set_execution_state_store()` (line 117)
+- **def** `get_execution_orchestrator()` (line 1045)
 
-#### 📄 `services/execution_request.py` _9.6 KB_
+#### 📄 `services/execution_request.py` _11.1 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3302,7 +3308,7 @@ Establishes:
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
 - **Class** `CanonicalExecutionResult` (line 166)
   - Methods: `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 213)
+- **Class** `IEngineeringExecutor` (line 250)
   - Methods: `execute()`
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
@@ -3361,7 +3367,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _52.7 KB_
+#### 📄 `services/study_executor.py` _55.0 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -5662,10 +5668,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
 | ui-component | 280 |
 | python-module | 41 |
+| ui-page | 61 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -5677,7 +5683,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5694,7 +5700,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5705,10 +5711,10 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5762,12 +5768,12 @@ Provides
 | `test_breaker_duty.py` | 0 | 1 | **10** |
 | `test_browser_cua_executor.py` | 14 | 0 | **14** |
 | `test_bypass_prevention.py` | 4 | 0 | **4** |
-| `test_cache_isolation.py` | 1 | 0 | **1** |
+| `test_cache_isolation.py` | 3 | 0 | **3** |
 | `test_cache_manager.py` | 0 | 8 | **22** |
 | `test_cache_service.py` | 7 | 0 | **7** |
 | `test_caching.py` | 0 | 2 | **21** |
 | `test_cad_simready.py` | 3 | 0 | **3** |
-| `test_canonical_execution.py` | 3 | 0 | **3** |
+| `test_canonical_execution.py` | 10 | 0 | **10** |
 | `test_cdn_base.py` | 0 | 6 | **29** |
 | `test_celery_tasks.py` | 0 | 9 | **65** |
 | `test_certified_reports_and_pe_stamp.py` | 16 | 0 | **16** |
@@ -5839,7 +5845,7 @@ Provides
 | `test_langfuse_integration.py` | 0 | 11 | **32** |
 | `test_langfuse_setup.py` | 0 | 6 | **17** |
 | `test_langwatch_integration_improved.py` | 0 | 11 | **43** |
-| `test_license_compliance.py` | 1 | 0 | **1** |
+| `test_license_compliance.py` | 3 | 0 | **3** |
 | `test_life_safety.py` | 21 | 0 | **21** |
 | `test_life_safety_killswitch.py` | 0 | 2 | **11** |
 | `test_llm_provider_policy.py` | 11 | 0 | **11** |
