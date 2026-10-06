@@ -1,11 +1,11 @@
-﻿---
+---
 title: "AhmedETAP API Quick Reference Cheat-Sheet"
 version: "2.1.0"
 last_updated: "2026-10-06"
 maintainer: "Eng. Ahmed Elbaz / Platform Team"
 ---
 
-# âڑ، AhmedETAP API Quick Reference (Cheat-Sheet)
+# ⚡ AhmedETAP API Quick Reference (Cheat-Sheet)
 
 > **Note:** This cheat-sheet is automatically derived from the authoritative [API Reference](API_REFERENCE.md).
 > For complete request/response JSON schemas, error codes, and field validations, consult [docs/API_REFERENCE.md](API_REFERENCE.md).

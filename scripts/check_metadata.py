@@ -72,7 +72,7 @@ def check_file(rel_path):
     if not file_path.exists():
         return [f"File does not exist: {rel_path}"]
 
-    content = file_path.read_text(encoding="utf-8", errors="replace")
+    content = file_path.read_text(encoding="utf-8-sig", errors="replace")
     errors = []
 
     # 1. Frontmatter check
