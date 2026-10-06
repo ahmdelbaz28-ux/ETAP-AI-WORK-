@@ -120,3 +120,11 @@ GHSA-x6jw-m9v5-85vh
 # Patched in @simple-git/argv-parser >=2.0.1 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
 # Documented for defense-in-depth against stale CI runner cache.
 GHSA-v5rq-49vh-5v5c
+
+# GHSA-pqg4-j6r4-53mv — shell-quote: command injection via a line terminator in a token after a { comment } token
+# Affects: shell-quote <=1.10.0 (transitive dep of concurrently@10.0.5 in ui package).
+# Practical exploitability in THIS repo:
+#   - concurrently is used solely in ui/package.json for local electron development scripts ("electron:dev").
+#   - It is never invoked with untrusted external user input and is not packaged in production builds.
+# Decision: accept on grounds of local dev-tooling scope until concurrently releases an upstream update.
+GHSA-pqg4-j6r4-53mv
