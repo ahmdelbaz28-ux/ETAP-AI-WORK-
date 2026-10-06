@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-06T17:21:07.854892+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-06T19:32:45.890124+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -2093,7 +2093,7 @@ Handles all API endpoints, request validation, and response formatting.
 - **Class** `_TraceMiddleware` (line 485)
 - **Class** `HealthResponse` (line 522)
 - **Class** `ReadyResponse` (line 527)
-- **Class** `CUARollbackRequest` (line 1321)
+- **Class** `CUARollbackRequest` (line 1322)
 - **def** `get_celery_components()` (line 549)
 - **async def** `run_study_async()` (line 581)
 - **async def** `get_task_status()` (line 629)
@@ -2103,7 +2103,7 @@ Handles all API endpoints, request validation, and response formatting.
 - **async def** `etap_health_probe()` (line 963)
 - **async def** `gis_status_probe()` (line 975)
 - **async def** `websocket_session_stream_handler()` (line 990)
-- **async def** `websocket_notifications_handler()` (line 1074)
+- **async def** `websocket_notifications_handler()` (line 1075)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -2781,7 +2781,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _29.6 KB_
+#### 📄 `engine/capability_registry.py` _29.3 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2792,8 +2792,8 @@ Single source of tr
 - **Class** `CapabilityDefinition` (line 50)
 - **Class** `CapabilityRegistry` (line 117)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 740)
-- **def** `get_capability_definition()` (line 750)
+- **def** `get_capability_registry()` (line 734)
+- **def** `get_capability_definition()` (line 744)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -5673,10 +5673,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| python-module | 41 |
 | ui-component | 280 |
 | ui-page | 61 |
+| python-module | 41 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -6200,9 +6200,9 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.0 KB | `f18c3ff5c4cd` |
+| `hf-space/app.py` | 78.2 KB | `9f3f10d5783d` |
 | `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
-| `ui/vite.config.ts` | 2.9 KB | `d5ffbb7f3a8f` |
+| `ui/vite.config.ts` | 2.9 KB | `177b9cab7abc` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
 | `pnpm-workspace.yaml` | 7.8 KB | `be3ccf5e1193` |
