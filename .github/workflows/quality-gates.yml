@@ -85,20 +85,45 @@ jobs:
         # fails on Ubuntu 24.04). The Docker image is published and tested by
         # the Trivy team and is far more stable.
         run: |
-          docker run --rm \
-            -v "${PWD}:/repo" \
-            -v /tmp/trivy-cache:/root/.cache/trivy \
-            -w /repo \
-            aquasec/trivy:0.58.0 \
-            fs --exit-code 1 --severity CRITICAL \
-               --ignore-unfixed \
-               --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
-               --format sarif \
-               --output /repo/trivy-results.sarif \
-               .
+          mkdir -p /tmp/trivy-cache
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=0
+          until [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; do
+            echo "Running Trivy (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
+            if docker run --rm \
+              -v "${PWD}:/repo" \
+              -v /tmp/trivy-cache:/root/.cache/trivy \
+              -w /repo \
+              aquasec/trivy:0.58.0 \
+              fs --db-repository ghcr.io/aquasecurity/trivy-db:2 \
+                 --exit-code 1 --severity CRITICAL \
+                 --ignore-unfixed \
+                 --skip-dirs .git,node_modules,ui/node_modules,.venv,venv,__pycache__ \
+                 --format sarif \
+                 --output /repo/trivy-results.sarif \
+                 .; then
+              SUCCESS=1
+              break
+            fi
+            EXIT_CODE=$?
+            if [ -f "trivy-results.sarif" ]; then
+              echo "Trivy completed with exit code $EXIT_CODE and generated SARIF."
+              exit $EXIT_CODE
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+              echo "Transient failure detected (no SARIF generated). Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo "Trivy execution failed after $MAX_RETRIES attempts."
+            exit 1
+          fi
 
       - name: Upload Trivy SARIF
         uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: trivy-results.sarif
-        if: always()

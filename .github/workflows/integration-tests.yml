@@ -67,7 +67,7 @@ jobs:
   database:
     name: Database Integration
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -108,13 +108,29 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
-          # No pip cache — using uv for installation
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip==25.0.1 --only-binary :all:
           pip install --only-binary :all: --requirement requirements.txt  # S8541/S8544: --only-binary prevents source-build setup.py execution; --requirement loads pinned versions from requirements.txt lock file
           pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3 pytest-timeout==2.3.1 httpx==0.28.1 aiosqlite>=0.19.0 asyncpg>=0.29.0 "sqlalchemy[asyncio]>=2.0.0" alembic>=1.13.0
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in $(seq 1 60); do
+            if command -v pg_isready >/dev/null 2>&1 && pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL ready ($i)"
+              break
+            fi
+            if python3 -c "import socket; socket.create_connection(('localhost', 5432), timeout=2)" 2>/dev/null; then
+              echo "PostgreSQL TCP ready ($i)"
+              break
+            fi
+            echo "Waiting ($i/60)"
+            sleep 1
+          done
 
       - name: Apply database migrations
         run: |
@@ -188,7 +204,8 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
-          # No pip cache — using uv for installation
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
@@ -293,7 +310,8 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
-          # No pip cache — using uv for installation
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
