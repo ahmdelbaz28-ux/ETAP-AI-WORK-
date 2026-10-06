@@ -111,7 +111,7 @@ jobs:
   e2e-python-tests:
     name: E2E - Python Unit Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 75
 
     services:
       redis:
@@ -144,8 +144,11 @@ jobs:
         env:
           PIP_DEFAULT_TIMEOUT: '120'
         run: |
-          pip install --retries 5 -r requirements.txt
-          pip install --retries 5 pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite pytest-xdist
+          curl -LsSf https://astral.sh/uv/0.5.11/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          uv pip install --system -r requirements.txt
+          uv pip install --system pytest pytest-cov pytest-asyncio pytest-timeout httpx aiosqlite pytest-xdist
 
       - name: Run syntax validation
         run: python validate_syntax.py
