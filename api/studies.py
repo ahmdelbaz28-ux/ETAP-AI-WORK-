@@ -50,6 +50,7 @@ from core_model.specs import (  # noqa: F401 — re-exported for backward compat
 )
 from core_model.system import System  # noqa: F401
 from core_model.transformer import Transformer  # noqa: F401
+from services.execution_orchestrator import get_execution_orchestrator
 from services.study_executor import StudyExecutor
 
 logger = logging.getLogger("engineering_service")
@@ -78,6 +79,7 @@ __all__ = [
     "_validate_study_request",
     "pre_flight_check",
     "StudyExecutor",
+    "get_execution_orchestrator",
 ]
 
 router = APIRouter(prefix="/api/v1/studies", tags=["studies"])
@@ -204,29 +206,39 @@ async def _persist_study_result(
 @count_executions(skill_name="study")
 @track_skill_operation("study")
 async def run_study(
-    req: Request,
-    payload: StudyRequest,
-    _: Annotated[str, Depends(get_api_key)],
-    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)],
+    req: Any = None,
+    payload: Any = None,
+    _: Annotated[str, Depends(get_api_key)] = "",
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
+    *,
+    user_id: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+    **kwargs: Any,
 ):
     """Execute a power system study.
 
-    Delegates to StudyExecutor.execute which owns the full
+    Delegates to ExecutionOrchestrator which owns the full
     pipeline: validation -> cache -> dispatch -> scan -> risk -> serialize.
-
-    ``user`` is the optional authenticated ``CurrentUser`` (JWT context);
-    it is used ONLY to stamp ``created_by`` on the persisted result. It is
-    ``None`` for API-key-only callers — identity is never taken from the
-    request body.
     """
-    trace_id = getattr(req.state, "trace_id", "unknown")
+    if isinstance(req, (dict, StudyRequest)) and payload is None:
+        payload = req
+        req = None
+
+    if isinstance(payload, dict):
+        payload = StudyRequest.model_validate(payload)
+
+    trace_id = (
+        getattr(req.state, "trace_id", "unknown")
+        if req is not None and hasattr(req, "state")
+        else "unknown"
+    )
     from core.bootstrap import _increment_counter
 
     _increment_counter("request")
 
     try:
         # Phase 2: Semantic Cache lookup (guarded by token_governance flag)
-        if is_feature_enabled("token_governance", default=False):
+        if req is not None and is_feature_enabled("token_governance", default=False):
             try:
                 from api.semantic_cache_redis import (
                     get_distributed_semantic_cache as get_semantic_cache,
@@ -255,16 +267,42 @@ async def run_study(
                     "Semantic cache lookup error: %s (falling back to execution)", cache_lookup_err
                 )
 
-        executor = StudyExecutor()
-        result = await executor.execute(payload, trace_id=trace_id)
+        # Phase 15: Route execution through Canonical Execution Orchestrator
+        from services.execution_request import ExecutionRequest
+
+        tenant_id = (
+            tenant_id
+            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+            or (user.tenant_id if user and getattr(user, "tenant_id", None) else None)
+            or "default"
+        )
+        user_id = (
+            user_id
+            or (user.user_id if user is not None else "")
+            or "anonymous"
+        )
+
+        exec_request = ExecutionRequest.from_study_request(
+            study_request=payload,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            trace_id=trace_id,
+        )
+        orchestrator = get_execution_orchestrator()
+        canonical_res = await orchestrator.execute(exec_request)
+
+        if canonical_res.status == "rejected":
+            err_msg = (
+                canonical_res.errors[0]
+                if canonical_res.errors
+                else "Invalid study request parameters"
+            )
+            raise HTTPException(status_code=400, detail=err_msg)
+
+        result = canonical_res.to_study_result()
         # P5 ResultStore: persist the successful study summary and surface the
-        # new result_id on the response. The tenant comes ONLY from the
-        # authenticated request context (JWT TenantMiddleware) — never from the
-        # request body. ``created_by`` comes ONLY from the authenticated user
-        # context (validated JWT -> CurrentUser). A persistence failure degrades
-        # gracefully: the study result is not failed, the field is simply left
-        # unset.
-        if result and getattr(result, "success", False):
+        # new result_id on the response.
+        if req is not None and result and getattr(result, "success", False):
             await _persist_study_result(req, payload, result, trace_id, user)
             # Store successful result in semantic cache for future lookups
             try:
@@ -312,6 +350,21 @@ async def run_study(
             status_code=500,
             detail="Study execution failed",
         ) from e  # NOSONAR
+
+
+@router.post(
+    "/run_async",
+    response_model=StudyResult,
+    responses={400: {"description": "Invalid study request parameters"}},
+)
+async def run_study_async(
+    req: Request,
+    payload: StudyRequest,
+    _: Annotated[str, Depends(get_api_key)],
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)],
+):
+    """Execute a study asynchronously or via batch execution routed through Canonical Execution Orchestrator (Phase 15)."""
+    return await run_study(req, payload, _, user)
 
 
 @router.get("/types")

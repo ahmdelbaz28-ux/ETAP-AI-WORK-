@@ -92,64 +92,16 @@ ALL_AGENT_CLASSES = [
 ]
 
 # Mapping from StudyType to the agent that handles it.
-#
-# NOTE (Architectural Alignment M6.2 / R-10):
-#   This map serves as the authoritative Python agent association registry.
-#   It is imported by engine/dispatch.py to construct the live STUDY_DISPATCH
-#   table and is dynamically reflected and validated by verify_agents.py
-#   and the Meta-CI gate to guarantee dual-port reachability and prevent
-#   silent routing drift.
-#
-#   Fixed in this commit:
-#     - MOTOR_STARTING: was LoadFlowAgent (wrong) -> MotorStartingAgent
-#     - ARC_FLASH:      was ShortCircuitAgent (wrong) -> ArcFlashAgent
-#     - Added the 8 missing mappings required by the StudyType enum:
-#       CABLE_SIZING, EARTH_GRID, RENEWABLE_INTEGRATION, BATTERY_STORAGE,
-#       SCADA, DIGITAL_TWIN, ETAP_EXPERT, ETAP_GUI
-#
-#   NOTE: ALL_AGENT_CLASSES is intentionally NOT expanded in this commit.
-#   The audit recommends adding the 12 missing BaseAgent subclasses, but
-#   tests/test_agents.py::test_individual_agents instantiates each entry
-#   with no args and calls .execute() with a LOAD_FLOW task — adding agents
-#   whose constructors or execute() paths don't satisfy that contract would
-#   break the test. Each candidate agent needs per-class verification before
-#   being added to the registry. See audit item 2.10 follow-up.
-STUDY_TYPE_AGENT_MAP = {
-    StudyType.LOAD_FLOW: LoadFlowAgent,
-    StudyType.SHORT_CIRCUIT: ShortCircuitAgent,
-    StudyType.HARMONIC_ANALYSIS: HarmonicAnalysisAgent,
-    StudyType.OPTIMAL_POWER_FLOW: OptimalPowerFlowAgent,
-    StudyType.PROTECTION_COORDINATION: ProtectionCoordinationAgent,
-    StudyType.MOTOR_STARTING: MotorStartingAgent,
-    StudyType.TRANSIENT_STABILITY: StabilityAgent,
-    StudyType.ARC_FLASH: ArcFlashAgent,
-    StudyType.CABLE_SIZING: CableSizingAgent,
-    StudyType.EARTH_GRID: EarthGridAgent,
-    StudyType.RENEWABLE_INTEGRATION: RenewableAgent,
-    StudyType.BATTERY_STORAGE: BatteryStorageAgent,
-    StudyType.SCADA: SCADAAgent,
-    StudyType.DIGITAL_TWIN: DigitalTwinAgent,
-    StudyType.ETAP_EXPERT: ETAPExpertAgent,
-    StudyType.ETAP_GUI: ETAPGUIAgent,
-}
+# Authoritative projections from CapabilityRegistry (Phases 2 & 3).
+from engine.capability_registry import get_capability_registry
 
-# WP4 (Iron Loop): register the unified ETAP COM execution agent.
-# Every specialist key above stays untouched — this companion registry
-# records that all provider-backed study types can also be executed
-# through ETAPExecutionAgent's Local/Remote provider interface (the same
-# set the runtime orchestrator already dispatches as "etap_execution").
-ETAP_EXECUTION_AGENT_MAP: dict[StudyType, type[BaseAgent]] = dict.fromkeys(
-    (
-        StudyType.LOAD_FLOW,
-        StudyType.SHORT_CIRCUIT,
-        StudyType.ARC_FLASH,
-        StudyType.HARMONIC_ANALYSIS,
-        StudyType.OPTIMAL_POWER_FLOW,
-        StudyType.MOTOR_STARTING,
-        StudyType.PROTECTION_COORDINATION,
-        StudyType.TRANSIENT_STABILITY,
-    ),
-    ETAPExecutionAgent,
+STUDY_TYPE_AGENT_MAP: dict[StudyType, type[BaseAgent]] = (
+    get_capability_registry().to_study_type_agent_map()
+)
+
+# WP4 (Iron Loop): register the unified ETAP COM execution agent projection.
+ETAP_EXECUTION_AGENT_MAP: dict[StudyType, type[BaseAgent]] = (
+    get_capability_registry().to_etap_execution_agent_map()
 )
 
 __all__ = [

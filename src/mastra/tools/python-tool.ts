@@ -12,9 +12,11 @@ const TOOL_CALL_COUNT_KEY = 'etap:tool_call_count';
 export const run_python = createTool({
   id: 'run-python',
   description:
-    'Run validated Python code for engineering calculations. All code is audited and validated against security policies.',
+    'Advisory computational assistance tool for intermediate calculations (parameter derivation, unit conversions, scratch calculations). ' +
+    'NOTE: Strictly advisory-only. CANNOT execute authoritative engineering studies (Load Flow, Short Circuit, Arc Flash, Relay Coordination). ' +
+    'Authoritative studies must route through the canonical ExecutionOrchestrator. All code is audited and validated against security policies.',
   inputSchema: z.object({
-    code: z.string().describe('The Python code to execute'),
+    code: z.string().describe('The Python code to execute for advisory intermediate calculations only'),
   }),
   execute: async ({ code }: { code: string }, context?: any) => {
     // 1. Token budget enforcement — fail fast

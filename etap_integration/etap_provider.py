@@ -462,6 +462,8 @@ class MockEtapProvider(IEtapProvider):
             )
 
     def is_available(self) -> bool:
+        if _is_production():
+            return False
         return self.use_etap
 
     def execute_study(
@@ -641,6 +643,14 @@ def get_etap_provider() -> IEtapProvider:
     provider_type = os.environ.get("ETAP_PROVIDER", "").lower()
 
     if provider_type == "mock":
+        if _is_production():
+            logger.critical(
+                "MockEtapProvider BLOCKED in %s environment. "
+                "ETAP_PROVIDER=mock must never be set in production. "
+                "Falling back to NullEtapProvider.",
+                os.getenv("ENV", os.getenv("APP_ENV", "development")),
+            )
+            return NullEtapProvider()
         logger.info("Using MockEtapProvider (development mode)")
         return MockEtapProvider()
 
@@ -669,3 +679,129 @@ def get_etap_provider() -> IEtapProvider:
 
 # Backward-compatibility alias
 ETAPProvider = get_etap_provider
+
+
+# ---------------------------------------------------------------------------
+# Canonical ETAP Executor (Phase 11)
+# Adapts ETAP providers behind the canonical ExecutionOrchestrator contract
+# ---------------------------------------------------------------------------
+
+
+class ETAPExecutor:
+    """Canonical ETAP Executor adapting ETAP providers behind the canonical contract.
+
+    Target Architecture:
+        ExecutionOrchestrator
+               ↓
+        ETAP Executor
+               ↓
+        ETAP Provider
+               ↓
+        Local / Remote / REST
+
+    Invariants:
+    - Mock ETAP ≠ production success (fails closed in production)
+    - Null ETAP ≠ successful engineering result (returns explicit failure)
+    - Unavailable ETAP ≠ successful execution (returns explicit error)
+    - Production must fail closed. Never substitutes an ungrounded or synthetic result.
+    """
+
+    def __init__(self, provider: IEtapProvider | None = None):
+        self._provider = provider or get_etap_provider()
+
+    @property
+    def provider(self) -> IEtapProvider:
+        return self._provider
+
+    def is_available(self) -> bool:
+        """Probe underlying provider reachability with fail-closed production checks."""
+        return self._provider.is_available()
+
+    def execute_study(
+        self,
+        project_path: str,
+        study_type: ETAPStudyType | str,
+        visible: bool = False,
+        parameters: dict[str, Any] | None = None,
+        execution_id: str | None = None,
+        tenant_id: str | None = None,
+    ) -> ETAPResult:
+        """Execute a study on the configured ETAP provider with fail-closed safety."""
+        # Normalize study type enum
+        if isinstance(study_type, str):
+            try:
+                study_type = ETAPStudyType[study_type.upper()]
+            except KeyError:
+                return ETAPResult(
+                    False,
+                    {},
+                    [],
+                    [f"Unknown ETAP study type: {study_type}"],
+                    0.0,
+                )
+
+        # Fail-closed: check provider availability
+        if not self._provider.is_available():
+            logger.warning(
+                "ETAPExecutor: underlying provider %s is unavailable (execution_id=%s, tenant=%s)",
+                type(self._provider).__name__,
+                execution_id,
+                tenant_id,
+            )
+            return ETAPResult(
+                False,
+                {"unavailable": True, "provider": type(self._provider).__name__},
+                [],
+                [f"ETAP backend ({type(self._provider).__name__}) is unavailable or disabled"],
+                0.0,
+            )
+
+        # Fail-closed: block mock results in production
+        if _is_production() and isinstance(self._provider, MockEtapProvider):
+            logger.critical(
+                "ETAPExecutor: MockEtapProvider strictly blocked in production for execution_id=%s",
+                execution_id,
+            )
+            return ETAPResult(
+                False,
+                {"blocked": True, "mock_in_production": True},
+                [],
+                [
+                    "MockEtapProvider blocked in production — real ETAP worker or native solvers required"
+                ],
+                0.0,
+                is_simulated=True,
+            )
+
+        return self._provider.execute_study(
+            project_path=project_path,
+            study_type=study_type,
+            visible=visible,
+            parameters=parameters,
+        )
+
+    def run_study(
+        self,
+        capability_id: str,
+        parameters: dict[str, Any] | None = None,
+        project_path: str = "",
+    ) -> dict[str, Any]:
+        """Convenience method for ExecutionOrchestrator dispatch."""
+        res = self.execute_study(
+            project_path=project_path or (parameters.get("project_path", "") if parameters else ""),
+            study_type=capability_id,
+            parameters=parameters,
+        )
+        return {
+            "success": res.success,
+            "data": res.data,
+            "warnings": res.warnings,
+            "errors": res.errors,
+            "execution_time": res.execution_time,
+            "is_simulated": res.is_simulated,
+        }
+
+
+def get_etap_executor(provider: IEtapProvider | None = None) -> ETAPExecutor:
+    """Factory returning a canonical ETAPExecutor instance."""
+    return ETAPExecutor(provider=provider)

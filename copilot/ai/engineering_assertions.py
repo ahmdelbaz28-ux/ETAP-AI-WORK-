@@ -63,7 +63,10 @@ class AssertionResult:
 
 @dataclass
 class AssertionReport:
-    """Consolidated report produced by EngineeringAssertionLayer.validate()."""
+    """Consolidated report produced by EngineeringAssertionLayer.validate().
+
+    Acts as the canonical authority for engineering validation (Phase 13).
+    """
 
     passed: bool
     failures: list[AssertionResult] = field(default_factory=list)
@@ -72,6 +75,30 @@ class AssertionReport:
     has_critical_failures: bool = False
     has_any_failures: bool = False
     summary: dict[str, Any] = field(default_factory=dict)
+    risk_score: float = 0.0
+    risk_class: str = "low"
+    validation_status: bool = True
+    validation_report: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        self.validation_status = self.passed
+        if not self.validation_report:
+            self.validation_report = self.to_dict()
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert report to dictionary representation."""
+        return {
+            "validation_status": self.passed,
+            "passed": self.passed,
+            "has_critical_failures": self.has_critical_failures,
+            "has_any_failures": self.has_any_failures,
+            "risk_score": self.risk_score,
+            "risk_class": self.risk_class,
+            "summary": self.summary,
+            "failures": [f.to_dict() for f in self.failures],
+            "warnings": [w.to_dict() for w in self.warnings],
+            "total_checks": len(self.all_results),
+        }
 
     def __iter__(self):
         return iter(self.all_results)
@@ -808,7 +835,21 @@ class EngineeringAssertionLayer:
         has_any = len(failures) > 0 or len(warnings) > 0
         passed = (not has_critical) and (not self.strict_mode or not has_any)
 
+        if has_critical:
+            risk_score = 1.0 if any(r.severity == AssertionSeverity.FATAL for r in critical_or_fatal) else 0.8
+            risk_class = "critical" if any(r.severity == AssertionSeverity.FATAL for r in critical_or_fatal) else "high"
+        elif len(failures) > 0:
+            risk_score = 0.5
+            risk_class = "medium"
+        elif len(warnings) > 0:
+            risk_score = 0.25
+            risk_class = "low"
+        else:
+            risk_score = 0.0
+            risk_class = "low"
+
         summary = {
+            "validation_status": passed,
             "total_checks": len(new_results),
             "passed": sum(1 for r in new_results if r.passed and r.severity != AssertionSeverity.WARNING),
             "warnings": len(warnings),
@@ -817,9 +858,11 @@ class EngineeringAssertionLayer:
             "has_any_failures": has_any,
             "failures": [r.to_dict() for r in failures],
             "warnings_list": [r.to_dict() for r in warnings],
+            "risk_score": risk_score,
+            "risk_class": risk_class,
         }
 
-        return AssertionReport(
+        report = AssertionReport(
             passed=passed,
             failures=failures,
             warnings=warnings,
@@ -827,7 +870,25 @@ class EngineeringAssertionLayer:
             has_critical_failures=has_critical,
             has_any_failures=has_any,
             summary=summary,
+            risk_score=risk_score,
+            risk_class=risk_class,
+            validation_status=passed,
+            validation_report=summary,
         )
+        report.validation_report = report.to_dict()
+        return report
+
+    def run_assertions(
+        self,
+        data: dict[str, Any],
+        study_type: str,
+    ) -> AssertionReport:
+        """Canonical engineering assertion authority validation method (Phase 13).
+
+        Evaluates raw study results against deterministic physics and standards constraints
+        without mutating the input data.
+        """
+        return self.validate(data, study_type)
 
     def get_all_results(self) -> list[AssertionResult]:
         """Return all accumulated assertion results."""

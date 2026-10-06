@@ -2,33 +2,18 @@
 Unified Study Dispatch Table
 =============================
 
-Single source of truth for routing study requests to their handlers across
-both runtimes (ADR-0002). Covers all 17 canonical ``StudyType`` values
-(ADR-0001) plus the three special study types used by the ETAP skill pipeline.
+Authoritative projection and adapter over Canonical CapabilityRegistry (ADR-0002, Phase 8).
+Routes study requests to their handlers across runtimes.
+Covers all 17 canonical StudyType values plus specialized orchestration types.
 
-Each entry maps a canonical ``study_type`` string to a ``StudyRegistration``
-that declares:
-
-- ``handler_type``: One of
-    - ``"native"``   — handled synchronously by ``PowerSystemEngine``
-    - ``"agent"``    — handled by a ``BaseAgent`` subclass in the Python runtime
-    - ``"external"`` — handled by dedicated execution bridges (Engineering Service API HTTP endpoint or specialized local optimizer/orchestrator adapters)
-
-- ``handler``: Handler identifier (module path or class name or endpoint)
-
-- ``requires_system``: Whether the study needs a ``System`` model
-
-- ``required_params``: Tuple of parameter names that must be present in the
-  request ``parameters`` dict before dispatch
-
-Native types are the 4 already handled by ``PowerSystemEngine.run_study``;
-they are kept in this table for completeness and discoverability. The
-``_STUDY_REGISTRY`` in ``engine/engine.py`` is retained as a deprecation
-shim but new code should consult ``STUDY_DISPATCH`` here.
-
-Agent-routed types reuse the ``STUDY_TYPE_AGENT_MAP`` from
-``agents/__init__.py`` so there is a single mapping from study type to
-agent class — no duplication.
+Each entry maps a canonical study_type string to a StudyRegistration that declares:
+- handler_type: One of "native", "agent", "external"
+- handler: Handler identifier (PowerSystemEngine method name, agent class, or bridge)
+- requires_system: Whether the study needs a System model
+- required_params: Tuple of required parameter names
+- executor_kind: Canonical ExecutorKind ("native", "agent", "etap", "external_service", "composite")
+- capability_id: Canonical capability identifier
+- description: Human-readable description
 """
 
 from __future__ import annotations
@@ -36,14 +21,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from agents import STUDY_TYPE_AGENT_MAP
 from agents.models import StudyType
+from engine.capability_registry import get_capability_registry
 
 # Re-export so callers can iterate all keys without importing separately.
 __all__ = ["StudyRegistration", "STUDY_DISPATCH", "ALL_STUDY_TYPES"]
 
 # Canonical snake_case keys (ADR-0001). All StudyType enum values
-# plus the one extra special type used by the ETAP skill pipeline.
+# plus the special orchestration type.
 ALL_STUDY_TYPES: tuple[str, ...] = tuple(st.value for st in StudyType) + (
     "ahmed_etap_orchestration",
 )
@@ -53,133 +38,91 @@ ALL_STUDY_TYPES: tuple[str, ...] = tuple(st.value for st in StudyType) + (
 class StudyRegistration:
     """Registration entry for a single study type in the dispatch table.
 
+    Projected directly from Canonical CapabilityRegistry (Phase 8).
+
     Attributes
     ----------
-    handler_type
-        ``"native"``  — PowerSystemEngine (Python synchronous)
-        ``"agent"``   — BaseAgent subclass (Python, may call LLM or engine)
-        ``"external"`` — Engineering Service HTTP endpoint (TS/Mastra)
-    handler
-        For ``"native"``: the ``PowerSystemEngine`` method name (e.g.
-        ``"run_load_flow"``). For ``"agent"``: the fully-qualified class
-        path or the class itself. For ``"external"``: the HTTP endpoint.
-    requires_system
-        If True, the study requires a populated ``System`` object in the
-        request parameters.
-    required_params
-        Parameter keys that must be present (non-None) in the request's
-        ``parameters`` dict before dispatch.
+    handler_type : Literal["native", "agent", "external"]
+        High-level handler classification (backward compatible).
+    handler : str
+        For 'native': method name in StudyExecutor / PowerSystemEngine (e.g. 'run_load_flow').
+        For 'agent': specialist agent class or import path.
+        For 'etap': ETAP provider study identifier.
+        For 'external_service': external service / evaluator bridge identifier.
+        For 'composite': composite multi-agent orchestrator identifier.
+    requires_system : bool
+        Whether this study requires a populated System model.
+    required_params : tuple[str, ...]
+        Tuple of mandatory parameter keys.
+    executor_kind : str
+        Canonical ExecutorKind from CapabilityRegistry ('native', 'agent', 'etap', 'external_service', 'composite').
+    capability_id : str
+        Canonical capability ID in CapabilityRegistry.
+    description : str
+        Capability description.
     """
 
     handler_type: Literal["native", "agent", "external"]
     handler: str
     requires_system: bool
     required_params: tuple[str, ...]
-
-
-# ---------------------------------------------------------------------------
-# Native handler method names — mirror the 4-entry _STUDY_REGISTRY in engine.py
-# ---------------------------------------------------------------------------
-_NATIVE_METHODS: dict[str, str] = {
-    "load_flow": "run_load_flow",
-    "short_circuit": "run_fault_analysis",
-    "protection_coordination": "run_protection_coordination",
-    "arc_flash": "run_arc_flash",
-}
-
-# ---------------------------------------------------------------------------
-# Agent class names — mirror STUDY_TYPE_AGENT_MAP (single source of truth
-# is agents/__init__.py:STUDY_TYPE_AGENT_MAP; we reference the classes here
-# so the dispatch table is self-describing without importing lazily).
-# ---------------------------------------------------------------------------
-# Map study_type string → agent class name for agent-routed studies.
-# This mirrors STUDY_TYPE_AGENT_MAP keys/values but uses string class names
-# to avoid forcing eager imports of all 12 agent modules at table-build time.
-# The StudyExecutor resolves the class via STUDY_TYPE_AGENT_MAP at dispatch.
+    executor_kind: str = "native"
+    capability_id: str = ""
+    description: str = ""
 
 
 def _build_dispatch() -> dict[str, StudyRegistration]:
-    """Build the complete dispatch table from the canonical StudyType enum
-    and the STUDY_TYPE_AGENT_MAP in agents/__init__.py."""
+    """Build the complete dispatch table as an authoritative projection
+    from the canonical CapabilityRegistry (Phases 2, 3 & 8).
+
+    Separates responsibilities:
+    - CapabilityRegistry is the single source of truth for capabilities, metadata, and lifecycle.
+    - STUDY_DISPATCH is an adapter/projection mapping each capability to its execution handler.
+
+    Routes each study type to the correct handler based on executor_kind:
+    - native: maps to StudyExecutor handler method (e.g. run_load_flow)
+    - agent: maps to specialist agent class from CapabilityRegistry
+    - etap: maps to ETAP provider execution bridge
+    - external_service: maps to dedicated evaluator / external bridge
+    - composite: maps to composite skill orchestration agent
+    """
+    registry = get_capability_registry()
     dispatch: dict[str, StudyRegistration] = {}
 
-    # Native studies — handled by PowerSystemEngine.
-    native_specs: dict[str, tuple[bool, tuple[str, ...]]] = {
-        "load_flow": (True, ()),
-        "short_circuit": (True, ("bus_id",)),
-        "arc_flash": (
-            False,
-            ("voltage_kv", "bolted_fault_current_ka", "arc_duration_sec", "working_distance_mm"),
-        ),
-        "protection_coordination": (
-            True,
-            ("upstream_relay_id", "downstream_relay_id", "fault_currents"),
-        ),
-    }
-    for study_type, (requires_system, required_params) in native_specs.items():
+    for study_type, cap in registry.get_dispatch_capabilities().items():
+        ek = cap.executor_kind.value if hasattr(cap.executor_kind, "value") else str(cap.executor_kind)
+
+        if ek == "native":
+            handler_type: Literal["native", "agent", "external"] = "native"
+            handler = cap.handler
+        elif ek == "agent":
+            handler_type = "agent"
+            handler = cap.handler
+        elif ek == "etap":
+            handler_type = "external"
+            handler = cap.handler or "etap_integration.etap_provider"
+        elif ek == "composite":
+            handler_type = "external"
+            handler = cap.handler or "AhmedETAPSkillAgent"
+        elif ek == "external_service":
+            handler_type = "external"
+            handler = cap.handler or "external_service_bridge"
+        else:
+            handler_type = "external"
+            handler = cap.handler
+
         dispatch[study_type] = StudyRegistration(
-            handler_type="native",
-            handler=_NATIVE_METHODS[study_type],
-            requires_system=requires_system,
-            required_params=required_params,
-        )
-
-    # Agent-routed studies — derive from STUDY_TYPE_AGENT_MAP.
-    # Skip the 4 native types already handled above (they appear in
-    # STUDY_TYPE_AGENT_MAP because agent classes exist for DI, but the
-    # native PowerSystemEngine path takes priority).
-    native_values = set(native_specs.keys())
-    for study_type_enum, agent_cls in STUDY_TYPE_AGENT_MAP.items():
-        if study_type_enum.value in native_values:
-            continue
-        handler = f"{agent_cls.__module__}.{agent_cls.__name__}"
-        requires_system = study_type_enum not in (
-            StudyType.ETAP_EXPERT,
-            StudyType.ETAP_GUI,
-            StudyType.GENERATIVE_DESIGN,  # scaffold agent — no System model needed (commit 7617d30be)
-        )
-        dispatch[study_type_enum.value] = StudyRegistration(
-            handler_type="agent",
+            handler_type=handler_type,
             handler=handler,
-            requires_system=requires_system,
-            required_params=(),
+            requires_system=cap.requires_system,
+            required_params=cap.required_params,
+            executor_kind=ek,
+            capability_id=cap.capability_id,
+            description=cap.description,
         )
-
-    # Special study types not in the StudyType enum
-    dispatch["ahmed_etap_orchestration"] = StudyRegistration(
-        handler_type="external",
-        handler="AhmedETAPSkillAgent",
-        requires_system=False,
-        required_params=(),
-    )
-    dispatch["optimization"] = StudyRegistration(
-        handler_type="external",
-        handler="OptimizationAgent",
-        requires_system=False,
-        required_params=(),
-    )
-    # Generative Design Agent — registered in agents/registry.py but absent from
-    # STUDY_TYPE_AGENT_MAP (agents/__init__.py), so the STUDY_TYPE_AGENT_MAP loop
-    # above never picks it up. Added here explicitly (commit 7617d30be).
-    # requires_system=False: DesignAgent is a scaffold agent that does not need a
-    # System model; it derives topology from engineering parameters directly.
-    # Feature flag "generative_design" is DISABLED by default.
-    dispatch["generative_design"] = StudyRegistration(
-        handler_type="agent",
-        handler="agents.design_agent.DesignAgent",
-        requires_system=False,
-        required_params=(),
-    )
-    # Breaker Duty Study — evaluating short-circuit stress vs equipment ratings per IEC 62271-100 / IEC 60947-2.
-    # Feature flag "breaker_duty" is DISABLED by default.
-    dispatch["breaker_duty"] = StudyRegistration(
-        handler_type="external",
-        handler="breaker_duty.evaluator.BreakerDutyEvaluator",
-        requires_system=False,
-        required_params=(),
-    )
 
     return dispatch
 
 
 STUDY_DISPATCH: dict[str, StudyRegistration] = _build_dispatch()
+

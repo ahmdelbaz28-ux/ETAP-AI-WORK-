@@ -361,3 +361,200 @@ def inject_traceparent() -> dict[str, str]:
     carrier: dict[str, str] = {}
     inject_context(carrier)
     return carrier
+
+
+# ---------------------------------------------------------------------------
+# Canonical Execution Observability (Phase 18)
+# ---------------------------------------------------------------------------
+
+ATTR_TRACE_ID = "ahmedetap.trace_id"
+ATTR_REQUEST_ID = "ahmedetap.request_id"
+ATTR_EXECUTION_ID = "ahmedetap.execution_id"
+ATTR_USER_ID = "ahmedetap.user_id"
+ATTR_TENANT_ID = "ahmedetap.tenant_id"
+ATTR_CAPABILITY_ID = "ahmedetap.capability_id"
+ATTR_EXECUTOR_KIND = "ahmedetap.executor_kind"
+ATTR_PROVIDER = "ahmedetap.provider"
+ATTR_ENGINE_VERSION = "ahmedetap.engine_version"
+ATTR_STATUS = "ahmedetap.status"
+ATTR_VALIDATION_STATUS = "ahmedetap.validation_status"
+ATTR_RISK_CLASS = "ahmedetap.risk_class"
+ATTR_RISK_SCORE = "ahmedetap.risk_score"
+ATTR_INPUT_DIGEST = "ahmedetap.input_digest"
+ATTR_ERROR_REASON = "ahmedetap.error_reason"
+ATTR_EXECUTED_ACTION = "ahmedetap.executed_action"
+ATTR_RESULT_SUMMARY = "ahmedetap.result_summary"
+
+CANONICAL_OPERATOR_QUESTIONS = (
+    "q1_requester",
+    "q2_tenant",
+    "q3_capability",
+    "q4_version",
+    "q5_executor",
+    "q6_provider",
+    "q7_engine",
+    "q8_input_snapshot",
+    "q9_executed",
+    "q10_validation_passed",
+    "q11_risk_assigned",
+    "q12_result_returned",
+    "q13_failure_reason",
+)
+
+
+def get_current_trace_id() -> str | None:
+    """Return the current trace ID as a 32-character hex string if active, else None."""
+    span = trace.get_current_span()
+    if span and span.get_span_context().is_valid:
+        return format(span.get_span_context().trace_id, "032x")
+    return None
+
+
+def record_canonical_execution_attributes(
+    span: trace.Span,
+    *,
+    trace_id: str | None = None,
+    request_id: str | None = None,
+    execution_id: str | None = None,
+    user_id: str | None = None,
+    tenant_id: str | None = None,
+    capability_id: str | None = None,
+    executor_kind: str | None = None,
+    provider: str | None = None,
+    engine_version: str | None = None,
+    status: str | None = None,
+    validation_status: bool | None = None,
+    risk_class: str | None = None,
+    risk_score: float | None = None,
+    input_digest: str | None = None,
+    executed_action: str | None = None,
+    result_summary: str | None = None,
+    error_reason: str | None = None,
+    extra_attributes: dict[str, Any] | None = None,
+) -> None:
+    """Record canonical engineering execution attributes on an active span (Phase 18).
+
+    Guarantees propagation of all 9 core traceability fields and equips the span
+    with answers to the 13 production operator questions.
+    """
+    if span is None:
+        return
+
+    attrs: dict[str, Any] = {}
+    if trace_id:
+        attrs[ATTR_TRACE_ID] = str(trace_id)
+    if request_id:
+        attrs[ATTR_REQUEST_ID] = str(request_id)
+    if execution_id:
+        attrs[ATTR_EXECUTION_ID] = str(execution_id)
+    if user_id:
+        attrs[ATTR_USER_ID] = str(user_id)
+    if tenant_id:
+        attrs[ATTR_TENANT_ID] = str(tenant_id)
+    if capability_id:
+        attrs[ATTR_CAPABILITY_ID] = str(capability_id)
+    if executor_kind:
+        attrs[ATTR_EXECUTOR_KIND] = str(executor_kind)
+    if provider:
+        attrs[ATTR_PROVIDER] = str(provider)
+    if engine_version:
+        attrs[ATTR_ENGINE_VERSION] = str(engine_version)
+    if status:
+        attrs[ATTR_STATUS] = str(status)
+    if validation_status is not None:
+        attrs[ATTR_VALIDATION_STATUS] = bool(validation_status)
+    if risk_class:
+        attrs[ATTR_RISK_CLASS] = str(risk_class)
+    if risk_score is not None:
+        attrs[ATTR_RISK_SCORE] = float(risk_score)
+    if input_digest:
+        attrs[ATTR_INPUT_DIGEST] = str(input_digest)
+    if executed_action:
+        attrs[ATTR_EXECUTED_ACTION] = str(executed_action)
+    if result_summary:
+        attrs[ATTR_RESULT_SUMMARY] = str(result_summary)
+    if error_reason:
+        attrs[ATTR_ERROR_REASON] = str(error_reason)
+
+    if extra_attributes:
+        for k, v in extra_attributes.items():
+            if v is not None:
+                attrs[f"ahmedetap.{k}"] = v
+
+    for k, v in attrs.items():
+        span.set_attribute(k, v)
+
+
+def format_operator_audit_record(
+    *,
+    user_id: str | None = None,
+    tenant_id: str | None = None,
+    capability_id: str | None = None,
+    engine_version: str | None = None,
+    executor_kind: str | None = None,
+    provider: str | None = None,
+    input_digest: str | None = None,
+    executed_action: str | None = None,
+    validation_status: bool | None = None,
+    risk_class: str | None = None,
+    risk_score: float | None = None,
+    result_summary: str | None = None,
+    error_reason: str | None = None,
+    trace_id: str | None = None,
+    request_id: str | None = None,
+    execution_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Format canonical execution details answering all 13 operator questions (Phase 18).
+
+    Returns a structured dictionary mapping every operator question directly to its
+    authoritative execution provenance.
+    """
+    return {
+        "trace_id": trace_id or "unknown",
+        "request_id": request_id or "unknown",
+        "execution_id": execution_id or "unknown",
+        "tenant_id": tenant_id or "default",
+        "capability_id": capability_id or "unknown",
+        "executor_kind": executor_kind or "native",
+        "provider": provider or "native",
+        "status": status or ("completed" if validation_status else "failed"),
+        "validation_status": bool(validation_status),
+        "operator_audit": {
+            "q1_requester": user_id or "anonymous",
+            "q2_tenant": tenant_id or "default",
+            "q3_capability": capability_id or "unknown",
+            "q4_version": engine_version or "1.0.0",
+            "q5_executor": executor_kind or "native",
+            "q6_provider": provider or "native",
+            "q7_engine": f"{provider or 'native'}:{engine_version or '1.0.0'}",
+            "q8_input_snapshot": input_digest or "none",
+            "q9_executed": executed_action or capability_id or "unknown",
+            "q10_validation_passed": bool(validation_status),
+            "q11_risk_assigned": f"{risk_class or 'LOW'}:{risk_score or 0.0}",
+            "q12_result_returned": result_summary or "ok",
+            "q13_failure_reason": error_reason or "none",
+        },
+    }
+
+
+def log_canonical_execution(
+    log_func: Callable[[str, Any], None] | None = None,
+    *,
+    audit_record: dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Emit structured log event answering all 13 operator questions for log aggregation."""
+    record = audit_record or format_operator_audit_record(**kwargs)
+    logger_to_use = log_func or logger.info
+    status = record.get("status", "unknown")
+    logger_to_use(
+        "CanonicalExecution [status=%s] trace=%s exec=%s capability=%s tenant=%s",
+        status,
+        record.get("trace_id"),
+        record.get("execution_id"),
+        record.get("capability_id"),
+        record.get("tenant_id"),
+        extra={"canonical_audit": record},
+    )
+    return record

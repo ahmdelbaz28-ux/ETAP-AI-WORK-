@@ -39,10 +39,19 @@ Streaming integration (P3): lifecycle events are published on the
 ``job_progress`` / ``result_ready`` around executions. Streaming is strictly
 best-effort and never breaks the HTTP flow.
 
-State note: plans / executions / idempotency reservations live in bounded
-in-process registries (single-replica deployment, mirroring the WS-ticket
-choice in api/session_stream.py). Multi-replica deployments swap these three
-registries for Redis/DB backing behind the same helpers.
+Deployment Topology & Multi-Replica State (Phase 17):
+- Default deployment topology: Single-replica controlled environment (e.g. Hugging Face
+  Spaces single-container, local engineering workstation). State is managed via
+  ``InMemoryAgentExecutionStateStore`` with self-pruning bounded to ``MAX_REGISTRIES_PER_MAP``.
+- Limitation: In single-replica mode, in-memory state is bounded to the process.
+  A cluster deployment without a centralized store cannot share in-flight idempotency
+  locks, plan vetting, or execution records across replicas.
+- Multi-replica readiness: All operations are mediated by ``IAgentExecutionStateStore``
+  (accessed via ``get_state_store()`` / ``set_state_store()``). When multiple replicas
+  are deployed, authoritative execution state is moved to a centralized store
+  (Redis or PostgreSQL idempotency_keys & audit tables) so that authorization,
+  idempotency, execution identity, execution status, audit, and result retrieval
+  do not silently depend on process-local state.
 """
 
 from __future__ import annotations
@@ -170,14 +179,158 @@ class ExecutionRecord:
     finished_at: float = 0.0
 
 
-_PLANS: Dict[str, PlanRecord] = {}
-_EXECUTIONS: Dict[str, ExecutionRecord] = {}
-# ADR-004: In-memory idempotency table intentional for single-replica HF Space
-# deployment (zero-latency in-flight deduplication + self-pruning).
-# Multi-replica migration path: swap _IDEMPOTENCY helpers to Redis or DB idempotency_keys table.
-# key -> {"plan_id": str, "response": dict|None, "expires_at": float,
-#         "done": Optional[asyncio.Event]}
-_IDEMPOTENCY: Dict[str, Dict[str, Any]] = {}
+# ─── State Management Abstraction (Phase 17 — Multi-Replica Support) ──────
+
+
+class IAgentExecutionStateStore:
+    """Interface for agent execution state management.
+
+    Architectural Deployment Topology:
+    - Single-Replica (Default): Uses ``InMemoryAgentExecutionStateStore``
+      with bounded self-pruning (``MAX_REGISTRIES_PER_MAP = 4096``).
+      Limitation note: In single-replica mode, state is process-local.
+    - Multi-Replica Production: When running with multiple replicas (e.g. Kubernetes,
+      HF Space multi-replica cluster), authoritative execution state is moved
+      to a centralized persistent store (Redis or PostgreSQL ``idempotency_keys`` &
+      ``agent_plans`` tables) behind this interface.
+      This ensures authorization, idempotency, execution identity, execution status,
+      audit, and result retrieval are consistent across all worker replicas.
+    """
+
+    def get_plan(self, plan_id: str) -> Optional[PlanRecord]:
+        raise NotImplementedError
+
+    def save_plan(self, plan: PlanRecord) -> None:
+        raise NotImplementedError
+
+    def get_execution(self, execution_id: str) -> Optional[ExecutionRecord]:
+        raise NotImplementedError
+
+    def save_execution(self, execution: ExecutionRecord) -> None:
+        raise NotImplementedError
+
+    async def resolve_idempotency(self, key: str, plan_id: str) -> Optional[Dict[str, Any]]:
+        raise NotImplementedError
+
+    def finish_idempotency(self, key: str, payload: Dict[str, Any]) -> None:
+        raise NotImplementedError
+
+    def prune(self, now: float) -> None:
+        raise NotImplementedError
+
+    def reset(self) -> None:
+        raise NotImplementedError
+
+
+class InMemoryAgentExecutionStateStore(IAgentExecutionStateStore):
+    """Process-local bounded state store for single-replica deployments."""
+
+    def __init__(self) -> None:
+        self.plans: Dict[str, PlanRecord] = {}
+        self.executions: Dict[str, ExecutionRecord] = {}
+        self.idempotency: Dict[str, Dict[str, Any]] = {}
+
+    def get_plan(self, plan_id: str) -> Optional[PlanRecord]:
+        rec = self.plans.get(plan_id)
+        if rec is None or rec.expires_at <= _utc_ts():
+            return None
+        return rec
+
+    def save_plan(self, plan: PlanRecord) -> None:
+        self.plans[plan.plan_id] = plan
+
+    def get_execution(self, execution_id: str) -> Optional[ExecutionRecord]:
+        return self.executions.get(execution_id)
+
+    def save_execution(self, execution: ExecutionRecord) -> None:
+        self.executions[execution.execution_id] = execution
+
+    async def resolve_idempotency(self, key: str, plan_id: str) -> Optional[Dict[str, Any]]:
+        existing = self.idempotency.get(key)
+        if existing is None:
+            self.idempotency[key] = {
+                "plan_id": plan_id,
+                "response": None,
+                "expires_at": _utc_ts() + IDEMPOTENCY_TTL_SECONDS,
+                "done": asyncio.Event(),
+            }
+            return None
+
+        if existing.get("plan_id") != plan_id:
+            raise _http_error(
+                IDEMPOTENCY_KEY_CONFLICT,
+                "Idempotency-Key was already used for a different plan.",
+                status.HTTP_409_CONFLICT,
+            )
+
+        response = existing.get("response")
+        if response is not None:
+            return {**response, "idempotent_replay": True}
+
+        done: Optional[asyncio.Event] = existing.get("done")
+        if done is not None:
+            try:
+                await asyncio.wait_for(done.wait(), timeout=60.0)
+            except TimeoutError:
+                pass
+            response = existing.get("response")
+            if response is not None:
+                return {**response, "idempotent_replay": True}
+        raise _http_error(
+            IDEMPOTENCY_KEY_CONFLICT,
+            "Idempotency-Key is currently in flight for another request.",
+            status.HTTP_409_CONFLICT,
+        )
+
+    def finish_idempotency(self, key: str, payload: Dict[str, Any]) -> None:
+        entry = self.idempotency.get(key)
+        if entry is None:
+            return
+        entry["response"] = payload
+        done = entry.get("done")
+        if done is not None:
+            done.set()
+
+    def prune(self, now: float) -> None:
+        for pmap in (self.plans, self.idempotency):
+            if len(pmap) <= MAX_REGISTRIES_PER_MAP:
+                continue
+            for k in [
+                k
+                for k, v in list(pmap.items())
+                if (isinstance(v, dict) and v.get("expires_at", 0) <= now)
+                or (isinstance(v, PlanRecord) and v.expires_at <= now)
+            ]:
+                pmap.pop(k, None)
+
+    def reset(self) -> None:
+        self.plans.clear()
+        self.executions.clear()
+        self.idempotency.clear()
+
+
+_STATE_STORE: IAgentExecutionStateStore = InMemoryAgentExecutionStateStore()
+
+
+def get_state_store() -> IAgentExecutionStateStore:
+    """Return active execution state store."""
+    return _STATE_STORE
+
+
+def set_state_store(store: IAgentExecutionStateStore) -> None:
+    """Swap execution state store (e.g. for multi-replica Redis/DB backing)."""
+    global _STATE_STORE, _PLANS, _EXECUTIONS, _IDEMPOTENCY
+    _STATE_STORE = store
+    if isinstance(store, InMemoryAgentExecutionStateStore):
+        _PLANS = store.plans
+        _EXECUTIONS = store.executions
+        _IDEMPOTENCY = store.idempotency
+
+
+# Direct dictionary aliases for backward compatibility and test access
+_PLANS: Dict[str, PlanRecord] = getattr(_STATE_STORE, "plans", {})
+_EXECUTIONS: Dict[str, ExecutionRecord] = getattr(_STATE_STORE, "executions", {})
+_IDEMPOTENCY: Dict[str, Dict[str, Any]] = getattr(_STATE_STORE, "idempotency", {})
 
 ExecutorFn = Callable[[Dict[str, Any], Dict[str, Any]], Awaitable[Dict[str, Any]]]
 _EXECUTORS: Dict[str, ExecutorFn] = {}
@@ -190,21 +343,13 @@ def register_executor(tool_name: str, fn: ExecutorFn) -> None:
 
 def reset_agent_exec_state() -> None:
     """Test/deploy helper — drop plans, executions, idempotency + executors."""
-    _PLANS.clear()
-    _EXECUTIONS.clear()
-    _IDEMPOTENCY.clear()
+    _STATE_STORE.reset()
     _EXECUTORS.clear()
 
 
 def _prune_registries(now: float) -> None:
     """Self-prune so long-lived processes cannot grow without bound."""
-    for pmap in (_PLANS, _IDEMPOTENCY):
-        if len(pmap) <= MAX_REGISTRIES_PER_MAP:
-            continue
-        for k in [
-            k for k, v in pmap.items() if isinstance(v, dict) and v.get("expires_at", 0) <= now
-        ]:
-            pmap.pop(k, None)
+    _STATE_STORE.prune(now)
 
 
 def _http_error(code: str, message: str, http_status: int) -> HTTPException:
@@ -214,10 +359,7 @@ def _http_error(code: str, message: str, http_status: int) -> HTTPException:
 
 def get_plan(plan_id: str) -> Optional[PlanRecord]:
     """Return a live (non-expired) plan record, or ``None``."""
-    rec = _PLANS.get(plan_id)
-    if rec is None or rec.expires_at <= _utc_ts():
-        return None
-    return rec
+    return _STATE_STORE.get_plan(plan_id)
 
 
 # ─── Session-stream bridge (P3) ────────────────────────────────────────────
@@ -356,7 +498,7 @@ async def submit_plan(
 
     plan_id = f"plan_{uuid.uuid4().hex}"
 
-    _PLANS[plan_id] = PlanRecord(
+    plan_record = PlanRecord(
         plan_id=plan_id,
         tool=canonical,
         requested_tool=requested_tool,
@@ -373,6 +515,7 @@ async def submit_plan(
         created_at=now,
         expires_at=now + PLAN_TTL_SECONDS,
     )
+    _STATE_STORE.save_plan(plan_record)
 
     ui_hint = None
     canon_lower = canonical.lower()
@@ -435,59 +578,13 @@ async def submit_plan(
 
 
 async def _resolve_idempotency(key: str, plan_id: str) -> Optional[Dict[str, Any]]:
-    """Return a replayable payload, or reserve *key* for a fresh execution.
-
-    - miss                      -> None (caller executes; key now reserved)
-    - hit on same plan          -> stored response (or wait for the in-flight
-                                   run to finish) with ``idempotent_replay``
-    - hit on a different plan   -> HTTPException 409 conflict
-    """
-    existing = _IDEMPOTENCY.get(key)
-    if existing is None:
-        _IDEMPOTENCY[key] = {
-            "plan_id": plan_id,
-            "response": None,
-            "expires_at": _utc_ts() + IDEMPOTENCY_TTL_SECONDS,
-            "done": asyncio.Event(),
-        }
-        return None
-
-    if existing.get("plan_id") != plan_id:
-        raise _http_error(
-            IDEMPOTENCY_KEY_CONFLICT,
-            "Idempotency-Key was already used for a different plan.",
-            status.HTTP_409_CONFLICT,
-        )
-
-    response = existing.get("response")
-    if response is not None:
-        return {**response, "idempotent_replay": True}
-
-    done: Optional[asyncio.Event] = existing.get("done")
-    if done is not None:
-        # A concurrent execution holds this key; wait for its result.
-        try:
-            await asyncio.wait_for(done.wait(), timeout=60.0)
-        except TimeoutError:
-            pass
-        response = existing.get("response")
-        if response is not None:
-            return {**response, "idempotent_replay": True}
-    raise _http_error(
-        IDEMPOTENCY_KEY_CONFLICT,
-        "Idempotency-Key is currently in flight for another request.",
-        status.HTTP_409_CONFLICT,
-    )
+    """Return a replayable payload, or reserve *key* for a fresh execution."""
+    return await _STATE_STORE.resolve_idempotency(key, plan_id)
 
 
 def _finish_idempotent(key: str, payload: Dict[str, Any]) -> None:
-    entry = _IDEMPOTENCY.get(key)
-    if entry is None:
-        return
-    entry["response"] = payload
-    done = entry.get("done")
-    if done is not None:
-        done.set()
+    """Store idempotent response and notify any waiters."""
+    _STATE_STORE.finish_idempotency(key, payload)
 
 
 # ─── Approval Gateway binding (Security Gate — P4a) ────────────────────────
@@ -662,13 +759,14 @@ async def execute_plan(
 
     execution_id = f"exec_{uuid.uuid4().hex}"
     started = _utc_ts()
-    _EXECUTIONS[execution_id] = ExecutionRecord(
+    exec_rec = ExecutionRecord(
         execution_id=execution_id,
         plan_id=plan_rec.plan_id,
         tool=plan_rec.tool,
         status="running",
         started_at=started,
     )
+    _STATE_STORE.save_execution(exec_rec)
 
     await _emit(
         plan_rec.session_id,
@@ -693,11 +791,13 @@ async def execute_plan(
 
     try:
         result = await executor(plan_rec.args, ctx)
-        _EXECUTIONS[execution_id].status = EXECUTION_STATUS_COMPLETED
-        _EXECUTIONS[execution_id].result = result
+        exec_rec.status = EXECUTION_STATUS_COMPLETED
+        exec_rec.result = result
+        _STATE_STORE.save_execution(exec_rec)
     except Exception as exc:  # noqa: BLE001 — surface as failed execution
         logger.exception("agent-exec tool '%s' failed", plan_rec.tool)
-        _EXECUTIONS[execution_id].status = EXECUTION_STATUS_FAILED
+        exec_rec.status = EXECUTION_STATUS_FAILED
+        _STATE_STORE.save_execution(exec_rec)
         payload = {
             "success": False,
             "data": {
@@ -741,7 +841,8 @@ async def execute_plan(
             "tool": plan_rec.tool,
         },
     }
-    _EXECUTIONS[execution_id].finished_at = _utc_ts()
+    exec_rec.finished_at = _utc_ts()
+    _STATE_STORE.save_execution(exec_rec)
     _finish_idempotent(scoped_key, payload)
     await _emit(
         plan_rec.session_id,
@@ -761,20 +862,18 @@ async def execute_plan(
     return payload
 
 
-# ─── Built-in study executor (run_python → orchestrator) ──────────────────
+# ─── Built-in study executor (run_python advisory + canonical orchestrator) ──
 
 
 async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute a study through ChiefEngineeringOrchestrator.execute_autonomous_workflow.
+    """Execute advisory computational assistance via Python.
 
-    ``args`` may carry the user goal and power-system model:
-      - goal: natural-language objective (default derived from ctx)
-      - system: power-system model dict (required: base_mva, buses, lines)
-    The session id is propagated inside parameters so the P3 JobProgress
-    bridge streams job_progress/result_ready for this execution.
+    ``run_python`` is strictly advisory-only for intermediate AI assistance
+    (unit conversions, power loss estimates, scratchpad math). It CANNOT be used
+    for authoritative engineering study execution (Load Flow, Short Circuit,
+    Arc Flash, Relay Coordination). All authoritative studies must pass through
+    the canonical ExecutionOrchestrator gateway.
     """
-    from agents.orchestrator import ChiefEngineeringOrchestrator
-
     system_data = args.get("system")
     if not isinstance(system_data, dict):
         raise ValueError(
@@ -790,16 +889,115 @@ async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dic
             f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
         )
 
+    # Reject authoritative engineering studies attempting to bypass canonical gateway
+    goal = str(args.get("goal") or "").strip()
+    goal_lower = goal.lower()
+    is_authoritative = bool(args.get("authoritative", False))
+    authoritative_keywords = (
+        "load flow",
+        "loadflow",
+        "short circuit",
+        "shortcircuit",
+        "fault analysis",
+        "arc flash",
+        "arcflash",
+        "protection coordination",
+        "relay coordination",
+        "transient stability",
+        "motor starting",
+        "harmonic analysis",
+    )
+    if is_authoritative or any(kw in goal_lower for kw in authoritative_keywords):
+        raise ValueError(
+            f"Authoritative engineering study '{goal}' cannot be executed via advisory run_python. "
+            "Authoritative studies must route through the canonical ExecutionOrchestrator gateway "
+            "with a formal ExecutionRequest."
+        )
+
     parameters = dict(args.get("parameters") or {})
     if ctx.get("session_id"):
         parameters.setdefault("session_id", ctx["session_id"])
 
-    orchestrator = ChiefEngineeringOrchestrator()
-    return await orchestrator.execute_autonomous_workflow(
-        user_goal=str(args.get("goal") or f"agent-exec tool run ({ctx.get('execution_id')})"),
-        system_data=system_data,
+    # Advisory computations (e.g. preliminary network topology summary, loss estimation, unit math)
+    buses = system_data.get("buses", [])
+    lines = system_data.get("lines", [])
+    base_mva = float(system_data.get("base_mva", 100.0) or 100.0)
+    total_load = sum(float(b.get("load_mw", 0.0) or 0.0) for b in buses if isinstance(b, dict))
+    total_gen = sum(float(b.get("gen_mw", 0.0) or 0.0) for b in buses if isinstance(b, dict))
+
+    return {
+        "status": "completed",
+        "advisory": True,
+        "advisory_only": True,
+        "authoritative": False,
+        "execution_mode": "advisory_computation",
+        "goal": goal or f"advisory computation ({ctx.get('execution_id')})",
+        "system_summary": {
+            "bus_count": len(buses),
+            "line_count": len(lines),
+            "base_mva": base_mva,
+            "total_load_mw": total_load,
+            "total_gen_mw": total_gen,
+            "estimated_loss_mw": max(0.0, total_gen - total_load) if total_gen > 0 else 0.0,
+        },
+        "parameters": parameters,
+        "message": (
+            "Advisory computation completed successfully. This result is for intermediate AI guidance "
+            "and does NOT constitute an authoritative engineering study result. All authoritative results "
+            "must pass through the canonical ExecutionOrchestrator."
+        ),
+    }
+
+
+async def _canonical_orchestrator_executor(
+    args: Dict[str, Any], ctx: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Execute authoritative engineering study through the canonical ExecutionOrchestrator."""
+    from services.execution_orchestrator import ExecutionOrchestrator
+    from services.execution_request import ExecutionRequest
+    from services.study_executor import StudyExecutor
+
+    system_data = args.get("system")
+    if not isinstance(system_data, dict):
+        raise ValueError(
+            "system model is required and must be a dict (base_mva, buses, lines) — "
+            "refusing to run on a fabricated network"
+        )
+
+    caller_tenant = ctx.get("tenant_id")
+    sys_tenant = system_data.get("tenant_id")
+    if sys_tenant and caller_tenant and str(sys_tenant) != str(caller_tenant):
+        raise ValueError(
+            f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
+        )
+
+    capability_id = args.get("capability_id") or args.get("study_type") or "LOAD_FLOW"
+    goal = str(args.get("goal") or f"canonical execution run ({ctx.get('execution_id')})")
+    parameters = dict(args.get("parameters") or {})
+    if ctx.get("session_id"):
+        parameters.setdefault("session_id", ctx["session_id"])
+
+    req = ExecutionRequest(
+        user_id=ctx.get("user_id", "agent"),
+        tenant_id=caller_tenant or "default",
+        goal=goal,
+        capability_id=capability_id,
+        system_model=system_data,
         parameters=parameters,
     )
+    orchestrator = ExecutionOrchestrator(native_executor=StudyExecutor())
+    result = await orchestrator.execute(req)
+    return {
+        "status": "completed",
+        "authoritative": True,
+        "advisory": False,
+        "execution_mode": "canonical_orchestrator",
+        "request_id": req.request_id,
+        "capability_id": capability_id,
+        "result": result.to_dict() if hasattr(result, "to_dict") else result,
+    }
 
 
 register_executor("run_python", _run_python_executor)
+register_executor("canonical_orchestrator", _canonical_orchestrator_executor)
+register_executor("execution_orchestrator", _canonical_orchestrator_executor)

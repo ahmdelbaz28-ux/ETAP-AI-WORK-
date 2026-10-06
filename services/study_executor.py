@@ -1,19 +1,26 @@
 """
-Study Executor — deep module for the study execution pipeline.
+Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
-Owns the entire pipeline behind a single seam: validate → cache lookup →
-build system → dispatch via STUDY_DISPATCH → AI failure-mode scan (F-12) →
-risk scoring → serialize → cache store.
+Owns the native engineering execution pipeline behind the canonical contract:
+validate spec -> build system -> dispatch via STUDY_DISPATCH ->
+AI failure-mode scan (F-12) -> engineering assertions -> risk scoring -> serialize.
 
-Created by the C3/C4 refactoring sprint to extract execution logic out of
-the 886-line ``api/studies.py`` router file. The router is now a thin
-adapter that delegates to :meth:`StudyExecutor.execute`.
+Architecture:
+    API
+     ↓
+    ExecutionRequest
+     ↓
+    Canonical Execution Orchestrator
+     ↓
+    StudyExecutor (native executor)
+
+Governance responsibilities (tenant isolation, identity, maker-checker approval,
+idempotency, and audit event persistence) are managed by ExecutionOrchestrator.
+StudyExecutor retains all reusable mathematical and physical calculation logic.
 
 Backward compatibility:
-    ``api/studies.py`` re-exports ``_run_native_study`` and
-    ``_build_system_from_spec`` as thin wrappers around this class so that
-    the 12 test files and ``api/validation.py`` that import them directly
-    continue to work without modification.
+    api/studies.py re-exports _run_native_study, _build_system_from_spec,
+    _to_jsonable, and pre_flight_check as thin wrappers around this class.
 """
 
 from __future__ import annotations
@@ -29,9 +36,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from api.feature_flags import FEATURE_FLAGS, is_feature_enabled
-from api.pe_stamp import requires_stamp
 from api.risk_scoring import compute_risk
-from core.bootstrap import _add_execution_time, _increment_counter
 from core.exceptions import SpecializedExecutionUnavailableError
 from core_model.bus import Bus
 from core_model.generator import Generator
@@ -42,6 +47,7 @@ from core_model.system import System
 from core_model.transformer import Transformer
 from engine.caching import StudyCache
 from engine.dispatch import STUDY_DISPATCH, StudyRegistration
+from services.execution_request import ExecutionRequest
 
 logger = logging.getLogger("engineering_service")
 
@@ -79,73 +85,86 @@ _ETAP_STUDY_TYPES: frozenset[str] = frozenset(_ETAP_STUDY_TYPE_MAP.keys())
 
 
 class StudyExecutor:
-    """Deep module: owns the entire study execution pipeline.
+    """Native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
-    Instantiation is cheap — all heavy imports (PowerSystemEngine, agent
-    classes) are deferred to dispatch time via ``STUDY_DISPATCH`` entries.
+    Executes native power-system numerical calculations (load_flow, short_circuit,
+    arc_flash, protection_coordination) and manages reusable engineering logic.
 
     Parameters
     ----------
     cache
-        Optional ``StudyCache`` instance for result caching. When ``None``,
-        caching is silently skipped (used in tests and dry-run mode).
+        Optional ``StudyCache`` instance for result caching.
     """
 
     def __init__(self, cache: Optional[StudyCache] = None):
         self._cache = cache
 
     # ------------------------------------------------------------------
-    # Public API
+    # Canonical Native Execution Interface (Phase 7)
     # ------------------------------------------------------------------
 
-    async def execute(self, payload: StudyRequest, trace_id: str = "unknown") -> StudyResult:
-        """Execute a study request end-to-end.
+    def execute_native(self, request: ExecutionRequest) -> StudyResult:
+        """Native engineering executor method invoked by ExecutionOrchestrator when executor_kind == 'native'.
 
-        Returns a :class:`StudyResult` with ``success``, ``data``,
-        ``warnings``, ``errors``, and timing/trace metadata.
+        Owns the native execution pipeline:
+        build system model -> pre-flight physics checks -> PowerSystemEngine dispatch ->
+        serialize -> engineering assertions -> risk scoring.
+
+        Governance responsibilities (tenant isolation, authentication, maker-checker,
+        idempotency, and audit logging) are owned by ExecutionOrchestrator.
         """
-        task_id = payload.task_id or f"task_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+        system_input = request.get_system()
+        params = request.get_parameters()
+        trace_id = request.trace_id
+        task_id = request.request_id
+
+        # 1. Build system model from spec if provided
+        built_system = None
+        if system_input is not None:
+            try:
+                built_system = self._build_system_from_spec(system_input)
+            except ValueError as ve:
+                raise ValueError(f"System spec error: {ve}") from ve
+
+            # Pre-flight physics check
+            if hasattr(system_input, "model_dump"):
+                pf = self._pre_flight_check(system_input.model_dump())
+            elif isinstance(system_input, dict):
+                pf = self._pre_flight_check(system_input)
+            else:
+                pf = None
+            if pf is not None:
+                raise ValueError(pf["error"])
+
+        canonical = _NATIVE_ALIASES.get(request.capability_id, request.capability_id)
+        start_wall = time.time()
         start = time.perf_counter()
-
-        warnings: list[str] = []
         errors: list[str] = []
-        data: dict[str, Any] = {}
-        provider_name = "native"
+        warnings: list[str] = []
 
-        self._validate_request(payload)
-
-        if requires_stamp(payload.study_type) and not payload.pe_stamp:
-            warnings.append(
-                f"Study type '{payload.study_type}' requires a Professional Engineer (PE) stamp "
-                "in most jurisdictions. Consider providing a PE stamp via the 'pe_stamp' field."
-            )
-
-        _increment_counter("request")
-        logger.info(  # NOSONAR
-            "study_run_start study_type=%s use_etap=%s task_id=%s",
-            payload.study_type,
-            payload.use_etap,
-            task_id,
-            extra={"trace_id": trace_id},
+        # Phase 14: Cache Identity and Input Hashes
+        cache_params = self._build_cache_params(
+            request,
+            provider="native",
+            executor_kind="native",
+            solver="newton_raphson" if canonical == "load_flow" else canonical,
+            engine_version="2.1.0",
         )
 
         try:
-            if payload.use_etap:
-                provider_name = "etap"
-                data, warnings, errors = await self._run_etap_study(payload)
-            else:
-                provider_name = "native"
-                data = await self._run_native_study(payload, trace_id)
-
-            _increment_counter("success")
+            data = self._dispatch(
+                canonical,
+                built_system,
+                params,
+            )
+            data = self._to_jsonable(data)
             status = "success"
         except ValueError:
             raise
         except Exception as e:
-            _increment_counter("failed")
             logger.exception(  # NOSONAR
-                "study_run_failed study_type=%s error=%s",
-                payload.study_type,
+                "native_study_failed study_type=%s error=%s",
+                canonical,
                 str(e),
                 extra={"trace_id": trace_id},
             )
@@ -153,34 +172,223 @@ class StudyExecutor:
             status = "failed"
             data = {}
 
-        data = self._to_jsonable(data)
+        # Step 2: Executor Validation
+        if status == "success" and isinstance(data, dict):
+            if canonical in ("load_flow", "optimal_power_flow") and data.get("converged") is False:
+                status = "failed"
+                errors.append("Load flow solver did not converge")
 
+        # Step 3: Canonical Engineering Validation (Phase 13 Authority)
+        validation_status = True
+        validation_report: dict[str, Any] = {}
         if status == "success":
-            status = self._apply_post_execution_checks(data, payload.study_type, errors)
+            status = self._apply_post_execution_checks(data, canonical, errors)
+            validation_status = data.get("validation_status", status == "success")
+            validation_report = data.get("validation_report", {})
+            if "engineering_assertion_warnings" in data:
+                for w in data["engineering_assertion_warnings"]:
+                    msg = w.get("message") if isinstance(w, dict) else str(w)
+                    if msg and msg not in warnings:
+                        warnings.append(msg)
+        else:
+            validation_status = False
 
+        # Step 4: Risk Assessment
+        risk_info = compute_risk(canonical, data) if data else {"risk_score": "low"}
+        raw_risk_score = data.get("risk_score") or risk_info.get("risk_score", "low")
+        risk_class = raw_risk_score if isinstance(raw_risk_score, str) else "low"
+        risk_score_numeric = {
+            "low": 0.1,
+            "medium": 0.4,
+            "high": 0.7,
+            "critical": 1.0,
+        }.get(risk_class, 0.0)
+
+        # Step 5: Canonical Result (Phase 12)
+        completed_wall = time.time()
         elapsed_sec = time.perf_counter() - start
-        _add_execution_time(elapsed_sec)
+        exec_status = "completed" if status == "success" else "failed"
 
-        logger.info(  # NOSONAR
-            "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
-            payload.study_type,
-            status,
-            elapsed_sec,
-            task_id,
-            extra={"trace_id": trace_id},
-        )
+        execution_id = request.execution_id or task_id or uuid.uuid4().hex
+        provenance = {
+            "execution_id": execution_id,
+            "request_id": request.request_id,
+            "tenant_id": request.tenant_id,
+            "provider": "native",
+            "executor_kind": "native",
+            "solver": "newton_raphson" if canonical == "load_flow" else canonical,
+            "engine_version": "2.1.0",
+            "trace_id": trace_id,
+            "task_id": task_id,
+            "timestamp": completed_wall,
+            "validated_by": "EngineeringAssertionLayer",
+        }
 
         return StudyResult(
+            execution_id=execution_id,
+            request_id=request.request_id,
+            tenant_id=request.tenant_id,
+            capability_id=request.capability_id,
+            capability_version=request.capability_version or "1.0.0",
+            status=exec_status,
             success=status == "success",
+            provider="native",
+            executor_kind="native",
+            solver="newton_raphson" if canonical == "load_flow" else canonical,
+            engine_version="2.1.0",
+            input_snapshot_hash=cache_params.get("input_hash", ""),
+            system_snapshot_hash=cache_params.get("system_snapshot_hash", ""),
+            parameter_hash=cache_params.get("parameters_hash", ""),
+            result=data,
             data=data,
+            results=data,
+            validation_status=validation_status,
+            validation_report=validation_report,
+            risk_class=risk_class,
+            risk_score=risk_score_numeric,
             warnings=warnings,
             errors=errors,
-            execution_time_sec=round(elapsed_sec, 3),
+            provenance=provenance,
             trace_id=trace_id,
             task_id=task_id,
-            study_type=payload.study_type,
-            provider=provider_name,
+            result_id=None,
+            created_at=start_wall,
+            completed_at=completed_wall,
+            execution_time_sec=round(elapsed_sec, 3),
+            study_type=request.capability_id,
         )
+
+    # ------------------------------------------------------------------
+    # External / Legacy Adapter Interface
+    # ------------------------------------------------------------------
+
+    async def execute(self, payload: StudyRequest, trace_id: str = "unknown") -> StudyResult:
+        """Execute a study request.
+
+        Legacy adapter that bridges incoming StudyRequest payloads into the
+        canonical ExecutionRequest contract, ensuring all requests pass through
+        canonical governance and the native executor behind the orchestrator:
+            API -> ExecutionRequest -> Canonical Execution Orchestrator -> StudyExecutor.execute_native.
+        """
+        self._validate_request(payload)
+
+        # ETAP provider branch
+        if payload.use_etap:
+            start_wall = time.time()
+            start_perf = time.perf_counter()
+            data, warnings, errors = await self._run_etap_study(payload)
+            data = self._to_jsonable(data)
+
+            # Step 2: Executor Validation
+            status = "failed" if errors else "success"
+            validation_status = len(errors) == 0
+            validation_report: dict[str, Any] = {}
+
+            # Step 3: Canonical Engineering Validation on ETAP data (Phase 13 Authority)
+            if status == "success" and data:
+                from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+                assertion_layer = EngineeringAssertionLayer(strict_mode=False)
+                report = assertion_layer.validate(data, payload.study_type)
+                validation_status = report.passed
+                validation_report = report.to_dict()
+                if not report.passed or report.has_critical_failures:
+                    crit_msgs = [
+                        f.message
+                        for f in report.failures
+                        if f.severity.value in ("critical", "fatal")
+                    ]
+                    err_text = (
+                        f"Engineering assertions blocked ETAP result: {len(crit_msgs)} violations detected."
+                    )
+                    errors.insert(0, err_text)
+                    data["engineering_assertion_failures"] = [f.to_dict() for f in report.failures]
+                    status = "failed"
+                elif getattr(report, "warnings", []):
+                    data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
+                    for w in report.warnings:
+                        warnings.append(w.message)
+            elif status != "success":
+                validation_status = False
+
+            # Step 4: Risk Assessment
+            risk_info = compute_risk(payload.study_type, data) if data else {"risk_score": "low"}
+            raw_risk_score = risk_info.get("risk_score", "low")
+            risk_class = raw_risk_score if isinstance(raw_risk_score, str) else "low"
+            risk_score_numeric = {
+                "low": 0.1,
+                "medium": 0.4,
+                "high": 0.7,
+                "critical": 1.0,
+            }.get(risk_class, 0.0)
+
+            # Step 5: Canonical Result (Phase 12)
+            completed_wall = time.time()
+            elapsed_sec = time.perf_counter() - start_perf
+            task_id = payload.task_id or uuid.uuid4().hex
+
+            cache_params = self._build_cache_params(
+                payload,
+                provider="etap",
+                executor_kind="etap",
+                solver="etap_solver",
+                engine_version="etap_com",
+            )
+
+            provenance = {
+                "execution_id": task_id,
+                "request_id": None,
+                "tenant_id": getattr(payload, "tenant_id", None),
+                "provider": "etap",
+                "executor_kind": "etap",
+                "solver": "etap_solver",
+                "engine_version": "etap_com",
+                "trace_id": trace_id,
+                "task_id": task_id,
+                "timestamp": completed_wall,
+                "validated_by": "EngineeringAssertionLayer",
+            }
+
+            return StudyResult(
+                execution_id=task_id,
+                request_id=None,
+                tenant_id=getattr(payload, "tenant_id", None),
+                capability_id=payload.study_type,
+                capability_version="1.0.0",
+                status="completed" if status == "success" else "failed",
+                success=status == "success",
+                provider="etap",
+                executor_kind="etap",
+                solver="etap_solver",
+                engine_version="etap_com",
+                input_snapshot_hash=cache_params.get("input_hash", ""),
+                system_snapshot_hash=cache_params.get("system_snapshot_hash", ""),
+                parameter_hash=cache_params.get("parameters_hash", ""),
+                result=data,
+                data=data,
+                results=data,
+                validation_status=validation_status,
+                validation_report=validation_report,
+                risk_class=risk_class,
+                risk_score=risk_score_numeric,
+                warnings=warnings,
+                errors=errors,
+                provenance=provenance,
+                trace_id=trace_id,
+                task_id=task_id,
+                result_id=None,
+                created_at=start_wall,
+                completed_at=completed_wall,
+                execution_time_sec=round(elapsed_sec, 3),
+                study_type=payload.study_type,
+            )
+
+        req = ExecutionRequest.from_study_request(
+            study_request=payload,
+            trace_id=trace_id,
+        )
+        return self.execute_native(req)
+
 
     async def _run_native_study(self, payload: StudyRequest, trace_id: str) -> dict[str, Any]:
         cache = self._cache or self._init_cache()
@@ -231,12 +439,16 @@ class StudyExecutor:
         #     * Protection selectivity margin <0.10s: breaker mis-coordination (CRITICAL)
         # - Non-critical failures (WARNING, INFO) are preserved in engineering_assertion_warnings
         #   and do NOT block completion (status stays "success").
+        # Mandatory Engineering Assertions Layer (Canonical Engineering Validation - Phase 13 Authority)
         try:
             from copilot.ai.engineering_assertions import EngineeringAssertionLayer
 
             assertion_layer = EngineeringAssertionLayer(strict_mode=False)
             report = assertion_layer.validate(data, study_type)
-            if report.has_critical_failures:
+            data["validation_status"] = report.passed
+            data["validation_report"] = report.to_dict()
+
+            if not report.passed or report.has_critical_failures:
                 crit_msgs = [
                     f.message
                     for f in report.failures
@@ -691,16 +903,103 @@ class StudyExecutor:
             logger.debug("StudyCache init failed (non-fatal)")
             return None
 
-    def _build_cache_params(self, payload: StudyRequest) -> dict:
-        cache_params = {"study_type": payload.study_type, "parameters": payload.parameters}
-        if payload.system:
-            system_json = json.dumps(
-                payload.system.model_dump(),
-                sort_keys=True,
-                default=str,
-            )
-            cache_params["system_hash"] = hashlib.sha256(system_json.encode()).hexdigest()
-        return cache_params
+    def _build_cache_params(
+        self,
+        payload: Any = None,
+        provider: str = "native",
+        executor_kind: str = "native",
+        solver: str = "",
+        engine_version: str = "2.1.0",
+        capability_version: str = "1.0.0",
+        standards: Any = "default",
+        *,
+        capability_id: Optional[str] = None,
+        system_snapshot_hash: Optional[str] = None,
+        input_hash: Optional[str] = None,
+        parameters_hash: Optional[str] = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Construct multi-dimensional cache identity and input hashes (Phase 14).
+
+        Distinguishes at minimum:
+        capability_id, capability_version, executor_kind, provider, solver/engine,
+        engine_version, system_snapshot_hash, input_hash, parameters_hash, and standards.
+        Ensures native and ETAP executions never accidentally reuse one another's results.
+        """
+        resolved_capability_id = (
+            capability_id
+            or getattr(payload, "capability_id", None)
+            or getattr(payload, "study_type", "")
+            or ""
+        )
+        # Detect ETAP from payload if not explicitly overridden
+        if getattr(payload, "use_etap", False) and provider == "native":
+            provider = "etap"
+            executor_kind = "etap"
+            solver = solver or "etap_solver"
+            engine_version = "etap_com"
+
+        solver_name = solver or (
+            "newton_raphson"
+            if resolved_capability_id == "load_flow" and provider == "native"
+            else (provider or "default")
+        )
+        raw_params = getattr(payload, "parameters", {}) or {}
+        if parameters_hash is not None:
+            resolved_params_hash = parameters_hash
+        else:
+            params_json = json.dumps(raw_params, sort_keys=True, default=str)
+            resolved_params_hash = hashlib.sha256(params_json.encode()).hexdigest()
+
+        # System model snapshot hash
+        if system_snapshot_hash is not None:
+            resolved_sys_hash = system_snapshot_hash
+        else:
+            system_obj = getattr(payload, "system", None)
+            resolved_sys_hash = ""
+            if system_obj is not None:
+                if hasattr(system_obj, "model_dump"):
+                    sys_dict = system_obj.model_dump()
+                elif isinstance(system_obj, dict):
+                    sys_dict = system_obj
+                else:
+                    sys_dict = str(system_obj)
+                system_json = json.dumps(sys_dict, sort_keys=True, default=str)
+                resolved_sys_hash = hashlib.sha256(system_json.encode()).hexdigest()
+
+        # Input snapshot hash
+        if input_hash is not None:
+            resolved_input_hash = input_hash
+        else:
+            input_payload = {
+                "capability_id": resolved_capability_id,
+                "provider": provider,
+                "executor_kind": executor_kind,
+                "solver": solver_name,
+                "engine_version": engine_version,
+                "parameters": raw_params,
+                "system_hash": resolved_sys_hash,
+                "standards": standards,
+            }
+            input_json = json.dumps(input_payload, sort_keys=True, default=str)
+            resolved_input_hash = hashlib.sha256(input_json.encode()).hexdigest()
+
+        return {
+            "capability_id": resolved_capability_id,
+            "capability_version": capability_version,
+            "executor_kind": executor_kind,
+            "provider": provider,
+            "solver": solver_name,
+            "engine_version": engine_version,
+            "system_snapshot_hash": resolved_sys_hash,
+            "input_hash": resolved_input_hash,
+            "parameters_hash": resolved_params_hash,
+            "standards": standards,
+            # Backward-compatibility keys
+            "study_type": resolved_capability_id,
+            "parameters": raw_params,
+            "system_hash": resolved_sys_hash,
+        }
 
     async def _lookup_cache(
         self, study_cache: Optional[StudyCache], payload: StudyRequest, trace_id: str

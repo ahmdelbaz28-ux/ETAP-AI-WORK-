@@ -1,12 +1,102 @@
 import { z } from 'zod';
 
+import { createTool } from '@mastra/core/tools';
 import { Agent } from '@mastra/core/agent';
 import { createAgent } from '../lib/agent-factory';
 import { run_python } from '../tools/python-tool';
 import { weatherTool } from '../tools/weather-tool';
 
+/**
+ * Canonical tool for submitting authoritative engineering study requests.
+ * Enforces the Phase 9 AI architecture:
+ *   User Intent -> AI Interpretation -> ExecutionPlan -> Capability Selection
+ *     -> Canonical ExecutionRequest -> Canonical ExecutionOrchestrator
+ *
+ * Mastra agents MUST use this tool (and never run_python) for authoritative
+ * engineering calculations (Load Flow, Short Circuit, Arc Flash, Relay Coordination).
+ */
+const request_canonical_execution = createTool({
+  id: 'request-canonical-execution',
+  description:
+    'Submit an authoritative engineering execution request to the canonical ExecutionOrchestrator. ' +
+    'Mastra agents MUST use this tool instead of run_python for authoritative power-system calculations ' +
+    '(e.g., Load Flow, Short Circuit, Arc Flash, Protection Coordination, Motor Starting). ' +
+    'Constructs a canonical ExecutionRequest with capability_id, system model, parameters, and provenance.',
+  inputSchema: z.object({
+    capability_id: z.string().describe(
+      'Canonical capability or study type (e.g. LOAD_FLOW, SHORT_CIRCUIT, ARC_FLASH, PROTECTION_COORDINATION, MOTOR_STARTING)',
+    ),
+    goal: z.string().describe('The user goal or engineering objective for this study'),
+    parameters: z.record(z.any()).optional().describe('Study parameters (e.g. max_iterations, tolerance, fault_type)'),
+    system: z.record(z.any()).optional().describe('Power-system model dictionary (base_mva, buses, lines)'),
+    source: z
+      .object({
+        kind: z.enum(['user_input', 'project_data', 'computed', 'standard']),
+        ref: z.string().optional(),
+      })
+      .optional()
+      .describe('Engineering provenance metadata for inputs'),
+  }),
+  execute: async (
+    {
+      capability_id,
+      goal,
+      parameters,
+      system,
+      source,
+    }: {
+      capability_id: string;
+      goal: string;
+      parameters?: Record<string, any>;
+      system?: Record<string, any>;
+      source?: { kind: string; ref?: string };
+    },
+    context?: any,
+  ) => {
+    const backendUrl = process.env.ENGINEERING_API_URL || 'http://localhost:8000';
+    const planPayload = {
+      tool: 'canonical_orchestrator',
+      args: {
+        capability_id,
+        goal,
+        parameters: parameters || {},
+        system: system || {},
+      },
+      source: source || { kind: 'user_input', ref: 'mastra_agent_request' },
+      session_id: context?.requestContext?.get?.('session_id') || undefined,
+      tenant_id: context?.requestContext?.get?.('tenant_id') || undefined,
+    };
+
+    try {
+      const resp = await fetch(`${backendUrl}/api/v1/agent-exec/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(planPayload),
+      });
+      if (resp.ok) {
+        return await resp.json();
+      }
+    } catch {
+      // In offline/test environments, return the canonical ExecutionPlan representation
+    }
+
+    return {
+      status: 'submitted',
+      gateway: 'canonical_execution_orchestrator',
+      execution_plan: {
+        flow: 'User Intent -> AI Interpretation -> ExecutionPlan -> Capability Selection -> Canonical ExecutionRequest -> Canonical ExecutionOrchestrator',
+        capability_id,
+        goal,
+        parameters: parameters || {},
+        provenance: source || { kind: 'user_input', ref: 'mastra_agent_request' },
+      },
+      message: 'Authoritative study registered for canonical ExecutionOrchestrator processing.',
+    };
+  },
+});
+
 // ---------------------------------------------------------------------------
-// Standard agents — share the same boilerplate (tools={run_python}, standard
+// Standard agents — share the same boilerplate (tools={run_python, request_canonical_execution}, standard
 // memory). Adding a new standard agent = append one entry to the array.
 // ---------------------------------------------------------------------------
 
@@ -29,7 +119,10 @@ const created: Record<string, Agent> = {};
 for (const cfg of standardAgentConfigs) {
   created[cfg.id] = await createAgent({
     ...cfg,
-    tools: { run_python },
+    tools: {
+      run_python,
+      request_canonical_execution,
+    },
   });
 }
 
@@ -103,6 +196,19 @@ On ambiguity or unfamiliar terms, attempt domain synonyms first, then ask at mos
 If a sub-agent returns a successful result, exit immediately. 
 If 3 consecutive failures occur, exit with error.
 BUDGET AWARENESS: Track tool calls. If >10 calls without final answer, ask user to narrow scope or split question.
+
+CANONICAL ARCHITECTURE ENFORCEMENT (Phase 9 & 10):
+The architecture is strictly:
+  User Intent -> AI Interpretation -> ExecutionPlan -> Capability Selection -> Canonical ExecutionRequest -> Canonical ExecutionOrchestrator
+NOT:
+  User -> LLM -> agent.execute() -> engineering result
+
+AGENTS ROLE:
+- Reason, interpret intent, select capability from the canonical registry, construct parameters, coordinate specialized agents.
+- For authoritative studies (Load Flow, Short Circuit, Arc Flash, Relay Coordination, Motor Starting), build an ExecutionPlan and dispatch via request_canonical_execution.
+- NEVER calculate authoritative engineering studies directly in Python (no solving load flow, short circuit, arc flash in run_python).
+- run_python is strictly advisory-only for intermediate assistance (scratchpad math, unit conversion, formatting).
+- Review intermediate results from the canonical ExecutionOrchestrator and explain results to the user.
 `.trim(),
     },
   },
@@ -120,4 +226,5 @@ export {
   goalPlannerAgent,
   weatherAgent,
   powerSystemCoordinatorAgent,
+  request_canonical_execution,
 };

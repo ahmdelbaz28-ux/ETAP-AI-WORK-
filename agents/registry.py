@@ -36,10 +36,14 @@ from agents.models import (
     StudyType,
 )
 from core.tracing import trace_operation
+from engine.capability_registry import get_capability_registry
 
 UTC = timezone.utc  # noqa: UP017
 logger = logging.getLogger(__name__)
 _ENGINEERING_ASSERTION_FAILED = "Engineering assertion check failed: %s"
+
+# Authoritative Capability Registry (Single Source of Truth)
+_CAPABILITY_REGISTRY = get_capability_registry()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -91,6 +95,11 @@ AGENT_KEY_ALIASES: Mapping[str, str] = {
     "opf": "optimal_power_flow",
     "protection": "protection_coordination",
 }
+
+# Projection fidelity verification against canonical CapabilityRegistry
+assert CANONICAL_AGENT_KEYS == _CAPABILITY_REGISTRY.to_canonical_agent_keys(), (
+    "CANONICAL_AGENT_KEYS drift detected against CapabilityRegistry"
+)
 
 #: Keys constructed without any ``try/except`` guard — their absence is a
 #: hard registry corruption, not an optional capability gap.
@@ -1566,14 +1575,17 @@ STUDY_TYPE_MAPPING: dict[str, str] = {
 
 
 def get_study_type_mapping() -> dict[str, str]:
-    """Return mapping of study type strings to agent keys."""
-    return dict(STUDY_TYPE_MAPPING)
+    """Return mapping of study type strings to agent keys projected from CapabilityRegistry."""
+    return get_capability_registry().to_study_type_mapping()
 
 
 def get_agent_for_study(agents: dict[str, BaseAgent], study_type: StudyType) -> BaseAgent | None:
-    """Get appropriate agent for study type from the canonical mapping."""
-    mapping = get_study_type_mapping()
+    """Get appropriate agent for study type from the canonical CapabilityRegistry."""
     val = study_type.value if hasattr(study_type, "value") else str(study_type)
+    cap = get_capability_registry().get_by_study_type(val)
+    if cap and cap.agent_key:
+        return agents.get(cap.agent_key)
+    mapping = get_study_type_mapping()
     agent_key = mapping.get(val, val)
     return agents.get(agent_key)
 

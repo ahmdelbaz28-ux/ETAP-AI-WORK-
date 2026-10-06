@@ -28,7 +28,10 @@ call sites continue to work without breaking changes.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -620,6 +623,36 @@ class ChiefEngineeringOrchestrator:
         """Execute workflow by coordinating agents with parallel execution."""
         return await self.workflow_engine.execute_workflow(task)
 
+    @trace_operation("execute_study", attributes={"component": "orchestrator"})
+    async def execute_study(
+        self,
+        study_type: str | StudyType,
+        system_data: Any,
+        parameters: dict[str, Any] | None = None,
+        tenant_id: str | None = None,
+        user_id: str | None = None,
+        trace_id: str | None = None,
+    ) -> Any:
+        """Execute a single engineering study via the canonical ExecutionOrchestrator (Phase 15)."""
+        from services.execution_orchestrator import get_execution_orchestrator
+        from services.execution_request import ExecutionRequest
+
+        study_key = study_type.value if hasattr(study_type, "value") else str(study_type)
+        params = dict(parameters or {})
+
+        req = ExecutionRequest(
+            capability_id=study_key,
+            tenant_id=tenant_id or params.get("tenant_id") or "default",
+            user_id=user_id or params.get("user_id") or "system",
+            trace_id=trace_id or params.get("trace_id"),
+            input={
+                "system": system_data,
+                "parameters": params,
+            },
+        )
+        orchestrator = get_execution_orchestrator()
+        return await orchestrator.execute(req)
+
     @trace_operation("execute_parallel_studies", attributes={"component": "orchestrator"})
     async def execute_parallel_studies(
         self,
@@ -629,14 +662,74 @@ class ChiefEngineeringOrchestrator:
         max_workers: int = 4,
         benchmark: bool = False,
     ) -> dict[str, Any]:
-        """Execute multiple independent studies in parallel."""
-        return await self.workflow_engine.execute_parallel_studies(
-            study_types=study_types,
-            system_data=system_data,
-            parameters=parameters,
-            max_workers=max_workers,
-            benchmark=benchmark,
-        )
+        """Execute multiple independent studies in parallel routed through the canonical ExecutionOrchestrator."""
+        from services.execution_orchestrator import get_execution_orchestrator
+        from services.execution_request import ExecutionRequest
+
+        parameters = parameters or {}
+        orchestrator = get_execution_orchestrator()
+        task_id = f"parallel_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        run_id = str(uuid.uuid4())
+        plan_id = str(uuid.uuid4())
+
+        semaphore = asyncio.Semaphore(max(1, max_workers))
+        parallel_start = time.perf_counter()
+
+        async def _run_single(study_str: str) -> tuple[str, Any]:
+            async with semaphore:
+                req = ExecutionRequest(
+                    capability_id=study_str,
+                    tenant_id=parameters.get("tenant_id") or "default",
+                    user_id=parameters.get("user_id") or "system",
+                    trace_id=parameters.get("trace_id"),
+                    input={
+                        "system": system_data,
+                        "parameters": dict(parameters),
+                    },
+                )
+                try:
+                    res = await orchestrator.execute(req)
+                    agent_res = AgentResult(
+                        agent_name=res.metadata.get("agent_name", f"{study_str}_agent") if res.metadata else f"{study_str}_agent",
+                        study_type=study_str,
+                        status=AgentStatus.COMPLETED if res.success else AgentStatus.FAILED,
+                        data=res.data if isinstance(res.data, dict) else {"result": res.data},
+                        execution_time=res.duration_seconds,
+                        validation_status=res.validation_status,
+                    )
+                    agent_res.run_id = run_id
+                    agent_res.plan_id = plan_id
+                    agent_res.node_id = f"node_{study_str}"
+                    return study_str, agent_res
+                except Exception as exc:
+                    self.logger.error("Failed executing %s via ExecutionOrchestrator: %s", study_str, exc)
+                    agent_res = AgentResult(
+                        agent_name=f"{study_str}_agent",
+                        study_type=study_str,
+                        status=AgentStatus.FAILED,
+                        data={"error": str(exc)},
+                        execution_time=0.0,
+                        validation_status=False,
+                    )
+                    agent_res.run_id = run_id
+                    agent_res.plan_id = plan_id
+                    agent_res.node_id = f"node_{study_str}"
+                    return study_str, agent_res
+
+        tasks = [_run_single(st) for st in study_types]
+        executed = await asyncio.gather(*tasks, return_exceptions=False)
+        parallel_results: dict[str, Any] = dict(executed)
+        parallel_time = time.perf_counter() - parallel_start
+
+        return {
+            "task_id": task_id,
+            "run_id": run_id,
+            "plan_id": plan_id,
+            "study_types": list(study_types),
+            "parallel_results": parallel_results,
+            "parallel_time_seconds": round(parallel_time, 4),
+            "benchmark": benchmark,
+        }
 
     async def get_task_status(self, task_id: str) -> EngineeringTask | None:  # NOSONAR
         """Get status of a task."""

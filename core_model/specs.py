@@ -427,18 +427,53 @@ class StudyRequest(_BaseSpecModel):
         return v
 
 
-# ─── StudyResult ─────────────────────────────────────────────────────────────
+# ─── StudyResult / CanonicalExecutionResult ─────────────────────────────────
 
 
 class StudyResult(_BaseSpecModel):
-    """Result of a power-system study execution."""
+    """Canonical unified execution result for all engineering studies (Phase 12).
 
-    success: bool
+    Unifies native, agent, ETAP, and external solver outputs into a single
+    governed result contract with provenance, validation state, and risk scoring.
+    """
+
+    # Core Execution & Identity
+    execution_id: str | None = None
+    request_id: str | None = None
+    tenant_id: str | None = None
+    capability_id: str = ""
+    capability_version: str = "1.0.0"
+
+    # Status & Provider
+    status: str = "completed"  # "completed", "failed", "invalid"
+    success: bool = True
+    provider: str = "native"
+    executor_kind: str = "native"  # "native", "agent", "etap", "external_service", "composite"
+    solver: str = ""
+    engine_version: str = "2.1.0"
+
+    # Hashes & Identity
+    input_snapshot_hash: str = ""
+    system_snapshot_hash: str = ""
+    parameter_hash: str = ""
+
+    # Primary Payload (Unified)
+    result: dict[str, Any] = Field(default_factory=dict)
     data: dict[str, Any] = Field(default_factory=dict)
     results: dict[str, Any] = Field(default_factory=dict)
+
+    # Validation & Risk (Phase 13 Authority)
+    validation_status: bool = True
+    validation_report: dict[str, Any] = Field(default_factory=dict)
+    risk_class: str = "low"
+    risk_score: float = 0.0
+
+    # Diagnostics & Messages
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
-    execution_time_sec: float = 0.0
+
+    # Provenance & Audit
+    provenance: dict[str, Any] = Field(default_factory=dict)
     trace_id: str = ""
     task_id: str | None = None
     result_id: str | None = Field(
@@ -452,8 +487,13 @@ class StudyResult(_BaseSpecModel):
         # ``result.result_id`` (``model_dump()`` without ``by_alias``).
         serialization_alias="resultId",
     )
+    created_at: float | str = 0.0
+    completed_at: float | str = 0.0
+    approval_state: dict[str, Any] | None = None
+
+    # Legacy fields
+    execution_time_sec: float = 0.0
     study_type: str = ""
-    provider: str = "native"
     pe_stamp: dict[str, Any] | None = Field(
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
@@ -462,14 +502,46 @@ class StudyResult(_BaseSpecModel):
     @model_validator(mode="before")
     @classmethod
     def sync_data_and_results(cls, data: Any) -> Any:
-        """Pydantic validator: coerce arbitrary data into JSON-safe form for storage."""
+        """Pydantic validator: coerce arbitrary data into JSON-safe form and synchronize canonical result fields."""
         if isinstance(data, dict):
-            if "data" in data and "results" not in data:
-                data["results"] = data["data"]
-            elif "results" in data and "data" not in data:
-                data["data"] = data["results"]
+            # Sync payload across result, data, and results
+            payload = data.get("result") or data.get("data") or data.get("results") or {}
+            if "data" not in data or not data["data"]:
+                data["data"] = payload
+            if "results" not in data or not data["results"]:
+                data["results"] = payload
+            if "result" not in data or not data["result"]:
+                data["result"] = payload
+
+            # Sync study_type and capability_id
+            if data.get("study_type") and not data.get("capability_id"):
+                data["capability_id"] = data["study_type"]
+            elif data.get("capability_id") and not data.get("study_type"):
+                data["study_type"] = data["capability_id"]
+
+            # Sync success and status
+            if "status" in data and data["status"]:
+                st = str(data["status"]).lower()
+                if "success" not in data:
+                    data["success"] = st in ("completed", "success", "ok")
+            elif "success" in data:
+                data["status"] = "completed" if data["success"] else "failed"
+
+            # Sync task_id and execution_id
+            if data.get("task_id") and not data.get("execution_id"):
+                data["execution_id"] = data["task_id"]
+            elif data.get("execution_id") and not data.get("task_id"):
+                data["task_id"] = data["execution_id"]
+
         return data
 
+    def to_canonical_dict(self) -> dict[str, Any]:
+        """Convert result into standard CanonicalExecutionResult dictionary."""
+        return self.model_dump()
+
+
+# Canonical alias for Phase 12 contract
+CanonicalExecutionResult = StudyResult
 
 __all__ = [
     "BusSpec",
@@ -480,6 +552,7 @@ __all__ = [
     "SystemSpec",
     "StudyRequest",
     "StudyResult",
+    "CanonicalExecutionResult",
 ]
 
 
