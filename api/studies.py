@@ -237,6 +237,18 @@ async def run_study(
     _increment_counter("request")
 
     try:
+        tenant_id = (
+            tenant_id
+            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+            or (user.tenant_id if user and getattr(user, "tenant_id", None) else None)
+            or "default"
+        )
+        user_id = (
+            user_id
+            or (user.user_id if user is not None else "")
+            or "anonymous"
+        )
+
         # Phase 2: Semantic Cache lookup (guarded by token_governance flag)
         if req is not None and is_feature_enabled("token_governance", default=False):
             try:
@@ -251,6 +263,8 @@ async def run_study(
                     system_data=sys_data,
                     parameters=payload.parameters or {},
                     agent_handle=payload.study_type,
+                    tenant_id=tenant_id,
+                    provider=getattr(payload, "provider", "native") or "native",
                 )
                 if cached:
                     cached_data = cached.result
@@ -259,9 +273,15 @@ async def run_study(
                         if not isinstance(cached_data, StudyResult)
                         else cached_data
                     )
-                    cached_result.trace_id = trace_id
-                    await _persist_study_result(req, payload, cached_result, trace_id, user)
-                    return cached_result
+                    cached_provider = getattr(cached_result, "provider", "native") or "native"
+                    req_provider = getattr(payload, "provider", "native") or "native"
+                    if (
+                        cached_result.success
+                        and cached_provider.lower() == req_provider.lower()
+                    ):
+                        cached_result.trace_id = trace_id
+                        await _persist_study_result(req, payload, cached_result, trace_id, user)
+                        return cached_result
             except Exception as cache_lookup_err:
                 logger.warning(
                     "Semantic cache lookup error: %s (falling back to execution)", cache_lookup_err
@@ -269,18 +289,6 @@ async def run_study(
 
         # Phase 15: Route execution through Canonical Execution Orchestrator
         from services.execution_request import ExecutionRequest
-
-        tenant_id = (
-            tenant_id
-            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
-            or (user.tenant_id if user and getattr(user, "tenant_id", None) else None)
-            or "default"
-        )
-        user_id = (
-            user_id
-            or (user.user_id if user is not None else "")
-            or "anonymous"
-        )
 
         exec_request = ExecutionRequest.from_study_request(
             study_request=payload,
@@ -320,6 +328,8 @@ async def run_study(
                         "tokens_used": getattr(result, "tokens_used", 2000),
                         "trace_id": trace_id,
                     },
+                    tenant_id=tenant_id,
+                    provider=getattr(payload, "provider", "native") or "native",
                 )
             except Exception as e:
                 logger.debug("Semantic cache store skipped: %s", e)

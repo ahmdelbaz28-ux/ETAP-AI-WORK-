@@ -953,9 +953,8 @@ async def _canonical_orchestrator_executor(
     args: Dict[str, Any], ctx: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Execute authoritative engineering study through the canonical ExecutionOrchestrator."""
-    from services.execution_orchestrator import ExecutionOrchestrator
+    from services.execution_orchestrator import get_execution_orchestrator
     from services.execution_request import ExecutionRequest
-    from services.study_executor import StudyExecutor
 
     system_data = args.get("system")
     if not isinstance(system_data, dict):
@@ -985,15 +984,18 @@ async def _canonical_orchestrator_executor(
         system_model=system_data,
         parameters=parameters,
     )
-    orchestrator = ExecutionOrchestrator(native_executor=StudyExecutor())
+    orchestrator = get_execution_orchestrator()
     result = await orchestrator.execute(req)
     return {
-        "status": "completed",
+        "status": "completed" if result.success else "failed",
         "authoritative": True,
         "advisory": False,
         "execution_mode": "canonical_orchestrator",
         "request_id": req.request_id,
         "capability_id": capability_id,
+        "success": result.success,
+        "validation_status": getattr(result, "validation_status", "unknown"),
+        "errors": getattr(result, "errors", []),
         "result": result.to_dict() if hasattr(result, "to_dict") else result,
     }
 

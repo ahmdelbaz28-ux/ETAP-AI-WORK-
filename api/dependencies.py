@@ -35,8 +35,12 @@ from api.environment import (
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# JWT configuration
-# ---------------------------------------------------------------------------
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
 
 _env = get_environment()
 _is_dev = _env in DEV_ENVIRONMENTS

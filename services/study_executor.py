@@ -848,8 +848,62 @@ class StudyExecutor:
                     study_type, f"Optimization execution unavailable: {exc}"
                 ) from exc
 
+        # Resolve across all registered specialized agents in canonical registry
+        from agents.models import AgentStatus, EngineeringTask, StudyType
+        from agents.registry import create_agent_registry, resolve_agent_key
+
+        canonical_key = resolve_agent_key(study_type)
+        try:
+            agents = create_agent_registry()
+        except Exception as exc:
+            raise SpecializedExecutionUnavailableError(
+                study_type, f"Agent registry creation failed: {exc}"
+            ) from exc
+
+        if canonical_key in agents:
+            agent = agents[canonical_key]
+            st_list: list[Any] = []
+            try:
+                st_list = [StudyType(canonical_key)]
+            except ValueError:
+                pass
+
+            task = EngineeringTask(
+                task_id=f"agent_task_{canonical_key}_{int(time.time() * 1000)}",
+                description=f"Specialist agent execution for {study_type}",
+                study_types=st_list,
+                parameters=parameters,
+            )
+            try:
+                if asyncio.iscoroutinefunction(getattr(agent, "execute", None)):
+                    try:
+                        asyncio.get_running_loop()
+                        import concurrent.futures as _cf
+
+                        with _cf.ThreadPoolExecutor(max_workers=1) as pool:
+                            agent_res = pool.submit(lambda: asyncio.run(agent.execute(task))).result()
+                    except RuntimeError:
+                        agent_res = asyncio.run(agent.execute(task))
+                else:
+                    agent_res = agent.execute(task)
+
+                status_enum = getattr(agent_res, "status", None)
+                if status_enum == AgentStatus.FAILED or (
+                    hasattr(status_enum, "value") and status_enum.value == "failed"
+                ):
+                    errs = getattr(agent_res, "validation_errors", []) or ["Agent execution failed"]
+                    raise SpecializedExecutionUnavailableError(study_type, "; ".join(errs))
+
+                return getattr(agent_res, "data", {}) or {}
+            except SpecializedExecutionUnavailableError:
+                raise
+            except Exception as exc:
+                raise SpecializedExecutionUnavailableError(
+                    study_type, f"Agent execution failed for {study_type}: {exc}"
+                ) from exc
+
         raise SpecializedExecutionUnavailableError(
-            study_type, "Agent execution requires specialized runtime"
+            study_type, f"No agent registered for study type '{study_type}'"
         )
 
     # ------------------------------------------------------------------

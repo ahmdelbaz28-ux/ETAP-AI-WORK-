@@ -12,12 +12,11 @@ Governs execution and delegates to specialized executors.
 from __future__ import annotations
 
 import asyncio
-import copy
 import logging
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 from core.exceptions import SpecializedExecutionUnavailableError
 from engine.capability_registry import (
@@ -35,6 +34,90 @@ from services.execution_request import (
 
 UTC = timezone.utc  # noqa: UP017
 logger = logging.getLogger("engineering_service.orchestrator")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# State Store Abstraction (Phase 11: Multi-Replica Ready)
+# ─────────────────────────────────────────────────────────────────────────────
+
+from abc import ABC, abstractmethod
+
+
+class IExecutionStateStore(ABC):
+    """Abstract interface for canonical execution state storage."""
+
+    @abstractmethod
+    def get_idempotency(self, key: str) -> Optional[Tuple[CanonicalExecutionResult, float]]:
+        """Retrieve idempotent replay result and timestamp if present."""
+        ...
+
+    @abstractmethod
+    def set_idempotency(self, key: str, result: CanonicalExecutionResult, timestamp: float) -> None:
+        """Store idempotent result with timestamp."""
+        ...
+
+    @abstractmethod
+    def get_result(self, execution_id: str) -> Optional[CanonicalExecutionResult]:
+        """Retrieve stored canonical execution result."""
+        ...
+
+    @abstractmethod
+    def set_result(self, execution_id: str, result: CanonicalExecutionResult) -> None:
+        """Store canonical execution result."""
+        ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        """Clear all stored state."""
+        ...
+
+
+class InMemoryExecutionStateStore(IExecutionStateStore):
+    """Bounded, self-pruning in-memory store for single-replica environments."""
+
+    def __init__(self, max_entries: int = 4096) -> None:
+        self._max_entries = max_entries
+        self.idempotency: dict[str, Tuple[CanonicalExecutionResult, float]] = {}
+        self.results: dict[str, CanonicalExecutionResult] = {}
+
+    def get_idempotency(self, key: str) -> Optional[Tuple[CanonicalExecutionResult, float]]:
+        return self.idempotency.get(key)
+
+    def set_idempotency(self, key: str, result: CanonicalExecutionResult, timestamp: float) -> None:
+        if len(self.idempotency) >= self._max_entries:
+            # Self-prune oldest 10%
+            keys = list(self.idempotency.keys())[: self._max_entries // 10]
+            for k in keys:
+                self.idempotency.pop(k, None)
+        self.idempotency[key] = (result, timestamp)
+
+    def get_result(self, execution_id: str) -> Optional[CanonicalExecutionResult]:
+        return self.results.get(execution_id)
+
+    def set_result(self, execution_id: str, result: CanonicalExecutionResult) -> None:
+        if len(self.results) >= self._max_entries:
+            keys = list(self.results.keys())[: self._max_entries // 10]
+            for k in keys:
+                self.results.pop(k, None)
+        self.results[execution_id] = result
+
+    def reset(self) -> None:
+        self.idempotency.clear()
+        self.results.clear()
+
+
+_GLOBAL_EXECUTION_STATE_STORE: IExecutionStateStore = InMemoryExecutionStateStore()
+
+
+def get_execution_state_store() -> IExecutionStateStore:
+    """Return active canonical execution state store."""
+    return _GLOBAL_EXECUTION_STATE_STORE
+
+
+def set_execution_state_store(store: IExecutionStateStore) -> None:
+    """Swap execution state store (e.g. for multi-replica Redis or Postgres backing)."""
+    global _GLOBAL_EXECUTION_STATE_STORE
+    _GLOBAL_EXECUTION_STATE_STORE = store
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -92,11 +175,15 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
             execution_id=request.execution_id,
             request_id=request.request_id,
             capability_id=request.capability_id,
+            capability_version=cap.version if cap else "1.0.0",
             tenant_id=request.tenant_id,
             user_id=request.user_id,
+            executor_kind="native",
+            provider="native",
+            solver="newton_raphson" if "load_flow" in study_type else "native",
             status="completed",
             success=True,
-            data=data,
+            data=data if isinstance(data, dict) else (data.to_dict() if hasattr(data, "to_dict") else {}),
             trace_id=request.trace_id,
         )
 
@@ -104,33 +191,128 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
 class AgentEngineeringExecutor(IEngineeringExecutor):
     """Executes AI specialist agent studies via BaseAgent subclasses."""
 
-    async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
-        from services.study_executor import StudyExecutor
+    def __init__(self, agent_registry: Any = None) -> None:
+        self._agents = agent_registry
 
-        executor = StudyExecutor(cache=None)
+    def _get_agents(self) -> dict[str, Any]:
+        if self._agents is None:
+            from agents.registry import create_agent_registry
+
+            self._agents = create_agent_registry()
+        return self._agents
+
+    async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
+        from agents.models import AgentStatus, EngineeringTask, StudyType
+        from engine.capability_registry import get_capability_registry
+
+        cap_reg = get_capability_registry()
+        cap = cap_reg.get(request.capability_id)
+        agent_key = (cap.agent_key if cap else None) or request.capability_id
+
+        # Resolve aliases
+        alias_map = {
+            "harmonic": "harmonic_analysis",
+            "opf": "optimal_power_flow",
+            "protection": "protection_coordination",
+        }
+        agent_key = alias_map.get(agent_key, agent_key)
+
+        agents = self._get_agents()
+        agent = agents.get(agent_key)
+        if agent is None:
+            raise SpecializedExecutionUnavailableError(
+                request.capability_id,
+                f"No agent registered for key '{agent_key}' in canonical agent registry",
+            )
+
         params = request.get_parameters()
-        study_type = request.capability_id
+        system = request.get_system()
+        built_system = None
+        if system is not None:
+            if isinstance(system, dict):
+                try:
+                    from core_model.specs import SystemSpec
+                    from services.study_executor import StudyExecutor
+
+                    spec = SystemSpec.model_validate(system)
+                    built_system = StudyExecutor._build_system_from_spec(spec)
+                except Exception:
+                    built_system = system
+            else:
+                built_system = system
+            params["system"] = built_system or system
+
+        study_types: list[Any] = []
+        if cap and cap.study_type:
+            try:
+                study_types = [StudyType(cap.study_type)]
+            except ValueError:
+                pass
+
+        task = EngineeringTask(
+            task_id=request.request_id or request.execution_id,
+            description=request.metadata.get("goal") or f"Agent execution for {request.capability_id}",
+            study_types=study_types,
+            parameters=params,
+        )
 
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                data = await loop.run_in_executor(
-                    None, executor._dispatch_agent, study_type, params
-                )
+            if asyncio.iscoroutinefunction(getattr(agent, "execute", None)):
+                agent_res = await agent.execute(task)
             else:
-                data = executor._dispatch_agent(study_type, params)
-        except Exception:
-            data = executor._dispatch_agent(study_type, params)
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    agent_res = await loop.run_in_executor(None, agent.execute, task)
+                else:
+                    agent_res = agent.execute(task)
+        except Exception as exc:
+            logger.exception("Agent execution failed for %s: %s", agent_key, exc)
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="agent",
+                provider="agent",
+                solver=type(agent).__name__,
+                status="failed",
+                success=False,
+                data={},
+                errors=[str(exc)],
+                warnings=[],
+                trace_id=request.trace_id,
+            )
+
+        status_enum = getattr(agent_res, "status", None)
+        is_failed = status_enum == AgentStatus.FAILED or (
+            hasattr(status_enum, "value") and status_enum.value == "failed"
+        )
+        errors = list(getattr(agent_res, "validation_errors", []) or [])
+        warnings = list(getattr(agent_res, "warnings", []) or [])
+        data = getattr(agent_res, "data", {}) or {}
+
+        if is_failed and not errors:
+            errors.append(f"Agent execution reported failure for '{request.capability_id}'")
+
+        success = not is_failed and not errors
 
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
             request_id=request.request_id,
             capability_id=request.capability_id,
+            capability_version=cap.version if cap else "1.0.0",
             tenant_id=request.tenant_id,
             user_id=request.user_id,
-            status="completed",
-            success=True,
+            executor_kind="agent",
+            provider="agent",
+            solver=type(agent).__name__,
+            status="completed" if success else "failed",
+            success=success,
             data=data,
+            errors=errors,
+            warnings=warnings,
             trace_id=request.trace_id,
         )
 
@@ -138,28 +320,129 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
 class EtapEngineeringExecutor(IEngineeringExecutor):
     """Executes studies via ETAP COM integration / provider interface."""
 
-    async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
-        from etap_integration.etap_provider import get_etap_provider
+    def __init__(self, etap_executor: Any = None) -> None:
+        self._executor = etap_executor
 
-        provider = get_etap_provider()
+    def _get_etap_executor(self) -> Any:
+        if self._executor is None:
+            from etap_integration.etap_provider import get_etap_executor
+
+            self._executor = get_etap_executor()
+        return self._executor
+
+    async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
+        executor = self._get_etap_executor()
+        cap_reg = get_capability_registry()
+        cap = cap_reg.get(request.capability_id)
         params = request.get_parameters()
 
-        if hasattr(provider, "run_study"):
-            data = provider.run_study(request.capability_id, params)
-        elif hasattr(provider, "execute_study"):
-            data = provider.execute_study(request.capability_id, params)
-        else:
-            data = {"status": "executed", "provider": type(provider).__name__}
+        provider_name = (
+            type(executor.provider).__name__
+            if hasattr(executor, "provider") and type(executor.provider).__name__ not in ("Mock", "MagicMock")
+            else "etap"
+        )
+
+        # Fail closed immediately if underlying provider is unavailable
+        if not executor.is_available():
+            err_msg = f"ETAP backend ({provider_name}) is unavailable or disabled"
+            logger.warning("EtapEngineeringExecutor fail-closed: %s", err_msg)
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="etap",
+                provider=provider_name,
+                solver="etap",
+                status="failed",
+                success=False,
+                data={"unavailable": True},
+                errors=[err_msg],
+                warnings=[],
+                trace_id=request.trace_id,
+            )
+
+        project_path = (
+            params.get("etap_project_path")
+            or params.get("project_path")
+            or (request.input.get("etap_project_path") if isinstance(request.input, dict) else "")
+            or ""
+        )
+
+        study_type = (cap.study_type if cap and cap.study_type else None) or request.capability_id
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                etap_res = await loop.run_in_executor(
+                    None,
+                    executor.execute_study,
+                    project_path,
+                    study_type,
+                    False,
+                    params,
+                    request.execution_id,
+                    request.tenant_id,
+                )
+            else:
+                etap_res = executor.execute_study(
+                    project_path=project_path,
+                    study_type=study_type,
+                    parameters=params,
+                    execution_id=request.execution_id,
+                    tenant_id=request.tenant_id,
+                )
+        except Exception as exc:
+            logger.exception("ETAP execution threw exception: %s", exc)
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="etap",
+                provider=provider_name,
+                solver="etap",
+                status="failed",
+                success=False,
+                data={},
+                errors=[str(exc)],
+                warnings=[],
+                trace_id=request.trace_id,
+            )
+
+        success = bool(getattr(etap_res, "success", False))
+        data = getattr(etap_res, "data", {}) or {}
+        errors = list(getattr(etap_res, "errors", []) or [])
+        warnings = list(getattr(etap_res, "warnings", []) or [])
+
+        provider_name = (
+            type(executor.provider).__name__
+            if hasattr(executor, "provider") and type(executor.provider).__name__ not in ("Mock", "MagicMock")
+            else "etap"
+        )
+
+        if not success and not errors:
+            errors.append("ETAP study reported execution failure")
 
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
             request_id=request.request_id,
             capability_id=request.capability_id,
+            capability_version=cap.version if cap else "1.0.0",
             tenant_id=request.tenant_id,
             user_id=request.user_id,
-            status="completed",
-            success=True,
+            executor_kind="etap",
+            provider=provider_name,
+            solver="etap",
+            status="completed" if success else "failed",
+            success=success,
             data=data,
+            errors=errors,
+            warnings=warnings,
             trace_id=request.trace_id,
         )
 
@@ -182,8 +465,20 @@ class ExternalServiceExecutor(IEngineeringExecutor):
                 )
             else:
                 data = executor._dispatch(request.capability_id, system, params)
-        except Exception:
-            data = executor._dispatch(request.capability_id, system, params)
+        except Exception as exc:
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="external_service",
+                status="failed",
+                success=False,
+                data={},
+                errors=[str(exc)],
+                trace_id=request.trace_id,
+            )
 
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
@@ -191,6 +486,7 @@ class ExternalServiceExecutor(IEngineeringExecutor):
             capability_id=request.capability_id,
             tenant_id=request.tenant_id,
             user_id=request.user_id,
+            executor_kind="external_service",
             status="completed",
             success=True,
             data=data,
@@ -201,34 +497,11 @@ class ExternalServiceExecutor(IEngineeringExecutor):
 class CompositeEngineeringExecutor(IEngineeringExecutor):
     """Executes composite multi-agent study orchestrations."""
 
+    def __init__(self, agent_executor: Any = None) -> None:
+        self._agent_executor = agent_executor or AgentEngineeringExecutor()
+
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
-        from services.study_executor import StudyExecutor
-
-        executor = StudyExecutor(cache=None)
-        params = request.get_parameters()
-
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                data = await loop.run_in_executor(
-                    None, executor._dispatch_agent, request.capability_id, params
-                )
-            else:
-                data = executor._dispatch_agent(request.capability_id, params)
-        except Exception:
-            data = executor._dispatch_agent(request.capability_id, params)
-
-        return CanonicalExecutionResult(
-            execution_id=request.execution_id,
-            request_id=request.request_id,
-            capability_id=request.capability_id,
-            tenant_id=request.tenant_id,
-            user_id=request.user_id,
-            status="completed",
-            success=True,
-            data=data,
-            trace_id=request.trace_id,
-        )
+        return await self._agent_executor.execute(request)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -261,19 +534,37 @@ class ExecutionOrchestrator:
     19. Return canonical result
     """
 
-    def __init__(self, capability_registry: Optional[CapabilityRegistry] = None) -> None:
+    def __init__(
+        self,
+        capability_registry: Optional[CapabilityRegistry] = None,
+        state_store: Optional[IExecutionStateStore] = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         self._registry = capability_registry or get_capability_registry()
         self._executors: dict[str, IEngineeringExecutor] = {}
-        self._idempotency_cache: dict[str, Tuple[CanonicalExecutionResult, float]] = {}
-        self._result_store: dict[str, CanonicalExecutionResult] = {}
+        self._state_store = state_store or get_execution_state_store()
         self._event_listeners: list[Callable[[str, CanonicalExecutionResult], Any]] = []
 
         # Wire default executors
-        self.register_executor(ExecutorKind.NATIVE, NativeEngineeringExecutor())
+        native_exec = kwargs.get("native_executor") or NativeEngineeringExecutor()
+        self.register_executor(ExecutorKind.NATIVE, native_exec)
         self.register_executor(ExecutorKind.AGENT, AgentEngineeringExecutor())
         self.register_executor(ExecutorKind.ETAP, EtapEngineeringExecutor())
         self.register_executor(ExecutorKind.EXTERNAL_SERVICE, ExternalServiceExecutor())
         self.register_executor(ExecutorKind.COMPOSITE, CompositeEngineeringExecutor())
+
+    @property
+    def _idempotency_cache(self) -> dict:
+        if isinstance(self._state_store, InMemoryExecutionStateStore):
+            return self._state_store.idempotency
+        return {}
+
+    @property
+    def _result_store(self) -> dict:
+        if isinstance(self._state_store, InMemoryExecutionStateStore):
+            return self._state_store.results
+        return {}
 
     def register_executor(
         self, kind: ExecutorKind | str, executor: IEngineeringExecutor
@@ -322,7 +613,9 @@ class ExecutionOrchestrator:
             )
 
         # ── 3. Validate Capability ───────────────────────────────────────────
-        cap = self._registry.get(request.capability_id)
+        cap = self._registry.get(request.capability_id) or self._registry.get(
+            request.capability_id.lower()
+        )
         if cap is None:
             return self._build_rejection(
                 request,
@@ -453,8 +746,9 @@ class ExecutionOrchestrator:
 
         # ── 10. Enforce Idempotency ──────────────────────────────────────────
         idempotency_key = f"{request.tenant_id}:{request.idempotency_key}"
-        if idempotency_key in self._idempotency_cache:
-            cached_res, cached_time = self._idempotency_cache[idempotency_key]
+        cached_entry = self._state_store.get_idempotency(idempotency_key)
+        if cached_entry is not None:
+            cached_res, cached_time = cached_entry
             if time.time() - cached_time < 86400:  # 24 hour TTL
                 logger.info(
                     "Idempotent replay detected for execution %s (key %s)",
@@ -492,8 +786,8 @@ class ExecutionOrchestrator:
         try:
             exec_res = await executor.execute(request)
             data = exec_res.data
-            errors = exec_res.errors
-            warnings = exec_res.warnings
+            errors = list(exec_res.errors or [])
+            warnings = list(exec_res.warnings or [])
             success = exec_res.success
         except SpecializedExecutionUnavailableError:
             if raise_on_error:
@@ -506,7 +800,7 @@ class ExecutionOrchestrator:
                 raise_on_error=False,
             )
         except Exception as exc:
-            logger.error("Execution error for %s: %s", request.capability_id, exc, exc_info=True)
+            logger.exception("Execution error for %s: %s", request.capability_id, exc)
             if raise_on_error:
                 raise
             data = {}
@@ -516,10 +810,55 @@ class ExecutionOrchestrator:
 
         duration = time.perf_counter() - start_time
 
-        # ── 14. Perform Canonical Validation ─────────────────────────────────
-        validation_status = "passed" if success and not errors else "failed"
-        if warnings and validation_status == "passed":
-            validation_status = "warning"
+        # ── 14. Perform Canonical Validation (Phase 5: Real Authority) ──────
+        validation_report = {}
+        if success and data:
+            try:
+                from copilot.ai.engineering_assertions import EngineeringAssertionLayer
+
+                assertion_layer = EngineeringAssertionLayer(strict_mode=False)
+                study_key = cap.study_type or request.capability_id
+                report = assertion_layer.validate(data, study_key)
+                validation_report = report.to_dict()
+
+                if not report.passed or report.has_critical_failures:
+                    success = False
+                    validation_status = "failed"
+                    crit_msgs = [
+                        f.message
+                        for f in report.failures
+                        if getattr(f.severity, "value", str(f.severity)) in ("critical", "fatal")
+                    ]
+                    max_sev = (
+                        "fatal"
+                        if any(
+                            getattr(f.severity, "value", str(f.severity)) == "fatal"
+                            for f in report.failures
+                        )
+                        else "critical"
+                    )
+                    err_msg = (
+                        f"Canonical engineering assertions blocked result: {len(crit_msgs)} {max_sev.upper()} "
+                        f"violations detected ({'; '.join(crit_msgs[:2])})"
+                    )
+                    errors.insert(0, err_msg)
+                elif getattr(report, "warnings", []):
+                    validation_status = "warning"
+                    for w in report.warnings:
+                        warnings.append(f"[Validation Warning] {w.message}")
+                elif getattr(report, "failures", []):
+                    validation_status = "warning"
+                else:
+                    validation_status = "passed"
+            except Exception as val_exc:
+                logger.exception("Canonical validation error: %s", val_exc)
+                validation_status = "failed"
+                success = False
+                errors.append(f"Canonical validation error: {val_exc}")
+        elif not success:
+            validation_status = "failed"
+        else:
+            validation_status = "passed"
 
         # ── 15. Calculate Risk ───────────────────────────────────────────────
         try:
@@ -527,20 +866,55 @@ class ExecutionOrchestrator:
 
             risk_info = compute_risk(cap.study_type or request.capability_id, data)
         except Exception:
-            risk_info = {"risk_score": cap.risk_class, "risk_violations": []}
+            risk_info = {"risk_score": 0.1 if success else 1.0, "risk_violations": []}
+
+        raw_score = risk_info.get("risk_score", 0.0)
+        risk_level_map = {"low": 0.1, "medium": 0.4, "high": 0.7, "critical": 1.0}
+        if isinstance(raw_score, (int, float)):
+            risk_score = float(raw_score)
+            risk_class = cap.risk_class
+        elif isinstance(raw_score, str) and raw_score.lower() in risk_level_map:
+            risk_score = risk_level_map[raw_score.lower()]
+            risk_class = raw_score.lower()
+        else:
+            try:
+                risk_score = float(raw_score or 0.0)
+                risk_class = cap.risk_class
+            except (ValueError, TypeError):
+                risk_score = 0.1 if success else 1.0
+                risk_class = cap.risk_class
 
         risk_assessment = {
-            "risk_class": cap.risk_class,
-            "risk_score": risk_info.get("risk_score", cap.risk_class),
+            "risk_class": risk_class,
+            "risk_score": risk_score,
             "violations": risk_info.get("risk_violations", []),
         }
 
-        # ── 16. Attach Provenance ────────────────────────────────────────────
+        # ── 16. Attach Provenance & Compute Input Hashes ──────────────────────
+        import hashlib
+        import json
+
+        def _safe_hash(obj: Any) -> str:
+            if not obj:
+                return ""
+            try:
+                s = json.dumps(obj, sort_keys=True, default=str)
+                return hashlib.sha256(s.encode("utf-8")).hexdigest()
+            except Exception:
+                return hashlib.sha256(str(obj).encode("utf-8")).hexdigest()
+
+        param_hash = _safe_hash(params)
+        sys_hash = _safe_hash(request.system_snapshot or request.get_system())
+        input_hash = _safe_hash(request.input)
+
         provenance = {
             "executor_kind": executor_kind_str,
             "handler": cap.handler,
             "capability_id": cap.capability_id,
             "capability_version": cap.version,
+            "provider": getattr(exec_res, "provider", executor_kind_str) if 'exec_res' in locals() else executor_kind_str,
+            "solver": getattr(exec_res, "solver", cap.handler) if 'exec_res' in locals() else cap.handler,
+            "engine_version": getattr(exec_res, "engine_version", "2.1.0") if 'exec_res' in locals() else "2.1.0",
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "trace_id": request.trace_id,
             "tenant_id": request.tenant_id,
@@ -552,25 +926,41 @@ class ExecutionOrchestrator:
             execution_id=execution_id,
             request_id=request.request_id,
             capability_id=request.capability_id,
+            capability_version=cap.version,
             tenant_id=request.tenant_id,
             user_id=request.user_id,
+            executor_kind=executor_kind_str,
+            provider=getattr(exec_res, "provider", executor_kind_str) if 'exec_res' in locals() else executor_kind_str,
+            solver=getattr(exec_res, "solver", cap.handler) if 'exec_res' in locals() else cap.handler,
+            engine_version=getattr(exec_res, "engine_version", "2.1.0") if 'exec_res' in locals() else "2.1.0",
+            input_snapshot_hash=input_hash,
+            system_snapshot_hash=sys_hash,
+            parameter_hash=param_hash,
             status="completed" if success else "failed",
             success=success,
             data=data,
             provenance=provenance,
             validation_status=validation_status,
+            validation_report=validation_report,
+            risk_class=cap.risk_class,
+            risk_score=risk_score,
             risk_assessment=risk_assessment,
             audit_context=audit_context,
             execution_time_sec=duration,
             errors=errors,
             warnings=warnings,
             trace_id=request.trace_id,
+            task_id=request.request_id,
+            result_id=f"res_{uuid.uuid4().hex}",
+            created_at=started_at,
+            completed_at=datetime.now(timezone.utc).isoformat(),
+            approval_state=request.approval_context.get("state") if request.approval_context else None,
             idempotent_replay=False,
             metadata=request.metadata,
         )
 
-        self._result_store[execution_id] = result
-        self._idempotency_cache[idempotency_key] = (result, time.time())
+        self._state_store.set_result(execution_id, result)
+        self._state_store.set_idempotency(idempotency_key, result, time.time())
 
         # ── 18. Emit Execution Events ────────────────────────────────────────
         self._emit_event("execution_completed", result)

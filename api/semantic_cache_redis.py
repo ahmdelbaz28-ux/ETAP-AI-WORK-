@@ -54,10 +54,14 @@ class DistributedSemanticCache:
         system_data: Any,
         parameters: Dict[str, Any],
         agent_handle: str,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> str:
         canonical_sys = _canonicalize_value(system_data or {})
         canonical_params = _canonicalize_value(parameters or {})
         payload = {
+            "tenant_id": (tenant_id or "default").strip(),
+            "provider": (provider or "native").strip().lower(),
             "agent_handle": agent_handle.strip().lower(),
             "system": canonical_sys,
             "parameters": canonical_params,
@@ -129,6 +133,8 @@ class DistributedSemanticCache:
         r: Any,
         query_emb: np.ndarray,
         norm_handle: str,
+        norm_tenant: str = "default",
+        norm_provider: str = "native",
     ) -> Optional[Tuple[str, Dict[str, Any], float]]:
         """Scan cache entries to find best matching vector above threshold."""
         cursor = 0
@@ -155,6 +161,10 @@ class DistributedSemanticCache:
                 entry = json.loads(val_json)
                 if entry.get("agent_handle") != norm_handle:
                     continue
+                if entry.get("tenant_id", "default") != norm_tenant:
+                    continue
+                if entry.get("provider", "native") != norm_provider:
+                    continue
                 if time.time() - entry["cached_at"] > entry.get("ttl", self.ttl):
                     await r.hdel(f"{self.namespace}:entries", k)
                     continue
@@ -175,9 +185,15 @@ class DistributedSemanticCache:
         system_data: Any,
         parameters: Dict[str, Any],
         agent_handle: str,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> Optional[CachedResult]:
         norm_handle = agent_handle.strip().lower()
-        key = self._make_cache_key(system_data, parameters, norm_handle)
+        norm_tenant = (tenant_id or "default").strip()
+        norm_provider = (provider or "native").strip().lower()
+        key = self._make_cache_key(
+            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+        )
 
         try:
             r = await self.validate_redis_client()
@@ -196,7 +212,9 @@ class DistributedSemanticCache:
                 param_str = json.dumps(_canonicalize_value(parameters), sort_keys=True)
                 query_emb = self._embed(sys_str, param_str)
 
-                best_match = await self._scan_vector_similarity(r, query_emb, norm_handle)
+                best_match = await self._scan_vector_similarity(
+                    r, query_emb, norm_handle, norm_tenant=norm_tenant, norm_provider=norm_provider
+                )
                 if best_match:
                     matched_key, entry, sim = best_match
                     return self.format_cached_response(entry, matched_key, sim, norm_handle)
@@ -206,7 +224,13 @@ class DistributedSemanticCache:
             return None
         except Exception as exc:
             logger.debug("Redis semantic cache lookup failed, falling back to memory: %s", exc)
-            return await _get_in_memory_cache().lookup(system_data, parameters, agent_handle)
+            return await _get_in_memory_cache().lookup(
+                system_data,
+                parameters,
+                agent_handle,
+                tenant_id=norm_tenant,
+                provider=norm_provider,
+            )
 
     async def store(
         self,
@@ -216,9 +240,15 @@ class DistributedSemanticCache:
         result: Any,
         metadata: Optional[Dict[str, Any]] = None,
         custom_ttl: Optional[int] = None,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> None:
         norm_handle = agent_handle.strip().lower()
-        key = self._make_cache_key(system_data, parameters, norm_handle)
+        norm_tenant = (tenant_id or "default").strip()
+        norm_provider = (provider or "native").strip().lower()
+        key = self._make_cache_key(
+            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+        )
         meta = metadata or {}
         tokens_used = meta.get("tokens_used", 2000)
 
@@ -234,6 +264,8 @@ class DistributedSemanticCache:
             "cached_at": time.time(),
             "embedding": emb.tolist(),
             "agent_handle": norm_handle,
+            "tenant_id": norm_tenant,
+            "provider": norm_provider,
             "ttl": custom_ttl or self.ttl,
             "metadata": meta,
         }
@@ -252,6 +284,8 @@ class DistributedSemanticCache:
                 result,
                 metadata,
                 custom_ttl,
+                tenant_id=norm_tenant,
+                provider=norm_provider,
             )
 
     def get_stats(self) -> CacheStats:

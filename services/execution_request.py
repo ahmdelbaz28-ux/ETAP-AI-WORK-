@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -176,17 +176,33 @@ class CanonicalExecutionResult(BaseModel):
     capability_id: str
     tenant_id: str
     user_id: str
+    capability_version: str = "1.0.0"
+    executor_kind: str = "native"
+    provider: str = "native"
+    solver: str = ""
+    engine_version: str = "2.1.0"
+    input_snapshot_hash: str = ""
+    system_snapshot_hash: str = ""
+    parameter_hash: str = ""
     status: str = "completed"  # completed, failed, rejected, idempotent_replay
     success: bool = True
     data: dict[str, Any] = Field(default_factory=dict)
     provenance: dict[str, Any] = Field(default_factory=dict)
     validation_status: str = "passed"  # passed, failed, warning
+    validation_report: dict[str, Any] = Field(default_factory=dict)
+    risk_class: str = "low"
+    risk_score: float = 0.0
     risk_assessment: dict[str, Any] = Field(default_factory=dict)
     audit_context: dict[str, Any] = Field(default_factory=dict)
     execution_time_sec: float = 0.0
     errors: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     trace_id: str = ""
+    task_id: str = ""
+    result_id: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    completed_at: str = ""
+    approval_state: Optional[str] = None
     idempotent_replay: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -202,7 +218,28 @@ class CanonicalExecutionResult(BaseModel):
             errors=self.errors,
             execution_time_sec=self.execution_time_sec,
             trace_id=self.trace_id,
-            task_id=self.request_id,
+            task_id=self.task_id or self.request_id,
+            execution_id=self.execution_id,
+            request_id=self.request_id,
+            tenant_id=self.tenant_id,
+            capability_id=self.capability_id,
+            capability_version=self.capability_version,
+            provider=self.provider,
+            executor_kind=self.executor_kind,
+            solver=self.solver,
+            engine_version=self.engine_version,
+            input_snapshot_hash=self.input_snapshot_hash,
+            system_snapshot_hash=self.system_snapshot_hash,
+            parameter_hash=self.parameter_hash,
+            validation_status=self.validation_status in ("passed", True, 1),
+            validation_report=self.validation_report,
+            risk_class=self.risk_class,
+            risk_score=self.risk_score,
+            provenance=self.provenance,
+            result_id=self.result_id,
+            created_at=self.created_at,
+            completed_at=self.completed_at,
+            approval_state=self.approval_state,
         )
 
 

@@ -67,30 +67,104 @@ const request_canonical_execution = createTool({
       tenant_id: context?.requestContext?.get?.('tenant_id') || undefined,
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    const authHeader =
+      context?.requestContext?.get?.('authorization') ||
+      process.env.SERVICE_JWT ||
+      process.env.ENGINEERING_API_KEY;
+    if (authHeader) {
+      if (authHeader.startsWith('Bearer ') || authHeader.startsWith('bearer ')) {
+        headers['Authorization'] = authHeader;
+      } else {
+        headers['Authorization'] = `Bearer ${authHeader}`;
+      }
+    }
+
+    let planData: any;
     try {
-      const resp = await fetch(`${backendUrl}/api/v1/agent-exec/plan`, {
+      const planResp = await fetch(`${backendUrl}/api/v1/agent-exec/plan`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(planPayload),
       });
-      if (resp.ok) {
-        return await resp.json();
+      if (!planResp.ok) {
+        const errorText = await planResp.text().catch(() => '');
+        return {
+          status: 'failed',
+          success: false,
+          error: `Plan phase rejected by gateway (${planResp.status}): ${errorText.slice(0, 300)}`,
+          gateway: 'canonical_execution_orchestrator',
+        };
       }
-    } catch {
-      // In offline/test environments, return the canonical ExecutionPlan representation
+      planData = await planResp.json();
+    } catch (networkErr: any) {
+      return {
+        status: 'unavailable',
+        success: false,
+        error: `Canonical execution gateway unreachable: ${networkErr?.message || networkErr}`,
+        gateway: 'canonical_execution_orchestrator',
+      };
+    }
+
+    if (planData.decision === 'auto_approved') {
+      const idempotencyKey =
+        context?.requestContext?.get?.('idempotency_key') ||
+        `mastra_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      const execHeaders: Record<string, string> = {
+        ...headers,
+        'Idempotency-Key': idempotencyKey,
+      };
+
+      try {
+        const execResp = await fetch(`${backendUrl}/api/v1/agent-exec/execute`, {
+          method: 'POST',
+          headers: execHeaders,
+          body: JSON.stringify({ plan_id: planData.plan_id }),
+        });
+        if (!execResp.ok) {
+          const errorText = await execResp.text().catch(() => '');
+          return {
+            status: 'failed',
+            success: false,
+            error: `Execution phase rejected by gateway (${execResp.status}): ${errorText.slice(0, 300)}`,
+            plan_id: planData.plan_id,
+            gateway: 'canonical_execution_orchestrator',
+          };
+        }
+        const execResult = await execResp.json();
+        return {
+          status:
+            execResult?.data?.status ||
+            (execResult?.success === false ? 'failed' : 'completed'),
+          success: execResult?.success !== false,
+          gateway: 'canonical_execution_orchestrator',
+          plan_id: planData.plan_id,
+          execution_id: execResult?.data?.execution_id,
+          result: execResult?.data?.result || execResult,
+        };
+      } catch (networkErr: any) {
+        return {
+          status: 'unavailable',
+          success: false,
+          error: `Canonical execution gateway unreachable during execution: ${networkErr?.message || networkErr}`,
+          plan_id: planData.plan_id,
+          gateway: 'canonical_execution_orchestrator',
+        };
+      }
     }
 
     return {
-      status: 'submitted',
+      status: 'pending_approval',
+      success: false,
+      requires_approval: true,
+      decision: planData.decision,
+      reason: planData.reason,
+      plan_id: planData.plan_id,
       gateway: 'canonical_execution_orchestrator',
-      execution_plan: {
-        flow: 'User Intent -> AI Interpretation -> ExecutionPlan -> Capability Selection -> Canonical ExecutionRequest -> Canonical ExecutionOrchestrator',
-        capability_id,
-        goal,
-        parameters: parameters || {},
-        provenance: source || { kind: 'user_input', ref: 'mastra_agent_request' },
-      },
-      message: 'Authoritative study registered for canonical ExecutionOrchestrator processing.',
+      message: 'Plan requires human or maker-checker approval before canonical execution.',
     };
   },
 });

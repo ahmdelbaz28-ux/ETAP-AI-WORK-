@@ -110,11 +110,15 @@ class SemanticCache:
         system_data: Any,
         parameters: Dict[str, Any],
         agent_handle: str,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> str:
-        """Compute SHA256 hash of canonical JSON + agent handle."""
+        """Compute SHA256 hash of canonical JSON + agent handle + tenant + provider."""
         canonical_sys = _canonicalize_value(system_data or {})
         canonical_params = _canonicalize_value(parameters or {})
         payload = {
+            "tenant_id": (tenant_id or "default").strip(),
+            "provider": (provider or "native").strip().lower(),
             "agent_handle": agent_handle.strip().lower(),
             "system": canonical_sys,
             "parameters": canonical_params,
@@ -176,11 +180,17 @@ class SemanticCache:
         system_data: Any,
         parameters: Dict[str, Any],
         agent_handle: str,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> Optional[CachedResult]:
         """Lookup cached result if match exists and is within TTL."""
         await asyncio.sleep(0)
         norm_handle = agent_handle.strip().lower()
-        key = self._make_cache_key(system_data, parameters, norm_handle)
+        norm_tenant = (tenant_id or "default").strip()
+        norm_provider = (provider or "native").strip().lower()
+        key = self._make_cache_key(
+            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+        )
 
         with self._lock:
             # 1. Exact match by canonical SHA256 key
@@ -209,7 +219,7 @@ class SemanticCache:
                 tracker.record_cache_miss(agent_handle=norm_handle)
                 return None
 
-            # 2. Semantic vector similarity match across entries for same agent
+            # 2. Semantic vector similarity match across entries for same agent, tenant and provider
             sys_str = json.dumps(_canonicalize_value(system_data), sort_keys=True)
             param_str = json.dumps(_canonicalize_value(parameters), sort_keys=True)
             query_emb = self._embed(sys_str, param_str)
@@ -219,6 +229,10 @@ class SemanticCache:
 
             for k, entry in self._entries.items():
                 if entry.get("agent_handle") != norm_handle:
+                    continue
+                if entry.get("tenant_id", "default") != norm_tenant:
+                    continue
+                if entry.get("provider", "native") != norm_provider:
                     continue
                 if self._is_expired(entry["cached_at"], entry.get("ttl")):
                     expired_keys.append(k)
@@ -260,11 +274,17 @@ class SemanticCache:
         result: Any,
         metadata: Optional[Dict[str, Any]] = None,
         custom_ttl: Optional[int] = None,
+        tenant_id: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> None:
         """Store study result along with embedding, canonical key, and metadata."""
         await asyncio.sleep(0)
         norm_handle = agent_handle.strip().lower()
-        key = self._make_cache_key(system_data, parameters, norm_handle)
+        norm_tenant = (tenant_id or "default").strip()
+        norm_provider = (provider or "native").strip().lower()
+        key = self._make_cache_key(
+            system_data, parameters, norm_handle, tenant_id=norm_tenant, provider=norm_provider
+        )
         meta = metadata or {}
         tokens_used = meta.get("tokens_used", 2000)
 
@@ -282,8 +302,10 @@ class SemanticCache:
                 "cached_at": time.time(),
                 "embedding": emb,
                 "agent_handle": norm_handle,
-                "ttl": custom_ttl or self.ttl,
+                "tenant_id": norm_tenant,
+                "provider": norm_provider,
                 "metadata": meta,
+                "ttl": custom_ttl if custom_ttl is not None else self.ttl,
             }
             if self.storage_path:
                 self._persist_to_disk()

@@ -111,9 +111,9 @@ async def execute_study_re_run(
             system_spec = system_data
 
     from core_model.specs import StudyRequest
-    from services.study_executor import StudyExecutor
+    from services.execution_orchestrator import get_execution_orchestrator
+    from services.execution_request import ExecutionRequest
 
-    executor = StudyExecutor()
     task_id = f"rerun_{project_id}_{int(time.time() * 1000)}"
     request_payload = StudyRequest(
         study_type=canonical_tool,
@@ -122,17 +122,24 @@ async def execute_study_re_run(
         task_id=task_id,
     )
 
-    study_res = await executor.execute(request_payload)
-
-    # 4. Persist StudyResult record in DB
-    study_id = str(uuid.uuid4())
     creator_id = (
         getattr(user, "user_id", None)
         or getattr(user, "id", None)
         or getattr(project, "created_by", "system")
         or "system"
     )
-    tenant_id = getattr(user, "tenant_id", None) or getattr(project, "tenant_id", None)
+    tenant_id = getattr(user, "tenant_id", None) or getattr(project, "tenant_id", None) or "default"
+
+    exec_req = ExecutionRequest.from_study_request(
+        study_request=request_payload,
+        user_id=str(creator_id),
+        tenant_id=str(tenant_id),
+    )
+    canonical_res = await get_execution_orchestrator().execute(exec_req)
+    study_res = canonical_res.to_study_result()
+
+    # 4. Persist StudyResult record in DB
+    study_id = str(uuid.uuid4())
 
     status_val = StudyStatus.COMPLETED.value if study_res.success else StudyStatus.FAILED.value
     err_msg = "; ".join(study_res.errors) if study_res.errors else None

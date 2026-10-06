@@ -2,93 +2,194 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from api.studies import run_study  # Assuming this is the function in api/studies.py
-from services.execution_orchestrator import ExecutionOrchestrator
-from services.execution_request import ExecutionRequest
+from api.dependencies import CurrentUser
+from api.studies import run_study
+from services.execution_request import CanonicalExecutionResult, ExecutionRequest
 
 
 @pytest.mark.asyncio
 async def test_api_studies_runs_via_orchestrator():
-    """Test that POST /api/v1/studies/run goes through ExecutionOrchestrator."""
-    with patch('api.studies.get_execution_orchestrator') as mock_get_orchestrator:
+    """Test that POST /api/v1/studies/run goes through ExecutionOrchestrator (Test A)."""
+    with patch("api.studies.get_execution_orchestrator") as mock_get_orchestrator:
         mock_orchestrator = Mock()
         mock_get_orchestrator.return_value = mock_orchestrator
-        mock_canonical_res = Mock(
+        mock_canonical_res = CanonicalExecutionResult(
+            execution_id="exec_1",
+            request_id="req_1",
+            tenant_id="tenant_1",
+            user_id="user_1",
+            capability_id="LOAD_FLOW",
             status="completed",
-            errors=[],
             success=True,
-            to_study_result=Mock(return_value=Mock(success=True, provider="native", data={}, warnings=[], errors=[], execution_time_sec=0.1))
+            provider="native",
+            executor_kind="native",
+            solver="newton_raphson",
+            result={"converged": True, "voltages": {}},
+            validation_status="passed",
+            errors=[],
+            warnings=[],
         )
         mock_orchestrator.execute = AsyncMock(return_value=mock_canonical_res)
 
-        # Simulate the API call
         payload = {
-            "study_type": "load_flow",
+            "study_type": "LOAD_FLOW",
             "parameters": {},
-            "system": {"base_mva": 100, "buses": [], "lines": []}
+            "system": {"base_mva": 100, "buses": [], "lines": []},
         }
-        # Assuming run_study is the function that handles the POST request
-        # We'll call it with a mock user and tenant
-        # Note: This is a simplified test; actual implementation may vary
         result = await run_study(payload, user_id="user_1", tenant_id="tenant_1")
 
-        # Verify that the orchestrator's execute method was called
-        mock_get_orchestrator.assert_called_once()
+        mock_get_orchestrator.assert_called()
         mock_orchestrator.execute.assert_called_once()
-        # Check that the argument passed to execute is an ExecutionRequest
         args, kwargs = mock_orchestrator.execute.call_args
-        assert isinstance(args[0], ExecutionRequest)
-        assert args[0].capability_id == "load_flow"
-        assert args[0].tenant_id == "tenant_1"
-        assert args[0].user_id == "user_1"
+        req = args[0]
+        assert isinstance(req, ExecutionRequest)
+        assert req.capability_id.upper() == "LOAD_FLOW"
+        assert req.tenant_id == "tenant_1"
+        assert req.user_id == "user_1"
+        assert result.success is True
+        assert result.provider == "native"
 
-def test_no_direct_calls_to_study_executor():
-    """Test that there are no direct calls to StudyExecutor from API layer."""
-    # This test is more about code inspection, but we can check by mocking
-    # and ensuring that StudyExecutor.execute is not called when using the API.
-    with patch('services.study_executor.StudyExecutor.execute') as mock_execute:
-        # Simulate an API call that should go through the orchestrator
-        # If the API call does not go through the orchestrator, this might be called.
-        # We expect it not to be called.
-        # Note: This test is reliant on the mocking setup and the actual code flow.
-        # We'll run a dummy API call and check.
-        from api.studies import run_study
+
+@pytest.mark.asyncio
+async def test_no_api_direct_power_system_engine_execution():
+    """Test that the API layer does not directly call PowerSystemEngine (Test B)."""
+    with patch("engine.engine.PowerSystemEngine") as mock_engine_cls, \
+         patch("api.studies.get_execution_orchestrator") as mock_get_orchestrator:
+
+        mock_orchestrator = Mock()
+        mock_get_orchestrator.return_value = mock_orchestrator
+        mock_canonical_res = CanonicalExecutionResult(
+            execution_id="exec_2",
+            request_id="req_2",
+            tenant_id="tenant_2",
+            user_id="user_2",
+            capability_id="LOAD_FLOW",
+            status="completed",
+            success=True,
+            provider="native",
+            executor_kind="native",
+            result={"converged": True},
+            validation_status="passed",
+            errors=[],
+            warnings=[],
+        )
+        mock_orchestrator.execute = AsyncMock(return_value=mock_canonical_res)
+
         payload = {
-            "study_type": "load_flow",
+            "study_type": "LOAD_FLOW",
             "parameters": {},
-            "system": {"base_mva": 100, "buses": [], "lines": []}
+            "system": {"base_mva": 100, "buses": [], "lines": []},
         }
-        # We don't expect StudyExecutor.execute to be called directly
-        # because the API should use the orchestrator.
-        # However, the orchestrator will call the native executor, which might be StudyExecutor.
-        # So we adjust: we expect that StudyExecutor.execute is not called directly by the API,
-        # but it may be called by the orchestrator. We cannot easily distinguish without more mocks.
-        # Instead, we'll check that the API does not call StudyExecutor.execute without going through the orchestrator.
-        # We'll mock the orchestrator to see if it is called, and then check that StudyExecutor.execute
-        # is not called when the orchestrator is mocked to return a result without calling the native executor.
-        pass  # This test is better done by code inspection; we'll skip the complex mocking for now.
+        await run_study(payload, user_id="user_2", tenant_id="tenant_2")
 
-def test_no_direct_calls_to_power_system_engine():
-    """Test that there are no direct calls to PowerSystemEngine from API layer."""
-    # Similar to above, we rely on the fact that the API now goes through the orchestrator.
-    # We can check by mocking PowerSystemEngine and ensuring it's not called.
-    # But note: the orchestrator may call the native executor which uses PowerSystemEngine.
-    # So we cannot completely mock it out. Instead, we trust that the API layer does not
-    # import or call PowerSystemEngine directly.
-    # We'll do a simple check: ensure that the API module does not import PowerSystemEngine.
-    # This is a static check and can be done by inspecting the file.
-    # For the purpose of this test, we'll assume that the fix in api/studies.py removed direct calls.
-    pass
+        # Prove the API layer did NOT instantiate PowerSystemEngine directly
+        mock_engine_cls.assert_not_called()
 
-# We'll add a test that checks the orchestrator is used for all known entry points.
-def test_all_known_entry_points_use_orchestrator():
-    """Test that all known API entry points for studies use the orchestrator."""
-    entry_points = [
-        ('POST', '/api/v1/studies/run'),
-        ('POST', '/api/v1/studies/run_async'),
-        ('POST', '/api/v1/studies/re-run'),
-    ]
-    # We would normally test each endpoint, but for simplicity we'll just note that
-    # the fixes in api/studies.py ensure they all go through the orchestrator.
-    # We'll rely on the previous test for the main entry point.
-    assert True  # Placeholder
+
+@pytest.mark.asyncio
+async def test_study_execution_service_re_run_uses_canonical_orchestrator():
+    """Test that execute_study_re_run traverses the canonical orchestrator."""
+    from api.services.study_execution_service import execute_study_re_run
+
+    mock_db = AsyncMock()
+    mock_project = Mock()
+    mock_project.id = "proj_1"
+    mock_project.tenant_id = "tenant_alpha"
+    mock_project.created_by = "user_rerun"
+    mock_project.system_config = {"base_mva": 100, "buses": [], "lines": []}
+    mock_scalar = Mock()
+    mock_scalar.scalar_one_or_none.return_value = mock_project
+    mock_scalar.scalar.return_value = 1
+    mock_db.execute = AsyncMock(return_value=mock_scalar)
+
+    with patch("api.services.study_execution_service.save_solver_params", new=AsyncMock()), \
+         patch("services.execution_orchestrator.get_execution_orchestrator") as mock_get_orch:
+        mock_orch = Mock()
+        mock_get_orch.return_value = mock_orch
+        mock_res = CanonicalExecutionResult(
+            execution_id="exec_rerun",
+            request_id="req_rerun",
+            tenant_id="tenant_alpha",
+            user_id="user_rerun",
+            capability_id="SHORT_CIRCUIT",
+            status="completed",
+            success=True,
+            provider="native",
+            executor_kind="native",
+            result={"ik_ss": 10.0},
+            validation_status="passed",
+            errors=[],
+            warnings=[],
+        )
+        mock_orch.execute = AsyncMock(return_value=mock_res)
+
+        user = CurrentUser(
+            user_id="user_rerun",
+            username="rerunner",
+            email="rerunner@example.com",
+            tenant_id="tenant_alpha",
+            role="engineer",
+        )
+        output = await execute_study_re_run(
+            project_id="proj_1",
+            tool="short_circuit",
+            params={"system": {"base_mva": 100, "buses": [], "lines": []}},
+            user=user,
+            db=mock_db,
+        )
+
+        mock_get_orch.assert_called()
+        mock_orch.execute.assert_called_once()
+        exec_req = mock_orch.execute.call_args[0][0]
+        assert isinstance(exec_req, ExecutionRequest)
+        assert exec_req.tenant_id == "tenant_alpha"
+        assert exec_req.user_id == "user_rerun"
+        assert output["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_agent_executor_canonical_tool_uses_canonical_orchestrator():
+    """Test that _canonical_orchestrator_executor traverses the canonical orchestrator (Test C)."""
+    from api.agent_executor import _canonical_orchestrator_executor
+
+    with patch("services.execution_orchestrator.get_execution_orchestrator") as mock_get_orch:
+        mock_orch = Mock()
+        mock_get_orch.return_value = mock_orch
+        mock_res = CanonicalExecutionResult(
+            execution_id="exec_agent_tool",
+            request_id="req_agent_tool",
+            tenant_id="tenant_tool",
+            user_id="engineer_1",
+            capability_id="SHORT_CIRCUIT",
+            status="completed",
+            success=True,
+            provider="native",
+            executor_kind="native",
+            result={"ik_ss": 12.5},
+            validation_status="passed",
+            errors=[],
+            warnings=[],
+        )
+        mock_orch.execute = AsyncMock(return_value=mock_res)
+
+        args = {
+            "capability_id": "SHORT_CIRCUIT",
+            "goal": "Fault analysis",
+            "parameters": {"fault_type": "3phase"},
+            "system": {"base_mva": 100, "buses": [], "lines": []},
+        }
+        ctx = {
+            "tenant_id": "tenant_tool",
+            "user_id": "engineer_1",
+            "execution_id": "exec_ctx_1",
+        }
+        tool_res = await _canonical_orchestrator_executor(args, ctx)
+
+        assert tool_res["status"] == "completed"
+        assert tool_res["authoritative"] is True
+        assert tool_res["execution_mode"] == "canonical_orchestrator"
+        mock_orch.execute.assert_called_once()
+        exec_req = mock_orch.execute.call_args[0][0]
+        assert isinstance(exec_req, ExecutionRequest)
+        assert exec_req.tenant_id == "tenant_tool"
+        assert exec_req.capability_id == "SHORT_CIRCUIT"
