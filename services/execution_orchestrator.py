@@ -1056,7 +1056,12 @@ class ExecutionOrchestrator:
         # ── 7. Validate Request Schema ───────────────────────────────────────
         params = request.get_parameters()
         if cap.required_params:
-            missing_params = [p for p in cap.required_params if params.get(p) is None]
+            missing_params = [
+                p
+                for p in cap.required_params
+                if params.get(p) is None
+                or (isinstance(params.get(p), str) and not params.get(p).strip())
+            ]
             if missing_params:
                 return self._build_rejection(
                     request,

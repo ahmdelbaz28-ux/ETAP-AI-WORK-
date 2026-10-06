@@ -853,6 +853,13 @@ class StudyExecutor:
                     study_type, f"Optimization execution unavailable: {exc}"
                 ) from exc
 
+        # Specialized agent studies require explicit parameters; empty parameters to native dispatch port fails closed
+        if not parameters:
+            raise SpecializedExecutionUnavailableError(
+                study_type,
+                f"Study type '{study_type}' is a specialized study requiring specific parameters; empty parameters provided to native dispatch",
+            )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key

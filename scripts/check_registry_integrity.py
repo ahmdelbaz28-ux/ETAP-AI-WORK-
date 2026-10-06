@@ -76,33 +76,54 @@ def _load_canonical_agent_ids_from_ts() -> set[str]:
 
 
 def _load_canonical_agent_ids_from_study_type_map() -> set[str]:
-    """Load agent class names from agents.STUDY_TYPE_AGENT_MAP."""
+    """Load agent class names from agents.STUDY_TYPE_AGENT_MAP or CapabilityRegistry."""
     try:
         sys.path.insert(0, str(REPO_ROOT))
         from agents import STUDY_TYPE_AGENT_MAP
 
         return {cls.__name__ for cls in STUDY_TYPE_AGENT_MAP.values()}
     except Exception:
-        # Fallback AST parsing of agents/__init__.py when agent dependencies cannot be imported eagerly
-        try:
-            import ast
+        pass
 
-            init_path = REPO_ROOT / "agents" / "__init__.py"
-            if not init_path.exists():
-                return set()
-            tree = ast.parse(init_path.read_text(encoding="utf-8"))
-            agent_classes = set()
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Assign):
-                    for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == "STUDY_TYPE_AGENT_MAP":
-                            if isinstance(node.value, ast.Dict):
-                                for val in node.value.values:
-                                    if isinstance(val, ast.Name):
-                                        agent_classes.add(val.id)
-            return agent_classes
-        except Exception:
+    # Try capability registry directly (no heavy dependencies)
+    try:
+        sys.path.insert(0, str(REPO_ROOT))
+        from engine.capability_registry import get_capability_registry
+
+        reg = get_capability_registry()
+        classes = set()
+        for cap in reg.list_capabilities():
+            if cap.handler and isinstance(cap.handler, str) and cap.handler.endswith("Agent"):
+                classes.add(cap.handler.split(".")[-1])
+        if classes:
+            return classes
+    except Exception:
+        pass
+
+    # Fallback AST parsing of agents/__init__.py for ALL_AGENT_CLASSES / STUDY_TYPE_AGENT_MAP
+    try:
+        import ast
+
+        init_path = REPO_ROOT / "agents" / "__init__.py"
+        if not init_path.exists():
             return set()
+        tree = ast.parse(init_path.read_text(encoding="utf-8"))
+        agent_classes = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id in ("ALL_AGENT_CLASSES", "STUDY_TYPE_AGENT_MAP"):
+                        if isinstance(node.value, ast.List):
+                            for elt in node.value.elts:
+                                if isinstance(elt, ast.Name):
+                                    agent_classes.add(elt.id)
+                        elif isinstance(node.value, ast.Dict):
+                            for val in node.value.values:
+                                if isinstance(val, ast.Name):
+                                    agent_classes.add(val.id)
+        return agent_classes
+    except Exception:
+        return set()
     finally:
         if str(REPO_ROOT) in sys.path:
             sys.path.remove(str(REPO_ROOT))
