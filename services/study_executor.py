@@ -735,6 +735,11 @@ class StudyExecutor:
             downstream = parameters.get("downstream_relay_id", 2)
             fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
             relays_config = parameters.get("relays_config")
+            if not relays_config:
+                relays_config = {
+                    "upstream": {"name": f"Relay_{upstream}", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+                    "downstream": {"name": f"Relay_{downstream}", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+                }
             return method(upstream, downstream, fault_currents, relays_config=relays_config)
         # Generic fallback for any future native handler
         return method(**parameters)

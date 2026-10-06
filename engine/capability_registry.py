@@ -127,6 +127,8 @@ class CapabilityRegistry:
         self._study_type_index: dict[str, str] = {}
         self._agent_key_index: dict[str, str] = {}
         self._aliases: dict[str, str] = {
+            "fault": "short_circuit",
+            "coordination": "protection_coordination",
             "harmonic": "harmonic_analysis",
             "opf": "optimal_power_flow",
             "protection": "protection_coordination",
@@ -344,7 +346,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             executor_kind=ExecutorKind.NATIVE,
             handler="run_protection_coordination",
             requires_system=True,
-            required_params=("upstream_relay_id", "downstream_relay_id", "fault_currents"),
+            required_params=("upstream_relay_id", "downstream_relay_id"),
             agent_key="protection_coordination",
             risk_class="high",
             version="1.0.0",
