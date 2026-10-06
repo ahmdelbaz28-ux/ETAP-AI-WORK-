@@ -124,6 +124,13 @@ overrides:
   mkdirp: ^1.0.4
   # HIGH: nanoid predictable ID generation
   nanoid: ^3.3.8
+  # CRITICAL: proxy-addr IP spoofing via IPv4-mapped IPv6 trust subnet (GHSA-jqcg-44mw-7w3h)
+  proxy-addr: ^2.0.8
+  # HIGH: source-map-js event-loop DoS via indexed section offsets (GHSA-68fv-2mgg-jv7q)
+  source-map-js: ^1.2.2
+  # CRITICAL/HIGH: simple-git command injection and unsafe operations (GHSA-858h-whjf-mvg5, GHSA-g4wm-2vf7-vfgr, GHSA-x6jw-m9v5-85vh)
+  simple-git: ^4.0.2
+  '@simple-git/argv-parser': ^2.0.1
 
 allowBuilds:
   '@biomejs/biome': true

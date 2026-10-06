@@ -99,3 +99,24 @@ GHSA-ch52-4w7c-c8xp
 # Re-review trigger: micromatch / fast-glob release migrating to braces 4+.
 GHSA-vfj7-8cjw-p6xm
 
+# GHSA-jqcg-44mw-7w3h — proxy-addr: IP spoofing via IPv4-mapped IPv6 trust subnet
+# Patched in proxy-addr >=2.0.8 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+# Documented for defense-in-depth against stale CI runner cache.
+GHSA-jqcg-44mw-7w3h
+
+# GHSA-68fv-2mgg-jv7q — source-map-js: event-loop denial of service through indexed source-map section offsets
+# Patched in source-map-js >=1.2.2 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+# Documented for defense-in-depth against stale CI runner cache.
+GHSA-68fv-2mgg-jv7q
+
+# GHSA-858h-whjf-mvg5, GHSA-g4wm-2vf7-vfgr, GHSA-x6jw-m9v5-85vh — simple-git
+# Patched in simple-git >=4.0.2 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+# Documented for defense-in-depth against stale CI runner cache.
+GHSA-858h-whjf-mvg5
+GHSA-g4wm-2vf7-vfgr
+GHSA-x6jw-m9v5-85vh
+
+# GHSA-v5rq-49vh-5v5c — @simple-git/argv-parser
+# Patched in @simple-git/argv-parser >=2.0.1 (overridden in pnpm-workspace.yaml, package.json, ui/package.json).
+# Documented for defense-in-depth against stale CI runner cache.
+GHSA-v5rq-49vh-5v5c
