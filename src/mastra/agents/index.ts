@@ -134,7 +134,7 @@ const request_canonical_execution = createTool({
             gateway: 'canonical_execution_orchestrator',
           };
         }
-        const execResult = await execResp.json();
+        const execResult: any = await execResp.json();
         return {
           status:
             execResult?.data?.status ||
