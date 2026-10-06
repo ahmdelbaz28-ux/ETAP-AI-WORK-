@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-05T11:55:45.658058+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-06T06:58:32.089624+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,11 +15,11 @@
 | Python | Functions | 820 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 263 |
-| Total | Tests | 3798 |
+| Total | Tests | 3806 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 442 |
-| Scripts | | 155 |
+| Environment | Variables | 443 |
+| Scripts | | 166 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
 | UI | Search Index Entries | 474 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **442** variables
+Total: **443** variables
 
 ### General
 
@@ -279,6 +279,7 @@ Total: **442** variables
 - `ALERT_DEBOUNCE_SECONDS`
 - `ALLOWED_APP_URL_DOMAINS`
 - `ALLOW_BIDIRECTIONAL_SYNC`
+- `ALLOW_EPHEMERAL_JWT_IN_DEV`
 - `ALLOW_GIS_TO_ETAP_SYNC`
 - `ALLOW_SQLITE_IN_PROD`
 - `ALLOW_TEST_TOKENS`
@@ -1077,27 +1078,27 @@ into real work
   - `POST /plan`
   - `POST /execute`
 
-#### 📄 `api/agents.py` _48.6 KB_
+#### 📄 `api/agents.py` _49.0 KB_
 > Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
 Separated from main engineering service for bette
 
 - **Class** `AgentMetaResponse` (line 154)
-- **Class** `ETAPExpertChatRequest` (line 404)
-- **Class** `ETAPGUIChatRequest` (line 475)
-- **Class** `ETAPGUIExecuteRequest` (line 541)
-- **Class** `AhmedETAPOrchestrateRequest` (line 1006)
+- **Class** `ETAPExpertChatRequest` (line 420)
+- **Class** `ETAPGUIChatRequest` (line 491)
+- **Class** `ETAPGUIExecuteRequest` (line 557)
+- **Class** `AhmedETAPOrchestrateRequest` (line 1022)
 - **async def** `get_agents_list()` (line 166)
-- **async def** `list_mcp_servers()` (line 221)
-- **async def** `get_agent_by_id()` (line 310)
-- **async def** `get_agents_info()` (line 359)
-- **async def** `etap_expert_chat()` (line 423)
-- **async def** `etap_gui_chat()` (line 493)
-- **async def** `etap_gui_execute()` (line 598)
-- **async def** `etap_gui_health()` (line 754)
-- **async def** `etap_gui_activate_kill_switch()` (line 803)
-- **async def** `etap_gui_deactivate_kill_switch()` (line 842)
+- **async def** `list_mcp_servers()` (line 226)
+- **async def** `get_agent_by_id()` (line 315)
+- **async def** `get_agents_info()` (line 370)
+- **async def** `etap_expert_chat()` (line 439)
+- **async def** `etap_gui_chat()` (line 509)
+- **async def** `etap_gui_execute()` (line 614)
+- **async def** `etap_gui_health()` (line 770)
+- **async def** `etap_gui_activate_kill_switch()` (line 819)
+- **async def** `etap_gui_deactivate_kill_switch()` (line 858)
 
   **API Routes:**
   - `GET /`
@@ -1233,44 +1234,44 @@ log entries generated
   - `GET /`
   - `GET /stats`
 
-#### 📄 `api/auth.py` _75.1 KB_
+#### 📄 `api/auth.py` _75.2 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 
 * ``POST /register``      
 
-- **Class** `User` (line 391)
-- **Class** `RegisterRequest` (line 442)
+- **Class** `User` (line 392)
+- **Class** `RegisterRequest` (line 443)
   - Methods: `validate_password_strength()`
-- **Class** `LoginRequest` (line 468)
-- **Class** `LoginResponse` (line 502)
-- **Class** `TokenResponse` (line 521)
-- **Class** `RefreshRequest` (line 532)
-- **Class** `ChangePasswordRequest` (line 541)
+- **Class** `LoginRequest` (line 469)
+- **Class** `LoginResponse` (line 503)
+- **Class** `TokenResponse` (line 522)
+- **Class** `RefreshRequest` (line 533)
+- **Class** `ChangePasswordRequest` (line 542)
   - Methods: `validate_new_password()`
-- **Class** `ForgotPasswordRequest` (line 556)
-- **Class** `ResetPasswordRequest` (line 564)
+- **Class** `ForgotPasswordRequest` (line 557)
+- **Class** `ResetPasswordRequest` (line 565)
   - Methods: `validate_new_password()`
-- **Class** `UpdateProfileRequest` (line 579)
-- **Class** `UserResponse` (line 606)
-- **Class** `UserListResponse` (line 622)
-- **Class** `MfaService` (line 1063)
+- **Class** `UpdateProfileRequest` (line 580)
+- **Class** `UserResponse` (line 607)
+- **Class** `UserListResponse` (line 623)
+- **Class** `MfaService` (line 1064)
   - Methods: `issue_challenge()`, `verify_challenge()`, `verify_and_issue_tokens()`
-- **Class** `AuthService` (line 1084)
+- **Class** `AuthService` (line 1085)
   - Methods: `hash_password()`, `verify_password()`, `create_access_token()`, `create_refresh_token()`, `verify_credentials()`
-- **Class** `UserService` (line 1118)
+- **Class** `UserService` (line 1119)
   - Methods: `create()`
-- **def** `validate_email_app_url()` (line 274)
-- **async def** `register()` (line 1204)
-- **async def** `login()` (line 1341)
-- **async def** `refresh()` (line 1474)
-- **async def** `logout()` (line 1558)
-- **async def** `get_me()` (line 1640)
-- **async def** `update_me()` (line 1677)
-- **async def** `change_password()` (line 1762)
-- **async def** `forgot_password()` (line 1875)
-- **async def** `reset_password()` (line 1980)
+- **def** `validate_email_app_url()` (line 275)
+- **async def** `register()` (line 1205)
+- **async def** `login()` (line 1342)
+- **async def** `refresh()` (line 1475)
+- **async def** `logout()` (line 1559)
+- **async def** `get_me()` (line 1641)
+- **async def** `update_me()` (line 1678)
+- **async def** `change_password()` (line 1763)
+- **async def** `forgot_password()` (line 1876)
+- **async def** `reset_password()` (line 1984)
 
 #### 📄 `api/autodesk_connectors.py` _12.9 KB_
 > Autodesk Connector Health & Test API Router
@@ -1486,23 +1487,23 @@ Executes `alembic upgrade head` before accepting traffic in FastAPI lif
 - **async def** `run_alembic_startup_gate()` (line 57)
 - **async def** `check_schema_health()` (line 76)
 
-#### 📄 `api/dependencies.py` _18.9 KB_
+#### 📄 `api/dependencies.py` _19.0 KB_
 > api/dependencies.py — Shared FastAPI dependencies.
 
 Provides reusable dependency callables for:
 
 * JWT-based current-user resolution (``get_current_us
 
-- **Class** `PaginationParams` (line 109)
+- **Class** `PaginationParams` (line 105)
   - Methods: `offset()`
-- **Class** `CurrentUser` (line 141)
-- **def** `pagination_params()` (line 128)
-- **async def** `get_current_user()` (line 251)
-- **async def** `get_current_user_from_header()` (line 318)
-- **async def** `get_optional_current_user_from_header()` (line 331)
-- **def** `require_role()` (line 365)
-- **async def** `get_api_key()` (line 398)
-- **async def** `set_session_tenant_context()` (line 508)
+- **Class** `CurrentUser` (line 137)
+- **def** `pagination_params()` (line 124)
+- **async def** `get_current_user()` (line 247)
+- **async def** `get_current_user_from_header()` (line 314)
+- **async def** `get_optional_current_user_from_header()` (line 327)
+- **def** `require_role()` (line 361)
+- **async def** `get_api_key()` (line 394)
+- **async def** `set_session_tenant_context()` (line 504)
 
   **API Routes:**
   - `DELETE /users/{user_id}`
@@ -2076,25 +2077,25 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _57.2 KB_
+#### 📄 `api/routes.py` _57.4 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
-- **Class** `_BodySizeLimitMiddleware` (line 314)
-- **Class** `_TraceMiddleware` (line 487)
-- **Class** `HealthResponse` (line 524)
-- **Class** `ReadyResponse` (line 529)
-- **Class** `CUARollbackRequest` (line 1323)
-- **def** `get_celery_components()` (line 551)
-- **async def** `run_study_async()` (line 583)
-- **async def** `get_task_status()` (line 631)
-- **async def** `websocket_scada_endpoint_handler()` (line 673)
-- **async def** `websocket_cua_confirmation_handler()` (line 690)
-- **async def** `global_exception_handler()` (line 855)
-- **async def** `etap_health_probe()` (line 965)
-- **async def** `gis_status_probe()` (line 977)
-- **async def** `websocket_session_stream_handler()` (line 992)
-- **async def** `websocket_notifications_handler()` (line 1076)
+- **Class** `_BodySizeLimitMiddleware` (line 312)
+- **Class** `_TraceMiddleware` (line 485)
+- **Class** `HealthResponse` (line 522)
+- **Class** `ReadyResponse` (line 527)
+- **Class** `CUARollbackRequest` (line 1321)
+- **def** `get_celery_components()` (line 549)
+- **async def** `run_study_async()` (line 581)
+- **async def** `get_task_status()` (line 629)
+- **async def** `websocket_scada_endpoint_handler()` (line 671)
+- **async def** `websocket_cua_confirmation_handler()` (line 688)
+- **async def** `global_exception_handler()` (line 853)
+- **async def** `etap_health_probe()` (line 963)
+- **async def** `gis_status_probe()` (line 975)
+- **async def** `websocket_session_stream_handler()` (line 990)
+- **async def** `websocket_notifications_handler()` (line 1074)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -5603,9 +5604,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | python-module | 41 |
-| ui-component | 280 |
-| ui-page | 61 |
 | api-route | 92 |
+| ui-page | 61 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -5693,7 +5694,7 @@ Provides
 | `test_audit_phase8_medium_fixes.py` | 0 | 3 | **9** |
 | `test_audit_phase9_round6_fixes.py` | 0 | 4 | **11** |
 | `test_auth.py` | 3 | 0 | **3** |
-| `test_auth_api.py` | 0 | 11 | **39** |
+| `test_auth_api.py` | 0 | 11 | **40** |
 | `test_auth_disabled_fail_closed.py` | 6 | 0 | **6** |
 | `test_auth_enabled.py` | 0 | 1 | **9** |
 | `test_autodesk_connector.py` | 0 | 11 | **62** |
@@ -5725,7 +5726,7 @@ Provides
 | `test_data_import.py` | 0 | 1 | **3** |
 | `test_data_import_parsing.py` | 0 | 8 | **20** |
 | `test_daytona_chrome_helper.py` | 0 | 1 | **5** |
-| `test_dependencies.py` | 1 | 4 | **22** |
+| `test_dependencies.py` | 3 | 4 | **24** |
 | `test_design_agent_scaffold.py` | 8 | 0 | **8** |
 | `test_digital_twin_coverage.py` | 14 | 0 | **14** |
 | `test_digital_twin_rollback.py` | 1 | 0 | **1** |
@@ -5808,8 +5809,8 @@ Provides
 | `test_orchestrator_b1_b2.py` | 3 | 0 | **3** |
 | `test_p0_backend_auth_patch.py` | 0 | 6 | **29** |
 | `test_p7c_mcp_export.py` | 1 | 9 | **28** |
-| `test_p7c_mcp_route_precedence.py` | 0 | 2 | **5** |
-| `test_p8_advanced_routes.py` | 0 | 4 | **13** |
+| `test_p7c_mcp_route_precedence.py` | 0 | 2 | **6** |
+| `test_p8_advanced_routes.py` | 0 | 4 | **17** |
 | `test_p9_data_import_export.py` | 1 | 8 | **27** |
 | `test_persistence_layer.py` | 0 | 8 | **30** |
 | `test_phase3_remediation_security.py` | 5 | 0 | **5** |
@@ -5944,6 +5945,11 @@ Provides
 | `scripts/check_bundle_size.js` | js | 2.9 KB |  |
 | `scripts/check_docker_drift.py` | py | 2.9 KB | check_docker_drift.py — verifies Dockerfile COPY sources mat |
 | `scripts/check_hf_status.py` | py | 0.3 KB |  |
+| `scripts/check_links.ps1` | ps1 | 3.8 KB |  |
+| `scripts/check_links.py` | py | 3.6 KB | Check Internal Markdown Link Integrity across AhmedETAP Docu |
+| `scripts/check_metadata.ps1` | ps1 | 3.7 KB |  |
+| `scripts/check_metadata.py` | py | 3.9 KB | Check Metadata and Markdown Standards across AhmedETAP Docum |
+| `scripts/check_metadata.sh` | sh | 0.3 KB | !/usr/bin/env bash |
 | `scripts/check_prompt_consistency.py` | py | 5.8 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
 | `scripts/check_registry_integrity.py` | py | 10.1 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
@@ -5981,6 +5987,9 @@ Provides
 | `scripts/fix_agent_structures.py` | py | 6.4 KB | Script to identify and fix agent structural issues. |
 | `scripts/fix_eol_strings.py` | py | 3.0 KB | Fix broken EOL string literals in validation_campaign.py. |
 | `scripts/fix_future_imports.py` | py | 1.6 KB | Fix __future__ import placement. |
+| `scripts/gen_api_ref.ps1` | ps1 | 7.1 KB |  |
+| `scripts/gen_api_ref.py` | py | 7.5 KB | Generate API Quick Reference Cheat-Sheet (docs/API_QUICKREF. |
+| `scripts/gen_api_ref.sh` | sh | 0.3 KB | !/usr/bin/env bash |
 | `scripts/generate-certs.sh` | sh | 0.9 KB | !/usr/bin/env bash |
 | `scripts/hf_build_guard.py` | py | 11.0 KB | HF Space Build Guard |
 | `scripts/install_dwg_converter_windows.ps1` | ps1 | 7.3 KB |  |
@@ -6074,6 +6083,9 @@ Provides
 | `scripts/verify-secrets.ps1` | ps1 | 4.7 KB |  |
 | `scripts/verify-secrets.sh` | sh | 4.1 KB | !/usr/bin/env bash |
 | `scripts/verify_agents.py` | py | 6.9 KB | Verification script to check that agents have proper structu |
+| `scripts/verify_assets.ps1` | ps1 | 3.2 KB |  |
+| `scripts/verify_assets.py` | py | 4.2 KB | Verify Media Assets in AhmedETAP Documentation |
+| `scripts/verify_assets.sh` | sh | 0.3 KB | !/usr/bin/env bash |
 | `scripts/verify_etap_2021.py` | py | 11.0 KB | verify_etap_2021.py — Verify ETAP 2021 COM Compatibility |
 | `scripts/verify_etap_rest.py` | py | 2.8 KB | Manual real-host gate for ETAP REST Auto-Build (NOT run in C |
 | `scripts/verify_secure_push.py` | py | 8.8 KB | Secure Push Verification Script |
@@ -6098,14 +6110,14 @@ Provides
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.4 KB | `1c27e6e07713` |
-| `requirements.txt` | 11.1 KB | `fd1630523999` |
-| `requirements-prod.txt` | 3.1 KB | `82f74ac72d15` |
-| `requirements-dev.txt` | 0.9 KB | `c73b977a8118` |
+| `pyproject.toml` | 11.4 KB | `ec37da3b17ec` |
+| `requirements.txt` | 11.2 KB | `ecd57a678c8c` |
+| `requirements-prod.txt` | 3.1 KB | `77f4e47619e4` |
+| `requirements-dev.txt` | 0.9 KB | `f6171d453bba` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
 | `requirements-ml.txt` | 1.5 KB | `531f66a9b434` |
 | `requirements.hf.txt` | 1.5 KB | `b946f1e4012d` |
-| `.github/workflows/security.yml` | 13.6 KB | `2e753f38e72e` |
+| `.github/workflows/security.yml` | 14.4 KB | `25b31b04915d` |
 | `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
@@ -6114,7 +6126,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.0 KB | `f74ac7ac7a34` |
+| `hf-space/app.py` | 78.0 KB | `f18c3ff5c4cd` |
 | `ui/package.json` | 3.7 KB | `d2ec6bb8db3b` |
 | `ui/vite.config.ts` | 2.9 KB | `d5ffbb7f3a8f` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
