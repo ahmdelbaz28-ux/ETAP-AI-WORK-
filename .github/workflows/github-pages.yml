@@ -60,7 +60,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdocs gh-deploy --force -f mkdocs.yml \
+          mkdocs gh-deploy --force -f docs/mkdocs.yml \
             --message "Deployed ${GITHUB_SHA::7} with MkDocs [skip vercel]"
 
   deploy:
