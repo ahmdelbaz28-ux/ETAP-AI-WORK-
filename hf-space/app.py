@@ -296,6 +296,21 @@ from api.templates import router as templates_router  # noqa: E402
 
 app.include_router(csrf_router)  # /api/v1/csrf/token
 app.include_router(auth_router)
+# -- Public Agents Catalog (must precede agents_router so HF Space public endpoints win) --
+@app.get("/api/v1/agents", tags=["Agents"])
+@app.get("/api/v1/agents/", include_in_schema=False)
+async def list_agents():
+    return {"count": len(AGENTS), "agents": AGENTS}
+
+
+@app.get("/api/v1/agents/{agent_id}", tags=["Agents"])
+async def get_agent(agent_id: str):
+    agent = next((a for a in AGENTS if a["id"] == agent_id), None)
+    if not agent:
+        return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
+    return agent
+
+
 app.include_router(agents_router)
 app.include_router(projects_router)
 app.include_router(data_import_router)
@@ -490,6 +505,8 @@ async def auth_and_rate_limit(request: Request, call_next):
         "/api/v1/email-dashboard",
         "/api/v1/email-dashboard/",
         "/api/v1/info",
+        "/api/v1/agents",
+        "/api/v1/agents/",
     }
     _is_public = _path in _public_api_paths
 
@@ -813,19 +830,6 @@ async def get_version():
 
 
 # -- Agents -------------------------------------------------------------------
-@app.get("/api/v1/agents", tags=["Agents"])
-async def list_agents():
-    return {"count": len(AGENTS), "agents": AGENTS}
-
-
-@app.get("/api/v1/agents/{agent_id}", tags=["Agents"])
-async def get_agent(agent_id: str):
-    agent = next((a for a in AGENTS if a["id"] == agent_id), None)
-    if not agent:
-        return JSONResponse(status_code=404, content={"error": f"Agent '{agent_id}' not found"})
-    return agent
-
-
 @app.post("/api/v1/agents/etap-expert/chat", tags=["Agents"])
 async def etap_expert_chat(request: SharedETAPExpertChatRequest):
     """Chat with the ETAP Expert skill agent.

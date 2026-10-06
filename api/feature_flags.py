@@ -440,13 +440,6 @@ def _require_admin():
     return _verify_admin
 
 
-# ─── Endpoints ───────────────────────────────────────────────────────────
-@router.get("", dependencies=[Depends(_require_permission("feature_flags", "read"))])
-@router.get(
-    "/",
-    dependencies=[Depends(_require_permission("feature_flags", "read"))],
-    include_in_schema=False,
-)
 def _apply_flag_patch(
     flags: dict[str, dict[str, Any]], key: str, payload: FeatureFlagPatch
 ) -> bool:
@@ -459,6 +452,13 @@ def _apply_flag_patch(
     return old_value
 
 
+# ─── Endpoints ───────────────────────────────────────────────────────────
+@router.get("", dependencies=[Depends(_require_permission("feature_flags", "read"))])
+@router.get(
+    "/",
+    dependencies=[Depends(_require_permission("feature_flags", "read"))],
+    include_in_schema=False,
+)
 async def list_feature_flags(request: Request):
     """List all feature flags with their effective state for the current ENV."""
     trace_id = getattr(request.state, "trace_id", "unknown")

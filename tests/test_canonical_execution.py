@@ -661,6 +661,7 @@ async def test_authorization_fail_closed_enforces_roles():
 async def test_multi_replica_centralized_state_fail_closed(monkeypatch):
     """Verify that multi-replica mode fails closed when centralized state store is unavailable."""
     monkeypatch.setenv("DEPLOYMENT_TOPOLOGY", "multi_replica")
+    monkeypatch.setenv("REDIS_URL", "redis://127.0.0.1:59999/0?socket_timeout=0.1&socket_connect_timeout=0.1")
     store = RedisExecutionStateStore(fallback_store=None)
 
     # Direct store operations must fail closed

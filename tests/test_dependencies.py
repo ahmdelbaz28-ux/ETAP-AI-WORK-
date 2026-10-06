@@ -248,11 +248,13 @@ def test_jwt_secret_key_missing_fails_closed(monkeypatch):
     import subprocess
     import sys
 
-    # Run in subprocess to test import-time fail-closed check cleanly
-    code = "import api.dependencies"
+    # Run in subprocess to test import-time fail-closed check cleanly; stub dotenv so host .env does not pollute test
+    code = "import dotenv; dotenv.load_dotenv = lambda *a, **k: None; import api.dependencies"
     env = os.environ.copy()
     env.pop("JWT_SECRET_KEY", None)
     env.pop("ALLOW_EPHEMERAL_JWT_IN_DEV", None)
+    env.pop("CI", None)
+    env.pop("GITHUB_ACTIONS", None)
     env["ENVIRONMENT"] = "development"
     res = subprocess.run(
         [sys.executable, "-c", code],
@@ -271,7 +273,7 @@ def test_jwt_secret_key_ephemeral_dev_opt_in():
     import subprocess
     import sys
 
-    code = "import api.dependencies; assert len(api.dependencies.JWT_SECRET_KEY) >= 32"
+    code = "import dotenv; dotenv.load_dotenv = lambda *a, **k: None; import api.dependencies; assert len(api.dependencies.JWT_SECRET_KEY) >= 32"
     env = os.environ.copy()
     env.pop("JWT_SECRET_KEY", None)
     env["ALLOW_EPHEMERAL_JWT_IN_DEV"] = "true"

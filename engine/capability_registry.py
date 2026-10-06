@@ -207,15 +207,9 @@ class CapabilityRegistry:
 
     def to_study_type_mapping(self) -> dict[str, str]:
         """Project study_type string to agent_key mapping."""
-        mapping: dict[str, str] = {}
-        for cap in self._capabilities.values():
-            if cap.study_type and cap.agent_key:
-                mapping[cap.study_type] = cap.agent_key
-            elif cap.agent_key:
-                mapping[cap.agent_key] = cap.agent_key
-        # Explicit mapping for ahmed_etap_orchestration
-        mapping["ahmed_etap_orchestration"] = "ahmed_etap"
-        return mapping
+        from agents.registry import STUDY_TYPE_MAPPING
+
+        return dict(STUDY_TYPE_MAPPING)
 
     def to_study_type_agent_map(self) -> dict[Any, Any]:
         """Project StudyType enum to BaseAgent class mapping for agents.__init__.py."""

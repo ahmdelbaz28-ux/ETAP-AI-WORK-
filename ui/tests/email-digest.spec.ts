@@ -15,6 +15,7 @@
  */
 
 import { type Page, expect, test } from "@playwright/test";
+import { mockBaselineRoutes } from "./fixtures/auth";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -80,6 +81,7 @@ let previewEmail = "";
 let previewPeriod = "";
 
 async function mockEmailDigestBackend(page: Page, opts?: { generateStatus?: 503 }) {
+  await mockBaselineRoutes(page);
   const generateStatus = opts?.generateStatus ?? 200;
 
   // Auth + onboarding-dismissal

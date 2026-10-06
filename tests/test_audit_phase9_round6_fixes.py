@@ -59,26 +59,32 @@ class TestNotificationsWebSocketSecurity:
     def routes_source(self) -> str:
         return _read_file("api/routes.py")
 
+    def _get_ws_body(self, routes_source: str) -> str:
+        marker = (
+            "_authenticate_notifications_ws"
+            if "_authenticate_notifications_ws" in routes_source
+            else "websocket_notifications_handler"
+        )
+        ws_pos = routes_source.index(marker)
+        return routes_source[ws_pos : ws_pos + 3000]
+
     def test_ws_notifications_has_token_type_check(self, routes_source: str) -> None:
         """WebSocket must reject non-access tokens."""
-        ws_pos = routes_source.index("websocket_notifications_handler")
-        ws_body = routes_source[ws_pos : ws_pos + 3000]
+        ws_body = self._get_ws_body(routes_source)
         assert 'token_type != "access"' in ws_body, (
             "/ws/notifications must check payload type == 'access'"
         )
 
     def test_ws_notifications_has_blacklist_check(self, routes_source: str) -> None:
         """WebSocket must check JTI against token blacklist."""
-        ws_pos = routes_source.index("websocket_notifications_handler")
-        ws_body = routes_source[ws_pos : ws_pos + 3000]
+        ws_body = self._get_ws_body(routes_source)
         assert "_is_token_blacklisted" in ws_body, (
             "/ws/notifications must call _is_token_blacklisted(jti)"
         )
 
     def test_ws_notifications_revoked_token_rejected(self, routes_source: str) -> None:
         """Revoked tokens must close the WebSocket."""
-        ws_pos = routes_source.index("websocket_notifications_handler")
-        ws_body = routes_source[ws_pos : ws_pos + 3000]
+        ws_body = self._get_ws_body(routes_source)
         assert "Token has been revoked" in ws_body, (
             "/ws/notifications must close with 'Token has been revoked' message"
         )

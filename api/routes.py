@@ -1048,7 +1048,8 @@ async def _authenticate_notifications_ws(
         from api.dependencies import _validate_jwt_access_token
 
         payload = await _validate_jwt_access_token(token)
-        if payload.get("type") != "access":
+        token_type = payload.get("type")
+        if token_type != "access":
             await websocket.close(code=1008, reason="Invalid token type")
             return None, None
         jti = payload.get("jti")

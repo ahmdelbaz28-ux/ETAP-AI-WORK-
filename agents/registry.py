@@ -1575,8 +1575,8 @@ STUDY_TYPE_MAPPING: dict[str, str] = {
 
 
 def get_study_type_mapping() -> dict[str, str]:
-    """Return mapping of study type strings to agent keys projected from CapabilityRegistry."""
-    return get_capability_registry().to_study_type_mapping()
+    """Return mapping of study type strings to agent keys."""
+    return dict(STUDY_TYPE_MAPPING)
 
 
 def get_agent_for_study(agents: dict[str, BaseAgent], study_type: StudyType) -> BaseAgent | None:
