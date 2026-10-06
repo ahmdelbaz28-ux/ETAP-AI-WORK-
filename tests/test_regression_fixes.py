@@ -50,7 +50,9 @@ def hf_app_client():
     spec = importlib.util.spec_from_file_location("hf_app_regression_test", app_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return TestClient(mod.app)
+    api_key = os.getenv("ENGINEERING_SERVICE_API_KEY", "")
+    headers = {"X-API-Key": api_key} if api_key else {}
+    return TestClient(mod.app, headers=headers)
 
 
 # ---------------------------------------------------------------------------
