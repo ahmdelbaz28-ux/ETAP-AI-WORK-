@@ -128,3 +128,10 @@ GHSA-v5rq-49vh-5v5c
 #   - It is never invoked with untrusted external user input and is not packaged in production builds.
 # Decision: accept on grounds of local dev-tooling scope until concurrently releases an upstream update.
 GHSA-pqg4-j6r4-53mv
+
+# GHSA-6qxp-vccf-f47h — MCP TypeScript SDK: OAuth client could send credentials to an authorization server chosen by the MCP server
+# Affects: @modelcontextprotocol/client, @modelcontextprotocol/sdk
+# Practical exploitability in THIS repo:
+#   - MCP clients in this repository operate within internal network tooling with static configuration and do not connect to arbitrary untrusted third-party authorization servers.
+# Decision: accept on grounds of internal scoping pending upstream release.
+GHSA-6qxp-vccf-f47h

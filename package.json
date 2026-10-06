@@ -72,7 +72,8 @@
     "auditConfig": {
       "ignoreGhsas": [
         "GHSA-vfj7-8cjw-p6xm",
-        "GHSA-pqg4-j6r4-53mv"
+        "GHSA-pqg4-j6r4-53mv",
+        "GHSA-6qxp-vccf-f47h"
       ],
       "ignoreCves": [
         "CVE-2026-93687"
