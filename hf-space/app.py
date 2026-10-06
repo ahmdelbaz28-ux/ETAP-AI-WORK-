@@ -505,8 +505,6 @@ async def auth_and_rate_limit(request: Request, call_next):
         "/api/v1/email-dashboard",
         "/api/v1/email-dashboard/",
         "/api/v1/info",
-        "/api/v1/agents",
-        "/api/v1/agents/",
     }
     _is_public = _path in _public_api_paths
 
