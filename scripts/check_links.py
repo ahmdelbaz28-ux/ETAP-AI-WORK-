@@ -4,7 +4,6 @@ Check Internal Markdown Link Integrity across AhmedETAP Documentation
 Validates that all relative markdown links point to existing files on disk.
 """
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -83,7 +82,7 @@ def check_links():
                     "attempted": str(target_rel)
                 })
 
-    print(f"\n📊 Link Integrity Summary:")
+    print("\n📊 Link Integrity Summary:")
     print(f"   Total Links Analyzed:  {total_links}")
     print(f"   External (HTTP/Mail):  {external_links}")
     print(f"   Internal Same-Page (#): {anchor_only_links}")

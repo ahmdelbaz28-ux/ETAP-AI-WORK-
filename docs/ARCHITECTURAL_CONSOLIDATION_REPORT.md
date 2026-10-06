@@ -282,7 +282,7 @@ A comprehensive codebase audit was conducted to identify and eliminate direct by
 | SCADA Integration | `scada` | `agent` | `internal_python` | Yes | Yes | IEC 61850 | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `test_study_reachability_gate.py` (DualPortParity) |
 | ETAP Expert KB | `etap_expert` | `agent` | `internal_python` | Yes | Yes | 6-Step QA | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `tests/test_etap_expert_skill.py` (27/27 passed) |
 | AhmedETAP Skill Orchestrator | `ahmed_etap_orchestration` | `composite` | `internal_python` | Yes | Yes | Standard | Lead Eng | Dual Control | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `tests/test_orchestrator_b1_b2.py` |
-| External Optimization | `optimization` | `external_service` | `internal_python` | Yes | Yes | Standard | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `test_study_reachability_gate.py` |
+| Optimization | `optimization` | `agent` | `internal_python` | No | Yes | Standard | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `test_study_reachability_gate.py` |
 | ETAP COM Execution | `etap_execution` | `etap` | `etap_com` | Yes | Yes | Physical ETAP | Senior Eng | Dual Control | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `tests/test_etap_com_provider.py` (Windows Host) |
 | Result Validation | `validation` | `agent` | `internal_python` | Yes | Yes | Standard | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `tests/test_validation_agent.py` |
 | Report Generation | `report` | `agent` | `internal_python` | Yes | Yes | PDF/DOCX | Engineer | Standard | Yes | Yes | Yes | `StudyResult` | **PRODUCTION** | `tests/test_advanced_reports.py` |
@@ -328,7 +328,7 @@ The architecture enforces zero-trust security and dual-control governance at all
 | **Python Code Linting** | Ruff (`ruff check`) | **PASSED** | 0 errors; 100% clean check across all API, service, and test modules. |
 | **Type Checking & Imports** | Python 3.8 / AST Verification | **PASSED** | Clean module resolution; no circular dependencies between orchestrator and engines. |
 | **Security AST Audit** | CodeGuard / AST Scanner | **PASSED** | System execution tools (`powershell`, `node`) permanently blocked. |
-| **Unit & Contract Tests** | Pytest 8.3.5 | **PASSED** | 100% pass rate across canonical test suites (175+ tests verified). |
+| **Unit & Contract Tests** | Pytest 8.3.5 | **PASSED** | 100% pass rate across canonical test suites (190+ tests verified). |
 | **ETAP Physical Driver Gate** | COM Licensing Probe | **CONDITIONAL** | Passes on Windows workstations with licensed ETAP 21+. Gracefully fails-closed with 503 on Linux CI runners as designed. |
 
 ---
@@ -341,7 +341,7 @@ All relevant test suites were executed with JWT authentication configured. The e
    ```powershell
    pytest tests/test_canonical_execution.py -v
    ```
-   *Result:* **17 passed** (Tests gateway routing, strict assertion validation failure for unphysical results, fail-closed disabled capabilities, maker-checker, tenant-isolated idempotency, all production agent capabilities executing via runtime agents, all 5 executor kinds success and failure, Redis state store contract, and semantic cache governance inside orchestrator).
+   *Result:* **23 passed** (Tests gateway routing, strict assertion validation failure for unphysical results, fail-closed disabled capabilities, maker-checker, tenant-isolated idempotency, all production agent capabilities executing via runtime agents, all 5 executor kinds success and failure, Redis state store contract, semantic cache governance inside orchestrator, fail-closed identity rejection, fail-closed role authorization, multi-replica fail-closed centralized state, deterministic standards hash differentiation, authentic cache provenance preservation, and composite workflow provenance).
 
 2. **Cache Isolation & Identity Suite:**
    ```powershell
@@ -409,7 +409,7 @@ All relevant test suites were executed with JWT authentication configured. The e
     ```
     *Result:* **27 passed** (Verifies Format A/B/C/D classification, 6-step workflow, and Mastra agent registration).
 
-**Total Verified Tests in Active Consolidation Harness:** **175 passed, 0 failed.**
+**Total Verified Tests in Active Consolidation Harness:** **190 passed, 0 failed.**
 
 ---
 

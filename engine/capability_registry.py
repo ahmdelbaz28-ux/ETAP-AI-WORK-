@@ -14,7 +14,7 @@ from this canonical registry.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping
 
@@ -483,7 +483,9 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="scada",
-            risk_class="medium",
+            risk_class="high",
+            authorization_policy="lead_engineer",
+            approval_policy="dual_control",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
             description="SCADA integration, state estimation, and data mapping per IEC 61850.",
@@ -562,6 +564,8 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="ahmed_etap",
             risk_class="high",
+            authorization_policy="lead_engineer",
+            approval_policy="maker_checker",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
             description="Autonomous multi-agent study orchestrator combining load flow, short circuit, and protection.",
@@ -571,15 +575,17 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
         CapabilityDefinition(
             capability_id="optimization",
             study_type="optimization",
-            executor_kind=ExecutorKind.EXTERNAL_SERVICE,
-            handler="OptimizationAgent",
+            executor_kind=ExecutorKind.AGENT,
+            handler="agents.optimizers.optimization_agent.OptimizationAgent",
             requires_system=False,
             required_params=(),
             agent_key="optimization",
             risk_class="medium",
+            authorization_policy="engineer",
+            approval_policy="standard",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="External optimization agent execution bridge.",
+            description="Specialist optimization agent delivering metaheuristic swarm optimizations (PSO placement, filter design).",
         )
     )
     registry.register(
@@ -610,6 +616,8 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="etap_execution",
             risk_class="high",
+            authorization_policy="lead_engineer",
+            approval_policy="maker_checker",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
             description="ETAP Windows COM automation provider interface for multi-study execution.",
@@ -715,6 +723,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="code_guard",
             risk_class="high",
+            authorization_policy="admin",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
             description="Code guardrail verification and AST security validation.",

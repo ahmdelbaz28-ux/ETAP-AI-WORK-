@@ -964,8 +964,14 @@ async def _canonical_orchestrator_executor(
         )
 
     caller_tenant = ctx.get("tenant_id")
+    if not caller_tenant or str(caller_tenant).strip() in ("", "default"):
+        raise ValueError("Authoritative canonical execution requires a valid, authenticated tenant_id")
+    user_id = ctx.get("user_id") or "agent_service"
+    if not user_id or str(user_id).strip() in ("", "anonymous"):
+        raise ValueError("Authoritative canonical execution requires a valid, authenticated user_id")
+
     sys_tenant = system_data.get("tenant_id")
-    if sys_tenant and caller_tenant and str(sys_tenant) != str(caller_tenant):
+    if sys_tenant and str(sys_tenant) != str(caller_tenant):
         raise ValueError(
             f"Cross-tenant system data access denied: system belongs to tenant '{sys_tenant}'"
         )
@@ -977,12 +983,17 @@ async def _canonical_orchestrator_executor(
         parameters.setdefault("session_id", ctx["session_id"])
 
     req = ExecutionRequest(
-        user_id=ctx.get("user_id", "agent"),
-        tenant_id=caller_tenant or "default",
-        goal=goal,
+        user_id=user_id,
+        tenant_id=caller_tenant,
+        user_role=ctx.get("role") or ctx.get("user_role") or "engineer",
         capability_id=capability_id,
-        system_model=system_data,
-        parameters=parameters,
+        input={
+            "system": system_data,
+            "parameters": parameters,
+            "goal": goal,
+        },
+        system_snapshot=system_data if isinstance(system_data, dict) else None,
+        metadata={"goal": goal, "session_id": ctx.get("session_id")},
     )
     orchestrator = get_execution_orchestrator()
     result = await orchestrator.execute(req)

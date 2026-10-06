@@ -46,6 +46,12 @@ logger = logging.getLogger("engineering_service.orchestrator")
 from abc import ABC, abstractmethod
 
 
+class CentralizedStateUnavailableError(RuntimeError):
+    """Raised when centralized state is required in multi-replica topology but unavailable."""
+
+    pass
+
+
 class IExecutionStateStore(ABC):
     """Abstract interface for canonical execution state storage."""
 
@@ -114,24 +120,35 @@ class RedisExecutionStateStore(IExecutionStateStore):
     """Distributed, Redis-backed state store for multi-replica cluster deployments (Gap 8).
 
     Ensures that idempotency keys, execution states, and canonical results
-    are synchronized across distributed worker replicas.
+    are synchronized across distributed worker replicas. In multi-replica
+    topology, fails closed if Redis is unavailable.
     """
 
     def __init__(
         self,
         fallback_store: Optional[IExecutionStateStore] = None,
         ttl_seconds: int = 86400,
+        strict_distributed: bool = False,
     ) -> None:
         self._fallback = fallback_store or InMemoryExecutionStateStore()
         self._ttl_seconds = ttl_seconds
+        topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").lower()
+        self._strict_distributed = strict_distributed or (topo in ("multi_replica", "cluster", "distributed"))
 
     def _sync_get_redis(self) -> Any:
         try:
             import redis
 
             url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-            return redis.from_url(url, decode_responses=True)
-        except Exception:
+            client = redis.from_url(url, decode_responses=True)
+            if self._strict_distributed:
+                client.ping()
+            return client
+        except Exception as exc:
+            if self._strict_distributed:
+                raise CentralizedStateUnavailableError(
+                    f"Centralized Redis state store is unavailable in multi-replica deployment: {exc}"
+                ) from exc
             return None
 
     def get_idempotency(self, key: str) -> Optional[Tuple[CanonicalExecutionResult, float]]:
@@ -143,12 +160,22 @@ class RedisExecutionStateStore(IExecutionStateStore):
                     payload = json.loads(raw)
                     res = CanonicalExecutionResult.model_validate(payload["result"])
                     return (res, float(payload["timestamp"]))
+                return None
+            except CentralizedStateUnavailableError:
+                raise
             except Exception as e:
+                if self._strict_distributed:
+                    raise CentralizedStateUnavailableError(
+                        f"Redis get_idempotency failed in multi-replica deployment: {e}"
+                    ) from e
                 logger.debug("Redis get_idempotency error: %s (using fallback)", e)
+        if self._strict_distributed:
+            raise CentralizedStateUnavailableError(
+                "Centralized Redis state store is mandatory in multi-replica topology (fail-closed)"
+            )
         return self._fallback.get_idempotency(key)
 
     def set_idempotency(self, key: str, result: CanonicalExecutionResult, timestamp: float) -> None:
-        self._fallback.set_idempotency(key, result, timestamp)
         r = self._sync_get_redis()
         if r is not None:
             try:
@@ -157,8 +184,20 @@ class RedisExecutionStateStore(IExecutionStateStore):
                     "timestamp": timestamp,
                 }
                 r.set(f"etap:idemp:{key}", json.dumps(payload, default=str), ex=self._ttl_seconds)
+                return
+            except CentralizedStateUnavailableError:
+                raise
             except Exception as e:
+                if self._strict_distributed:
+                    raise CentralizedStateUnavailableError(
+                        f"Redis set_idempotency failed in multi-replica deployment: {e}"
+                    ) from e
                 logger.debug("Redis set_idempotency error: %s", e)
+        if self._strict_distributed:
+            raise CentralizedStateUnavailableError(
+                "Centralized Redis state store is mandatory in multi-replica topology (fail-closed)"
+            )
+        self._fallback.set_idempotency(key, result, timestamp)
 
     def get_result(self, execution_id: str) -> Optional[CanonicalExecutionResult]:
         r = self._sync_get_redis()
@@ -167,12 +206,22 @@ class RedisExecutionStateStore(IExecutionStateStore):
                 raw = r.get(f"etap:res:{execution_id}")
                 if raw:
                     return CanonicalExecutionResult.model_validate(json.loads(raw))
+                return None
+            except CentralizedStateUnavailableError:
+                raise
             except Exception as e:
+                if self._strict_distributed:
+                    raise CentralizedStateUnavailableError(
+                        f"Redis get_result failed in multi-replica deployment: {e}"
+                    ) from e
                 logger.debug("Redis get_result error: %s (using fallback)", e)
+        if self._strict_distributed:
+            raise CentralizedStateUnavailableError(
+                "Centralized Redis state store is mandatory in multi-replica topology (fail-closed)"
+            )
         return self._fallback.get_result(execution_id)
 
     def set_result(self, execution_id: str, result: CanonicalExecutionResult) -> None:
-        self._fallback.set_result(execution_id, result)
         r = self._sync_get_redis()
         if r is not None:
             try:
@@ -181,8 +230,20 @@ class RedisExecutionStateStore(IExecutionStateStore):
                     json.dumps(result.model_dump(), default=str),
                     ex=self._ttl_seconds,
                 )
+                return
+            except CentralizedStateUnavailableError:
+                raise
             except Exception as e:
+                if self._strict_distributed:
+                    raise CentralizedStateUnavailableError(
+                        f"Redis set_result failed in multi-replica deployment: {e}"
+                    ) from e
                 logger.debug("Redis set_result error: %s", e)
+        if self._strict_distributed:
+            raise CentralizedStateUnavailableError(
+                "Centralized Redis state store is mandatory in multi-replica topology (fail-closed)"
+            )
+        self._fallback.set_result(execution_id, result)
 
     def reset(self) -> None:
         self._fallback.reset()
@@ -201,8 +262,8 @@ def get_execution_state_store() -> IExecutionStateStore:
     global _GLOBAL_EXECUTION_STATE_STORE
     topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").lower()
     if topo in ("multi_replica", "cluster", "distributed"):
-        if not isinstance(_GLOBAL_EXECUTION_STATE_STORE, RedisExecutionStateStore):
-            _GLOBAL_EXECUTION_STATE_STORE = RedisExecutionStateStore(fallback_store=_GLOBAL_EXECUTION_STATE_STORE)
+        if not isinstance(_GLOBAL_EXECUTION_STATE_STORE, RedisExecutionStateStore) or not getattr(_GLOBAL_EXECUTION_STATE_STORE, "_strict_distributed", False):
+            _GLOBAL_EXECUTION_STATE_STORE = RedisExecutionStateStore(fallback_store=None, strict_distributed=True)
     return _GLOBAL_EXECUTION_STATE_STORE
 
 
@@ -250,25 +311,69 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
 
         study_type = cap.study_type or request.capability_id
 
-        # Execute study synchronously on the executor thread pool if loop exists
+        # Deterministic single execution attempt (NO double-execution fallback)
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
+            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
                 data = await loop.run_in_executor(
                     None, executor._dispatch, study_type, built_system, params
                 )
             else:
                 data = executor._dispatch(study_type, built_system, params)
-        except Exception:
-            # Direct synchronous execution fallback
-            data = executor._dispatch(study_type, built_system, params)
+        except Exception as exc:
+            logger.exception("Native dispatch error for %s: %s", study_type, exc)
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="native",
+                provider="native",
+                solver="native",
+                engine_version="unknown",
+                status="failed",
+                success=False,
+                data={},
+                errors=[str(exc)],
+                warnings=[],
+                trace_id=request.trace_id,
+            )
 
+        # Parse outcome semantics
+        is_dict = isinstance(data, dict)
+        dict_data = data if is_dict else (data.to_dict() if hasattr(data, "to_dict") else {})
+        success = True
+        errors: list[str] = []
+        warnings: list[str] = []
+
+        if is_dict:
+            if data.get("success") is False:
+                success = False
+            if data.get("converged") is False and "converged" in data:
+                success = False
+                errors.append(f"Native study '{study_type}' did not converge")
+            if data.get("errors"):
+                errors.extend(str(e) for e in data["errors"])
+                success = False
+            if data.get("error"):
+                errors.append(str(data["error"]))
+                success = False
+            if data.get("warnings"):
+                warnings.extend(str(w) for w in data["warnings"])
+
+        solver_opts = getattr(request, "solver_options", {}) if hasattr(request, "solver_options") else {}
         solver_method = (
-            request.solver_options.get("solver")
-            or request.solver_options.get("method")
+            solver_opts.get("solver") if isinstance(solver_opts, dict) else None
             or params.get("solver")
             or params.get("method")
-            or (data.get("solver") if isinstance(data, dict) else None)
+            or (dict_data.get("solver") if is_dict else None)
             or ("newton_raphson" if "load_flow" in str(study_type).lower() else "native")
         )
 
@@ -283,9 +388,11 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
             provider="native",
             solver=solver_method,
             engine_version="unknown",
-            status="completed",
-            success=True,
-            data=data if isinstance(data, dict) else (data.to_dict() if hasattr(data, "to_dict") else {}),
+            status="completed" if success else "failed",
+            success=success,
+            data=dict_data,
+            errors=errors,
+            warnings=warnings,
             trace_id=request.trace_id,
         )
 
@@ -553,25 +660,35 @@ class ExternalServiceExecutor(IEngineeringExecutor):
     """Executes external engineering bridges and dedicated evaluators."""
 
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
+        from engine.capability_registry import get_capability_registry
         from services.study_executor import StudyExecutor
 
+        cap_reg = get_capability_registry()
+        cap = cap_reg.get(request.capability_id)
         executor = StudyExecutor(cache=None)
         params = request.get_parameters()
         system = request.get_system()
 
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
+            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
                 data = await loop.run_in_executor(
                     None, executor._dispatch, request.capability_id, system, params
                 )
             else:
                 data = executor._dispatch(request.capability_id, system, params)
         except Exception as exc:
+            logger.exception("External service execution failed for %s: %s", request.capability_id, exc)
             return CanonicalExecutionResult(
                 execution_id=request.execution_id,
                 request_id=request.request_id,
                 capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
                 tenant_id=request.tenant_id,
                 user_id=request.user_id,
                 executor_kind="external_service",
@@ -585,19 +702,58 @@ class ExternalServiceExecutor(IEngineeringExecutor):
                 trace_id=request.trace_id,
             )
 
+        if not isinstance(data, dict):
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="external_service",
+                provider="external_service",
+                solver="external",
+                engine_version="unknown",
+                status="failed",
+                success=False,
+                data={},
+                errors=["External service returned unrecognized/invalid payload contract"],
+                trace_id=request.trace_id,
+            )
+
+        is_failed = (
+            data.get("success") is False
+            or str(data.get("status", "")).lower() in ("failed", "rejected", "unavailable")
+            or bool(data.get("errors"))
+            or bool(data.get("error"))
+        )
+        errors: list[str] = []
+        if data.get("errors"):
+            errors.extend(str(e) for e in data["errors"])
+        elif data.get("error"):
+            errors.append(str(data["error"]))
+        elif is_failed:
+            errors.append(f"External service execution reported failure for '{request.capability_id}'")
+
+        warnings = [str(w) for w in data.get("warnings", [])]
+        success = not is_failed and not errors
+
         return CanonicalExecutionResult(
             execution_id=request.execution_id,
             request_id=request.request_id,
             capability_id=request.capability_id,
+            capability_version=cap.version if cap else "1.0.0",
             tenant_id=request.tenant_id,
             user_id=request.user_id,
             executor_kind="external_service",
             provider="external_service",
             solver="external",
             engine_version="unknown",
-            status="completed",
-            success=True,
-            data=data if isinstance(data, dict) else {},
+            status="completed" if success else "failed",
+            success=success,
+            data=data,
+            errors=errors,
+            warnings=warnings,
             trace_id=request.trace_id,
         )
 
@@ -611,12 +767,47 @@ class CompositeEngineeringExecutor(IEngineeringExecutor):
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
         res = await self._agent_executor.execute(request)
         res.executor_kind = "composite"
+
+        # Attach authentic composite orchestration provenance
+        composite_provenance = {
+            "orchestration_type": "composite_multi_agent",
+            "capability_id": request.capability_id,
+            "lead_agent": res.data.get("lead_agent") or res.solver or request.capability_id,
+            "reviewer_agent": res.data.get("reviewer_agent") or "validation",
+            "verdict": res.data.get("verdict") or ("approved" if res.success else "rejected"),
+            "math_guard_passed": res.data.get("math_guard_passed", res.success),
+        }
+        res.provenance["composite_workflow"] = composite_provenance
         return res
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 6: Canonical Execution Orchestrator
-# ─────────────────────────────────────────────────────────────────────────────
+def _compute_standards_hash(
+    cap: Optional[CapabilityDefinition],
+    params: dict[str, Any],
+    request: ExecutionRequest,
+) -> str:
+    """Deterministic hash of applicable validation policy, engineering standards, and rule versions."""
+    import json
+    val_policy = str(getattr(cap, "validation_policy", "default") or "default")
+    cap_ver = str(getattr(cap, "version", "1.0.0") or "1.0.0")
+    study_type = str(getattr(cap, "study_type", "") or "")
+    std_param = str(
+        params.get("standard")
+        or params.get("std")
+        or (request.metadata or {}).get("standard")
+        or ""
+    ).strip().upper()
+    standards_context = {
+        "validation_policy": val_policy,
+        "capability_version": cap_ver,
+        "study_type": study_type,
+        "standard": std_param,
+        "rule_set_version": "v1.0-canonical-assertions",
+    }
+    s = json.dumps(standards_context, sort_keys=True)
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
 
 class ExecutionOrchestrator:
     """Canonical Execution Orchestrator (Phase 6).
@@ -705,20 +896,22 @@ class ExecutionOrchestrator:
         started_at = datetime.now(timezone.utc).isoformat()
 
         # ── 1. Authenticate ──────────────────────────────────────────────────
-        if not request.user_id or not str(request.user_id).strip():
+        user_id_str = str(request.user_id or "").strip()
+        if not user_id_str or user_id_str.lower() in ("anonymous", "none", "null"):
             return self._build_rejection(
                 request,
                 reason="AUTHENTICATION_REQUIRED",
-                message="User identification (user_id) is required for execution",
+                message="Valid authenticated user identification (user_id) is required. Anonymous access is strictly prohibited.",
                 raise_on_error=raise_on_error,
             )
 
         # ── 2. Validate Tenant ───────────────────────────────────────────────
-        if not request.tenant_id or not str(request.tenant_id).strip():
+        tenant_id_str = str(request.tenant_id or "").strip()
+        if not tenant_id_str or tenant_id_str.lower() in ("default", "none", "null"):
             return self._build_rejection(
                 request,
                 reason="TENANT_VALIDATION_FAILED",
-                message="Tenant identification (tenant_id) is mandatory for multi-tenant isolation",
+                message="Valid tenant identification (tenant_id) is mandatory for multi-tenant isolation. 'default' tenant is forbidden.",
                 raise_on_error=raise_on_error,
             )
 
@@ -783,27 +976,54 @@ class ExecutionOrchestrator:
         # ── 5. Validate Authorization ────────────────────────────────────────
         if cap.authorization_policy:
             auth_policy = str(cap.authorization_policy).lower().strip()
-            user_role = (
-                getattr(request, "user_role", None)
-                or (request.metadata or {}).get("role", "")
-            ).lower().strip()
-            if auth_policy == "admin" and request.user_id != "admin" and user_role != "admin":
+            raw_role = getattr(request, "user_role", None) or (request.metadata or {}).get("role", "")
+            user_role = str(raw_role or "").lower().strip()
+            if not user_role:
                 return self._build_rejection(
                     request,
                     reason="AUTHORIZATION_DENIED",
-                    message="Administrator privileges required for this capability",
+                    message=f"Missing trusted user role for capability protected by policy '{auth_policy}'",
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
-            elif auth_policy in ("engineer", "lead_engineer"):
-                if user_role and user_role not in ("engineer", "lead_engineer", "admin"):
+
+            if auth_policy == "admin":
+                if user_role != "admin" and request.user_id != "admin":
                     return self._build_rejection(
                         request,
                         reason="AUTHORIZATION_DENIED",
-                        message=f"'{auth_policy}' role required for this capability (current: '{user_role}')",
+                        message="Administrator privileges required for this capability",
                         cap=cap,
                         raise_on_error=raise_on_error,
                     )
+            elif auth_policy in ("lead_engineer", "lead"):
+                if user_role not in ("lead_engineer", "lead", "admin"):
+                    return self._build_rejection(
+                        request,
+                        reason="AUTHORIZATION_DENIED",
+                        message=f"Lead engineer role required for capability '{request.capability_id}' (current: '{user_role}')",
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
+            elif auth_policy in ("engineer", "standard"):
+                if user_role not in ("engineer", "lead_engineer", "lead", "admin"):
+                    return self._build_rejection(
+                        request,
+                        reason="AUTHORIZATION_DENIED",
+                        message=f"Engineer role required for capability '{request.capability_id}' (current: '{user_role}')",
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
+            elif auth_policy in ("viewer", "read_only", "any"):
+                pass
+            else:
+                return self._build_rejection(
+                    request,
+                    reason="AUTHORIZATION_DENIED",
+                    message=f"Unknown authorization policy '{auth_policy}' for capability '{request.capability_id}'",
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
 
         # ── 6. Validate Approval Requirements ────────────────────────────────
         if cap.approval_policy in ("maker_checker", "dual_control"):
@@ -871,7 +1091,18 @@ class ExecutionOrchestrator:
 
         # ── 10. Enforce Idempotency ──────────────────────────────────────────
         idempotency_key = f"{request.tenant_id}:{request.idempotency_key}"
-        cached_entry = self._state_store.get_idempotency(idempotency_key)
+        try:
+            cached_entry = self._state_store.get_idempotency(idempotency_key)
+        except CentralizedStateUnavailableError as csu_err:
+            logger.error("Centralized state store unavailable during idempotency check: %s", csu_err)
+            return self._build_rejection(
+                request,
+                reason="CENTRALIZED_STATE_UNAVAILABLE",
+                message=f"Multi-replica centralized state store unavailable: {csu_err}",
+                cap=cap,
+                raise_on_error=raise_on_error,
+            )
+
         if cached_entry is not None:
             cached_res, cached_time = cached_entry
             if time.time() - cached_time < 86400:  # 24 hour TTL
@@ -922,6 +1153,7 @@ class ExecutionOrchestrator:
         param_hash = _safe_hash(params)
         sys_hash = _safe_hash(request.system_snapshot or request.get_system())
         input_hash = _safe_hash(request.input)
+        standards_hash = _compute_standards_hash(cap, params, request)
 
         use_cache = False
         try:
@@ -936,10 +1168,11 @@ class ExecutionOrchestrator:
                 from api.semantic_cache_redis import get_distributed_semantic_cache
 
                 cache = get_distributed_semantic_cache()
+                sys_obj = request.get_system() or request.system_snapshot
                 sys_dict = (
-                    request.system.model_dump()
-                    if hasattr(request.system, "model_dump")
-                    else (request.system_snapshot if isinstance(request.system_snapshot, dict) else {})
+                    sys_obj.model_dump()
+                    if hasattr(sys_obj, "model_dump")
+                    else (sys_obj if isinstance(sys_obj, dict) else {})
                 )
                 prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
                 cached_entry = await cache.lookup(
@@ -952,64 +1185,77 @@ class ExecutionOrchestrator:
                     capability_version=cap.version,
                     executor_kind=executor_kind_str,
                     solver=getattr(cap, "handler", executor_kind_str),
-                    engine_version="unknown",
-                    standards_hash=param_hash,
+                    engine_version=getattr(cap, "engine_version", "1.0.0"),
+                    standards_hash=standards_hash,
                 )
                 if cached_entry and getattr(cached_entry, "result", None):
                     cached_raw = cached_entry.result
-                    cached_tenant = cached_raw.get("tenant_id") if isinstance(cached_raw, dict) else getattr(cached_raw, "tenant_id", None)
-                    cached_prov = cached_raw.get("provider") if isinstance(cached_raw, dict) else getattr(cached_raw, "provider", None)
-                    cached_succ = cached_raw.get("success", False) if isinstance(cached_raw, dict) else getattr(cached_raw, "success", False)
-                    cached_val_status = cached_raw.get("validation_status") if isinstance(cached_raw, dict) else getattr(cached_raw, "validation_status", "passed")
-                    cached_cap = cached_raw.get("capability_id") if isinstance(cached_raw, dict) else getattr(cached_raw, "capability_id", None)
-                    cached_kind = cached_raw.get("executor_kind") if isinstance(cached_raw, dict) else getattr(cached_raw, "executor_kind", None)
+                    if isinstance(cached_raw, dict):
+                        cached_tenant = cached_raw.get("tenant_id")
+                        cached_prov = cached_raw.get("provider")
+                        cached_succ = cached_raw.get("success", False)
+                        cached_val_status = cached_raw.get("validation_status")
+                        cached_cap = cached_raw.get("capability_id")
+                        cached_kind = cached_raw.get("executor_kind")
+                        orig_prov = cached_raw.get("provenance")
+                        orig_val_report = cached_raw.get("validation_report")
 
-                    if (
-                        cached_succ
-                        and (not cached_tenant or str(cached_tenant) == str(request.tenant_id))
-                        and (not cached_prov or str(cached_prov).lower() == prov_key)
-                        and (not cached_cap or str(cached_cap).lower() == request.capability_id.lower())
-                        and (not cached_kind or str(cached_kind).lower() == executor_kind_str.lower())
-                        and cached_val_status not in ("failed", "rejected")
-                    ):
-                        cached_data = cached_raw.get("data", cached_raw) if isinstance(cached_raw, dict) else (getattr(cached_raw, "data", None) or cached_raw)
-                        logger.info("Canonical cache hit for capability %s tenant %s", request.capability_id, request.tenant_id)
-                        return CanonicalExecutionResult(
-                            execution_id=execution_id,
-                            request_id=request.request_id,
-                            capability_id=request.capability_id,
-                            capability_version=cap.version,
-                            tenant_id=request.tenant_id,
-                            user_id=request.user_id,
-                            executor_kind=executor_kind_str,
-                            provider=prov_key,
-                            solver=getattr(cap, "handler", executor_kind_str),
-                            engine_version="unknown",
-                            input_snapshot_hash=input_hash,
-                            system_snapshot_hash=sys_hash,
-                            parameter_hash=param_hash,
-                            status="completed",
-                            success=True,
-                            data=cached_data if isinstance(cached_data, dict) else {},
-                            validation_status="passed",
-                            validation_report={"cached": True, "source": "canonical_semantic_cache"},
-                            risk_class=cap.risk_class,
-                            risk_score=0.1,
-                            provenance={
-                                "executor_kind": executor_kind_str,
-                                "capability_id": cap.capability_id,
-                                "capability_version": cap.version,
-                                "provider": prov_key,
-                                "solver": getattr(cap, "handler", executor_kind_str),
-                                "engine_version": "unknown",
-                                "cached": True,
-                                "completed_at": datetime.now(timezone.utc).isoformat(),
-                                "tenant_id": request.tenant_id,
-                                "user_id": request.user_id,
-                            },
-                            audit_context={**audit_context, "cached": True},
-                            execution_time_sec=time.perf_counter() - start_time,
-                        )
+                        # Authoritative cache hit requires authentic provenance & valid status
+                        if (
+                            cached_succ
+                            and orig_prov
+                            and isinstance(orig_prov, dict)
+                            and (not cached_tenant or str(cached_tenant) == str(request.tenant_id))
+                            and (not cached_prov or str(cached_prov).lower() == prov_key)
+                            and (not cached_cap or str(cached_cap).lower() == request.capability_id.lower())
+                            and (not cached_kind or str(cached_kind).lower() == executor_kind_str.lower())
+                            and cached_val_status in ("passed", "warning")
+                        ):
+                            cached_data = cached_raw.get("data", cached_raw)
+                            logger.info("Canonical cache hit for capability %s tenant %s", request.capability_id, request.tenant_id)
+                            orig_solver = cached_raw.get("solver") or getattr(cap, "handler", executor_kind_str)
+                            orig_engine_ver = cached_raw.get("engine_version") or getattr(cap, "engine_version", "1.0.0")
+                            orig_risk_score = cached_raw.get("risk_score")
+                            orig_risk_class = cached_raw.get("risk_class") or cap.risk_class
+                            orig_risk_assessment = cached_raw.get("risk_assessment") or {}
+
+                            return CanonicalExecutionResult(
+                                execution_id=execution_id,
+                                request_id=request.request_id,
+                                capability_id=request.capability_id,
+                                capability_version=cap.version,
+                                tenant_id=request.tenant_id,
+                                user_id=request.user_id,
+                                executor_kind=executor_kind_str,
+                                provider=cached_prov or prov_key,
+                                solver=orig_solver,
+                                engine_version=orig_engine_ver,
+                                input_snapshot_hash=cached_raw.get("input_snapshot_hash") or input_hash,
+                                system_snapshot_hash=cached_raw.get("system_snapshot_hash") or sys_hash,
+                                parameter_hash=cached_raw.get("parameter_hash") or param_hash,
+                                status="completed",
+                                success=True,
+                                data=cached_data if isinstance(cached_data, dict) else {},
+                                validation_status=cached_val_status,
+                                validation_report=orig_val_report if isinstance(orig_val_report, dict) else {"cached": True, "source": "canonical_semantic_cache"},
+                                risk_class=orig_risk_class,
+                                risk_score=float(orig_risk_score if orig_risk_score is not None else 0.1),
+                                risk_assessment=orig_risk_assessment,
+                                provenance={
+                                    **orig_prov,
+                                    "cached": True,
+                                    "cache_hit_at": datetime.now(timezone.utc).isoformat(),
+                                    "replayed_for_execution_id": execution_id,
+                                    "replayed_for_tenant_id": request.tenant_id,
+                                    "replayed_for_user_id": request.user_id,
+                                },
+                                audit_context={
+                                    **audit_context,
+                                    "cached": True,
+                                    "original_execution_id": cached_raw.get("execution_id"),
+                                },
+                                execution_time_sec=time.perf_counter() - start_time,
+                            )
             except Exception as cache_err:
                 logger.debug("Canonical semantic cache lookup error: %s", cache_err)
 
@@ -1192,8 +1438,20 @@ class ExecutionOrchestrator:
             metadata=request.metadata,
         )
 
-        self._state_store.set_result(execution_id, result)
-        self._state_store.set_idempotency(idempotency_key, result, time.time())
+        try:
+            self._state_store.set_result(execution_id, result)
+            self._state_store.set_idempotency(idempotency_key, result, time.time())
+        except CentralizedStateUnavailableError as csu_err:
+            logger.error("Centralized state store unavailable during result persistence: %s", csu_err)
+            if raise_on_error:
+                raise
+            return self._build_rejection(
+                request,
+                reason="CENTRALIZED_STATE_UNAVAILABLE",
+                message=f"Multi-replica centralized state store failed to persist result: {csu_err}",
+                cap=cap,
+                raise_on_error=False,
+            )
 
         # ── 17b. Store Validated Result in Canonical Semantic Cache ──────────
         if success and validation_status in ("passed", "warning") and use_cache and request.metadata.get("use_cache", True):
@@ -1201,10 +1459,11 @@ class ExecutionOrchestrator:
                 from api.semantic_cache_redis import get_distributed_semantic_cache
 
                 cache = get_distributed_semantic_cache()
+                sys_obj = request.get_system() or request.system_snapshot
                 sys_dict = (
-                    request.system.model_dump()
-                    if hasattr(request.system, "model_dump")
-                    else (request.system_snapshot if isinstance(request.system_snapshot, dict) else {})
+                    sys_obj.model_dump()
+                    if hasattr(sys_obj, "model_dump")
+                    else (sys_obj if isinstance(sys_obj, dict) else {})
                 )
                 prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
                 await cache.store(
@@ -1219,7 +1478,7 @@ class ExecutionOrchestrator:
                     executor_kind=executor_kind_str,
                     solver=final_solver,
                     engine_version=final_engine_version,
-                    standards_hash=param_hash,
+                    standards_hash=standards_hash,
                 )
             except Exception as store_err:
                 logger.debug("Failed to store canonical result in semantic cache: %s", store_err)

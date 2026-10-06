@@ -7,7 +7,6 @@ Enforces:
 3. Table of Contents for major documents (> 800 words).
 """
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -79,7 +78,7 @@ def check_file(rel_path):
     # 1. Frontmatter check
     metadata = parse_frontmatter(content)
     if not metadata:
-        errors.append(f"Missing YAML frontmatter block (--- ... ---)")
+        errors.append("Missing YAML frontmatter block (--- ... ---)")
     else:
         for req_field in ["title", "version", "last_updated", "maintainer"]:
             if req_field not in metadata or not metadata[req_field]:

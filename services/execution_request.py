@@ -73,6 +73,7 @@ class ExecutionRequest(BaseModel):
     )
     tenant_id: str = Field(default="default", description="Tenant identifier")
     user_id: str = Field(default="anonymous", description="User identifier")
+    user_role: str = Field(default="engineer", description="Authenticated user or service role")
     capability_id: str = Field(..., description="Target capability identifier")
     capability_version: str = Field(default="1.0.0", description="Capability contract version")
     input: Any = Field(default_factory=dict, description="Engineering study input or payload")
@@ -124,6 +125,7 @@ class ExecutionRequest(BaseModel):
         study_request: Any,
         user_id: str = "anonymous",
         tenant_id: str = "default",
+        user_role: str = "engineer",
         trace_id: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
@@ -150,6 +152,7 @@ class ExecutionRequest(BaseModel):
             request_id=task_id,
             user_id=user_id,
             tenant_id=tenant_id,
+            user_role=user_role,
             capability_id=capability_id,
             input=input_payload,
             approval_context=approval,

@@ -18,10 +18,11 @@ that:
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Annotated
@@ -237,31 +238,50 @@ async def run_study(
     _increment_counter("request")
 
     try:
-        tenant_id = (
-            tenant_id
-            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
-            or (user.tenant_id if user and getattr(user, "tenant_id", None) else None)
-            or "default"
-        )
-        user_id = (
-            user_id
-            or (user.user_id if user is not None else "")
-            or "anonymous"
-        )
+        # Determine trusted identity (fail-closed)
+        if user is not None and getattr(user, "user_id", None):
+            user_id = str(user.user_id).strip()
+            tenant_id = str(user.tenant_id or getattr(req.state, "tenant_id", "") or "").strip()
+            if not tenant_id or tenant_id.lower() in ("default", "none", "null"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Trusted tenant identity required for authenticated user execution",
+                )
+            user_role = str(getattr(user, "role", "engineer"))
+        elif _:
+            # Concrete service identity for authenticated API-key clients
+            key_hash = hashlib.sha256(str(_).encode("utf-8")).hexdigest()[:12]
+            user_id = user_id or f"service_principal:{key_hash}"
+            tenant_id = (
+                tenant_id
+                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+                or (req.headers.get("x-tenant-id") if req and hasattr(req, "headers") else "")
+                or f"service_tenant_{key_hash[:8]}"
+            ).strip()
+            user_role = "service_principal"
+        elif user_id and tenant_id and (req is None or getattr(req, "state", None) is None):
+            # Programmatic direct invocation in tests / internal helpers
+            user_role = kwargs.get("user_role", "engineer")
+        else:
+            # Unauthenticated authoritative execution: Fail Closed
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required: valid JWT user session or trusted API-key service identity mandatory",
+            )
 
         # Phase 15: Route execution strictly through Canonical Execution Orchestrator
         # (Semantic cache governance is owned by the orchestrator at Step 10b)
         from services.execution_request import ExecutionRequest
 
-        user_role = getattr(user, "role", "") if user is not None else ""
         exec_request = ExecutionRequest.from_study_request(
             study_request=payload,
             user_id=user_id,
             tenant_id=tenant_id,
+            user_role=user_role,
             trace_id=trace_id,
         )
-        if user_role:
-            exec_request.metadata["role"] = user_role
+        exec_request.user_role = user_role
+        exec_request.metadata["role"] = user_role
 
         orchestrator = get_execution_orchestrator()
         canonical_res = await orchestrator.execute(exec_request)
@@ -272,7 +292,11 @@ async def run_study(
                 if canonical_res.errors
                 else "Invalid study request parameters"
             )
-            raise HTTPException(status_code=400, detail=err_msg)
+            if "AUTHENTICATION_REQUIRED" in err_msg or "TENANT_VALIDATION_FAILED" in err_msg:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=err_msg)
+            if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=err_msg)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
 
         result = canonical_res.to_study_result()
         # P5 ResultStore: persist the successful study summary and surface the

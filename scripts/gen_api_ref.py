@@ -17,12 +17,12 @@ def parse_api_reference(filepath):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Canonical reference not found: {filepath}")
 
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         lines = f.readlines()
 
     current_section = "General"
     endpoints = []
-    
+
     # Regex to find endpoint headers: ### METHOD /path (Notes)
     endpoint_pattern = re.compile(r"^###\s+(GET|POST|PUT|DELETE|PATCH|WS)\s+([^\s\n]+)(?:\s*\((.*?)\))?")
     section_pattern = re.compile(r"^##\s+(?!#)(.+)$")
@@ -40,7 +40,7 @@ def parse_api_reference(filepath):
             method = ep_match.group(1).strip()
             path = ep_match.group(2).strip()
             notes = ep_match.group(3) or ""
-            
+
             # Extract summary from following lines
             summary = ""
             for j in range(i + 1, min(i + 10, len(lines))):
@@ -51,8 +51,6 @@ def parse_api_reference(filepath):
                     summary = sub_line
                     break
 
-            # Anchor tag generation for markdown link
-            anchor = re.sub(r"[^a-zA-Z0-9\-_]", "", (method + " " + path + (" " + notes if notes else "")).lower().replace(" ", "-").replace("/", ""))
             # GitHub markdown heading anchor
             clean_anchor = re.sub(r"[^\w\- ]", "", (method + " " + path + (" " + notes if notes else "")).lower()).replace(" ", "-")
 
@@ -69,7 +67,7 @@ def parse_api_reference(filepath):
 
 def generate_quickref_markdown(endpoints):
     today = datetime.now().strftime("%Y-%m-%d")
-    
+
     md = [
         "---",
         'title: "AhmedETAP API Quick Reference Cheat-Sheet"',
@@ -169,16 +167,16 @@ def main():
     print(f"Parsing {CANONICAL_REF}...")
     endpoints = parse_api_reference(CANONICAL_REF)
     print(f"Discovered {len(endpoints)} API endpoints.")
-    
+
     generated_content = generate_quickref_markdown(endpoints)
 
     if check_mode:
         if not os.path.exists(QUICKREF_OUT):
             print(f"❌ Check failed: {QUICKREF_OUT} does not exist!")
             sys.exit(1)
-        with open(QUICKREF_OUT, "r", encoding="utf-8") as f:
+        with open(QUICKREF_OUT, encoding="utf-8") as f:
             existing_content = f.read()
-        
+
         # Compare ignoring last_updated line if needed
         gen_lines = [l for l in generated_content.splitlines() if not l.startswith("last_updated:")]
         ex_lines = [l for l in existing_content.splitlines() if not l.startswith("last_updated:")]

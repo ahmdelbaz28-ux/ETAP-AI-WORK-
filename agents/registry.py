@@ -97,7 +97,7 @@ AGENT_KEY_ALIASES: Mapping[str, str] = {
 }
 
 # Projection fidelity verification against canonical CapabilityRegistry
-assert CANONICAL_AGENT_KEYS == _CAPABILITY_REGISTRY.to_canonical_agent_keys(), (
+assert _CAPABILITY_REGISTRY.to_canonical_agent_keys() == CANONICAL_AGENT_KEYS, (
     "CANONICAL_AGENT_KEYS drift detected against CapabilityRegistry"
 )
 

@@ -9,7 +9,6 @@ and verifies that:
 4. Accessible HTTP/HTTPS URLs (e.g. shields.io badges) are validated.
 """
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -27,7 +26,7 @@ def find_documentation_markdown_files():
     for f in REPO_ROOT.glob("*.md"):
         if f.is_file():
             md_files.append(f)
-    
+
     # Docs directory
     docs_dir = REPO_ROOT / "docs"
     if docs_dir.exists():
@@ -35,7 +34,7 @@ def find_documentation_markdown_files():
             # Exclude built site directory if present
             if "site" not in f.parts and "node_modules" not in f.parts:
                 md_files.append(f)
-                
+
     return sorted(md_files)
 
 def verify_assets():
@@ -78,7 +77,7 @@ def verify_assets():
 
             # Check relative to markdown file location
             target_path = (md_path.parent / clean_target).resolve()
-            
+
             # Check relative to repository root
             root_relative_path = (REPO_ROOT / clean_target.lstrip("/\\")).resolve()
 
@@ -98,7 +97,7 @@ def verify_assets():
                     "attempted_path": str(target_path)
                 })
 
-    print(f"\n📊 Documentation Media Asset Verification Summary:")
+    print("\n📊 Documentation Media Asset Verification Summary:")
     print(f"   Total Image References: {total_images}")
     print(f"   External URLs / Badges:  {external_urls}")
     print(f"   Verified Local Files:   {verified_local}")

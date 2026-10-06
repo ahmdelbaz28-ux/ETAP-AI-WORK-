@@ -48,10 +48,15 @@ _is_dev = _env in DEV_ENVIRONMENTS
 _jwt_key = os.getenv("JWT_SECRET_KEY", "")
 if not _jwt_key:
     # Explicit opt-in required for ephemeral dev fallback to avoid accidental multi-replica drift
-    if _is_dev and os.getenv("ALLOW_EPHEMERAL_JWT_IN_DEV", "").lower() in ("1", "true", "yes"):
+    if _is_dev and (
+        os.getenv("ALLOW_EPHEMERAL_JWT_IN_DEV", "").lower() in ("1", "true", "yes")
+        or os.getenv("CI", "").lower() == "true"
+        or os.getenv("GITHUB_ACTIONS", "").lower() == "true"
+        or _env in ("test", "testing", "ci")
+    ):
         _jwt_key = secrets.token_hex(32)
         logger.warning(
-            "JWT_SECRET_KEY not set. ALLOW_EPHEMERAL_JWT_IN_DEV=true is enabled: generated ephemeral development key. "
+            "JWT_SECRET_KEY not set. Ephemeral key generated for dev/CI test run. "
             "Tokens will be invalidated on restart and will fail across multiple replicas. DO NOT USE IN PRODUCTION."
         )
     else:

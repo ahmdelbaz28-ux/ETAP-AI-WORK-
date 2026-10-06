@@ -11,8 +11,14 @@ from engine.capability_registry import (
 )
 from etap_integration.etap_provider import ETAPResult
 from services.execution_orchestrator import (
+    CentralizedStateUnavailableError,
+    CompositeEngineeringExecutor,
     EtapEngineeringExecutor,
     ExecutionOrchestrator,
+    InMemoryExecutionStateStore,
+    NativeEngineeringExecutor,
+    RedisExecutionStateStore,
+    _compute_standards_hash,
     get_execution_orchestrator,
 )
 from services.execution_request import CanonicalExecutionResult, ExecutionRequest
@@ -484,7 +490,6 @@ async def test_all_executor_kinds_success_and_failure(kind_name):
 def test_redis_execution_state_store_contract():
     """Test Gap 8 — Verify RedisExecutionStateStore contract for result and idempotency persistence."""
     from services.execution_orchestrator import (
-        InMemoryExecutionStateStore,
         RedisExecutionStateStore,
     )
 
@@ -551,4 +556,303 @@ async def test_semantic_cache_governed_inside_orchestrator():
     assert res.success is True
     assert mock_native.execute.call_count == 1
     assert res.engine_version == "unknown"
+
+
+@pytest.mark.asyncio
+async def test_identity_fail_closed_rejects_anonymous_and_default():
+    """Verify that ExecutionOrchestrator rejects anonymous and default identities fail-closed."""
+    orchestrator = ExecutionOrchestrator()
+    mock_native = AsyncMock()
+    orchestrator.register_executor("native", mock_native)
+
+    # 1. Anonymous user_id must be rejected
+    req_anon = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_valid",
+        user_id="anonymous",
+        input={"system": {"base_mva": 100}},
+    )
+    res_anon = await orchestrator.execute(req_anon)
+    assert res_anon.success is False
+    assert res_anon.status == "rejected"
+    assert res_anon.audit_context["rejection_reason"] == "AUTHENTICATION_REQUIRED"
+    assert "Anonymous access is strictly prohibited" in res_anon.errors[0]
+
+    # 2. Default tenant_id must be rejected
+    req_def_tenant = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="default",
+        user_id="user_valid",
+        input={"system": {"base_mva": 100}},
+    )
+    res_def_tenant = await orchestrator.execute(req_def_tenant)
+    assert res_def_tenant.success is False
+    assert res_def_tenant.status == "rejected"
+    assert res_def_tenant.audit_context["rejection_reason"] == "TENANT_VALIDATION_FAILED"
+    assert "default" in res_def_tenant.errors[0].lower()
+
+    # 3. Blank user_id must be rejected
+    req_blank_user = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_valid",
+        user_id="   ",
+        input={"system": {"base_mva": 100}},
+    )
+    res_blank_user = await orchestrator.execute(req_blank_user)
+    assert res_blank_user.success is False
+    assert res_blank_user.audit_context["rejection_reason"] == "AUTHENTICATION_REQUIRED"
+
+
+@pytest.mark.asyncio
+async def test_authorization_fail_closed_enforces_roles():
+    """Verify that capability authorization policy enforces trusted role checks fail-closed."""
+    orchestrator = ExecutionOrchestrator()
+    mock_agent = AsyncMock()
+    mock_agent.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_sec",
+        request_id="req_sec",
+        capability_id="code_guard",
+        tenant_id="tenant_sec",
+        user_id="admin",
+        status="completed",
+        success=True,
+    )
+    orchestrator.register_executor("agent", mock_agent)
+
+    # 1. code_guard requires admin policy; engineer role must be denied
+    req_eng = ExecutionRequest(
+        capability_id="code_guard",
+        tenant_id="tenant_sec",
+        user_id="engineer_user",
+        user_role="engineer",
+        input={"system": {}},
+    )
+    res_eng = await orchestrator.execute(req_eng)
+    assert res_eng.success is False
+    assert res_eng.audit_context["rejection_reason"] == "AUTHORIZATION_DENIED"
+    assert "Administrator privileges required" in res_eng.errors[0]
+
+    # 2. scada requires lead_engineer policy; standard engineer role must be denied
+    req_scada_eng = ExecutionRequest(
+        capability_id="scada",
+        tenant_id="tenant_sec",
+        user_id="engineer_user",
+        user_role="engineer",
+        input={"system": {}},
+    )
+    res_scada_eng = await orchestrator.execute(req_scada_eng)
+    assert res_scada_eng.success is False
+    assert res_scada_eng.audit_context["rejection_reason"] == "AUTHORIZATION_DENIED"
+
+    # 3. Missing user_role for protected capability must be denied
+    req_no_role = ExecutionRequest(
+        capability_id="scada",
+        tenant_id="tenant_sec",
+        user_id="engineer_user",
+        user_role="",
+        input={"system": {}},
+    )
+    res_no_role = await orchestrator.execute(req_no_role)
+    assert res_no_role.success is False
+    assert res_no_role.audit_context["rejection_reason"] == "AUTHORIZATION_DENIED"
+
+
+@pytest.mark.asyncio
+async def test_multi_replica_centralized_state_fail_closed(monkeypatch):
+    """Verify that multi-replica mode fails closed when centralized state store is unavailable."""
+    monkeypatch.setenv("DEPLOYMENT_TOPOLOGY", "multi_replica")
+    store = RedisExecutionStateStore(fallback_store=None)
+
+    # Direct store operations must fail closed
+    with pytest.raises(CentralizedStateUnavailableError):
+        store.get_idempotency("tenant_mr:idemp_key")
+
+    with pytest.raises(CentralizedStateUnavailableError):
+        store.set_result(
+            "exec_mr",
+            CanonicalExecutionResult(
+                execution_id="exec_mr",
+                request_id="req_mr",
+                capability_id="load_flow",
+                tenant_id="tenant_mr",
+                user_id="user_mr",
+                status="completed",
+                success=True,
+            ),
+        )
+
+    # Orchestrator must catch CentralizedStateUnavailableError and reject fail-closed
+    orchestrator = ExecutionOrchestrator(state_store=store)
+    mock_native = AsyncMock()
+    orchestrator.register_executor("native", mock_native)
+
+    req = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_mr",
+        user_id="user_mr",
+        user_role="engineer",
+        input={"system": {"base_mva": 100}},
+    )
+    res = await orchestrator.execute(req)
+    assert res.success is False
+    assert res.audit_context["rejection_reason"] == "CENTRALIZED_STATE_UNAVAILABLE"
+
+
+def test_standards_hash_differentiates_standards_configuration():
+    """Verify that standards_hash produces distinct identities for different validation rules/standards."""
+    import dataclasses
+
+    reg = get_capability_registry()
+    cap = reg.get("load_flow")
+    req = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_test",
+        user_id="user_test",
+        input={"system": {}},
+    )
+
+    hash_iec = _compute_standards_hash(cap, {"standard": "IEC"}, req)
+    hash_ieee = _compute_standards_hash(cap, {"standard": "IEEE"}, req)
+    assert hash_iec != hash_ieee
+
+    # Changing capability validation policy changes the hash
+    cap_clone = dataclasses.replace(cap, validation_policy="custom_nuclear_rules_v2")
+    hash_custom = _compute_standards_hash(cap_clone, {"standard": "IEC"}, req)
+    assert hash_custom != hash_iec
+
+
+@pytest.mark.asyncio
+async def test_semantic_cache_preserves_authentic_provenance(monkeypatch):
+    """Verify that a semantic cache hit faithfully preserves original validated provenance."""
+    from unittest.mock import MagicMock
+
+    from api.semantic_cache_redis import CachedResult
+
+    # Enable token governance cache flag
+    monkeypatch.setenv("FEATURE_FLAG_TOKEN_GOVERNANCE", "true")
+
+    orig_provenance = {
+        "executor_kind": "native",
+        "solver": "nr_sparse_solver_v3",
+        "engine_version": "2.9.4",
+        "provider": "internal_python",
+        "certified_by": "PE-54321",
+        "timestamp": "2026-10-06T10:00:00Z",
+    }
+    orig_report = {"assertions_checked": 50, "warnings": [], "passed": True}
+
+    cached_entry_dict = {
+        "execution_id": "exec_original_validated",
+        "capability_id": "load_flow",
+        "tenant_id": "tenant_cache_auth",
+        "provider": "internal_python",
+        "executor_kind": "native",
+        "solver": "nr_sparse_solver_v3",
+        "engine_version": "2.9.4",
+        "success": True,
+        "status": "completed",
+        "validation_status": "passed",
+        "validation_report": orig_report,
+        "risk_class": "medium",
+        "risk_score": 0.35,
+        "risk_assessment": {"risk_class": "medium", "risk_score": 0.35},
+        "provenance": orig_provenance,
+        "data": {"bus_voltages": {"Bus1": 1.02}},
+        "input_snapshot_hash": "hash_input_orig",
+        "system_snapshot_hash": "hash_sys_orig",
+        "parameter_hash": "hash_param_orig",
+    }
+
+    mock_cached_result = CachedResult(
+        result=cached_entry_dict,
+        tokens_saved=1500,
+        similarity=1.0,
+        cached_at=1000.0,
+        cache_key="key_test",
+    )
+
+    mock_cache = MagicMock()
+    mock_cache.lookup = AsyncMock(return_value=mock_cached_result)
+
+    monkeypatch.setattr(
+        "api.semantic_cache_redis.get_distributed_semantic_cache",
+        lambda: mock_cache,
+    )
+
+    orchestrator = ExecutionOrchestrator()
+    mock_native = AsyncMock()
+    mock_native.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_fresh",
+        request_id="req_fresh",
+        capability_id="load_flow",
+        tenant_id="tenant_cache_auth",
+        user_id="engineer_auditor",
+        status="completed",
+        success=True,
+    )
+    orchestrator.register_executor("native", mock_native)
+
+    req = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_cache_auth",
+        user_id="engineer_auditor",
+        user_role="engineer",
+        input={"system": {"base_mva": 100}, "parameters": {"standard": "IEC"}},
+        metadata={"use_cache": True},
+    )
+
+    res = await orchestrator.execute(req)
+    assert res.success is True
+    # Executor must NOT be called on cache hit
+    assert mock_native.execute.call_count == 0
+
+    # Provenance and validated properties must be authentically preserved
+    assert res.solver == "nr_sparse_solver_v3"
+    assert res.engine_version == "2.9.4"
+    assert res.validation_status == "passed"
+    assert res.validation_report == orig_report
+    assert res.risk_class == "medium"
+    assert res.risk_score == 0.35
+    assert res.provenance["cached"] is True
+    assert res.provenance["certified_by"] == "PE-54321"
+    assert res.audit_context["cached"] is True
+    assert res.audit_context["original_execution_id"] == "exec_original_validated"
+
+
+@pytest.mark.asyncio
+async def test_composite_executor_records_workflow_provenance():
+    """Verify that CompositeEngineeringExecutor extracts and retains composite orchestration provenance."""
+    mock_inner_executor = AsyncMock()
+    mock_inner_executor.execute.return_value = CanonicalExecutionResult(
+        execution_id="exec_comp_inner",
+        request_id="req_comp_inner",
+        capability_id="ahmed_etap_orchestration",
+        tenant_id="tenant_comp",
+        user_id="user_comp",
+        status="completed",
+        success=True,
+        executor_kind="agent",
+        provenance={"sub_studies": ["load_flow", "short_circuit"]},
+    )
+
+    composite_executor = CompositeEngineeringExecutor(
+        agent_executor=mock_inner_executor,
+    )
+
+    req = ExecutionRequest(
+        capability_id="ahmed_etap_orchestration",
+        tenant_id="tenant_comp",
+        user_id="user_comp",
+        user_role="lead_engineer",
+        input={"system": {"base_mva": 100}},
+    )
+
+    res = await composite_executor.execute(req)
+    assert res.success is True
+    assert res.executor_kind == "composite"
+    assert "composite_workflow" in res.provenance
+    wf = res.provenance["composite_workflow"]
+    assert wf["orchestration_type"] == "composite_multi_agent"
+    assert wf["capability_id"] == "ahmed_etap_orchestration"
+    assert wf["verdict"] == "approved"
 
