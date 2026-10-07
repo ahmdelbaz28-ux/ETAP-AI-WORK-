@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-07T13:45:55.709840+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T14:33:23.673980+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,7 +12,7 @@
 | Python | Packages | 41 |
 | Python | Files | 382 |
 | Python | Classes | 933 |
-| Python | Functions | 833 |
+| Python | Functions | 835 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 270 |
 | Total | Tests | 3867 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -2955,7 +2955,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _22.6 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _23.6 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -2965,6 +2965,8 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_14bus_system()` (line 164)
 - **def** `build_iec60909_benchmark_system()` (line 307)
 - **def** `build_ieee_30bus_system()` (line 558)
+- **def** `calculate_iec_60909_theoretical_fault()` (line 704)
+- **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 711)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -5682,10 +5684,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-component | 280 |
-| python-module | 41 |
 | ui-page | 61 |
+| api-route | 92 |
+| python-module | 41 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -6214,7 +6216,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 79.4 KB | `5f7449a3072b` |
+| `hf-space/app.py` | 79.4 KB | `72c2f56c9639` |
 | `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
