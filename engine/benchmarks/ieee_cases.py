@@ -699,3 +699,34 @@ def build_ieee_30bus_system() -> System:
         system.add_load(Load(load_id=lid, bus=b_map[bus_id], load_power=complex(p, q)))
 
     return system
+
+
+def calculate_iec_60909_theoretical_fault(un_kv: float, c_factor: float, zk_ohm: float) -> float:
+    """Analytical initial symmetrical short-circuit current per IEC 60909-0:2016."""
+    import math
+
+    return float((c_factor * un_kv) / (math.sqrt(3) * zk_ohm))
+
+
+def calculate_ieee_1584_incident_energy_benchmark(
+    bolted_fault_current_ka: float,
+    voltage_kv: float,
+    arc_duration_sec: float,
+    working_distance_mm: float,
+) -> dict:
+    """Analytical benchmark calculation for IEEE 1584-2018 incident energy."""
+    from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig
+
+    engine = ArcFlashEngine()
+    result = engine.calculate(
+        voltage_kv=voltage_kv,
+        bolted_fault_current_ka=bolted_fault_current_ka,
+        arc_duration_sec=arc_duration_sec,
+        working_distance_mm=working_distance_mm,
+        electrode_config=ElectrodeConfig.VCB,
+    )
+    return {
+        "incident_energy_cal_cm2": result.incident_energy_cal_cm2,
+        "arc_flash_boundary_mm": result.arc_flash_boundary_mm,
+    }
+

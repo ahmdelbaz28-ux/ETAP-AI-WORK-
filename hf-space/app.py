@@ -756,7 +756,7 @@ async def healthz():
     # Redis check (C1)
     redis_status = "not_configured"
     try:
-        from api.limiter import get_redis_client
+        from api.auth import _get_redis_client as get_redis_client
 
         r = get_redis_client()
         if r is not None:
