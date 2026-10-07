@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-07T08:48:38.604353+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T10:37:13.501320+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 933 |
 | Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 267 |
-| Total | Tests | 3841 |
+| Test | Files | 268 |
+| Total | Tests | 3845 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 448 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -2088,25 +2088,25 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _57.7 KB_
+#### 📄 `api/routes.py` _59.5 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
-- **Class** `_BodySizeLimitMiddleware` (line 312)
-- **Class** `_TraceMiddleware` (line 485)
-- **Class** `HealthResponse` (line 522)
-- **Class** `ReadyResponse` (line 527)
-- **Class** `CUARollbackRequest` (line 1330)
-- **def** `get_celery_components()` (line 549)
-- **async def** `run_study_async()` (line 581)
-- **async def** `get_task_status()` (line 637)
-- **async def** `websocket_scada_endpoint_handler()` (line 679)
-- **async def** `websocket_cua_confirmation_handler()` (line 696)
-- **async def** `global_exception_handler()` (line 861)
-- **async def** `etap_health_probe()` (line 971)
-- **async def** `gis_status_probe()` (line 983)
-- **async def** `websocket_session_stream_handler()` (line 998)
-- **async def** `websocket_notifications_handler()` (line 1083)
+- **Class** `_BodySizeLimitMiddleware` (line 338)
+- **Class** `_TraceMiddleware` (line 511)
+- **Class** `HealthResponse` (line 548)
+- **Class** `ReadyResponse` (line 553)
+- **Class** `CUARollbackRequest` (line 1369)
+- **def** `get_celery_components()` (line 575)
+- **async def** `run_study_async()` (line 607)
+- **async def** `get_task_status()` (line 676)
+- **async def** `websocket_scada_endpoint_handler()` (line 718)
+- **async def** `websocket_cua_confirmation_handler()` (line 735)
+- **async def** `global_exception_handler()` (line 900)
+- **async def** `etap_health_probe()` (line 1010)
+- **async def** `gis_status_probe()` (line 1022)
+- **async def** `websocket_session_stream_handler()` (line 1037)
+- **async def** `websocket_notifications_handler()` (line 1122)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -2305,19 +2305,19 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _15.1 KB_
+#### 📄 `api/studies.py` _15.5 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 386)
-- **def** `pre_flight_check()` (line 142)
-- **async def** `run_study()` (line 210)
-- **async def** `run_study_async()` (line 364)
-- **async def** `get_study_types()` (line 375)
-- **async def** `re_run_study()` (line 393)
+- **Class** `StudyReRunRequest` (line 398)
+- **def** `pre_flight_check()` (line 154)
+- **async def** `run_study()` (line 222)
+- **async def** `run_study_async()` (line 376)
+- **async def** `get_study_types()` (line 387)
+- **async def** `re_run_study()` (line 405)
 
   **API Routes:**
   - `GET /types`
@@ -3383,11 +3383,11 @@ Owns the native engineering execution pipeline behind
 - **Class** `StudyExecutor` (line 87)
   - Methods: `execute_native()`, `execute()`
 
-#### 📄 `services/study_service.py` _15.4 KB_
+#### 📄 `services/study_service.py` _17.0 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
-- **def** `execute_study_logic()` (line 341)
+- **def** `execute_study_logic()` (line 381)
 
 #### 📄 `services/yolo/main.py` _7.0 KB_
 > services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
@@ -3613,7 +3613,7 @@ Production features
 --
 
 
-#### 📄 `worker/tasks.py` _9.1 KB_
+#### 📄 `worker/tasks.py` _9.2 KB_
 > Celery tasks for executing heavy engineering computations.
 These tasks run asynchronously to prevent blocking the API.
 
@@ -5676,9 +5676,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
-| python-module | 41 |
 | ui-component | 280 |
+| python-module | 41 |
+| ui-page | 61 |
 | api-route | 92 |
 | **TOTAL** | **474** |
 
@@ -5691,7 +5691,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5706,12 +5706,12 @@ Provides
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
-| `gis_validation_electrical` | `gis_integration` | `api` |
+| `gis_validation_electrical` | `gis_integration` | — |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
 | `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5945,6 +5945,7 @@ Provides
 | `test_standards_compliance_audit.py` | 0 | 4 | **5** |
 | `test_storage_management.py` | 2 | 0 | **2** |
 | `test_stress_tests.py` | 0 | 3 | **11** |
+| `test_structural_anti_bypass_regressions.py` | 0 | 1 | **4** |
 | `test_study_engine_deep.py` | 5 | 0 | **5** |
 | `test_study_executor_deep.py` | 0 | 6 | **34** |
 | `test_study_reachability_gate.py` | 0 | 4 | **10** |
