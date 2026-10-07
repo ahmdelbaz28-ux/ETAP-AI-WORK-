@@ -210,7 +210,11 @@ async def test_canonical_validation_catches_unphysical_results():
         provider="native",
         executor_kind="native",
         # 1.95 pu and 0.20 pu violate IEEE C84.1 Range B bounds (0.91 - 1.08 pu) -> CRITICAL voltage_range_b failure
-        data={"converged": True, "bus_voltages": {"Bus1": 1.95, "Bus2": 0.20}, "nominal_voltage_kv": 1.0},
+        data={
+            "converged": True,
+            "bus_voltages": {"Bus1": 1.95, "Bus2": 0.20},
+            "nominal_voltage_kv": 1.0,
+        },
         validation_status="passed",
         errors=[],
         warnings=[],
@@ -356,7 +360,8 @@ async def test_all_production_agent_capabilities_reach_runtime():
     runtime_agent_reg = create_agent_registry()
 
     prod_agent_caps = [
-        c for c in registry.list_capabilities()
+        c
+        for c in registry.list_capabilities()
         if (c.executor_kind == ExecutorKind.AGENT or c.executor_kind == "agent")
         and (c.lifecycle_status == LifecycleStatus.PRODUCTION or c.lifecycle_status == "production")
     ]
@@ -394,7 +399,9 @@ async def test_all_production_agent_capabilities_reach_runtime():
         )
 
         res = await agent_exec.execute(req)
-        assert mock_delegate.execute.called, f"Expected agent.execute() to be invoked for {cap.capability_id}"
+        assert mock_delegate.execute.called, (
+            f"Expected agent.execute() to be invoked for {cap.capability_id}"
+        )
         assert res.success is True
         assert res.executor_kind == "agent"
         assert res.provider == "agent"
@@ -661,7 +668,9 @@ async def test_authorization_fail_closed_enforces_roles():
 async def test_multi_replica_centralized_state_fail_closed(monkeypatch):
     """Verify that multi-replica mode fails closed when centralized state store is unavailable."""
     monkeypatch.setenv("DEPLOYMENT_TOPOLOGY", "multi_replica")
-    monkeypatch.setenv("REDIS_URL", "redis://127.0.0.1:59999/0?socket_timeout=0.1&socket_connect_timeout=0.1")
+    monkeypatch.setenv(
+        "REDIS_URL", "redis://127.0.0.1:59999/0?socket_timeout=0.1&socket_connect_timeout=0.1"
+    )
     store = RedisExecutionStateStore(fallback_store=None)
 
     # Direct store operations must fail closed
@@ -857,3 +866,265 @@ async def test_composite_executor_records_workflow_provenance():
     assert wf["capability_id"] == "ahmed_etap_orchestration"
     assert wf["verdict"] == "approved"
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Real Runtime Execution Tests (Section 8, 9, 12, 16 - No Mocking Executors)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_REAL_TEST_SYSTEM = {
+    "base_mva": 100.0,
+    "buses": [
+        {
+            "bus_id": 1,
+            "voltage_magnitude": 1.0,
+            "voltage_angle": 0.0,
+            "bus_type": "slack",
+            "base_kv": 11.0,
+        },
+        {
+            "bus_id": 2,
+            "voltage_magnitude": 1.0,
+            "voltage_angle": 0.0,
+            "bus_type": "pq",
+            "base_kv": 11.0,
+        },
+    ],
+    "lines": [
+        {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+    ],
+    "loads": [
+        {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+    ],
+}
+
+
+@pytest.mark.asyncio
+async def test_real_native_executor_load_flow_and_short_circuit():
+    """Section 8: Prove that the REAL NativeEngineeringExecutor executes Newton-Raphson and IEC 60909."""
+    orchestrator = get_execution_orchestrator()
+
+    # 1. Real Load Flow execution
+    req_lf = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_real_eng",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={"system": _REAL_TEST_SYSTEM, "parameters": {"tol": 1e-5, "max_iter": 50}},
+    )
+    res_lf = await orchestrator.execute(req_lf)
+    assert res_lf.success is True
+    assert res_lf.status == "completed"
+    assert res_lf.executor_kind == "native"
+    assert res_lf.provider == "native"
+    assert res_lf.solver == "newton_raphson"
+    assert "bus_results" in res_lf.data or "buses" in res_lf.data or "converged" in res_lf.data
+    assert res_lf.validation_status in ("passed", "warning")
+
+    # 2. Real Short Circuit execution
+    req_sc = ExecutionRequest(
+        capability_id="short_circuit",
+        tenant_id="tenant_real_eng",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={
+            "system": _REAL_TEST_SYSTEM,
+            "parameters": {"bus_id": 2, "fault_type": "three_phase"},
+        },
+    )
+    res_sc = await orchestrator.execute(req_sc)
+    assert res_sc.success is True
+    assert res_sc.status == "completed"
+    assert res_sc.executor_kind == "native"
+    assert res_sc.validation_status in ("passed", "warning")
+
+
+@pytest.mark.asyncio
+async def test_real_native_executor_propagates_real_failure():
+    """Section 8: Prove that real mathematical/system failures propagate honestly without manufactured success."""
+    orchestrator = get_execution_orchestrator()
+
+    # Network with disconnected/invalid line referring to non-existent bus
+    invalid_system = {
+        "base_mva": 100.0,
+        "buses": [
+            {
+                "bus_id": 1,
+                "voltage_magnitude": 1.0,
+                "voltage_angle": 0.0,
+                "bus_type": "slack",
+                "base_kv": 11.0,
+            }
+        ],
+        "lines": [
+            {
+                "line_id": 1,
+                "from_bus_id": 1,
+                "to_bus_id": 999,
+                "r1": 0.01,
+                "x1": 0.05,
+                "bshunt1": 0.0,
+            }
+        ],
+    }
+    req = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_real_fail",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={"system": invalid_system, "parameters": {}},
+    )
+    res = await orchestrator.execute(req)
+    assert res.success is False
+    assert res.status == "failed"
+    assert res.validation_status == "failed"
+    assert len(res.errors) > 0
+
+
+@pytest.mark.asyncio
+async def test_real_agent_executor_stability_and_expert():
+    """Section 9: Prove that the REAL AgentEngineeringExecutor executes real BaseAgent algorithms."""
+    orchestrator = get_execution_orchestrator()
+
+    # 1. Real ETAPExpertAgent knowledge-base reasoning
+    req_expert = ExecutionRequest(
+        capability_id="etap_expert",
+        tenant_id="tenant_agent_real",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={"parameters": {"question": "How do I perform a load flow study in ETAP?"}},
+    )
+    res_expert = await orchestrator.execute(req_expert)
+    assert res_expert.success is True
+    assert res_expert.status == "completed"
+    assert res_expert.executor_kind == "agent"
+    assert res_expert.solver == "ETAPExpertAgent"
+    assert "response" in res_expert.data or "answer" in res_expert.data
+
+    # 2. Real CableSizingAgent computation (valid cable selection)
+    req_cable = ExecutionRequest(
+        capability_id="cable_sizing",
+        tenant_id="tenant_agent_real",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={
+            "system": _REAL_TEST_SYSTEM,
+            "parameters": {
+                "cross_section_mm2": 185,
+                "load_current_A": 120.0,
+                "cable_length_m": 150.0,
+                "system_voltage_V": 400.0,
+                "power_factor": 0.85,
+                "fault_current_kA": 5.0,
+                "fault_duration_s": 0.5,
+            },
+        },
+    )
+    res_cable = await orchestrator.execute(req_cable)
+    assert res_cable.success is True
+    assert res_cable.status == "completed"
+    assert res_cable.executor_kind == "agent"
+    assert res_cable.solver == "CableSizingAgent"
+
+
+@pytest.mark.asyncio
+async def test_real_agent_executor_failure_propagation():
+    """Section 9: Prove that real agent computation failures propagate truthfully."""
+    orchestrator = get_execution_orchestrator()
+
+    # 1. ETAPExpertAgent with empty question fails
+    req_fail_expert = ExecutionRequest(
+        capability_id="etap_expert",
+        tenant_id="tenant_agent_fail",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={"parameters": {"question": ""}},
+    )
+    res_fail_expert = await orchestrator.execute(req_fail_expert)
+    assert res_fail_expert.success is False
+    assert res_fail_expert.status in ("rejected", "failed")
+    assert any(
+        "SCHEMA_VALIDATION_FAILED" in err or "question" in err for err in res_fail_expert.errors
+    )
+
+    # 2. CableSizingAgent with undersized cross section for large fault current fails
+    req_fail_cable = ExecutionRequest(
+        capability_id="cable_sizing",
+        tenant_id="tenant_agent_fail",
+        user_id="engineer_alice",
+        user_role="engineer",
+        input={
+            "system": _REAL_TEST_SYSTEM,
+            "parameters": {
+                "cross_section_mm2": 10,
+                "fault_current_kA": 50.0,
+                "fault_duration_s": 1.0,
+            },
+        },
+    )
+    res_fail_cable = await orchestrator.execute(req_fail_cable)
+    assert res_fail_cable.success is False
+    assert res_fail_cable.status == "failed"
+    assert len(res_fail_cable.errors) > 0
+
+
+@pytest.mark.asyncio
+async def test_real_composite_executor_multi_stage_workflow():
+    """Section 12: Prove that CompositeEngineeringExecutor genuinely executes a multi-stage workflow."""
+    orchestrator = get_execution_orchestrator()
+
+    # Execute genuine 2-stage composite workflow: load_flow -> short_circuit
+    req_composite = ExecutionRequest(
+        capability_id="ahmed_etap_orchestration",
+        tenant_id="tenant_comp_real",
+        user_id="lead_alice",
+        user_role="lead_engineer",
+        approval_context={"approved": True, "approver_id": "checker_bob"},
+        input={
+            "system": _REAL_TEST_SYSTEM,
+            "stages": ["load_flow", "short_circuit"],
+            "parameters": {"bus_id": 2, "fault_type": "three_phase"},
+        },
+    )
+    res = await orchestrator.execute(req_composite)
+    assert res.success is True
+    assert res.status == "completed"
+    assert res.executor_kind == "composite"
+    assert "composite_workflow" in res.provenance
+    wf = res.provenance["composite_workflow"]
+    assert wf["orchestration_type"] == "composite_multi_stage"
+    assert wf["verdict"] == "approved"
+    assert len(wf["stages_executed"]) == 2
+    assert wf["stages_executed"][0]["capability_id"] == "load_flow"
+    assert wf["stages_executed"][1]["capability_id"] == "short_circuit"
+    assert "composite_results" in res.data
+    assert "load_flow" in res.data["composite_results"]
+    assert "short_circuit" in res.data["composite_results"]
+
+
+@pytest.mark.asyncio
+async def test_real_composite_executor_halts_and_fails_on_stage_failure():
+    """Section 12: Prove that composite workflow halts and fails closed if an inner stage fails."""
+    orchestrator = get_execution_orchestrator()
+
+    # Stage 1 succeeds (load_flow), Stage 2 fails (short_circuit missing required bus_id on disconnected bus)
+    req_composite = ExecutionRequest(
+        capability_id="ahmed_etap_orchestration",
+        tenant_id="tenant_comp_fail",
+        user_id="lead_alice",
+        user_role="lead_engineer",
+        approval_context={"approved": True, "approver_id": "checker_bob"},
+        input={
+            "system": _REAL_TEST_SYSTEM,
+            "stages": [
+                {"capability_id": "load_flow", "parameters": {}},
+                {"capability_id": "short_circuit", "parameters": {"bus_id": 99999}},
+            ],
+        },
+    )
+    res = await orchestrator.execute(req_composite)
+    assert res.success is False
+    assert res.status == "failed"
+    assert "composite_workflow" in res.provenance
+    assert res.provenance["composite_workflow"]["verdict"] == "rejected"
+    assert res.provenance["composite_workflow"]["failed_stage"] == "short_circuit"
+    assert any("short_circuit" in err for err in res.errors)

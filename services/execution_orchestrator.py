@@ -115,7 +115,6 @@ class InMemoryExecutionStateStore(IExecutionStateStore):
         self.results.clear()
 
 
-
 class RedisExecutionStateStore(IExecutionStateStore):
     """Distributed, Redis-backed state store for multi-replica cluster deployments (Gap 8).
 
@@ -133,7 +132,9 @@ class RedisExecutionStateStore(IExecutionStateStore):
         self._fallback = fallback_store or InMemoryExecutionStateStore()
         self._ttl_seconds = ttl_seconds
         topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").lower()
-        self._strict_distributed = strict_distributed or (topo in ("multi_replica", "cluster", "distributed"))
+        self._strict_distributed = strict_distributed or (
+            topo in ("multi_replica", "cluster", "distributed")
+        )
 
     def _sync_get_redis(self) -> Any:
         try:
@@ -262,8 +263,12 @@ def get_execution_state_store() -> IExecutionStateStore:
     global _GLOBAL_EXECUTION_STATE_STORE
     topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").lower()
     if topo in ("multi_replica", "cluster", "distributed"):
-        if not isinstance(_GLOBAL_EXECUTION_STATE_STORE, RedisExecutionStateStore) or not getattr(_GLOBAL_EXECUTION_STATE_STORE, "_strict_distributed", False):
-            _GLOBAL_EXECUTION_STATE_STORE = RedisExecutionStateStore(fallback_store=None, strict_distributed=True)
+        if not isinstance(_GLOBAL_EXECUTION_STATE_STORE, RedisExecutionStateStore) or not getattr(
+            _GLOBAL_EXECUTION_STATE_STORE, "_strict_distributed", False
+        ):
+            _GLOBAL_EXECUTION_STATE_STORE = RedisExecutionStateStore(
+                fallback_store=None, strict_distributed=True
+            )
     return _GLOBAL_EXECUTION_STATE_STORE
 
 
@@ -276,6 +281,7 @@ def set_execution_state_store(store: IExecutionStateStore) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # Concrete Executors (Phase 5 Implementations)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class NativeEngineeringExecutor(IEngineeringExecutor):
     """Executes native numerical power-system studies via PowerSystemEngine / StudyExecutor."""
@@ -371,7 +377,9 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
             if data.get("warnings"):
                 warnings.extend(str(w) for w in data["warnings"])
 
-        solver_opts = getattr(request, "solver_options", {}) if hasattr(request, "solver_options") else {}
+        solver_opts = (
+            getattr(request, "solver_options", {}) if hasattr(request, "solver_options") else {}
+        )
         solver_method = None
         if isinstance(solver_opts, dict):
             solver_method = solver_opts.get("solver")
@@ -468,7 +476,8 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
 
         task = EngineeringTask(
             task_id=request.request_id or request.execution_id,
-            description=request.metadata.get("goal") or f"Agent execution for {request.capability_id}",
+            description=request.metadata.get("goal")
+            or f"Agent execution for {request.capability_id}",
             study_types=study_types,
             parameters=params,
         )
@@ -555,7 +564,8 @@ class EtapEngineeringExecutor(IEngineeringExecutor):
 
         provider_name = (
             type(executor.provider).__name__
-            if hasattr(executor, "provider") and type(executor.provider).__name__ not in ("Mock", "MagicMock")
+            if hasattr(executor, "provider")
+            and type(executor.provider).__name__ not in ("Mock", "MagicMock")
             else "etap"
         )
 
@@ -638,7 +648,8 @@ class EtapEngineeringExecutor(IEngineeringExecutor):
 
         provider_name = (
             type(executor.provider).__name__
-            if hasattr(executor, "provider") and type(executor.provider).__name__ not in ("Mock", "MagicMock")
+            if hasattr(executor, "provider")
+            and type(executor.provider).__name__ not in ("Mock", "MagicMock")
             else "etap"
         )
 
@@ -691,7 +702,9 @@ class ExternalServiceExecutor(IEngineeringExecutor):
             else:
                 data = executor._dispatch(request.capability_id, system, params)
         except Exception as exc:
-            logger.exception("External service execution failed for %s: %s", request.capability_id, exc)
+            logger.exception(
+                "External service execution failed for %s: %s", request.capability_id, exc
+            )
             return CanonicalExecutionResult(
                 execution_id=request.execution_id,
                 request_id=request.request_id,
@@ -741,7 +754,9 @@ class ExternalServiceExecutor(IEngineeringExecutor):
         elif data.get("error"):
             errors.append(str(data["error"]))
         elif is_failed:
-            errors.append(f"External service execution reported failure for '{request.capability_id}'")
+            errors.append(
+                f"External service execution reported failure for '{request.capability_id}'"
+            )
 
         warnings = [str(w) for w in data.get("warnings", [])]
         success = not is_failed and not errors
@@ -767,23 +782,216 @@ class ExternalServiceExecutor(IEngineeringExecutor):
 
 
 class CompositeEngineeringExecutor(IEngineeringExecutor):
-    """Executes composite multi-agent study orchestrations."""
+    """Executes composite multi-stage and multi-agent study orchestrations."""
 
     def __init__(self, agent_executor: Any = None) -> None:
         self._agent_executor = agent_executor or AgentEngineeringExecutor()
 
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
+        params = request.get_parameters()
+        stages = (
+            params.get("stages")
+            or params.get("sub_studies")
+            or (request.input.get("stages") if isinstance(request.input, dict) else None)
+            or (request.input.get("sub_studies") if isinstance(request.input, dict) else None)
+        )
+
+        cap_reg = get_capability_registry()
+        cap = cap_reg.get(request.capability_id)
+
+        # ── Path A: Explicit multi-stage workflow execution (Stage 1 -> Stage 2 -> ... -> Stage N) ──
+        if stages and isinstance(stages, (list, tuple)):
+            from services.execution_orchestrator import get_execution_orchestrator
+
+            orchestrator = get_execution_orchestrator()
+            stages_executed: list[dict[str, Any]] = []
+            aggregated_data: dict[str, Any] = {}
+            previous_stage_result: Optional[dict[str, Any]] = None
+
+            for idx, stage_item in enumerate(stages):
+                stage_cap_id = (
+                    stage_item if isinstance(stage_item, str) else stage_item.get("capability_id")
+                )
+                if not stage_cap_id:
+                    return CanonicalExecutionResult(
+                        execution_id=request.execution_id,
+                        request_id=request.request_id,
+                        capability_id=request.capability_id,
+                        tenant_id=request.tenant_id,
+                        user_id=request.user_id,
+                        executor_kind="composite",
+                        status="failed",
+                        success=False,
+                        data={},
+                        errors=[f"Stage {idx + 1} definition missing capability_id"],
+                        trace_id=request.trace_id,
+                    )
+
+                stage_cap = cap_reg.get(stage_cap_id)
+                if stage_cap is None:
+                    return CanonicalExecutionResult(
+                        execution_id=request.execution_id,
+                        request_id=request.request_id,
+                        capability_id=request.capability_id,
+                        tenant_id=request.tenant_id,
+                        user_id=request.user_id,
+                        executor_kind="composite",
+                        status="failed",
+                        success=False,
+                        data={},
+                        errors=[
+                            f"Composite stage '{stage_cap_id}' is not registered in canonical registry"
+                        ],
+                        trace_id=request.trace_id,
+                    )
+
+                # Lifecycle availability check (fail-closed if stage disabled or unavailable)
+                stage_status = (
+                    stage_cap.lifecycle_status.value
+                    if isinstance(stage_cap.lifecycle_status, LifecycleStatus)
+                    else str(stage_cap.lifecycle_status).lower()
+                )
+                if stage_status in ("disabled", "unavailable"):
+                    return CanonicalExecutionResult(
+                        execution_id=request.execution_id,
+                        request_id=request.request_id,
+                        capability_id=request.capability_id,
+                        tenant_id=request.tenant_id,
+                        user_id=request.user_id,
+                        executor_kind="composite",
+                        status="failed",
+                        success=False,
+                        data={},
+                        errors=[f"Required composite stage '{stage_cap_id}' is {stage_status}"],
+                        trace_id=request.trace_id,
+                    )
+
+                # Prepare stage input, passing forward data from earlier stages
+                stage_params = dict(params)
+                if isinstance(stage_item, dict):
+                    stage_params.update(stage_item.get("parameters", {}))
+                if previous_stage_result:
+                    prior = dict(stage_params.get("prior_stage_results", {}))
+                    prior.update(aggregated_data)
+                    stage_params["prior_stage_results"] = prior
+
+                stage_req = ExecutionRequest(
+                    execution_id=f"{request.execution_id}_stage_{idx + 1}",
+                    request_id=f"{request.request_id}_stage_{idx + 1}",
+                    capability_id=stage_cap_id,
+                    tenant_id=request.tenant_id,
+                    user_id=request.user_id,
+                    user_role=request.user_role,
+                    input={
+                        "system": request.get_system(),
+                        "parameters": stage_params,
+                    },
+                    system_snapshot=request.system_snapshot,
+                    trace_id=request.trace_id,
+                    metadata={"parent_execution_id": request.execution_id, "stage_index": idx + 1},
+                )
+
+                stage_res = await orchestrator.execute(stage_req)
+
+                if not stage_res.success or stage_res.status != "completed":
+                    stage_err = (
+                        "; ".join(stage_res.errors)
+                        if stage_res.errors
+                        else f"stage {stage_cap_id} failed"
+                    )
+                    return CanonicalExecutionResult(
+                        execution_id=request.execution_id,
+                        request_id=request.request_id,
+                        capability_id=request.capability_id,
+                        tenant_id=request.tenant_id,
+                        user_id=request.user_id,
+                        executor_kind="composite",
+                        status="failed",
+                        success=False,
+                        data=aggregated_data,
+                        errors=[
+                            f"Composite workflow halted: stage {idx + 1} ('{stage_cap_id}') failed: {stage_err}"
+                        ],
+                        provenance={
+                            "composite_workflow": {
+                                "orchestration_type": "composite_multi_stage",
+                                "capability_id": request.capability_id,
+                                "failed_stage": stage_cap_id,
+                                "stages_executed": stages_executed,
+                                "verdict": "rejected",
+                            }
+                        },
+                        trace_id=request.trace_id,
+                    )
+
+                stages_executed.append(
+                    {
+                        "stage_index": idx + 1,
+                        "capability_id": stage_cap_id,
+                        "execution_id": stage_res.execution_id,
+                        "status": stage_res.status,
+                        "executor_kind": stage_res.executor_kind,
+                        "duration_sec": stage_res.execution_time_sec,
+                    }
+                )
+                aggregated_data[stage_cap_id] = stage_res.data
+                previous_stage_result = stage_res.data
+
+            composite_provenance = {
+                "orchestration_type": "composite_multi_stage",
+                "capability_id": request.capability_id,
+                "stages_executed": stages_executed,
+                "stages_count": len(stages_executed),
+                "verdict": "approved",
+            }
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="composite",
+                provider="composite",
+                solver="composite_multi_stage_orchestrator",
+                status="completed",
+                success=True,
+                data={
+                    "composite_results": aggregated_data,
+                    "stages": [s["capability_id"] for s in stages_executed],
+                },
+                provenance={"composite_workflow": composite_provenance},
+                trace_id=request.trace_id,
+            )
+
+        # ── Path B: Multi-agent orchestration via AhmedETAPSkillAgent (Lead -> MathGuard -> PeerReview) ──
         res = await self._agent_executor.execute(request)
         res.executor_kind = "composite"
 
-        # Attach authentic composite orchestration provenance
+        stages_info = []
+        lead_agent = res.data.get("lead_agent") or res.solver or request.capability_id
+        reviewer_agent = res.data.get("reviewer_agent") or "validation"
+        math_guard_passed = res.data.get("math_guard_passed", res.success)
+        verdict = res.data.get("verdict") or ("approved" if res.success else "rejected")
+
+        stages_info.append(
+            {
+                "stage": "lead_agent_execution",
+                "agent": lead_agent,
+                "status": "completed" if res.success else "failed",
+            }
+        )
+        stages_info.append({"stage": "math_guard_validation", "passed": math_guard_passed})
+        stages_info.append({"stage": "peer_review", "reviewer": reviewer_agent, "verdict": verdict})
+
         composite_provenance = {
             "orchestration_type": "composite_multi_agent",
             "capability_id": request.capability_id,
-            "lead_agent": res.data.get("lead_agent") or res.solver or request.capability_id,
-            "reviewer_agent": res.data.get("reviewer_agent") or "validation",
-            "verdict": res.data.get("verdict") or ("approved" if res.success else "rejected"),
-            "math_guard_passed": res.data.get("math_guard_passed", res.success),
+            "lead_agent": lead_agent,
+            "reviewer_agent": reviewer_agent,
+            "verdict": verdict,
+            "math_guard_passed": math_guard_passed,
+            "stages_executed": stages_info,
         }
         res.provenance["composite_workflow"] = composite_provenance
         return res
@@ -797,15 +1005,20 @@ def _compute_standards_hash(
 ) -> str:
     """Deterministic hash of applicable validation policy, engineering standards, and rule versions."""
     import json
+
     val_policy = str(getattr(cap, "validation_policy", "default") or "default")
     cap_ver = str(getattr(cap, "version", "1.0.0") or "1.0.0")
     study_type = str(getattr(cap, "study_type", "") or "")
-    std_param = str(
-        params.get("standard")
-        or params.get("std")
-        or (request.metadata or {}).get("standard")
-        or ""
-    ).strip().upper()
+    std_param = (
+        str(
+            params.get("standard")
+            or params.get("std")
+            or (request.metadata or {}).get("standard")
+            or ""
+        )
+        .strip()
+        .upper()
+    )
     standards_context = {
         "validation_policy": val_policy,
         "capability_version": cap_ver,
@@ -875,9 +1088,7 @@ class ExecutionOrchestrator:
             return self._state_store.results
         return {}
 
-    def register_executor(
-        self, kind: ExecutorKind | str, executor: IEngineeringExecutor
-    ) -> None:
+    def register_executor(self, kind: ExecutorKind | str, executor: IEngineeringExecutor) -> None:
         """Register an executor for a specific executor kind."""
         k = kind.value if isinstance(kind, ExecutorKind) else str(kind).lower()
         self._executors[k] = executor
@@ -984,7 +1195,9 @@ class ExecutionOrchestrator:
         # ── 5. Validate Authorization ────────────────────────────────────────
         if cap.authorization_policy:
             auth_policy = str(cap.authorization_policy).lower().strip()
-            raw_role = getattr(request, "user_role", None) or (request.metadata or {}).get("role", "")
+            raw_role = getattr(request, "user_role", None) or (request.metadata or {}).get(
+                "role", ""
+            )
             user_role = str(raw_role or "").lower().strip()
             if not user_role:
                 return self._build_rejection(
@@ -1014,7 +1227,13 @@ class ExecutionOrchestrator:
                         raise_on_error=raise_on_error,
                     )
             elif auth_policy in ("engineer", "standard"):
-                if user_role not in ("engineer", "lead_engineer", "lead", "admin", "service_principal"):
+                if user_role not in (
+                    "engineer",
+                    "lead_engineer",
+                    "lead",
+                    "admin",
+                    "service_principal",
+                ):
                     return self._build_rejection(
                         request,
                         reason="AUTHORIZATION_DENIED",
@@ -1107,7 +1326,9 @@ class ExecutionOrchestrator:
         try:
             cached_entry = self._state_store.get_idempotency(idempotency_key)
         except CentralizedStateUnavailableError as csu_err:
-            logger.error("Centralized state store unavailable during idempotency check: %s", csu_err)
+            logger.error(
+                "Centralized state store unavailable during idempotency check: %s", csu_err
+            )
             return self._build_rejection(
                 request,
                 reason="CENTRALIZED_STATE_UNAVAILABLE",
@@ -1172,7 +1393,9 @@ class ExecutionOrchestrator:
         try:
             from api.feature_flags import is_feature_enabled, is_strict_feature_enabled
 
-            use_cache = is_strict_feature_enabled("token_governance") or is_feature_enabled("token_governance", default=False)
+            use_cache = is_strict_feature_enabled("token_governance") or is_feature_enabled(
+                "token_governance", default=False
+            )
         except Exception:
             use_cache = False
 
@@ -1187,7 +1410,11 @@ class ExecutionOrchestrator:
                     if hasattr(sys_obj, "model_dump")
                     else (sys_obj if isinstance(sys_obj, dict) else {})
                 )
-                prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
+                prov_key = (
+                    request.provider_policy
+                    or getattr(cap, "provider_policy", None)
+                    or executor_kind_str
+                ).lower()
                 cached_entry = await cache.lookup(
                     system_data=sys_dict,
                     parameters=params,
@@ -1220,14 +1447,28 @@ class ExecutionOrchestrator:
                             and isinstance(orig_prov, dict)
                             and (not cached_tenant or str(cached_tenant) == str(request.tenant_id))
                             and (not cached_prov or str(cached_prov).lower() == prov_key)
-                            and (not cached_cap or str(cached_cap).lower() == request.capability_id.lower())
-                            and (not cached_kind or str(cached_kind).lower() == executor_kind_str.lower())
+                            and (
+                                not cached_cap
+                                or str(cached_cap).lower() == request.capability_id.lower()
+                            )
+                            and (
+                                not cached_kind
+                                or str(cached_kind).lower() == executor_kind_str.lower()
+                            )
                             and cached_val_status in ("passed", "warning")
                         ):
                             cached_data = cached_raw.get("data", cached_raw)
-                            logger.info("Canonical cache hit for capability %s tenant %s", request.capability_id, request.tenant_id)
-                            orig_solver = cached_raw.get("solver") or getattr(cap, "handler", executor_kind_str)
-                            orig_engine_ver = cached_raw.get("engine_version") or getattr(cap, "engine_version", "1.0.0")
+                            logger.info(
+                                "Canonical cache hit for capability %s tenant %s",
+                                request.capability_id,
+                                request.tenant_id,
+                            )
+                            orig_solver = cached_raw.get("solver") or getattr(
+                                cap, "handler", executor_kind_str
+                            )
+                            orig_engine_ver = cached_raw.get("engine_version") or getattr(
+                                cap, "engine_version", "1.0.0"
+                            )
                             orig_risk_score = cached_raw.get("risk_score")
                             orig_risk_class = cached_raw.get("risk_class") or cap.risk_class
                             orig_risk_assessment = cached_raw.get("risk_assessment") or {}
@@ -1243,16 +1484,22 @@ class ExecutionOrchestrator:
                                 provider=cached_prov or prov_key,
                                 solver=orig_solver,
                                 engine_version=orig_engine_ver,
-                                input_snapshot_hash=cached_raw.get("input_snapshot_hash") or input_hash,
-                                system_snapshot_hash=cached_raw.get("system_snapshot_hash") or sys_hash,
+                                input_snapshot_hash=cached_raw.get("input_snapshot_hash")
+                                or input_hash,
+                                system_snapshot_hash=cached_raw.get("system_snapshot_hash")
+                                or sys_hash,
                                 parameter_hash=cached_raw.get("parameter_hash") or param_hash,
                                 status="completed",
                                 success=True,
                                 data=cached_data if isinstance(cached_data, dict) else {},
                                 validation_status=cached_val_status,
-                                validation_report=orig_val_report if isinstance(orig_val_report, dict) else {"cached": True, "source": "canonical_semantic_cache"},
+                                validation_report=orig_val_report
+                                if isinstance(orig_val_report, dict)
+                                else {"cached": True, "source": "canonical_semantic_cache"},
                                 risk_class=orig_risk_class,
-                                risk_score=float(orig_risk_score if orig_risk_score is not None else 0.1),
+                                risk_score=float(
+                                    orig_risk_score if orig_risk_score is not None else 0.1
+                                ),
                                 risk_assessment=orig_risk_assessment,
                                 provenance={
                                     **orig_prov,
@@ -1396,9 +1643,19 @@ class ExecutionOrchestrator:
         sys_hash = _safe_hash(request.system_snapshot or request.get_system())
         input_hash = _safe_hash(request.input)
 
-        final_provider = getattr(exec_res, "provider", None) or getattr(cap, "provider_policy", None) or executor_kind_str
-        final_solver = getattr(exec_res, "solver", None) or getattr(cap, "handler", None) or executor_kind_str
-        final_engine_version = getattr(exec_res, "engine_version", None) or getattr(cap, "engine_version", None) or "unknown"
+        final_provider = (
+            getattr(exec_res, "provider", None)
+            or getattr(cap, "provider_policy", None)
+            or executor_kind_str
+        )
+        final_solver = (
+            getattr(exec_res, "solver", None) or getattr(cap, "handler", None) or executor_kind_str
+        )
+        final_engine_version = (
+            getattr(exec_res, "engine_version", None)
+            or getattr(cap, "engine_version", None)
+            or "unknown"
+        )
 
         provenance = {
             "executor_kind": executor_kind_str,
@@ -1413,6 +1670,15 @@ class ExecutionOrchestrator:
             "tenant_id": request.tenant_id,
             "user_id": request.user_id,
         }
+        if exec_res and hasattr(exec_res, "provenance") and isinstance(exec_res.provenance, dict):
+            for k, v in exec_res.provenance.items():
+                if k not in provenance or k in (
+                    "composite_workflow",
+                    "stages",
+                    "stages_executed",
+                    "sub_studies",
+                ):
+                    provenance[k] = v
 
         # ── 17. Persist Canonical Result ─────────────────────────────────────
         result = CanonicalExecutionResult(
@@ -1447,7 +1713,9 @@ class ExecutionOrchestrator:
             result_id=f"res_{uuid.uuid4().hex}",
             created_at=started_at,
             completed_at=datetime.now(timezone.utc).isoformat(),
-            approval_state=request.approval_context.get("state") if request.approval_context else None,
+            approval_state=request.approval_context.get("state")
+            if request.approval_context
+            else None,
             idempotent_replay=False,
             metadata=request.metadata,
         )
@@ -1456,7 +1724,9 @@ class ExecutionOrchestrator:
             self._state_store.set_result(execution_id, result)
             self._state_store.set_idempotency(idempotency_key, result, time.time())
         except CentralizedStateUnavailableError as csu_err:
-            logger.error("Centralized state store unavailable during result persistence: %s", csu_err)
+            logger.error(
+                "Centralized state store unavailable during result persistence: %s", csu_err
+            )
             if raise_on_error:
                 raise
             return self._build_rejection(
@@ -1468,7 +1738,12 @@ class ExecutionOrchestrator:
             )
 
         # ── 17b. Store Validated Result in Canonical Semantic Cache ──────────
-        if success and validation_status in ("passed", "warning") and use_cache and request.metadata.get("use_cache", True):
+        if (
+            success
+            and validation_status in ("passed", "warning")
+            and use_cache
+            and request.metadata.get("use_cache", True)
+        ):
             try:
                 from api.semantic_cache_redis import get_distributed_semantic_cache
 
@@ -1479,7 +1754,11 @@ class ExecutionOrchestrator:
                     if hasattr(sys_obj, "model_dump")
                     else (sys_obj if isinstance(sys_obj, dict) else {})
                 )
-                prov_key = (request.provider_policy or getattr(cap, "provider_policy", None) or executor_kind_str).lower()
+                prov_key = (
+                    request.provider_policy
+                    or getattr(cap, "provider_policy", None)
+                    or executor_kind_str
+                ).lower()
                 await cache.store(
                     system_data=sys_dict,
                     parameters=params,
