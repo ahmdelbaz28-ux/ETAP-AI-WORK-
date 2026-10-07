@@ -127,8 +127,7 @@ jobs:
           npx eslint . \
             --max-warnings=0 \
             --format=json \
-            --output-file=eslint-results.json \
-            || true  # Don't fail yet — we'll process results
+            --output-file=eslint-results.json
 
       - name: Generate ESLint summary
         working-directory: ${{ env.UI_DIR }}
@@ -253,8 +252,7 @@ jobs:
             --coverage \
             --reporter=verbose \
             --reporter=json \
-            --outputFile=vitest-results.json \
-            || true
+            --outputFile=vitest-results.json
 
       - name: Generate Vitest summary
         working-directory: ${{ env.UI_DIR }}

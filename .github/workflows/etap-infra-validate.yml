@@ -79,7 +79,7 @@ jobs:
 
       - name: Shellcheck
         run: |
-          find . -name '*.sh' -not -path './.git/*' -not -path './node_modules/*' | xargs -r shellcheck -x || true
+          find . -name '*.sh' -not -path './.git/*' -not -path './node_modules/*' | xargs -r shellcheck -x
 
       - name: Helm lint (default values)
         run: helm lint helm/etap-ai
