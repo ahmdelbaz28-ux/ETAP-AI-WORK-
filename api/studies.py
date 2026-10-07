@@ -132,7 +132,11 @@ def _run_native_study(
         "[LEGACY_QUARANTINE] api.studies._run_native_study called for '%s'.",
         study_type,
     )
-    return StudyExecutor()._dispatch(study_type, system, parameters)
+    raw_res = StudyExecutor()._dispatch(study_type, system, parameters)
+    if isinstance(raw_res, dict):
+        raw_res["execution_path"] = "LEGACY_NON_AUTHORITATIVE"
+        raw_res["authoritative"] = False
+    return raw_res
 
 
 def _validate_study_request(payload: StudyRequest) -> None:

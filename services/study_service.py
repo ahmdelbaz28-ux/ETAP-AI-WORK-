@@ -264,7 +264,7 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
         tol = parameters.get("tol") or parameters.get("tolerance") or parameters.get("convergence_tolerance", 1e-6)
         max_iter = parameters.get("max_iter") or parameters.get("max_iterations", 100)
         mode = parameters.get("mode", "engineering")
-        return engine.run_load_flow(tol=float(tol), max_iter=int(max_iter), mode=str(mode))
+        raw_res = engine.run_load_flow(tol=float(tol), max_iter=int(max_iter), mode=str(mode))
     elif study_type in ("short_circuit", "fault", "fault_analysis"):
         fault_type = parameters.get("fault_type", "three_phase")
         bus_id = parameters.get("bus_id")
@@ -273,7 +273,7 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
                 bus_id = engine.load_flow_solver.bus_ids[0]
             else:
                 raise ValueError("bus_id is required for fault analysis")
-        return engine.run_fault_analysis(fault_type, bus_id)
+        raw_res = engine.run_fault_analysis(fault_type, bus_id)
     elif study_type == "arc_flash":
         # Provide fallback defaults for missing parameters to allow basic execution/testing
         if "voltage_kv" not in parameters:
@@ -284,7 +284,7 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
             parameters["arc_duration_sec"] = 0.1
         if "working_distance_mm" not in parameters:
             parameters["working_distance_mm"] = 610.0
-        return engine.run_arc_flash(
+        raw_res = engine.run_arc_flash(
             voltage_kv=float(parameters["voltage_kv"]),
             bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
             arc_duration_sec=float(parameters["arc_duration_sec"]),
@@ -299,11 +299,17 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
         upstream = parameters.get("upstream_relay_id", 1)
         downstream = parameters.get("downstream_relay_id", 2)
         fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
-        return engine.run_protection_coordination(upstream, downstream, fault_currents)
+        raw_res = engine.run_protection_coordination(upstream, downstream, fault_currents)
     else:
         raise SpecializedExecutionUnavailableError(
             study_type, f"Unsupported native study type: {study_type}"
         )
+
+    if isinstance(raw_res, dict):
+        raw_res["execution_path"] = "LEGACY_NON_AUTHORITATIVE"
+        raw_res["authoritative"] = False
+    return raw_res
+
 
 
 @trace_operation("_run_etap_study", attributes={"component": "engineering_service"})

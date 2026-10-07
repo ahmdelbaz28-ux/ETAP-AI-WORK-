@@ -520,17 +520,25 @@ class StabilityAgent(BaseAgent):
                 if "initial_angles_rad" not in task.parameters and "delta0" not in task.parameters:
                     missing_inputs.append("initial_angles_rad (or delta0)")
 
-            if analysis_type == "critical_clearing_time":
+            if analysis_type in ("critical_clearing_time", "full"):
                 smib_required = [
                     ("smib_H", "H"),
                     ("smib_Pm", "Pm"),
                     ("smib_E", "E_gen"),
                     ("smib_V_inf", "V_inf"),
                     ("smib_X_total", "X_total"),
+                    ("smib_X_faulted", "X_faulted"),
                     ("smib_delta0", "delta0"),
                 ]
                 for primary_key, alias_key in smib_required:
-                    if primary_key not in task.parameters and alias_key not in task.parameters:
+                    val = task.parameters.get(primary_key)
+                    if val is None:
+                        val = task.parameters.get(alias_key)
+                        # If alias is a multi-element sequence (e.g. multi-machine array in full analysis),
+                        # it cannot satisfy single-machine CCT scalar parameter.
+                        if isinstance(val, (list, tuple, np.ndarray)):
+                            val = None
+                    if val is None:
                         missing_inputs.append(primary_key)
 
             if missing_inputs:
@@ -644,18 +652,39 @@ class StabilityAgent(BaseAgent):
 
             # ── 4. Critical clearing time execution ───────────────────────────
             if analysis_type in ("critical_clearing_time", "full"):
-                # Check if SMIB parameters provided
-                if "smib_H" in task.parameters or "H" in task.parameters:
-                    cct_result = self.critical_clearing_time(
-                        H=float(task.parameters.get("smib_H", task.parameters.get("H", 5.0))),
-                        Pm=float(task.parameters.get("smib_Pm", task.parameters.get("Pm", 0.8))),
-                        E_gen=float(task.parameters.get("smib_E", task.parameters.get("E_gen", 1.1))),
-                        V_inf=float(task.parameters.get("smib_V_inf", task.parameters.get("V_inf", 1.0))),
-                        X_total=float(task.parameters.get("smib_X_total", task.parameters.get("X_total", 0.5))),
-                        X_faulted=float(task.parameters.get("smib_X_faulted", task.parameters.get("X_faulted", 1e6))),
-                        delta0=float(task.parameters.get("smib_delta0", task.parameters.get("delta0", 0.5))),
+                # Extract explicit SMIB parameters (no default engineering fallbacks allowed)
+                val_H = task.parameters.get("smib_H", task.parameters.get("H"))
+                if isinstance(val_H, (list, tuple, np.ndarray)):
+                    val_H = task.parameters.get("smib_H")
+                val_Pm = task.parameters.get("smib_Pm", task.parameters.get("Pm"))
+                if isinstance(val_Pm, (list, tuple, np.ndarray)):
+                    val_Pm = task.parameters.get("smib_Pm")
+                val_E = task.parameters.get("smib_E", task.parameters.get("E_gen", task.parameters.get("E")))
+                if isinstance(val_E, (list, tuple, np.ndarray)):
+                    val_E = task.parameters.get("smib_E", task.parameters.get("E_gen"))
+                val_V_inf = task.parameters.get("smib_V_inf", task.parameters.get("V_inf"))
+                val_X_total = task.parameters.get("smib_X_total", task.parameters.get("X_total"))
+                val_X_faulted = task.parameters.get("smib_X_faulted", task.parameters.get("X_faulted"))
+                val_delta0 = task.parameters.get("smib_delta0", task.parameters.get("delta0"))
+                if isinstance(val_delta0, (list, tuple, np.ndarray)):
+                    val_delta0 = task.parameters.get("smib_delta0")
+
+                if None in (val_H, val_Pm, val_E, val_V_inf, val_X_total, val_X_faulted, val_delta0):
+                    raise ValueError(
+                        "Critical clearing time requires explicit engineering inputs: "
+                        "H, Pm, E_gen, V_inf, X_total, X_faulted, delta0. Defaults are forbidden."
                     )
-                    results["critical_clearing_time"] = cct_result
+
+                cct_result = self.critical_clearing_time(
+                    H=float(val_H),
+                    Pm=float(val_Pm),
+                    E_gen=float(val_E),
+                    V_inf=float(val_V_inf),
+                    X_total=float(val_X_total),
+                    X_faulted=float(val_X_faulted),
+                    delta0=float(val_delta0),
+                )
+                results["critical_clearing_time"] = cct_result
 
             result = AgentResult(
                 agent_name=self.agent_name,

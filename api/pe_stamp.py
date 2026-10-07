@@ -87,6 +87,30 @@ class PEStamp:
         certified_date: str | None = None,
     ) -> PEStampRecord:
         """Sign study results with cryptographic hash and PE credentials."""
+        # Enforce fail-closed boundary: Non-authoritative / internal execution results cannot be certified or stamped
+        if isinstance(study_data, dict):
+            if (
+                study_data.get("execution_path") in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+                or study_data.get("authoritative") is False
+            ):
+                raise ValueError(
+                    "CANNOT_CERTIFY_NON_AUTHORITATIVE: Non-authoritative internal execution results "
+                    "(INTERNAL_NON_AUTHORITATIVE) cannot be certified or stamped as production output."
+                )
+        elif hasattr(study_data, "authoritative") and not study_data.authoritative:
+            raise ValueError(
+                "CANNOT_CERTIFY_NON_AUTHORITATIVE: Non-authoritative internal execution results "
+                "(INTERNAL_NON_AUTHORITATIVE) cannot be certified or stamped as production output."
+            )
+        elif hasattr(study_data, "execution_path") and study_data.execution_path in (
+            "INTERNAL_NON_AUTHORITATIVE",
+            "LEGACY_NON_AUTHORITATIVE",
+        ):
+            raise ValueError(
+                "CANNOT_CERTIFY_NON_AUTHORITATIVE: Non-authoritative internal execution results "
+                "(INTERNAL_NON_AUTHORITATIVE) cannot be certified or stamped as production output."
+            )
+
         date_str = certified_date or datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
         raw_hash = _compute_data_hash(study_data)
         sig_payload = f"{engineer_name}|{license_id}|{raw_hash}|{date_str}"

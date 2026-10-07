@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 UTC = timezone.utc  # noqa: UP017
 
@@ -117,6 +117,8 @@ class ExecutionRequest(BaseModel):
             return self.input.get("system") or self.input.get("system_spec")
         if hasattr(self.input, "system"):
             return self.input.system
+        if hasattr(self.input, "system_spec"):
+            return self.input.system_spec
         return None
 
     @classmethod
@@ -249,6 +251,40 @@ class CanonicalExecutionResult(BaseModel):
     approval_state: Optional[str] = None
     idempotent_replay: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
+    authoritative: bool = True
+    execution_path: str = "CANONICAL_PRODUCTION"
+
+    @model_validator(mode="after")
+    def enforce_authoritative_boundary(self) -> CanonicalExecutionResult:
+        """Enforce strict boundary: INTERNAL_NON_AUTHORITATIVE can never masquerade as authoritative production output."""
+        data_exec_path = self.data.get("execution_path") if isinstance(self.data, dict) else None
+        prov_exec_path = self.provenance.get("execution_path") if isinstance(self.provenance, dict) else None
+        data_auth = self.data.get("authoritative") if isinstance(self.data, dict) else None
+        prov_auth = self.provenance.get("authoritative") if isinstance(self.provenance, dict) else None
+
+        if (
+            data_exec_path in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+            or prov_exec_path in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+            or data_auth is False
+            or prov_auth is False
+            or self.execution_path in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+            or not self.authoritative
+        ):
+            self.authoritative = False
+            effective_path = data_exec_path or prov_exec_path or self.execution_path
+            if effective_path not in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE"):
+                effective_path = "INTERNAL_NON_AUTHORITATIVE"
+            self.execution_path = effective_path
+            if isinstance(self.data, dict):
+                self.data["authoritative"] = False
+                self.data["execution_path"] = effective_path
+            if isinstance(self.provenance, dict):
+                self.provenance["authoritative"] = False
+                self.provenance["execution_path"] = effective_path
+            if isinstance(self.audit_context, dict):
+                self.audit_context["authoritative"] = False
+                self.audit_context["execution_path"] = effective_path
+        return self
 
     def to_study_result(self, study_type: str | None = None) -> Any:
         """Convert CanonicalExecutionResult to legacy StudyResult for API backwards compatibility."""
@@ -314,3 +350,25 @@ class IEngineeringExecutor(ABC):
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
         """Execute request under canonical contract."""
         raise NotImplementedError
+
+
+def is_authoritative_production_result(result: Any) -> bool:
+    """Deterministic predicate checking if an execution result is canonically authoritative for production use."""
+    if not getattr(result, "success", False):
+        return False
+    if not getattr(result, "authoritative", True):
+        return False
+    if getattr(result, "execution_path", "") in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE"):
+        return False
+    prov = getattr(result, "provenance", {}) or {}
+    if (
+        prov.get("execution_path") in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+        or prov.get("authoritative") is False
+    ):
+        return False
+    data = getattr(result, "data", {}) or {}
+    return not (
+        data.get("execution_path") in ("INTERNAL_NON_AUTHORITATIVE", "LEGACY_NON_AUTHORITATIVE")
+        or data.get("authoritative") is False
+    )
+

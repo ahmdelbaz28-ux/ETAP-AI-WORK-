@@ -134,26 +134,32 @@ class CapabilityDefinition:
         """Deterministic evaluation of production-readiness criteria.
 
         A capability is eligible for PRODUCTION engineering execution if and only if:
-        1. Lifecycle status is PRODUCTION (or production_supported is True).
-        2. Lifecycle status is not DISABLED, UNAVAILABLE, EXPERIMENTAL, INTERNAL, or PILOT.
-        3. Standards scope is explicitly declared.
-        4. Validation evidence is documented and non-empty.
-        5. Benchmark status is verified ('VERIFIED_BENCHMARK', 'VERIFIED_EXPERT_KB', 'VERIFIED_CANONICAL').
+        1. Lifecycle status is strictly PRODUCTION.
+        2. production_supported is True.
+        3. Lifecycle status is not DISABLED, UNAVAILABLE, EXPERIMENTAL, INTERNAL, or PILOT.
+        4. Standards scope is explicitly declared and non-empty.
+        5. Validation evidence is documented and non-empty.
+        6. Benchmark status is verified ('VERIFIED_BENCHMARK', 'VERIFIED_EXPERT_KB', 'VERIFIED_CANONICAL').
+        7. Capability ID and Executor Kind are valid.
         """
         status_str = (
             self.lifecycle_status.value
             if isinstance(self.lifecycle_status, LifecycleStatus)
             else str(self.lifecycle_status).lower()
         )
-        if status_str in ("disabled", "unavailable", "experimental", "internal", "pilot"):
+        if status_str != "production":
             return False
-        if not self.production_supported and status_str != "production":
+        if not self.production_supported:
             return False
-        if not self.standards_scope or not self.validation_evidence:
+        if not self.standards_scope or not self.standards_scope.strip():
+            return False
+        if not self.validation_evidence or not self.validation_evidence.strip():
             return False
         if self.benchmark_status in ("NONE", "PENDING"):
             return False
-        return self.benchmark_status in ("VERIFIED_BENCHMARK", "VERIFIED_EXPERT_KB", "VERIFIED_CANONICAL")
+        if self.benchmark_status not in ("VERIFIED_BENCHMARK", "VERIFIED_EXPERT_KB", "VERIFIED_CANONICAL"):
+            return False
+        return bool(self.capability_id and self.executor_kind)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -338,7 +344,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_load_flow",
             requires_system=True,
             required_params=(),
-            required_system_data=(),
+            required_system_data=("buses", "lines", "base_mva"),
             agent_key="load_flow",
             benchmark_status="VERIFIED_BENCHMARK",
             standards_scope="IEEE 3002.7-2018 (AC/DC Newton-Raphson, Fast Decoupled, DC Power Flow)",
@@ -359,17 +365,17 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_fault_analysis",
             requires_system=True,
             required_params=("bus_id",),
-            required_system_data=(),
+            required_system_data=("buses", "lines", "base_mva"),
             agent_key="short_circuit",
             benchmark_status="VERIFIED_BENCHMARK",
-            standards_scope="IEC 60909-0:2016 (Ik'', ip, Ib, Sk'' 3-phase, 1-phase SLG, line-to-line, double-line-to-ground)",
-            validation_evidence="IEC 60909-0:2016 Standard 4-Bus Industrial Benchmark and Roeper MV Network Test Cases",
-            reference_cases=("iec60909_case_industrial_4bus", "iec60909_roeper_mv_network"),
+            standards_scope="IEC 60909-0:2016 Initial Symmetrical Short-Circuit Current (Ik'', ip, Ib, Sk'' 3-phase, SLG, line-to-line via Sequence Networks)",
+            validation_evidence="IEC 60909-0:2016 4-bus industrial distribution benchmark network with independent analytical sequence network derivation",
+            reference_cases=("iec60909_case_industrial_4bus",),
             production_supported=True,
             risk_class="medium",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Three-phase and unbalanced short-circuit analysis per IEC 60909.",
+            description="Three-phase and unbalanced short-circuit analysis per IEC 60909 sequence networks.",
         )
     )
     registry.register(
@@ -385,16 +391,17 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
                 "arc_duration_sec",
                 "working_distance_mm",
             ),
+            required_system_data=(),
             agent_key="arc_flash",
             benchmark_status="VERIFIED_BENCHMARK",
-            standards_scope="IEEE 1584-2018 (Arcing current, reduced arcing current, incident energy, arc flash boundary)",
+            standards_scope="IEEE 1584-2018 Annex D Parametric Hazard Screening (0.208-15 kV, VCB/VCBB/HCB/VOA/HOA, Typical Electrode Gaps)",
             validation_evidence="IEEE 1584-2018 Annex D Table D.1 published benchmark test cases (ST-1 through ST-5)",
             reference_cases=("ST-1", "ST-2", "ST-3", "ST-4", "ST-5"),
             production_supported=True,
             risk_class="high",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Arc flash hazard and incident energy assessment per IEEE 1584-2018.",
+            description="Arc flash hazard and incident energy assessment per IEEE 1584-2018 Annex D screening model (point hazard analysis; no network topology required).",
         )
     )
     registry.register(
@@ -405,7 +412,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_protection_coordination",
             requires_system=True,
             required_params=("upstream_relay_id", "downstream_relay_id"),
-            required_system_data=(),
+            required_system_data=("buses",),
             agent_key="protection_coordination",
             benchmark_status="VERIFIED_BENCHMARK",
             standards_scope="IEC 60255-151 (Standard Inverse, Very Inverse, Extremely Inverse, Long Time Inverse)",
@@ -745,6 +752,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="agents.orchestrator.ETAPExecutionAgent",
             requires_system=True,
             required_params=(),
+            required_system_data=("buses",),
             agent_key="etap_execution",
             benchmark_status="VERIFIED_CANONICAL",
             standards_scope="ETAP Windows COM API Automation Interface",

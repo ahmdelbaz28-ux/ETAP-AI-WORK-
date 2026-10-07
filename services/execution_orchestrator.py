@@ -1262,25 +1262,27 @@ class ExecutionOrchestrator:
             )
 
         # ── 4b. Enforce Deterministic Production Maturity Gate ────────────────
-        demand_production = (
+        is_prod_status = (status_str == "production")
+        caller_demands_prod = (
             bool(request.metadata.get("demand_production_certification", False))
             or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
-            or (status_str == "production" and not cap.is_production_eligible())
         )
-        if demand_production and hasattr(cap, "is_production_eligible") and not cap.is_production_eligible():
-            err_msg = (
-                f"Capability '{request.capability_id}' fails production maturity criteria: "
-                f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
-                f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
-                f"Production execution refused."
-            )
-            return self._build_rejection(
-                request,
-                reason="PRODUCTION_MATURITY_GATE_REJECTED",
-                message=err_msg,
-                cap=cap,
-                raise_on_error=raise_on_error,
-            )
+        if is_prod_status or caller_demands_prod:
+            is_eligible = getattr(cap, "is_production_eligible", lambda: False)()
+            if not is_eligible:
+                err_msg = (
+                    f"Capability '{request.capability_id}' fails production maturity criteria: "
+                    f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
+                    f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
+                    f"Production execution refused."
+                )
+                return self._build_rejection(
+                    request,
+                    reason="PRODUCTION_MATURITY_GATE_REJECTED",
+                    message=err_msg,
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
 
         # ── 5. Validate Authorization ────────────────────────────────────────
         if cap.authorization_policy:
@@ -1380,9 +1382,9 @@ class ExecutionOrchestrator:
                     raise_on_error=raise_on_error,
                 )
 
-        if cap.requires_system:
+        if cap.requires_system or cap.required_system_data:
             system = request.get_system()
-            if system is None:
+            if system is None and (cap.requires_system or cap.required_system_data):
                 return self._build_rejection(
                     request,
                     reason="SYSTEM_MODEL_REQUIRED",
@@ -1390,6 +1392,21 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
+            if cap.required_system_data and system is not None:
+                missing_components = self._validate_required_system_data(
+                    system, cap.required_system_data
+                )
+                if missing_components:
+                    return self._build_rejection(
+                        request,
+                        reason="MISSING_REQUIRED_SYSTEM_DATA",
+                        message=(
+                            f"Capability '{request.capability_id}' requires system components: "
+                            f"{missing_components}. System model is missing or empty for these components."
+                        ),
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
 
         # ── 8. Resolve Capability & Policies ─────────────────────────────────
         provider_policy = request.provider_policy or cap.provider_policy
@@ -1879,6 +1896,38 @@ class ExecutionOrchestrator:
 
         # ── 19. Return Canonical Result ──────────────────────────────────────
         return result
+
+    @staticmethod
+    def _validate_required_system_data(
+        system: Any, required_components: tuple[str, ...]
+    ) -> list[str]:
+        """Verify that mandatory system components exist and are non-empty in the provided model."""
+        missing: list[str] = []
+        is_dict = isinstance(system, dict)
+
+        for comp in required_components:
+            if comp in ("base_mva", "sbase"):
+                val = (
+                    system.get("base_mva", system.get("sbase"))
+                    if is_dict
+                    else getattr(system, "base_mva", getattr(system, "sbase", None))
+                )
+                if val is None or not isinstance(val, (int, float)) or val <= 0:
+                    missing.append(comp)
+            elif comp in ("lines", "branches"):
+                val = (
+                    system.get("lines") or system.get("branches")
+                    if is_dict
+                    else (getattr(system, "lines", None) or getattr(system, "branches", None))
+                )
+                if val is None or len(val) == 0:
+                    missing.append(comp)
+            else:
+                val = system.get(comp) if is_dict else getattr(system, comp, None)
+                if val is None or len(val) == 0:
+                    missing.append(comp)
+
+        return missing
 
     def _build_rejection(
         self,

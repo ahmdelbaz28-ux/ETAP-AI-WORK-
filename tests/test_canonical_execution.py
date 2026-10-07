@@ -21,7 +21,18 @@ from services.execution_orchestrator import (
     _compute_standards_hash,
     get_execution_orchestrator,
 )
-from services.execution_request import CanonicalExecutionResult, ExecutionRequest
+from services.execution_request import (
+    CanonicalExecutionResult,
+    ExecutionRequest,
+    is_authoritative_production_result,
+)
+
+_MOCK_SYSTEM_SPEC = {
+    "base_mva": 100.0,
+    "buses": [{"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0}],
+    "lines": [{"line_id": 1, "from_bus_id": 1, "to_bus_id": 1, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0}],
+}
+
 
 
 @pytest.mark.asyncio
@@ -59,7 +70,7 @@ async def test_canonical_executor_is_gateway():
         capability_id="load_flow",
         tenant_id="tenant_1",
         user_id="user_1",
-        input={"system": {"base_mva": 100, "buses": [], "lines": []}},
+        input={"system": _MOCK_SYSTEM_SPEC},
     )
     result = await orchestrator.execute(request)
     assert result.success is True
@@ -228,7 +239,7 @@ async def test_canonical_validation_catches_unphysical_results():
         capability_id="load_flow",
         tenant_id="tenant_val",
         user_id="engineer_val",
-        input={"system": {"base_mva": 100, "buses": [], "lines": []}},
+        input={"system": _MOCK_SYSTEM_SPEC},
     )
     res = await orchestrator.execute(req)
 
@@ -325,7 +336,7 @@ async def test_idempotency_tenant_isolation():
         tenant_id="tenant_A",
         user_id="user_A",
         idempotency_key="idemp_shared_key_123",
-        input={"system": {"base_mva": 100, "buses": [], "lines": []}},
+        input={"system": _MOCK_SYSTEM_SPEC},
     )
     res_a = await orchestrator.execute(req_a)
     assert res_a.success is True
@@ -342,7 +353,7 @@ async def test_idempotency_tenant_isolation():
         tenant_id="tenant_B",
         user_id="user_B",
         idempotency_key="idemp_shared_key_123",
-        input={"system": {"base_mva": 100, "buses": [], "lines": []}},
+        input={"system": _MOCK_SYSTEM_SPEC},
     )
     res_b = await orchestrator.execute(req_b)
     # Proves Tenant B triggered a fresh execution and did not get Tenant A's replayed cache!
@@ -762,7 +773,7 @@ async def test_semantic_cache_governed_inside_orchestrator():
         capability_id="load_flow",
         tenant_id="tenant_cache_gov",
         user_id="user_cache_gov",
-        input={"system": {"base_mva": 100}},
+        input={"system": _MOCK_SYSTEM_SPEC},
         metadata={"use_cache": True},
     )
 
@@ -908,7 +919,7 @@ async def test_multi_replica_centralized_state_fail_closed(monkeypatch):
         tenant_id="tenant_mr",
         user_id="user_mr",
         user_role="engineer",
-        input={"system": {"base_mva": 100}},
+        input={"system": _MOCK_SYSTEM_SPEC},
     )
     res = await orchestrator.execute(req)
     assert res.success is False
@@ -1014,7 +1025,7 @@ async def test_semantic_cache_preserves_authentic_provenance(monkeypatch):
         tenant_id="tenant_cache_auth",
         user_id="engineer_auditor",
         user_role="engineer",
-        input={"system": {"base_mva": 100}, "parameters": {"standard": "IEC"}},
+        input={"system": _MOCK_SYSTEM_SPEC, "parameters": {"standard": "IEC"}},
         metadata={"use_cache": True},
     )
 
@@ -1335,3 +1346,173 @@ async def test_real_composite_executor_halts_and_fails_on_stage_failure():
     assert res.provenance["composite_workflow"]["verdict"] == "rejected"
     assert res.provenance["composite_workflow"]["failed_stage"] == "short_circuit"
     assert any("short_circuit" in err for err in res.errors)
+
+
+# ─── SECTION 13: REGRESSION TESTS FOR MANDATORY SECURITY & FIDELITY GATES ───
+
+
+@pytest.mark.asyncio
+async def test_missing_required_system_data_rejects_fail_closed():
+    """Verify that ExecutionOrchestrator rejects requests with missing or empty required system data."""
+    orchestrator = get_execution_orchestrator()
+
+    # Case 1: Empty buses
+    req_empty_buses = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_gate_1",
+        user_id="eng_gate_1",
+        user_role="engineer",
+        input={"system": {"base_mva": 100.0, "buses": [], "lines": [{"line_id": 1}]}},
+    )
+    res_buses = await orchestrator.execute(req_empty_buses)
+    assert res_buses.success is False
+    assert res_buses.status == "rejected"
+    assert res_buses.provenance["rejection_reason"] == "MISSING_REQUIRED_SYSTEM_DATA"
+    assert any("buses" in err for err in res_buses.errors)
+
+    # Case 2: Missing lines
+    req_missing_lines = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_gate_1",
+        user_id="eng_gate_1",
+        user_role="engineer",
+        input={"system": {"base_mva": 100.0, "buses": [{"bus_id": 1}]}},
+    )
+    res_lines = await orchestrator.execute(req_missing_lines)
+    assert res_lines.success is False
+    assert res_lines.status == "rejected"
+    assert res_lines.provenance["rejection_reason"] == "MISSING_REQUIRED_SYSTEM_DATA"
+    assert any("lines" in err for err in res_lines.errors)
+
+    # Case 3: base_mva <= 0
+    req_zero_mva = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_gate_1",
+        user_id="eng_gate_1",
+        user_role="engineer",
+        input={"system": {"base_mva": 0.0, "buses": [{"bus_id": 1}], "lines": [{"line_id": 1}]}},
+    )
+    res_mva = await orchestrator.execute(req_zero_mva)
+    assert res_mva.success is False
+    assert res_mva.status == "rejected"
+    assert res_mva.provenance["rejection_reason"] == "MISSING_REQUIRED_SYSTEM_DATA"
+
+
+@pytest.mark.asyncio
+async def test_unconditional_production_maturity_gate_rejects_ineligible_capability():
+    """Verify that unconditional production gate rejects PRODUCTION capability when is_production_eligible() is False."""
+    orchestrator = ExecutionOrchestrator()
+    registry = get_capability_registry()
+
+    ineligible_cap = CapabilityDefinition(
+        capability_id="unverified_prod_cap",
+        study_type=None,
+        executor_kind=ExecutorKind.NATIVE,
+        lifecycle_status=LifecycleStatus.PRODUCTION,
+        production_supported=True,
+        benchmark_status="PENDING",  # PENDING fails eligibility
+        standards_scope="IEEE 3002.7",
+        validation_evidence="tests/test_something.py",
+        description="Ineligible production capability",
+    )
+    registry.register(ineligible_cap)
+
+    req = ExecutionRequest(
+        capability_id="unverified_prod_cap",
+        tenant_id="tenant_gate_2",
+        user_id="eng_gate_2",
+        user_role="engineer",
+        input={"system": _MOCK_SYSTEM_SPEC},
+    )
+    res = await orchestrator.execute(req)
+    assert res.success is False
+    assert res.status == "rejected"
+    assert res.provenance["rejection_reason"] == "PRODUCTION_MATURITY_GATE_REJECTED"
+    assert any("production maturity criteria" in err for err in res.errors)
+
+
+def test_capability_definition_production_eligibility_semantic_rules():
+    """Verify CapabilityDefinition.is_production_eligible() truth table and invariants."""
+    import dataclasses
+
+    # 1. Fully eligible
+    eligible_cap = CapabilityDefinition(
+        capability_id="eligible_cap",
+        study_type=None,
+        executor_kind=ExecutorKind.NATIVE,
+        lifecycle_status=LifecycleStatus.PRODUCTION,
+        production_supported=True,
+        benchmark_status="VERIFIED_BENCHMARK",
+        standards_scope="IEEE 3002.7-2018",
+        validation_evidence="tests/test_load_flow.py",
+        description="Fully eligible",
+    )
+    assert eligible_cap.is_production_eligible() is True
+
+    # 2. production_supported == False -> Must fail
+    assert dataclasses.replace(eligible_cap, production_supported=False).is_production_eligible() is False
+
+    # 3. benchmark_status != VERIFIED -> Must fail
+    assert dataclasses.replace(eligible_cap, benchmark_status="PENDING").is_production_eligible() is False
+    assert dataclasses.replace(eligible_cap, benchmark_status="FAILED").is_production_eligible() is False
+    assert dataclasses.replace(eligible_cap, benchmark_status="NONE").is_production_eligible() is False
+
+    # 4. Empty standards_scope -> Must fail
+    assert dataclasses.replace(eligible_cap, standards_scope="").is_production_eligible() is False
+
+    # 5. Empty validation_evidence -> Must fail
+    assert dataclasses.replace(eligible_cap, validation_evidence="").is_production_eligible() is False
+
+    # 6. Lifecycle != PRODUCTION -> Must fail
+    assert dataclasses.replace(eligible_cap, lifecycle_status=LifecycleStatus.PILOT).is_production_eligible() is False
+
+
+def test_pe_stamp_strictly_rejects_non_authoritative_results():
+    """Verify PE stamp strictly rejects results tagged as non-authoritative."""
+    from api.pe_stamp import PEStamp
+
+    non_auth_result = CanonicalExecutionResult(
+        execution_id="exec_non_auth",
+        request_id="req_non_auth",
+        capability_id="load_flow",
+        tenant_id="tenant_pe",
+        user_id="user_pe",
+        status="completed",
+        success=True,
+        authoritative=False,
+        execution_path="INTERNAL_NON_AUTHORITATIVE",
+    )
+
+    with pytest.raises(ValueError, match="CANNOT_CERTIFY_NON_AUTHORITATIVE"):
+        PEStamp.sign_study(non_auth_result)
+
+
+
+def test_authoritative_production_result_provenance_enforced():
+    """Verify is_authoritative_production_result distinguishes canonical vs non-authoritative results."""
+    canonical_res = CanonicalExecutionResult(
+        execution_id="exec_canonical",
+        request_id="req_canonical",
+        capability_id="load_flow",
+        tenant_id="tenant_p",
+        user_id="user_p",
+        status="completed",
+        success=True,
+    )
+    assert is_authoritative_production_result(canonical_res) is True
+    assert canonical_res.authoritative is True
+    assert canonical_res.execution_path == "CANONICAL_PRODUCTION"
+
+    non_auth_res = CanonicalExecutionResult(
+        execution_id="exec_internal",
+        request_id="req_internal",
+        capability_id="load_flow",
+        tenant_id="tenant_p",
+        user_id="user_p",
+        status="completed",
+        success=True,
+        execution_path="INTERNAL_NON_AUTHORITATIVE",
+    )
+    assert is_authoritative_production_result(non_auth_res) is False
+    assert non_auth_res.authoritative is False
+

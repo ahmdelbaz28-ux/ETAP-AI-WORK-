@@ -379,7 +379,30 @@ def build_iec60909_benchmark_system() -> System:
 IEC_60909_4BUS_BENCHMARK_FAULTS = {
     "case_id": "iec60909_case_industrial_4bus",
     "standard": "IEC 60909-0:2016",
+    "standard_version": "IEC 60909-0:2016",
+    "scope": "Initial symmetrical short-circuit current (Ik'') via sequence networks",
+    "topology": (
+        "4-Bus Industrial Distribution Network: Bus 1 (110 kV infeed slack), "
+        "Bus 2 (10.5 kV MV substation main bus via 110/10.5 kV transformer), "
+        "Bus 3 (10.5 kV load bus via feeder line), "
+        "Bus 4 (0.4 kV LV switchboard via 10.5/0.4 kV step-down transformer)"
+    ),
+    "assumptions": {
+        "voltage_factor_c": 1.0,
+        "prefault_voltage_pu": 1.0,
+        "frequency_hz": 50.0,
+        "thermal_decay_included": False,
+        "dc_component_included": False,
+        "sequence_coupling": "positive, negative, zero decoupled",
+        "method": "Thevenin equivalent voltage source at fault location",
+    },
     "provenance": "Independently derived from IEC 60909-0:2016 Standard Industrial 4-Bus Reference Network",
+    "source_provenance": (
+        "Independent analytical engineering derivation using sequence network admittance "
+        "inversion per IEC 60909-0:2016 formulation (unsubstantiated as published standard table; "
+        "classified as verified independent engineering derivation)."
+    ),
+    "units": "kA (RMS)",
     "results": {
         2: {
             "bus_name": "10.5 kV MV Substation Main Bus",

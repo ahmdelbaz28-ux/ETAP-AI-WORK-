@@ -217,3 +217,59 @@ class TestStabilityScenario:
         assert "transient_stability" in result.data
         assert "small_signal_stability" in result.data
         assert "critical_clearing_time" in result.data
+
+    @pytest.mark.asyncio
+    async def test_full_analysis_missing_cct_inputs_fails_closed(self, agent, multimachine_data):
+        """Test 8: Full stability analysis missing SMIB CCT inputs MUST fail closed."""
+        d = multimachine_data
+        task = EngineeringTask(
+            task_id="stab-003",
+            description="Full stability analysis without CCT parameters",
+            study_types=[StudyType.TRANSIENT_STABILITY],
+            parameters={
+                "analysis_type": "full",
+                "inertia_constants": d["H"].tolist(),
+                "damping_coefficients": d["D"].tolist(),
+                "mechanical_power": d["Pm"].tolist(),
+                "Ybus_reduced": d["Ybus_red"].tolist(),
+                "internal_voltages": d["E"].tolist(),
+                "initial_angles_rad": d["delta0"].tolist(),
+                # smib_* inputs omitted
+            },
+        )
+        result = await agent.execute(task)
+        assert result.status == AgentStatus.FAILED
+        assert result.data.get("error_code") == "INSUFFICIENT_ENGINEERING_INPUT"
+        missing = result.data.get("missing_inputs", [])
+        assert "smib_H" in missing
+        assert "smib_Pm" in missing
+        assert "smib_E" in missing
+        assert "smib_V_inf" in missing
+        assert "smib_X_total" in missing
+        assert "smib_X_faulted" in missing
+        assert "smib_delta0" in missing
+
+    @pytest.mark.asyncio
+    async def test_cct_analysis_missing_inputs_fails_closed(self, agent):
+        """Test 9: Critical clearing time analysis with missing parameters fails closed."""
+        task = EngineeringTask(
+            task_id="stab-004",
+            description="CCT analysis missing X_faulted and Pm",
+            study_types=[StudyType.TRANSIENT_STABILITY],
+            parameters={
+                "analysis_type": "critical_clearing_time",
+                "smib_H": 5.0,
+                "smib_E": 1.1,
+                "smib_V_inf": 1.0,
+                "smib_X_total": 0.5,
+                # smib_Pm, smib_X_faulted, smib_delta0 missing
+            },
+        )
+        result = await agent.execute(task)
+        assert result.status == AgentStatus.FAILED
+        assert result.data.get("error_code") == "INSUFFICIENT_ENGINEERING_INPUT"
+        missing = result.data.get("missing_inputs", [])
+        assert "smib_Pm" in missing
+        assert "smib_X_faulted" in missing
+        assert "smib_delta0" in missing
+

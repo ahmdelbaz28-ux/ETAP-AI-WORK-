@@ -177,3 +177,40 @@ def test_ieee_1584_published_reference_cases(case):
     # 4. Arc flash boundary must be strictly positive and finite
     assert res["arc_flash_boundary_mm"] > 0.0
     assert math.isfinite(res["arc_flash_boundary_mm"])
+
+
+def test_iec_60909_drift_beyond_tolerance_fails():
+    """Regression protection: Prove that intentional drift beyond tolerance fails the benchmark."""
+    system = build_iec60909_benchmark_system()
+    engine = PowerSystemEngine(system)
+    engine.run_load_flow()
+
+    benchmark_data = IEC_60909_4BUS_BENCHMARK_FAULTS["results"]
+    b2_expected = benchmark_data[2]
+    r_3p_b2 = engine.run_fault_analysis("three_phase", bus_id=2)
+    ik_3p_actual = r_3p_b2["fault_current_ka"]
+
+    # Natural output is within tolerance
+    assert abs(ik_3p_actual - b2_expected["three_phase_ik_ka"]) <= b2_expected["tolerance_ka"]
+
+    # Intentional drift of +0.2 kA (> 0.05 kA tolerance) MUST fail
+    drifted_ik = ik_3p_actual + 0.20
+    assert abs(drifted_ik - b2_expected["three_phase_ik_ka"]) > b2_expected["tolerance_ka"], (
+        "Drift beyond tolerance must trigger assertion failure"
+    )
+
+
+def test_iec_60909_benchmark_metadata_integrity():
+    """Verify that IEC 60909 benchmark dataset contains explicit, honest engineering metadata."""
+    meta = IEC_60909_4BUS_BENCHMARK_FAULTS
+    assert meta["standard_version"] == "IEC 60909-0:2016"
+    assert "scope" in meta
+    assert "topology" in meta
+    assert "assumptions" in meta
+    assert "source_provenance" in meta
+    assert meta["units"] == "kA (RMS)"
+    assert len(meta["results"]) >= 3
+    for bus_id, data in meta["results"].items():
+        assert "three_phase_ik_ka" in data
+        assert "tolerance_ka" in data
+        assert data["tolerance_ka"] > 0
