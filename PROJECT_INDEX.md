@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-07T06:22:45.502358+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T08:48:38.604353+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -18,7 +18,7 @@
 | Total | Tests | 3841 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 445 |
+| Environment | Variables | 448 |
 | Scripts | | 166 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **445** variables
+Total: **448** variables
 
 ### General
 
@@ -378,6 +378,9 @@ Total: **445** variables
 - `ETAP_REST_URL`
 - `ETAP_SECRETS_DIR`
 - `ETAP_WORKER_HOST`
+- `EXTERNAL_SERVICE_PROVIDER`
+- `EXTERNAL_SERVICE_TIMEOUT_SEC`
+- `EXTERNAL_SERVICE_URL`
 - `EXTRA_CORS_ORIGINS`
 - `FEATURE_FLAGS_DB_PATH`
 - `FEATURE_FLAGS_PATH`
@@ -581,7 +584,7 @@ Total: **445** variables
 
 #### 📄 `agents/__init__.py` _4.7 KB_
 
-#### 📄 `agents/ahmed_etap_orchestrator.py` _47.9 KB_
+#### 📄 `agents/ahmed_etap_orchestrator.py` _52.7 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
 ======================================================================
 
@@ -596,22 +599,22 @@ Runtim
   - Methods: `remaining()`, `fraction_spent()`, `compression_count()`, `record_spend()`, `estimate_and_record()`, `record_compression()`, `to_dict()`
 - **Class** `MathGuard` (line 408)
   - Methods: `validate()`
-- **Class** `MathGuardResult` (line 534)
+- **Class** `MathGuardResult` (line 544)
   - Methods: `to_dict()`
-- **Class** `PeerReview` (line 578)
+- **Class** `PeerReview` (line 588)
   - Methods: `reviewer_for()`, `review()`
-- **Class** `PeerReviewResult` (line 720)
+- **Class** `PeerReviewResult` (line 730)
   - Methods: `to_dict()`
-- **Class** `OrchestrationVerdict` (line 740)
-- **Class** `OrchestrationResult` (line 751)
+- **Class** `OrchestrationVerdict` (line 750)
+- **Class** `OrchestrationResult` (line 761)
   - Methods: `to_dict()`
-- **Class** `AhmedETAPOrchestrator` (line 780)
+- **Class** `AhmedETAPOrchestrator` (line 790)
   - Methods: `run_study()`
-- **Class** `AhmedETAPSkillAgent` (line 1045)
+- **Class** `AhmedETAPSkillAgent` (line 1055)
   - Methods: `execute()`, `get_agent_info()`
 - **def** `canonicalize_study_type()` (line 85)
-- **def** `load_skill_text()` (line 1248)
-- **def** `load_reference_text()` (line 1261)
+- **def** `load_skill_text()` (line 1346)
+- **def** `load_reference_text()` (line 1359)
 
 #### 📄 `agents/anomaly_agent.py` _27.7 KB_
 > AhmedETAP - Anomaly Detection Agent
@@ -2085,7 +2088,7 @@ a risk level: low | medium | high | critical.
 - **def** `score_protection_coordination()` (line 131)
 - **def** `compute_risk()` (line 154)
 
-#### 📄 `api/routes.py` _57.4 KB_
+#### 📄 `api/routes.py` _57.7 KB_
 > API Routes module for the Engineering Service.
 Handles all API endpoints, request validation, and response formatting.
 
@@ -2093,17 +2096,17 @@ Handles all API endpoints, request validation, and response formatting.
 - **Class** `_TraceMiddleware` (line 485)
 - **Class** `HealthResponse` (line 522)
 - **Class** `ReadyResponse` (line 527)
-- **Class** `CUARollbackRequest` (line 1322)
+- **Class** `CUARollbackRequest` (line 1330)
 - **def** `get_celery_components()` (line 549)
 - **async def** `run_study_async()` (line 581)
-- **async def** `get_task_status()` (line 629)
-- **async def** `websocket_scada_endpoint_handler()` (line 671)
-- **async def** `websocket_cua_confirmation_handler()` (line 688)
-- **async def** `global_exception_handler()` (line 853)
-- **async def** `etap_health_probe()` (line 963)
-- **async def** `gis_status_probe()` (line 975)
-- **async def** `websocket_session_stream_handler()` (line 990)
-- **async def** `websocket_notifications_handler()` (line 1075)
+- **async def** `get_task_status()` (line 637)
+- **async def** `websocket_scada_endpoint_handler()` (line 679)
+- **async def** `websocket_cua_confirmation_handler()` (line 696)
+- **async def** `global_exception_handler()` (line 861)
+- **async def** `etap_health_probe()` (line 971)
+- **async def** `gis_status_probe()` (line 983)
+- **async def** `websocket_session_stream_handler()` (line 998)
+- **async def** `websocket_notifications_handler()` (line 1083)
 
   **API Routes:**
   - `GET /api/v1/openapi.json`
@@ -2246,7 +2249,7 @@ Endpoints:
   - `POST /keys/{provider}/test`
   - `GET /health`
 
-#### 📄 `api/shared_handlers.py` _37.8 KB_
+#### 📄 `api/shared_handlers.py` _32.9 KB_
 > Shared Handlers & Utilities for AhmedETAP
 ==========================================
 
@@ -2265,8 +2268,8 @@ Lightweight, dependency-free implementations of common logic use
 - **def** `build_knowledge_info()` (line 480)
 - **def** `sanitize_result()` (line 545)
 - **def** `run_study_lightweight()` (line 593)
-- **def** `handle_etap_expert_chat()` (line 798)
-- **def** `handle_etap_gui_chat()` (line 817)
+- **def** `handle_etap_expert_chat()` (line 687)
+- **def** `handle_etap_gui_chat()` (line 706)
 
 #### 📄 `api/solver_parameters.py` _8.5 KB_
 > api/solver_parameters.py — Solver Parameters Management API.
@@ -2781,7 +2784,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _29.3 KB_
+#### 📄 `engine/capability_registry.py` _29.4 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2792,8 +2795,8 @@ Single source of tr
 - **Class** `CapabilityDefinition` (line 50)
 - **Class** `CapabilityRegistry` (line 117)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 734)
-- **def** `get_capability_definition()` (line 744)
+- **def** `get_capability_registry()` (line 735)
+- **def** `get_capability_definition()` (line 745)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3274,7 +3277,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _78.4 KB_
+#### 📄 `services/execution_orchestrator.py` _81.4 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3295,15 +3298,15 @@ Coo
   - Methods: `execute()`
 - **Class** `ExternalServiceExecutor` (line 678)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 784)
+- **Class** `CompositeEngineeringExecutor` (line 853)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1033)
+- **Class** `ExecutionOrchestrator` (line 1102)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 1859)
+- **def** `get_execution_orchestrator()` (line 1928)
 
-#### 📄 `services/execution_request.py` _11.4 KB_
+#### 📄 `services/execution_request.py` _14.1 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3311,9 +3314,9 @@ Establishes:
 
 - **Class** `ExecutionRequest` (line 26)
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
-- **Class** `CanonicalExecutionResult` (line 169)
+- **Class** `CanonicalExecutionResult` (line 210)
   - Methods: `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 255)
+- **Class** `IEngineeringExecutor` (line 306)
   - Methods: `execute()`
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
@@ -3372,7 +3375,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _55.8 KB_
+#### 📄 `services/study_executor.py` _55.9 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -3380,11 +3383,11 @@ Owns the native engineering execution pipeline behind
 - **Class** `StudyExecutor` (line 87)
   - Methods: `execute_native()`, `execute()`
 
-#### 📄 `services/study_service.py` _21.3 KB_
+#### 📄 `services/study_service.py` _15.4 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
-- **def** `execute_study_logic()` (line 342)
+- **def** `execute_study_logic()` (line 341)
 
 #### 📄 `services/yolo/main.py` _7.0 KB_
 > services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
@@ -3610,14 +3613,14 @@ Production features
 --
 
 
-#### 📄 `worker/tasks.py` _8.7 KB_
+#### 📄 `worker/tasks.py` _9.1 KB_
 > Celery tasks for executing heavy engineering computations.
 These tasks run asynchronously to prevent blocking the API.
 
 - **def** `execute_engineering_study_task()` (line 34)
-- **def** `execute_etap_integration_task()` (line 85)
-- **def** `process_large_calculation_task()` (line 149)
-- **def** `celery_heartbeat()` (line 237)
+- **def** `execute_etap_integration_task()` (line 97)
+- **def** `process_large_calculation_task()` (line 161)
+- **def** `celery_heartbeat()` (line 249)
 
 ### 📦 `reporting/`
 
@@ -5673,9 +5676,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 280 |
-| python-module | 41 |
 | ui-page | 61 |
+| python-module | 41 |
+| ui-component | 280 |
 | api-route | 92 |
 | **TOTAL** | **474** |
 
@@ -5705,7 +5708,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5716,7 +5719,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | — |
