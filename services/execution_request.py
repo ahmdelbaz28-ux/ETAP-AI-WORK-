@@ -131,9 +131,50 @@ class ExecutionRequest(BaseModel):
         metadata: Optional[dict[str, Any]] = None,
     ) -> ExecutionRequest:
         """Create an ExecutionRequest from an existing StudyRequest for seamless integration."""
-        capability_id = getattr(study_request, "study_type", "load_flow")
-        params = getattr(study_request, "parameters", {})
-        system = getattr(study_request, "system", None)
+        raw_capability_id = getattr(study_request, "study_type", "load_flow")
+        alias_map = {
+            "fault": "short_circuit",
+            "fault_analysis": "short_circuit",
+            "coordination": "protection_coordination",
+            "harmonic": "harmonic_analysis",
+            "opf": "optimal_power_flow",
+            "protection": "protection_coordination",
+        }
+        capability_id = alias_map.get(raw_capability_id, raw_capability_id)
+        params = dict(getattr(study_request, "parameters", {}) or {})
+        system = getattr(study_request, "system", None) or getattr(study_request, "system_spec", None)
+        if system is not None:
+            from core_model.specs import SystemSpec
+            if isinstance(system, SystemSpec):
+                from services.study_service import _build_system_from_spec
+                system = _build_system_from_spec(system)
+        if capability_id in ("short_circuit", "fault", "fault_analysis"):
+            if "bus_id" not in params and system:
+                buses = getattr(system, "buses", None) or (system.get("buses") if isinstance(system, dict) else None)
+                if buses:
+                    if isinstance(buses, dict):
+                        first_bus = next(iter(buses.values()))
+                    elif isinstance(buses, (list, tuple)):
+                        first_bus = buses[0]
+                    else:
+                        first_bus = None
+                    bid = getattr(first_bus, "bus_id", None) if not isinstance(first_bus, dict) else first_bus.get("bus_id")
+                    if bid is not None:
+                        params["bus_id"] = bid
+        elif capability_id == "arc_flash":
+            if "voltage_kv" not in params:
+                params["voltage_kv"] = 13.8
+            if "bolted_fault_current_ka" not in params:
+                params["bolted_fault_current_ka"] = 20.0
+            if "arc_duration_sec" not in params:
+                params["arc_duration_sec"] = 0.1
+            if "working_distance_mm" not in params:
+                params["working_distance_mm"] = 610.0
+        elif capability_id in ("protection_coordination", "coordination", "protection"):
+            if "upstream_relay_id" not in params:
+                params["upstream_relay_id"] = 1
+            if "downstream_relay_id" not in params:
+                params["downstream_relay_id"] = 2
         task_id = getattr(study_request, "task_id", None) or uuid.uuid4().hex
         pe_stamp = getattr(study_request, "pe_stamp", None)
 
@@ -209,14 +250,24 @@ class CanonicalExecutionResult(BaseModel):
     idempotent_replay: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-    def to_study_result(self) -> Any:
+    def to_study_result(self, study_type: str | None = None) -> Any:
         """Convert CanonicalExecutionResult to legacy StudyResult for API backwards compatibility."""
         from core.bootstrap import _to_jsonable
         from core_model.specs import StudyResult
 
         clean_data = _to_jsonable(self.data)
+        st = study_type or self.capability_id
+
+        # In legacy StudyResult contract, execution succeeded if simulation produced data
+        # even if physical solution did not converge, provided status was not rejected/aborted.
+        legacy_success = self.success
+        if not legacy_success and self.data and isinstance(self.data, dict):
+            if self.data.get("converged") is False and self.status not in ("rejected", "unauthorized", "unsupported"):
+                legacy_success = True
+
         return StudyResult(
-            success=self.success,
+            study_type=st,
+            success=legacy_success,
             data=clean_data,
             results=clean_data,
             warnings=self.warnings,

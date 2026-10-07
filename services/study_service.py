@@ -6,13 +6,12 @@ Handles all study execution logic, system building, and ETAP integration.
 from __future__ import annotations
 
 import asyncio
-import json
 import os
 import time
 from collections.abc import Coroutine
 from typing import Any, TypeVar
 
-from core.bootstrap import _get_etap_provider, _get_power_system_engine, _to_jsonable, logger
+from core.bootstrap import _get_etap_provider, _get_power_system_engine, logger
 from core.exceptions import SpecializedExecutionUnavailableError
 from core.tracing import trace_operation
 
@@ -340,27 +339,26 @@ def _run_etap_study(
 
 
 def execute_study_logic(  # NOSONAR
-    payload: StudyRequest, trace_id: str, start_time: float
-) -> StudyResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    """Execute study logic with caching and proper error handling."""
-    from core.bootstrap import _add_execution_time, _increment_counter, _study_cache
+    payload: StudyRequest,
+    trace_id: str,
+    start_time: float,
+    execution_request: Any | None = None,
+) -> StudyResult:
+    """Execute study logic routed canonically through ExecutionOrchestrator."""
+    from api.request_context import get_tenant_id
+    from core.bootstrap import _add_execution_time, _increment_counter
+    from services.execution_orchestrator import get_execution_orchestrator
+    from services.execution_request import ExecutionRequest
     from utils.language_detection import normalize_input
 
     task_id = payload.task_id or f"task_{int(time.time())}"
 
     # Enable auto-correct for non-English input
     auto_correct = os.getenv("AUTO_CORRECT_LANGUAGE", "true").lower() == "true"
-
-    # Normalize payload data if auto-correct is enabled
-    if auto_correct:
-        if payload.parameters:
-            payload.parameters = {k: normalize_input(str(v)) for k, v in payload.parameters.items()}
-        if payload.system:
-            # Normalize system data if it's a string representation
-            pass  # Add logic if needed
+    if auto_correct and payload.parameters:
+        payload.parameters = {k: normalize_input(str(v)) for k, v in payload.parameters.items()}
 
     _increment_counter("request")
-
     logger.info(
         "study_run_start study_type=%s use_etap=%s task_id=%s",
         payload.study_type,
@@ -369,189 +367,56 @@ def execute_study_logic(  # NOSONAR
         extra={"trace_id": trace_id},
     )
 
-    warnings: list[str] = []
-    errors: list[str] = []
-    data: dict[str, Any] = {}
-    provider_name = "native"
-    cache_hit = False
+    tenant_id = (
+        get_tenant_id()
+        or getattr(payload, "tenant_id", None)
+        or (execution_request.tenant_id if execution_request else None)
+        or "service_tenant_worker"
+    )
+    user_id = (
+        getattr(payload, "user_id", None)
+        or (execution_request.user_id if execution_request else None)
+        or "service_principal:worker"
+    )
 
-    try:
-        # --- Cache lookup for native studies (non-ETAP) ---
-        if not payload.use_etap:
-            try:
-                from api.request_context import get_tenant_id
-
-                cache_params = {
-                    "study_type": payload.study_type,
-                    "parameters": payload.parameters,
-                    "tenant_id": get_tenant_id(),
-                }
-                if payload.system:
-                    # Use deterministic hashing (SHA-256) instead of Python hash()
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(),
-                        sort_keys=True,
-                        default=str,
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if _study_cache:
-                    cached_result = _run_async(_study_cache.get(payload.study_type, cache_params))
-                    if cached_result:
-                        data = json.loads(cached_result)
-                        cache_hit = True
-                        logger.info(
-                            "study_cache_hit study_type=%s task_id=%s",
-                            payload.study_type,
-                            task_id,
-                            extra={"trace_id": trace_id},
-                        )
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache lookup failed (non-fatal): %s",
-                    cache_err,
-                    extra={"trace_id": trace_id},
-                )
-
-        if cache_hit:
-            # Use cached data
-            pass
-        elif payload.use_etap:
-            if not payload.etap_project_path:
-                raise ValueError("etap_project_path is required when use_etap=True")
-            provider_name = "etap"
-            # Offload the synchronous ETAP call to a thread so it doesn't
-            # block the async event loop (ETAP COM calls can take 5-60 sec).
-            data = _run_async(
-                asyncio.to_thread(
-                    _run_etap_study,
-                    payload.study_type,
-                    payload.etap_project_path,
-                    payload.parameters,
-                ),
-            )
-            warnings = data.pop("warnings", [])
-            errors = data.pop("errors", [])
-            if not data.pop("success", True):
-                errors.append("ETAP study reported failure")
-        else:
-            system = None
-            if payload.system:
-                try:
-                    system = _build_system_from_spec(payload.system)
-                except ValueError as ve:
-                    from fastapi import HTTPException
-
-                    raise HTTPException(status_code=400, detail=f"System spec error: {ve}") from ve
-            data = _run_native_study(payload.study_type, system, payload.parameters)
-            provider_name = "native"
-
-            # --- Store result in cache ---
-            try:
-                from api.request_context import get_tenant_id
-
-                cache_params = {
-                    "study_type": payload.study_type,
-                    "parameters": payload.parameters,
-                    "tenant_id": get_tenant_id(),
-                }
-                if payload.system:
-                    import hashlib as _hashlib
-
-                    system_json = json.dumps(
-                        payload.system.model_dump(),
-                        sort_keys=True,
-                        default=str,
-                    )
-                    cache_params["system_hash"] = _hashlib.sha256(system_json.encode()).hexdigest()
-                if _study_cache:
-                    _run_async(
-                        _study_cache.set(
-                            payload.study_type,
-                            cache_params,
-                            json.dumps(data, default=str),
-                        ),
-                    )
-            except Exception as cache_err:
-                logger.debug(
-                    "Cache store failed (non-fatal): %s",
-                    cache_err,
-                    extra={"trace_id": trace_id},
-                )
-
-        _increment_counter("success")
-        status = "success"
-
-        # Mandatory Engineering Assertions Layer (M5.2)
-        # strict_mode=False contract:
-        # - Only CRITICAL and FATAL violations block simulation results (status="failed").
-        # - Non-critical failures (WARNING, INFO) are preserved in engineering_assertion_warnings
-        #   and do NOT block completion (status stays "success").
-        # - Only evaluate converged physical simulation results; unconverged solver runs
-        #   (e.g. invalid networks without slack bus) retain raw execution status.
-        if data.get("converged", True):
-            try:
-                from copilot.ai.engineering_assertions import EngineeringAssertionLayer
-
-                assertion_layer = EngineeringAssertionLayer(strict_mode=False)
-                report = assertion_layer.validate(data, payload.study_type)
-                if report.has_critical_failures:
-                    crit_msgs = [
-                        f.message
-                        for f in report.failures
-                        if f.severity.value in ("critical", "fatal")
-                    ]
-                    max_sev = "fatal" if any(f.severity.value == "fatal" for f in report.failures) else "critical"
-                    errors.insert(
-                        0,
-                        f"Engineering assertions blocked result: {len(crit_msgs)} {max_sev.upper()} "
-                        f"violations detected ({'; '.join(crit_msgs[:2])}).",
-                    )
-                    data["engineering_assertion_failures"] = [f.to_dict() for f in report.failures]
-                    data["blocked_severity"] = max_sev
-                    status = "failed"
-                elif getattr(report, "warnings", []):
-                    data["engineering_assertion_warnings"] = [f.to_dict() for f in report.warnings]
-                elif report.failures:
-                    data["engineering_assertion_warnings"] = [f.to_dict() for f in report.failures]
-            except Exception as assertion_err:
-                logger.warning("Engineering assertion execution error in study_service: %s", assertion_err)
-    except Exception as e:
-        _increment_counter("failed")
-        logger.error(
-            "study_run_failed study_type=%s error=%s",
-            payload.study_type,
-            str(e),
-            extra={"trace_id": trace_id},
+    if execution_request is None:
+        execution_request = ExecutionRequest.from_study_request(
+            study_request=payload,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            user_role="engineer",
+            trace_id=trace_id,
         )
-        errors.append(str(e))
-        status = "failed"
-        data = {}
 
-    # Strip numpy types so FastAPI / Pydantic can serialize the response
-    data = _to_jsonable(data)
+    orchestrator = get_execution_orchestrator()
+    try:
+        canonical_res = _run_async(orchestrator.execute(execution_request))
+        study_res = canonical_res.to_study_result(study_type=payload.study_type)
+    except Exception as exc:
+        logger.exception("Canonical study execution failed in study_service: %s", exc)
+        study_res = StudyResult(
+            study_type=payload.study_type,
+            success=False,
+            data={},
+            results={},
+            errors=[str(exc)],
+            warnings=[],
+            trace_id=trace_id,
+            task_id=task_id,
+            provider="native",
+        )
 
     elapsed_sec = time.perf_counter() - start_time
     _add_execution_time(elapsed_sec)
+    _increment_counter("success" if study_res.success else "failed")
 
     logger.info(
         "study_run_end study_type=%s status=%s elapsed_sec=%.3f task_id=%s",
         payload.study_type,
-        status,
+        study_res.status,
         elapsed_sec,
         task_id,
         extra={"trace_id": trace_id},
     )
 
-    return StudyResult(
-        success=status == "success",
-        data=data,
-        warnings=warnings,
-        errors=errors,
-        execution_time_sec=round(elapsed_sec, 3),
-        trace_id=trace_id,
-        task_id=task_id,
-        study_type=payload.study_type,
-        provider=provider_name,
-    )
+    return study_res

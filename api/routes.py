@@ -594,10 +594,18 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
     try:
         # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
 
+        trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
+        tenant_id = (
+            getattr(request.state, "tenant_id", "")
+            or request.headers.get("x-tenant-id")
+            or "service_tenant_async"
+        )
         task = execute_engineering_study_task.delay(
             {
                 "study_type": study_request.study_type,
                 "data": study_request.model_dump(),
+                "trace_id": trace_id,
+                "tenant_id": tenant_id,
                 "request_timestamp": str(time.time()),
             },
         )

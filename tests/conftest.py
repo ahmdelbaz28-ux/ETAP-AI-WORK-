@@ -594,6 +594,9 @@ def sample_ieee14_network():
             BusSpec(
                 bus_id=11, bus_type="pq", base_kv=230.0, load_power_real=5.0, load_power_imag=3.0
             ).model_dump(),
+            BusSpec(
+                bus_id=12, bus_type="pq", base_kv=230.0, load_power_real=6.1, load_power_imag=1.6
+            ).model_dump(),
         ],
         "lines": [
             LineSpec(
