@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-07T10:37:13.501320+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T11:07:46.106372+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,12 +14,12 @@
 | Python | Classes | 933 |
 | Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 268 |
-| Total | Tests | 3845 |
+| Test | Files | 270 |
+| Total | Tests | 3852 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 448 |
-| Scripts | | 166 |
+| Environment | Variables | 453 |
+| Scripts | | 168 |
 | AI | Agents | 31 |
 | Integrations | | 21 |
 | UI | Search Index Entries | 474 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -120,7 +120,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **448** variables
+Total: **453** variables
 
 ### General
 
@@ -314,6 +314,7 @@ Total: **448** variables
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_KEY`
 - `CODE_CONTEXT_INDEX_DIR`
+- `COMMIT_SHA`
 - `CONF_THRESHOLD`
 - `CRON_SECRET`
 - `CSRF_ALLOWED_ORIGINS`
@@ -332,6 +333,7 @@ Total: **448** variables
 - `DB_POOL_SIZE`
 - `DB_POOL_TIMEOUT`
 - `DEPLOYMENT_TOPOLOGY`
+- `DEPLOY_SHA`
 - `DISABLE_TEST_MODE`
 - `DISPLAY`
 - `DUCKDBSTORE_CONSTRUCTOR_KWARGS_JSON`
@@ -390,6 +392,7 @@ Total: **448** variables
 - `GITHUB_ACTIONS`
 - `GITHUB_PAT`
 - `HF_API_KEY`
+- `HF_COMMIT_SHA`
 - `HF_SPACE_API_KEY`
 - `HF_SPACE_ID`
 - `HF_SPACE_PRODUCTION_TESTS`
@@ -553,6 +556,8 @@ Total: **448** variables
 - `SMITHERY_SERVER_EQUIPMENT`
 - `SMITHERY_SERVER_REPORT_GEN`
 - `SMITHERY_SERVER_STANDARDS_DB`
+- `SMOKE_BASE_URL`
+- `SMOKE_UI_URL`
 - `SONAR_PROJECT_KEY`
 - `SPACE_ID`
 - `STAGING_BASE_URL`
@@ -5677,8 +5682,8 @@ Provides
 | Type | Count |
 |:---|---:|
 | ui-component | 280 |
-| python-module | 41 |
 | ui-page | 61 |
+| python-module | 41 |
 | api-route | 92 |
 | **TOTAL** | **474** |
 
@@ -5691,7 +5696,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5706,12 +5711,12 @@ Provides
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
-| `gis_validation_electrical` | `gis_integration` | — |
+| `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5719,10 +5724,10 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5743,6 +5748,7 @@ Provides
 | `test_ai_context_engine.py` | 0 | 6 | **17** |
 | `test_ai_fallback_guard.py` | 3 | 0 | **3** |
 | `test_ai_ml_rag.py` | 3 | 0 | **3** |
+| `test_anti_greenwash_guard.py` | 5 | 0 | **5** |
 | `test_api_request_context.py` | 0 | 1 | **6** |
 | `test_app_startup.py` | 6 | 0 | **6** |
 | `test_approvals.py` | 0 | 7 | **21** |
@@ -5838,6 +5844,7 @@ Provides
 | `test_guards.py` | 50 | 0 | **50** |
 | `test_harmonic_analysis_ieee519.py` | 0 | 1 | **4** |
 | `test_hf_space_auth.py` | 0 | 3 | **12** |
+| `test_hf_space_data_survival.py` | 2 | 0 | **2** |
 | `test_hf_space_fail_closed.py` | 4 | 0 | **4** |
 | `test_hf_space_production.py` | 12 | 0 | **12** |
 | `test_hf_space_skill.py` | 14 | 0 | **14** |
@@ -6032,6 +6039,7 @@ Provides
 | `scripts/check_registry_integrity.py` | py | 10.9 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
 | `scripts/check_workflows_meta.py` | py | 11.9 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
+| `scripts/ci_anti_greenwash_guard.py` | py | 4.4 KB | scripts/ci_anti_greenwash_guard.py — Meta-Guard against Sile |
 | `scripts/claims_audit.py` | py | 6.7 KB | scripts/claims_audit.py — Engineering Claims and Standards T |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/connect_neo4j.py` | py | 8.1 KB | Neo4j Connection & Verification Script for AhmedETAP. |
@@ -6092,6 +6100,7 @@ Provides
 | `scripts/patch-mastra.js` | js | 1.9 KB |  |
 | `scripts/pin-versions.mjs` | mjs | 1.6 KB |  |
 | `scripts/pip_audit_gate.py` | py | 5.6 KB | scripts/pip_audit_gate.py — Blocking dependency security aud |
+| `scripts/post_deploy_smoke.py` | py | 9.6 KB | scripts/post_deploy_smoke.py — End-to-End Post-Deployment Ve |
 | `scripts/postman_login.py` | py | 1.1 KB |  |
 | `scripts/pre-push-check.sh` | sh | 6.3 KB | !/bin/bash |
 | `scripts/quickstart.ps1` | ps1 | 3.6 KB |  |
@@ -6204,7 +6213,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.1 KB | `640d3acad57e` |
+| `hf-space/app.py` | 79.4 KB | `5f7449a3072b` |
 | `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
