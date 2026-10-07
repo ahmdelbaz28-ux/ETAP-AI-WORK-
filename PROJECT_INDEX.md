@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-06T20:29:42.224099+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T06:22:45.502358+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,7 +15,7 @@
 | Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 267 |
-| Total | Tests | 3835 |
+| Total | Tests | 3841 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 445 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -2302,19 +2302,19 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _15.6 KB_
+#### 📄 `api/studies.py` _15.1 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 392)
+- **Class** `StudyReRunRequest` (line 386)
 - **def** `pre_flight_check()` (line 142)
 - **async def** `run_study()` (line 210)
-- **async def** `run_study_async()` (line 370)
-- **async def** `get_study_types()` (line 381)
-- **async def** `re_run_study()` (line 399)
+- **async def** `run_study_async()` (line 364)
+- **async def** `get_study_types()` (line 375)
+- **async def** `re_run_study()` (line 393)
 
   **API Routes:**
   - `GET /types`
@@ -3274,7 +3274,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _67.7 KB_
+#### 📄 `services/execution_orchestrator.py` _78.4 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3285,23 +3285,23 @@ Coo
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
 - **Class** `InMemoryExecutionStateStore` (line 84)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `RedisExecutionStateStore` (line 119)
+- **Class** `RedisExecutionStateStore` (line 118)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `NativeEngineeringExecutor` (line 280)
+- **Class** `NativeEngineeringExecutor` (line 286)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 408)
+- **Class** `AgentEngineeringExecutor` (line 416)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 537)
+- **Class** `EtapEngineeringExecutor` (line 546)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 667)
+- **Class** `ExternalServiceExecutor` (line 678)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 769)
+- **Class** `CompositeEngineeringExecutor` (line 784)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 820)
+- **Class** `ExecutionOrchestrator` (line 1033)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
-- **def** `get_execution_state_store()` (line 255)
-- **def** `set_execution_state_store()` (line 270)
-- **def** `get_execution_orchestrator()` (line 1580)
+- **def** `get_execution_state_store()` (line 256)
+- **def** `set_execution_state_store()` (line 275)
+- **def** `get_execution_orchestrator()` (line 1859)
 
 #### 📄 `services/execution_request.py` _11.4 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -5673,10 +5673,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
+| ui-component | 280 |
 | python-module | 41 |
 | ui-page | 61 |
 | api-route | 92 |
-| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -5688,7 +5688,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5705,10 +5705,10 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5716,10 +5716,10 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5778,7 +5778,7 @@ Provides
 | `test_cache_service.py` | 7 | 0 | **7** |
 | `test_caching.py` | 0 | 2 | **21** |
 | `test_cad_simready.py` | 3 | 0 | **3** |
-| `test_canonical_execution.py` | 19 | 0 | **19** |
+| `test_canonical_execution.py` | 25 | 0 | **25** |
 | `test_cdn_base.py` | 0 | 6 | **29** |
 | `test_celery_tasks.py` | 0 | 9 | **65** |
 | `test_certified_reports_and_pe_stamp.py` | 16 | 0 | **16** |
