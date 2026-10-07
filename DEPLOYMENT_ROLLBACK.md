@@ -43,6 +43,32 @@ curl -fsS https://api.prod.ahmetap.com/readyz
 curl -fsS https://app.prod.ahmetap.com/healthz
 ```
 
+### 3.1 Feature Flag & Study Capability Rollback (< 1 minute)
+
+When an individual study or capability (e.g., `transient_stability`, `harmonic_analysis`, `breaker_duty`) exhibits drift or regression in production without requiring container re-imaging:
+
+```bash
+# Step 1: Immediate feature flag deactivation via runtime override
+# Set the study feature flag to false without modifying code
+export FEATURE_FLAG_<STUDY_NAME>="false"
+# Example: Immediately halt transient stability or breaker duty
+export FEATURE_FLAG_TRANSIENT_STABILITY="false"
+export FEATURE_FLAG_BREAKER_DUTY="false"
+
+# Step 2: In-code capability rollback
+# In engine/capability_registry.py: revert lifecycle_status back to PILOT or DISABLED:
+# CapabilityDefinition(..., lifecycle_status=LifecycleStatus.DISABLED)
+
+# Step 3: Restart the backend service
+docker compose restart engineering-service
+
+# Step 4: Verify fail-closed gate rejection
+# The endpoint should fail closed immediately with SPECIALIZED_EXECUTION_UNAVAILABLE
+curl -s -X POST https://api.prod.ahmetap.com/api/v1/studies/run \
+  -H "Content-Type: application/json" \
+  -d '{"study_type": "<STUDY_NAME>", "system_data": {}}' | grep "SPECIALIZED_EXECUTION_UNAVAILABLE"
+```
+
 ---
 
 ## 4. Database Migration Rollback
