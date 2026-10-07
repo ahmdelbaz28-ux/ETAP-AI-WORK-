@@ -644,29 +644,41 @@ async def study_client(study_api):
         yield ac
 
 
-@pytest.fixture
-def fake_study_executor(monkeypatch):
-    """Replace the real study pipeline with a successful no-op result."""
-    from core_model.specs import StudyResult
-
-    async def fake_execute(self, payload, trace_id="unknown"):  # noqa: ARG001
-        return StudyResult(
-            success=True,
-            data={"ok": True},
-            study_type=payload.study_type,
-            trace_id=trace_id,
-        )
-
-    monkeypatch.setattr("services.study_executor.StudyExecutor.execute", fake_execute)
+_MINIMAL_LOAD_FLOW_SYSTEM = {
+    "base_mva": 100.0,
+    "buses": [
+        {
+            "bus_id": 1,
+            "voltage_magnitude": 1.0,
+            "voltage_angle": 0.0,
+            "bus_type": "slack",
+            "base_kv": 11.0,
+        },
+        {
+            "bus_id": 2,
+            "voltage_magnitude": 1.0,
+            "voltage_angle": 0.0,
+            "bus_type": "pq",
+            "base_kv": 11.0,
+        },
+    ],
+    "lines": [
+        {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+    ],
+    "loads": [
+        {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+    ],
+}
 
 
 class TestStudyRunCreatedBy:
-    async def test_created_by_is_authenticated_user(
-        self, study_api, study_client, fake_study_executor
-    ):
+    async def test_created_by_is_authenticated_user(self, study_api, study_client):
         before = {r.id for r in await _all_result_rows()}
 
-        resp = await study_client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
+        resp = await study_client.post(
+            "/api/v1/studies/run",
+            json={"study_type": "load_flow", "system": _MINIMAL_LOAD_FLOW_SYSTEM},
+        )
         assert resp.status_code == 200
         body = resp.json()
         # M2 contract on the same response: the wire carries resultId
@@ -685,15 +697,17 @@ class TestStudyRunCreatedBy:
         assert data is not None
         assert data["created_by"] == USER_A.user_id
 
-    async def test_user_b_cannot_forge_created_by_of_user_a(
-        self, study_api, study_client, fake_study_executor
-    ):
+    async def test_user_b_cannot_forge_created_by_of_user_a(self, study_api, study_client):
         study_api["holder"]["user"] = USER_B
         before = {r.id for r in await _all_result_rows()}
 
         resp = await study_client.post(
             "/api/v1/studies/run",
-            json={"study_type": "load_flow", "created_by": "user-a"},
+            json={
+                "study_type": "load_flow",
+                "system": _MINIMAL_LOAD_FLOW_SYSTEM,
+                "created_by": "user-a",
+            },
         )
         assert resp.status_code == 200
 
@@ -702,15 +716,17 @@ class TestStudyRunCreatedBy:
         # spoofed body field ignored — identity comes from the JWT context only
         assert new_rows[0].created_by == USER_B.user_id
 
-    async def test_api_key_only_call_has_no_fabricated_identity(
-        self, study_api, study_client, fake_study_executor
-    ):
+    async def test_api_key_only_call_has_no_fabricated_identity(self, study_api, study_client):
         study_api["holder"]["user"] = None
         before = {r.id for r in await _all_result_rows()}
 
         resp = await study_client.post(
             "/api/v1/studies/run",
-            json={"study_type": "load_flow", "created_by": "user-a"},
+            json={
+                "study_type": "load_flow",
+                "system": _MINIMAL_LOAD_FLOW_SYSTEM,
+                "created_by": "user-a",
+            },
         )
         assert resp.status_code == 200
 
@@ -789,7 +805,7 @@ def test_is_within_realpath_escaped():
 
     base_dir = Path("/safe/base")
     candidate = Path("/safe/base/link")
-    with patch("os.path.realpath", side_effect=lambda p: "/outside/evil" if "link" in str(p) else str(p)):
+    with patch(
+        "os.path.realpath", side_effect=lambda p: "/outside/evil" if "link" in str(p) else str(p)
+    ):
         assert not _is_within(base_dir, candidate)
-
-

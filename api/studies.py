@@ -247,7 +247,11 @@ async def run_study(
         # Determine trusted identity (fail-closed)
         if user is not None and getattr(user, "user_id", None):
             user_id = str(user.user_id).strip()
-            tenant_id = str(user.tenant_id or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "") or "").strip()
+            tenant_id = str(
+                user.tenant_id
+                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+                or ""
+            ).strip()
             if not tenant_id or tenant_id.lower() in ("default", "none", "null"):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -284,21 +288,7 @@ async def run_study(
                 detail="Authentication required: valid JWT user session or trusted API-key service identity mandatory",
             )
 
-        # Support monkeypatched / mocked StudyExecutor.execute in isolated unit test fixtures
-        from services.study_executor import StudyExecutor
-
-        is_test_mocked = (
-            hasattr(StudyExecutor.execute, "_mock_self")
-            or hasattr(StudyExecutor.execute, "mock")
-            or getattr(getattr(StudyExecutor.execute, "__code__", None), "co_name", "") != "execute"
-        )
-        if is_test_mocked:
-            result = await StudyExecutor().execute(payload, trace_id=trace_id)
-            if req is not None and result and getattr(result, "success", False):
-                await _persist_study_result(req, payload, result, trace_id, user)
-            return result
-
-        # Phase 15: Route execution strictly through Canonical Execution Orchestrator
+        # Route execution strictly through Canonical Execution Orchestrator
         # (Semantic cache governance is owned by the orchestrator at Step 10b)
         from services.execution_request import ExecutionRequest
 
@@ -325,7 +315,11 @@ async def run_study(
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=err_msg)
             if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=err_msg)
-            detail_str = err_msg if "invalid" in err_msg.lower() else f"Invalid study request parameters: {err_msg}"
+            detail_str = (
+                err_msg
+                if "invalid" in err_msg.lower()
+                else f"Invalid study request parameters: {err_msg}"
+            )
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail_str)
 
         result = canonical_res.to_study_result()
