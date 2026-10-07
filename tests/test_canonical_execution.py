@@ -350,6 +350,219 @@ async def test_idempotency_tenant_isolation():
     assert mock_native.execute.call_count == 2
 
 
+_PROD_CAPABILITY_TEST_INPUTS = {
+    "harmonic_analysis": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"voltage_kv": 11.0, "fundamental_freq": 60.0},
+    },
+    "optimal_power_flow": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "generators": [
+                {"generator_id": 1, "bus_id": 1, "power_real": 50.0, "power_reactive": 10.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {
+            "generator_costs": [
+                {
+                    "generator_id": 1,
+                    "cost_coefficients": [0.0, 20.0, 0.01],
+                    "p_min": 0.0,
+                    "p_max": 100.0,
+                    "q_min": -50.0,
+                    "q_max": 50.0,
+                }
+            ],
+            "generator_locations": {1: 1},
+            "method": "dc",
+        },
+    },
+    "motor_starting": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"bus_id": 2, "motor_power_kw": 100.0},
+    },
+    "transient_stability": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"analysis_type": "critical_clearing_time"},
+    },
+    "cable_sizing": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {
+            "cross_section_mm2": 185,
+            "load_current_A": 120.0,
+            "cable_length_m": 150.0,
+            "system_voltage_V": 400.0,
+            "power_factor": 0.85,
+            "fault_current_kA": 5.0,
+            "fault_duration_s": 0.5,
+        },
+    },
+    "earth_grid": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {
+            "grid_length_m": 100.0,
+            "grid_width_m": 80.0,
+            "Ig_max": 1000.0,
+            "n_rods": 16,
+            "rho_soil": 50.0,
+            "rho_surface": 5000.0,
+            "fault_duration_s": 0.2,
+        },
+    },
+    "renewable_integration": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"pv_capacity_mw": 5.0, "bus_id": 2},
+    },
+    "battery_storage": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"capacity_mwh": 10.0, "power_mw": 2.0, "bus_id": 2},
+    },
+    "scada": {
+        "system": {
+            "base_mva": 100.0,
+            "buses": [
+                {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+                {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+            ],
+            "lines": [
+                {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+            ],
+            "loads": [
+                {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
+            ],
+        },
+        "parameters": {"measurements": {"bus_1_v": 1.0, "bus_2_v": 0.98}},
+    },
+    "etap_expert": {
+        "parameters": {"question": "How do I perform a load flow study in ETAP?"},
+    },
+    "optimization": {
+        "parameters": {"optimization_type": "filter_design", "target_harmonic": 5},
+    },
+    "validation": {
+        "parameters": {
+            "results_to_validate": {
+                "study_type": "load_flow",
+                "converged": True,
+                "bus_voltages": {"1": 1.0},
+            }
+        },
+    },
+    "report": {
+        "parameters": {
+            "title": "Substation Study Report",
+            "study_results": {"load_flow": {"converged": True}},
+        },
+    },
+    "weather": {
+        "parameters": {"latitude": 30.0, "longitude": 31.0},
+    },
+    "goal_planner": {
+        "parameters": {"goal": "Analyze power system voltage stability and fault duty"},
+    },
+    "code_guard": {
+        "parameters": {
+            "source": "def calculate_power(voltage: float, current: float) -> float:\n    return voltage * current\n",
+            "guard_type": "code",
+        },
+    },
+}
+
+
 @pytest.mark.asyncio
 async def test_all_production_agent_capabilities_reach_runtime():
     """Test G — Every production agent capability executes through AgentEngineeringExecutor into CanonicalExecutionResult."""
@@ -368,6 +581,8 @@ async def test_all_production_agent_capabilities_reach_runtime():
 
     assert len(prod_agent_caps) > 0, "Expected production agent capabilities in registry"
 
+    agent_exec = AgentEngineeringExecutor(agent_registry=runtime_agent_reg)
+
     for cap in prod_agent_caps:
         agent_key = cap.agent_key or cap.capability_id
         alias_map = {
@@ -375,37 +590,29 @@ async def test_all_production_agent_capabilities_reach_runtime():
             "opf": "optimal_power_flow",
             "protection": "protection_coordination",
         }
-        agent_key = alias_map.get(agent_key, agent_key)
-        agent = runtime_agent_reg.get(agent_key) or runtime_agent_reg.get(agent_key.lower())
-        assert agent is not None, f"Agent for key '{agent_key}' not found"
+        canonical_key = alias_map.get(agent_key, agent_key)
+        agent = runtime_agent_reg.get(canonical_key) or runtime_agent_reg.get(canonical_key.lower())
+        assert agent is not None, f"Agent for key '{canonical_key}' not found"
 
-        # Gap 4: Exercise AgentEngineeringExecutor -> agent.execute() -> CanonicalExecutionResult
-        mock_delegate = AsyncMock()
-        mock_delegate.execute.return_value = {
-            "success": True,
-            "status": "completed",
-            "summary": f"Executed capability {cap.capability_id}",
-            "data": {"result_val": 42},
-        }
-
-        agent_exec = AgentEngineeringExecutor(agent_registry={agent_key: mock_delegate})
+        input_data = _PROD_CAPABILITY_TEST_INPUTS.get(cap.capability_id, {"parameters": {}})
         req = ExecutionRequest(
             execution_id=f"exec_test_{cap.capability_id}",
             request_id=f"req_test_{cap.capability_id}",
             capability_id=cap.capability_id,
             tenant_id="tenant_agent_contract",
             user_id="engineer_agent_contract",
-            input={"parameters": {"test_param": "123"}},
+            input=input_data,
         )
 
         res = await agent_exec.execute(req)
-        assert mock_delegate.execute.called, (
-            f"Expected agent.execute() to be invoked for {cap.capability_id}"
-        )
-        assert res.success is True
+
+        assert res.success is True, f"Capability '{cap.capability_id}' execution failed: {res.errors}"
+        assert res.status == "completed"
         assert res.executor_kind == "agent"
         assert res.provider == "agent"
         assert res.capability_id == cap.capability_id
+        assert res.solver == type(agent).__name__
+        assert len(res.data) > 0, f"Expected non-empty real calculation results for '{cap.capability_id}'"
 
 
 @pytest.mark.asyncio

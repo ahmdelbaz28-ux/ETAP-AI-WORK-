@@ -62,7 +62,7 @@ def execute_engineering_study_task(self, study_data: dict):
             study_request=payload,
             user_id=study_data.get("user_id") or "service_principal:worker",
             tenant_id=study_data.get("tenant_id") or "service_tenant_worker",
-            user_role="engineer",
+            user_role=study_data.get("user_role") or "engineer",
             trace_id=trace_id,
         )
 

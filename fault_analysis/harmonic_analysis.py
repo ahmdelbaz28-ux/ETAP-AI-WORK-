@@ -744,13 +744,13 @@ class HarmonicAnalysisEngine:
         lines.append("-" * 70)
         for bus_id, thd in sorted(result.total_thd_voltage.items()):
             status = "✓ PASS" if result.compliance_status.get(bus_id, False) else "✗ FAIL"
-            lines.append(f"  Bus {bus_id:10s}: THD = {thd:6.2f}%  {status}")
+            lines.append(f"  Bus {str(bus_id):10s}: THD = {thd:6.2f}%  {status}")
         lines.append("")
 
         lines.append("TOTAL DEMAND DISTORTION (TDD) - CURRENT")
         lines.append("-" * 70)
         for branch_id, tdd in sorted(result.total_tdd_current.items()):
-            lines.append(f"  Branch {branch_id:10s}: TDD = {tdd:6.2f}%")
+            lines.append(f"  Branch {str(branch_id):10s}: TDD = {tdd:6.2f}%")
         lines.append("")
 
         if result.resonance_detected:
