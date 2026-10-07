@@ -321,6 +321,14 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.11"
+
       - name: Smoke the EXACT deployed revision
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -333,7 +341,7 @@ jobs:
           HEALTHY_HF=0
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
-              https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || true)
+              https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || echo "000")
             if [ "$code" = "200" ]; then
               echo "HF Space healthz OK"
               HEALTHY_HF=1
@@ -398,7 +406,7 @@ jobs:
           echo "Probing Vercel production deployment..."
           HEALTHY_VERCEL=0
           for i in $(seq 1 20); do
-            vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app || true)
+            vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app || echo "000")
             if [ "$vcode" = "200" ]; then
               echo "Vercel production health OK"
               HEALTHY_VERCEL=1
@@ -410,6 +418,16 @@ jobs:
             echo "::error::Vercel health check failed after 20 attempts"
             exit 1
           fi
+
+      - name: Run End-to-End Post-Deployment Smoke Test (C2 & C3)
+        env:
+          SMOKE_BASE_URL: "https://ahmdelbaz28-ahmedetap-platform.hf.space"
+          SMOKE_UI_URL: "https://etap-ai-work.vercel.app"
+          ENGINEERING_SERVICE_API_KEY: ${{ secrets.ENGINEERING_SERVICE_API_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+        run: |
+          set -euo pipefail
+          python3 scripts/post_deploy_smoke.py
 
       - name: Update LKGS Tag (Last Known Good State)
         env:
@@ -440,6 +458,6 @@ jobs:
           if [ -n "$ALERT_WEBHOOK" ]; then
             curl -s -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"ETAP CD FAILED health gate at ${DEPLOY_SHA:-unknown} — rollback required\"}" \
-              "$ALERT_WEBHOOK" || true
+              "$ALERT_WEBHOOK"
           fi
 

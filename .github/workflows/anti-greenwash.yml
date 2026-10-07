@@ -1,0 +1,38 @@
+name: "Meta-Guard Anti-Greenwash & Fail-Closed Gate"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'CI_GATE_EXCEPTIONS.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'CI_GATE_EXCEPTIONS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  anti-greenwash-audit:
+    name: "🛡️ Meta-Guard Workflow Audit"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Run Meta-Guard Anti-Greenwash Auditor
+        run: |
+          set -euo pipefail
+          python3 scripts/ci_anti_greenwash_guard.py

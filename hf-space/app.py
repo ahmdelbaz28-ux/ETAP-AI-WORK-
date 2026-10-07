@@ -748,13 +748,45 @@ async def healthz():
             content={
                 "status": "degraded",
                 "detail": "Database unavailable",
-                "backend": backend,
+                "database": backend,
             },
             status_code=503,
         )
 
+    # Redis check (C1)
+    redis_status = "not_configured"
+    try:
+        from api.limiter import get_redis_client
+
+        r = get_redis_client()
+        if r is not None:
+            await r.ping()
+            redis_status = "ok"
+    except Exception as exc:
+        redis_status = f"unhealthy: {exc}"
+        _env = os.getenv("ENVIRONMENT", "development").lower()
+        if _env in ("production", "prod", "staging"):
+            await _trigger_health_alert(
+                "redis_unhealthy",
+                f"Redis client is unhealthy on /healthz: {exc}",
+            )
+            return JSONResponse(
+                content={
+                    "status": "degraded",
+                    "detail": "Redis unavailable",
+                    "database": db_health.get("backend"),
+                    "redis": redis_status,
+                },
+                status_code=503,
+            )
+
     return JSONResponse(
-        content={"status": "ok", "backend": db_health.get("backend")}, status_code=200
+        content={
+            "status": "ok",
+            "database": db_health.get("backend"),
+            "redis": redis_status,
+        },
+        status_code=200,
     )
 
 
@@ -776,7 +808,10 @@ async def healthz_head():
 @app.get("/readyz", tags=["Health"])
 @app.head("/readyz", tags=["Health"])
 async def readyz():
-    return JSONResponse(content={"status": "ready"}, status_code=200)
+    """Readiness probe — verifies DB connectivity, Redis (if configured/prod), and schema version."""
+    from api.health import readyz as api_readyz
+
+    return await api_readyz()
 
 
 @app.get("/health", tags=["Health"])
@@ -807,20 +842,27 @@ async def platform_info():
 @app.head("/version", tags=["Platform"])
 async def get_version():
     """Return platform version and deployed Git SHA if available."""
-    deploy_sha = "unknown"
-    for candidate in [Path("DEPLOY_SHA"), Path("/app/DEPLOY_SHA"), Path("VERSION")]:
-        if candidate.exists():
-            try:
-                content = candidate.read_text(encoding="utf-8").strip()
-                if content:
-                    deploy_sha = content
-                    break
-            except Exception:
-                pass
+    deploy_sha = (
+        os.getenv("DEPLOY_SHA")
+        or os.getenv("COMMIT_SHA")
+        or os.getenv("HF_COMMIT_SHA")
+        or "unknown"
+    )
+    if deploy_sha == "unknown":
+        for candidate in [Path("DEPLOY_SHA"), Path("/app/DEPLOY_SHA")]:
+            if candidate.exists():
+                try:
+                    content = candidate.read_text(encoding="utf-8").strip()
+                    if content:
+                        deploy_sha = content
+                        break
+                except Exception:
+                    pass
     return JSONResponse(
         content={
             "version": VERSION,
             "commit_sha": deploy_sha,
+            "environment": os.getenv("ENVIRONMENT", "development"),
             "status": "ok",
         },
         status_code=200,

@@ -90,7 +90,7 @@ jobs:
           # Ensure JSON output exists and is non-empty.
           if [ ! -s "$AUDIT_JSON_PATH" ]; then
             echo "::error::audit produced no JSON output."
-            cat "$AUDIT_ERR_PATH" >&2 || true
+            cat "$AUDIT_ERR_PATH" >&2
             exit 2
           fi
 
