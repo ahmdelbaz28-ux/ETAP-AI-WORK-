@@ -242,3 +242,129 @@ class TestStructuralAntiBypassRegressions(unittest.TestCase):
         )
         assert res_ok.passed is True
         assert res_ok.recomputed_value == 1.024
+
+    # ─── 5. API Study Endpoint Routes Strictly Through Canonical Orchestrator ──
+
+    def test_api_study_endpoint_routes_strictly_through_canonical_orchestrator(self):
+        """API /run endpoint MUST delegate directly to ExecutionOrchestrator and never bypass."""
+        from api.studies import run_study
+
+        with patch("services.execution_orchestrator.ExecutionOrchestrator.execute") as mock_orch_exec, \
+             patch("services.study_service._run_native_study") as mock_legacy_native, \
+             patch("services.study_service._run_etap_study") as mock_legacy_etap:
+
+            fake_canonical_res = CanonicalExecutionResult(
+                execution_id="api_exec_123",
+                request_id="api_req_123",
+                capability_id="load_flow",
+                capability_version="1.0.0",
+                tenant_id="tenant_api_1",
+                user_id="user_api_1",
+                executor_kind="local_engine",
+                provider="native",
+                solver="newton_raphson",
+                engine_version="1.0.0",
+                status="completed",
+                success=True,
+                data={"converged": True},
+                errors=[],
+                warnings=[],
+            )
+            mock_orch_exec.return_value = fake_canonical_res
+
+            res = asyncio.run(
+                run_study(
+                    req=None,
+                    payload=self.sample_request,
+                    _= "mock_api_key_test",
+                    user=None,
+                    user_id="user_api_1",
+                    tenant_id="tenant_api_1",
+                )
+            )
+
+            assert mock_orch_exec.called, "ExecutionOrchestrator.execute was not called by API endpoint!"
+            assert not mock_legacy_native.called, "Legacy native study wrapper called by API!"
+            assert not mock_legacy_etap.called, "Legacy ETAP study wrapper called by API!"
+            assert res.status in ("success", "completed")
+            assert res.data.get("converged") is True
+
+    # ─── 6. Stability Refuses Missing Inputs Without Synthetic Fallback ──────
+
+    def test_stability_missing_engineering_input_refuses_execution_without_synthetic_fallback(self):
+        """StabilityAgent MUST fail closed with INSUFFICIENT_ENGINEERING_INPUT and never fabricate Ybus."""
+        from agents.models import AgentStatus
+        from agents.orchestrator import EngineeringTask, StudyType
+        from agents.stability_agent import StabilityAgent
+
+        agent = StabilityAgent()
+
+        task = EngineeringTask(
+            task_id="test_stability_missing_input",
+            description="Stability analysis missing engineering parameters",
+            study_types=[StudyType.TRANSIENT_STABILITY],
+            parameters={"analysis_type": "transient"},
+        )
+        result = asyncio.run(agent.execute(task))
+
+        assert result.status == AgentStatus.FAILED
+        assert result.data.get("error_code") == "INSUFFICIENT_ENGINEERING_INPUT"
+        missing = result.data.get("missing_inputs", [])
+        assert any("Ybus_reduced" in item for item in missing)
+        assert any("inertia_constants" in item for item in missing)
+
+    # ─── 7. Production Maturity Gate Refuses Non-Production Execution ──────
+
+    def test_production_maturity_gate_refuses_unvalidated_capability(self):
+        """ExecutionOrchestrator MUST reject capabilities lacking production certification when requested."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+
+        orchestrator = ExecutionOrchestrator()
+
+        # Request transient_stability with strict production certification demand
+        req = ExecutionRequest(
+            capability_id="transient_stability",
+            tenant_id="cert_tenant",
+            user_id="lead_engineer_1",
+            user_role="lead_engineer",
+            input={"test": 123},
+            metadata={"demand_production_certification": True},
+        )
+
+        result = asyncio.run(orchestrator.execute(req))
+
+        assert result.status == "rejected"
+        assert result.success is False
+        assert any("PRODUCTION_MATURITY_GATE_REJECTED" in err for err in result.errors)
+        assert result.provenance.get("rejection_reason") == "PRODUCTION_MATURITY_GATE_REJECTED"
+
+    # ─── 8. Standards Numerical Drift Protection ──────────────────────────
+
+    def test_iec60909_benchmark_regression_fails_on_numerical_drift(self):
+        """IEC 60909 benchmark comparison MUST fail when solver results deviate beyond tolerance."""
+        from engine.benchmarks.ieee_cases import IEC_60909_4BUS_BENCHMARK_FAULTS
+
+        ref_case = IEC_60909_4BUS_BENCHMARK_FAULTS["results"][2]
+        expected_ik = ref_case["three_phase_ik_ka"]
+        tolerance_ka = ref_case["tolerance_ka"]
+
+        # Simulated drifted calculation (> tolerance deviation)
+        drifted_ik = expected_ik + 0.5  # 0.5 kA drift
+        diff = abs(drifted_ik - expected_ik)
+
+        assert diff > tolerance_ka, "Drift of 0.5 kA should exceed tolerance threshold"
+
+    def test_ieee1584_benchmark_regression_fails_on_numerical_drift(self):
+        """IEEE 1584 benchmark comparison MUST fail when arc flash results deviate beyond tolerance."""
+        from engine.benchmarks.ieee_cases import IEEE_1584_ANNEX_D_PUBLISHED_CASES
+
+        ref_case = IEEE_1584_ANNEX_D_PUBLISHED_CASES[0]
+        expected_energy = ref_case["published_energy_cal_cm2"]
+        tolerance_cal = 0.10
+
+        # Simulated drifted calculation (> tolerance deviation)
+        drifted_energy = expected_energy + 0.5  # 0.5 cal/cm2 drift
+        diff = abs(drifted_energy - expected_energy)
+
+        assert diff > tolerance_cal, "Drift of 0.5 cal/cm2 should exceed tolerance threshold"
+

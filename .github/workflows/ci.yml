@@ -206,8 +206,8 @@ jobs:
       - name: Install test runner
         run: "pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
 
-      - name: Run Integration Tests
-        run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py
+      - name: Run Integration & Canonical Execution Tests
+        run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py tests/test_canonical_execution.py tests/test_structural_anti_bypass_regressions.py tests/test_ieee_gold_standard_benchmarks.py
 
   # ── Gate 6: SCADA & Scenario Tests (FIX-30) ──────────────────────────────
   scenario-tests:

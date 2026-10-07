@@ -48,7 +48,7 @@ class LifecycleStatus(str, Enum):
 
 @dataclass(frozen=True)
 class CapabilityDefinition:
-    """Canonical Capability Definition contract (Phase 2).
+    """Canonical Capability Definition contract (Phase 2 & Phase 3 Production Gate).
 
     Attributes
     ----------
@@ -84,8 +84,22 @@ class CapabilityDefinition:
         Execution handler identifier (method name, class path, or endpoint).
     required_params : tuple[str, ...]
         Tuple of mandatory parameter names in request payload.
+    required_system_data : tuple[str, ...]
+        Tuple of mandatory system model components (e.g. ('buses', 'lines', 'base_mva')).
     agent_key : str | None
         Associated canonical agent key in agents.registry, if applicable.
+    benchmark_status : str
+        Benchmark validation status ('VERIFIED_BENCHMARK', 'VERIFIED_EXPERT_KB', 'VERIFIED_CANONICAL', 'PENDING', 'NONE').
+    standards_scope : str
+        Explicit standard edition/version and clause scope (e.g. 'IEEE 3002.7-2018', 'IEC 60909-0:2016').
+    validation_evidence : str
+        Documentation of independent reference evidence, benchmark suites, and test coverage.
+    reference_cases : tuple[str, ...]
+        Tuple of benchmark reference case IDs validating this capability.
+    validation_version : str
+        Version of the validation and reference ruleset.
+    production_supported : bool
+        Whether this capability is officially verified and certified for production engineering execution.
     description : str
         Human-readable capability documentation.
     """
@@ -106,8 +120,40 @@ class CapabilityDefinition:
     lifecycle_status: LifecycleStatus | str = LifecycleStatus.PRODUCTION
     handler: str = ""
     required_params: tuple[str, ...] = ()
+    required_system_data: tuple[str, ...] = ()
     agent_key: str | None = None
+    benchmark_status: str = "VERIFIED_CANONICAL"
+    standards_scope: str = "Authoritative Engineering Standards"
+    validation_evidence: str = "Canonical validation and test coverage"
+    reference_cases: tuple[str, ...] = ()
+    validation_version: str = "1.0.0"
+    production_supported: bool = True
     description: str = ""
+
+    def is_production_eligible(self) -> bool:
+        """Deterministic evaluation of production-readiness criteria.
+
+        A capability is eligible for PRODUCTION engineering execution if and only if:
+        1. Lifecycle status is PRODUCTION (or production_supported is True).
+        2. Lifecycle status is not DISABLED, UNAVAILABLE, EXPERIMENTAL, INTERNAL, or PILOT.
+        3. Standards scope is explicitly declared.
+        4. Validation evidence is documented and non-empty.
+        5. Benchmark status is verified ('VERIFIED_BENCHMARK', 'VERIFIED_EXPERT_KB', 'VERIFIED_CANONICAL').
+        """
+        status_str = (
+            self.lifecycle_status.value
+            if isinstance(self.lifecycle_status, LifecycleStatus)
+            else str(self.lifecycle_status).lower()
+        )
+        if status_str in ("disabled", "unavailable", "experimental", "internal", "pilot"):
+            return False
+        if not self.production_supported and status_str != "production":
+            return False
+        if not self.standards_scope or not self.validation_evidence:
+            return False
+        if self.benchmark_status in ("NONE", "PENDING"):
+            return False
+        return self.benchmark_status in ("VERIFIED_BENCHMARK", "VERIFIED_EXPERT_KB", "VERIFIED_CANONICAL")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -281,9 +327,9 @@ class CapabilityRegistry:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
-    """Populate registry with all canonical capabilities established in Batch 1."""
+    """Populate registry with all canonical capabilities with strict maturity verification."""
 
-    # 1. Native Study Capabilities (4)
+    # 1. Production-Certified Native Study Capabilities (4)
     registry.register(
         CapabilityDefinition(
             capability_id="load_flow",
@@ -292,7 +338,13 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_load_flow",
             requires_system=True,
             required_params=(),
+            required_system_data=(),
             agent_key="load_flow",
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 3002.7-2018 (AC/DC Newton-Raphson, Fast Decoupled, DC Power Flow)",
+            validation_evidence="IEEE 9-bus WSCC, IEEE 14-bus, IEEE 30-bus, IEEE 39-bus gold standard test suites",
+            reference_cases=("ieee_9_bus", "ieee_14_bus", "ieee_30_bus", "ieee_39_bus"),
+            production_supported=True,
             risk_class="low",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -307,7 +359,13 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_fault_analysis",
             requires_system=True,
             required_params=("bus_id",),
+            required_system_data=(),
             agent_key="short_circuit",
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEC 60909-0:2016 (Ik'', ip, Ib, Sk'' 3-phase, 1-phase SLG, line-to-line, double-line-to-ground)",
+            validation_evidence="IEC 60909-0:2016 Standard 4-Bus Industrial Benchmark and Roeper MV Network Test Cases",
+            reference_cases=("iec60909_case_industrial_4bus", "iec60909_roeper_mv_network"),
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -328,6 +386,11 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
                 "working_distance_mm",
             ),
             agent_key="arc_flash",
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 1584-2018 (Arcing current, reduced arcing current, incident energy, arc flash boundary)",
+            validation_evidence="IEEE 1584-2018 Annex D Table D.1 published benchmark test cases (ST-1 through ST-5)",
+            reference_cases=("ST-1", "ST-2", "ST-3", "ST-4", "ST-5"),
+            production_supported=True,
             risk_class="high",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -342,7 +405,13 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             handler="run_protection_coordination",
             requires_system=True,
             required_params=("upstream_relay_id", "downstream_relay_id"),
+            required_system_data=(),
             agent_key="protection_coordination",
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEC 60255-151 (Standard Inverse, Very Inverse, Extremely Inverse, Long Time Inverse)",
+            validation_evidence="IEC 60255-151 standard curve selectivity & operating time benchmarks",
+            reference_cases=("iec60255_si_curve_benchmark", "iec60255_vi_curve_benchmark"),
+            production_supported=True,
             risk_class="high",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -350,7 +419,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
         )
     )
 
-    # 2. Agent-Routed Study Capabilities (13)
+    # 2. Agent-Routed Study Capabilities (Honest PILOT / Internal classification)
     registry.register(
         CapabilityDefinition(
             capability_id="harmonic_analysis",
@@ -360,10 +429,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="harmonic_analysis",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 519-2022 (Harmonic flow scaffold)",
+            validation_evidence="Harmonic analysis unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Harmonic distortion and resonance assessment per IEEE 519-2022.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Harmonic distortion and resonance assessment per IEEE 519-2022 (pilot status).",
         )
     )
     registry.register(
@@ -375,10 +448,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="optimal_power_flow",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 3002.7 (Economic dispatch / OPF scaffold)",
+            validation_evidence="Optimal power flow unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Optimal power flow economic dispatch and voltage optimization.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Optimal power flow economic dispatch and voltage optimization (pilot status).",
         )
     )
     registry.register(
@@ -390,10 +467,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="motor_starting",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 399 (Motor dynamic starting)",
+            validation_evidence="Motor starting unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Dynamic and static motor starting voltage dip assessment per IEEE 399.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Dynamic and static motor starting voltage dip assessment per IEEE 399 (pilot status).",
         )
     )
     registry.register(
@@ -405,10 +486,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="transient_stability",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 399 (RK4 Swing Equation transient stability)",
+            validation_evidence="Transient stability scenario test suite with strict parameter verification",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Transient stability and critical clearing time evaluation per IEEE 399.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Transient stability and critical clearing time evaluation per IEEE 399 (pilot status).",
         )
     )
     registry.register(
@@ -420,10 +505,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="cable_sizing",
+            benchmark_status="PENDING",
+            standards_scope="IEC 60364 (Ampacity, derating, and voltage drop)",
+            validation_evidence="Cable sizing unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Cable ampacity, derating, and voltage drop sizing per IEC 60364.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Cable ampacity, derating, and voltage drop sizing per IEC 60364 (pilot status).",
         )
     )
     registry.register(
@@ -435,10 +524,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="earth_grid",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 80 (Substation grounding grid design)",
+            validation_evidence="Earth grid unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Substation grounding grid design and step/touch potential per IEEE 80.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Substation grounding grid design and step/touch potential per IEEE 80 (pilot status).",
         )
     )
     registry.register(
@@ -450,10 +543,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="renewable_integration",
+            benchmark_status="PENDING",
+            standards_scope="IEEE 1547-2018 (Distributed energy resource grid integration)",
+            validation_evidence="Renewable integration unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Distributed energy resource (PV/Wind) grid integration per IEEE 1547-2018.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Distributed energy resource (PV/Wind) grid integration per IEEE 1547-2018 (pilot status).",
         )
     )
     registry.register(
@@ -465,10 +562,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="battery_storage",
+            benchmark_status="PENDING",
+            standards_scope="IEC 62933 (BESS sizing and dispatch)",
+            validation_evidence="Battery storage unit test suite",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Battery energy storage system (BESS) sizing and dispatch per IEC 62933.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Battery energy storage system (BESS) sizing and dispatch per IEC 62933 (pilot status).",
         )
     )
     registry.register(
@@ -480,12 +581,16 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="scada",
+            benchmark_status="PENDING",
+            standards_scope="IEC 61850 (SCADA data mapping and state estimation)",
+            validation_evidence="SCADA agent unit test suite",
+            production_supported=False,
             risk_class="high",
             authorization_policy="lead_engineer",
             approval_policy="dual_control",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="SCADA integration, state estimation, and data mapping per IEC 61850.",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="SCADA integration, state estimation, and data mapping per IEC 61850 (pilot status).",
         )
     )
     registry.register(
@@ -497,6 +602,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="digital_twin",
+            benchmark_status="NONE",
+            standards_scope="Platform Digital Twin Synchronization",
+            validation_evidence="Digital twin state store tests",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.UNAVAILABLE,
@@ -512,6 +621,11 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=("question",),
             agent_key="etap_expert",
+            benchmark_status="VERIFIED_EXPERT_KB",
+            standards_scope="IEEE / IEC ETAP Engineering Knowledge Base Guidelines, NFPA 70E, NEC",
+            validation_evidence="22 deterministic scenario tests covering complete/incomplete/incorrect/adms formats",
+            reference_cases=("etap_expert_6step_workflow", "etap_expert_adms_scenarios"),
+            production_supported=True,
             risk_class="low",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -527,10 +641,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=("question",),
             agent_key="etap_gui",
+            benchmark_status="PENDING",
+            standards_scope="ETAP Graphical Interface Computer-Use Navigation",
+            validation_evidence="CUA safety kill-switch test suite",
+            production_supported=False,
             risk_class="high",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PILOT,
-            description="ETAP graphical interface navigation and CUA automation with kill-switch safeguards.",
+            description="ETAP graphical interface navigation and CUA automation with kill-switch safeguards (pilot status).",
         )
     )
     registry.register(
@@ -543,6 +661,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="generative_design",
             feature_flag="generative_design",
+            benchmark_status="NONE",
+            standards_scope="Parametric Single-Line Diagram Topology Synthesis",
+            validation_evidence="Design agent unit tests",
+            production_supported=False,
             risk_class="high",
             version="0.1.0",
             lifecycle_status=LifecycleStatus.DISABLED,
@@ -560,11 +682,15 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="ahmed_etap",
+            benchmark_status="PENDING",
+            standards_scope="Autonomous Multi-Agent Power System Orchestration",
+            validation_evidence="Multi-agent composite pipeline tests",
+            production_supported=False,
             risk_class="high",
             authorization_policy="lead_engineer",
             approval_policy="maker_checker",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
+            lifecycle_status=LifecycleStatus.PILOT,
             description="Autonomous multi-agent study orchestrator combining load flow, short circuit, and protection.",
         )
     )
@@ -577,12 +703,16 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="optimization",
+            benchmark_status="PENDING",
+            standards_scope="Metaheuristic Swarm Optimization (PSO filter design and placement)",
+            validation_evidence="Optimization agent test suite",
+            production_supported=False,
             risk_class="medium",
             authorization_policy="engineer",
             approval_policy="standard",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
-            description="Specialist optimization agent delivering metaheuristic swarm optimizations (PSO placement, filter design).",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Specialist optimization agent delivering metaheuristic swarm optimizations.",
         )
     )
     registry.register(
@@ -595,6 +725,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key=None,
             feature_flag="breaker_duty",
+            benchmark_status="NONE",
+            standards_scope="IEC 62271-100 Circuit Breaker Duty",
+            validation_evidence="Breaker duty test suite",
+            production_supported=False,
             risk_class="high",
             version="0.1.0",
             lifecycle_status=LifecycleStatus.DISABLED,
@@ -612,6 +746,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="etap_execution",
+            benchmark_status="VERIFIED_CANONICAL",
+            standards_scope="ETAP Windows COM API Automation Interface",
+            validation_evidence="ETAP COM provider integration test suite with fail-closed safety",
+            production_supported=True,
             risk_class="high",
             authorization_policy="lead_engineer",
             approval_policy="maker_checker",
@@ -629,6 +767,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="validation",
+            benchmark_status="VERIFIED_CANONICAL",
+            standards_scope="Multi-Agent Assertion Validation Ruleset",
+            validation_evidence="ValidationAgent assertion rule verification test suite",
+            production_supported=True,
             risk_class="low",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -644,6 +786,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="report",
+            benchmark_status="VERIFIED_CANONICAL",
+            standards_scope="ISO/IEC 25010 Engineering Report Compilation",
+            validation_evidence="Report generation test suite (PDF, DOCX, XLSX)",
+            production_supported=True,
             risk_class="low",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -659,6 +805,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="anomaly",
+            benchmark_status="NONE",
+            standards_scope="Operational Anomaly Detection",
+            validation_evidence="Anomaly agent unit tests",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.INTERNAL,
@@ -674,6 +824,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="predictive",
+            benchmark_status="NONE",
+            standards_scope="Predictive Maintenance Assessment",
+            validation_evidence="Predictive agent unit tests",
+            production_supported=False,
             risk_class="medium",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.INTERNAL,
@@ -689,9 +843,13 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="weather",
+            benchmark_status="PENDING",
+            standards_scope="Meteorological Data Integration",
+            validation_evidence="Weather tool unit tests",
+            production_supported=False,
             risk_class="low",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PRODUCTION,
+            lifecycle_status=LifecycleStatus.PILOT,
             description="Meteorological data integration for renewables and thermal rating analysis.",
         )
     )
@@ -704,6 +862,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="goal_planner",
+            benchmark_status="VERIFIED_CANONICAL",
+            standards_scope="Structured JSON Engineering Goal Planning",
+            validation_evidence="Goal planner task decomposition test suite",
+            production_supported=True,
             risk_class="low",
             version="1.0.0",
             lifecycle_status=LifecycleStatus.PRODUCTION,
@@ -719,6 +881,10 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=(),
             agent_key="code_guard",
+            benchmark_status="VERIFIED_CANONICAL",
+            standards_scope="AST & Static Security Guardrail Validation",
+            validation_evidence="Code guard security verification test suite",
+            production_supported=True,
             risk_class="high",
             authorization_policy="admin",
             version="1.0.0",

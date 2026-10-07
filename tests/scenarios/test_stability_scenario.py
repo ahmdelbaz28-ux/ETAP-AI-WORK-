@@ -172,13 +172,45 @@ class TestStabilityScenario:
         assert result["stable"] is False
 
     @pytest.mark.asyncio
-    async def test_full_analysis_via_execute(self, agent):
-        """Test 6: Full stability analysis via execute method."""
+    async def test_missing_engineering_inputs_fails_closed(self, agent):
+        """Test 6: Missing engineering inputs must produce explicit INSUFFICIENT_ENGINEERING_INPUT failure."""
         task = EngineeringTask(
             task_id="stab-001",
-            description="Full stability analysis",
+            description="Full stability analysis without inputs",
             study_types=[StudyType.TRANSIENT_STABILITY],
             parameters={"analysis_type": "full"},
+        )
+        result = await agent.execute(task)
+        assert result.status == AgentStatus.FAILED
+        assert result.data.get("error_code") == "INSUFFICIENT_ENGINEERING_INPUT"
+        assert len(result.data.get("missing_inputs", [])) > 0
+        assert any("INSUFFICIENT_ENGINEERING_INPUT" in err for err in result.validation_errors)
+
+    @pytest.mark.asyncio
+    async def test_full_analysis_via_execute_with_valid_data(self, agent, multimachine_data, smib_params):
+        """Test 7: Full stability analysis succeeds when explicit engineering parameters are provided."""
+        d = multimachine_data
+        p = smib_params
+        task = EngineeringTask(
+            task_id="stab-002",
+            description="Full stability analysis with explicit data",
+            study_types=[StudyType.TRANSIENT_STABILITY],
+            parameters={
+                "analysis_type": "full",
+                "inertia_constants": d["H"].tolist(),
+                "damping_coefficients": d["D"].tolist(),
+                "mechanical_power": d["Pm"].tolist(),
+                "Ybus_reduced": d["Ybus_red"].tolist(),
+                "internal_voltages": d["E"].tolist(),
+                "initial_angles_rad": d["delta0"].tolist(),
+                "smib_H": p["H"],
+                "smib_Pm": p["Pm"],
+                "smib_E": p["E_gen"],
+                "smib_V_inf": p["V_inf"],
+                "smib_X_total": p["X_total"],
+                "smib_X_faulted": p["X_faulted"],
+                "smib_delta0": p["delta0"],
+            },
         )
         result = await agent.execute(task)
         assert result.status == AgentStatus.COMPLETED

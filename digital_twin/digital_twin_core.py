@@ -1090,14 +1090,22 @@ class LivePowerSystemEngine:
             "converged": result.get("converged", False),
             "state_version": version,
             "elapsed_seconds": time.time() - start_time,
+            "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+            "authoritative": False,
         }
         self._operation_log.append(operation_record)
 
-        return {**result, "state_version": version}
+        return {
+            **result,
+            "state_version": version,
+            "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+            "authoritative": False,
+        }
 
     def run_fault_analysis(self, fault_type: str, bus_id) -> dict[str, Any]:
         """
         Run fault analysis with current live topology.
+        INTERNAL_NON_AUTHORITATIVE: For digital twin telemetry and event dispatching only.
         """
         # Ensure sequence networks are current
         if self.dt_state.system is not None:
@@ -1107,12 +1115,20 @@ class LivePowerSystemEngine:
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-            return {"error": _NO_BASE_ENGINE_MSG}
+            return {
+                "error": _NO_BASE_ENGINE_MSG,
+                "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                "authoritative": False,
+            }
 
         try:
             result = self._base_engine.run_fault_analysis(fault_type, bus_id)
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                "authoritative": False,
+            }
 
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="fault_analysis")
@@ -1130,7 +1146,12 @@ class LivePowerSystemEngine:
             ),
         )
 
-        return {**result, "state_version": version}
+        return {
+            **result,
+            "state_version": version,
+            "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+            "authoritative": False,
+        }
 
     def run_protection_coordination(
         self,
@@ -1140,11 +1161,16 @@ class LivePowerSystemEngine:
     ) -> dict[str, Any]:
         """
         Run protection coordination with current live topology.
+        INTERNAL_NON_AUTHORITATIVE: For digital twin telemetry and event dispatching only.
         """
         self._rebuild_base_engine()
 
         if self._base_engine is None:
-            return {"error": _NO_BASE_ENGINE_MSG}
+            return {
+                "error": _NO_BASE_ENGINE_MSG,
+                "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                "authoritative": False,
+            }
 
         try:
             result = self._base_engine.run_protection_coordination(
@@ -1153,7 +1179,11 @@ class LivePowerSystemEngine:
                 fault_currents,
             )
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                "authoritative": False,
+            }
 
         # Update digital twin
         snapshot = self.dt_state.capture_snapshot(source_event="protection_coordination")
@@ -1170,7 +1200,12 @@ class LivePowerSystemEngine:
             ),
         )
 
-        return {**result, "state_version": version}
+        return {
+            **result,
+            "state_version": version,
+            "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+            "authoritative": False,
+        }
 
     def open_switch(self, switch_id: str, reason: str = "") -> dict[str, Any]:
         """

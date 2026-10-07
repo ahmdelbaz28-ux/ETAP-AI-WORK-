@@ -460,7 +460,7 @@ class ETAPSyncEngine:
             "operations": len(self._sync_log),
         }
 
-        # Step 2: Run load flow to validate the imported model
+        # Step 2: Run load flow to validate the imported model (INTERNAL_NON_AUTHORITATIVE validation check)
         if import_result.get("success") and self.dt_state is not None:
             try:
                 from engine.engine import PowerSystemEngine
@@ -470,9 +470,15 @@ class ETAPSyncEngine:
                 result["validation"] = {
                     "load_flow_converged": lf_result.get("converged", False),
                     "bus_count": len(lf_result.get("bus_voltages", {})),
+                    "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                    "authoritative": False,
                 }
             except Exception as exc:
-                result["validation"] = {"error": str(exc)}
+                result["validation"] = {
+                    "error": str(exc),
+                    "execution_path": "INTERNAL_NON_AUTHORITATIVE",
+                    "authoritative": False,
+                }
 
         # Step 3: Export results back to ETAP
         export_result = self.export_to_etap(project_path)

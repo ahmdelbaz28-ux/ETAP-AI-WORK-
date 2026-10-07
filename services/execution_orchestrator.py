@@ -1261,6 +1261,27 @@ class ExecutionOrchestrator:
                 raise_on_error=False,
             )
 
+        # ── 4b. Enforce Deterministic Production Maturity Gate ────────────────
+        demand_production = (
+            bool(request.metadata.get("demand_production_certification", False))
+            or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
+            or (status_str == "production" and not cap.is_production_eligible())
+        )
+        if demand_production and hasattr(cap, "is_production_eligible") and not cap.is_production_eligible():
+            err_msg = (
+                f"Capability '{request.capability_id}' fails production maturity criteria: "
+                f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
+                f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
+                f"Production execution refused."
+            )
+            return self._build_rejection(
+                request,
+                reason="PRODUCTION_MATURITY_GATE_REJECTED",
+                message=err_msg,
+                cap=cap,
+                raise_on_error=raise_on_error,
+            )
+
         # ── 5. Validate Authorization ────────────────────────────────────────
         if cap.authorization_policy:
             auth_policy = str(cap.authorization_policy).lower().strip()
@@ -1734,6 +1755,14 @@ class ExecutionOrchestrator:
             "provider": final_provider,
             "solver": final_solver,
             "engine_version": final_engine_version,
+            "standards_scope": getattr(cap, "standards_scope", ""),
+            "benchmark_status": getattr(cap, "benchmark_status", "NONE"),
+            "capability_maturity": {
+                "lifecycle_status": status_str,
+                "production_eligible": cap.is_production_eligible() if hasattr(cap, "is_production_eligible") else False,
+                "benchmark_status": getattr(cap, "benchmark_status", "NONE"),
+                "standards_scope": getattr(cap, "standards_scope", ""),
+            },
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "trace_id": request.trace_id,
             "tenant_id": request.tenant_id,

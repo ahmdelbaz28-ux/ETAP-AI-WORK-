@@ -29,10 +29,6 @@ import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
 
-# Module-level numpy Generator for reproducible non-crypto sampling.
-# NOSONAR
-_RNG = np.random.default_rng()  # NOSONAR
-
 logger = logging.getLogger(__name__)
 
 
@@ -493,6 +489,11 @@ class StabilityAgent(BaseAgent):
         ``task.parameters['analysis_type']`` which must be one of:
         ``'transient'``, ``'small_signal'``, ``'critical_clearing_time'``,
         or ``'full'`` (runs all three).
+
+        FAIL-CLOSED CONTRACT:
+        Missing engineering system inputs (Ybus, machine inertia, damping, mechanical power,
+        or terminal voltages) produce an explicit INSUFFICIENT_ENGINEERING_INPUT failure.
+        Synthetic or random network matrix fallbacks are strictly prohibited.
         """
         start_time = datetime.now(UTC)
         self.status = AgentStatus.RUNNING
@@ -502,58 +503,100 @@ class StabilityAgent(BaseAgent):
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
+            missing_inputs: list[str] = []
 
+            # ── 1. Validate mandatory engineering inputs ──────────────────────
+            if analysis_type in ("transient", "small_signal", "full"):
+                if "inertia_constants" not in task.parameters and "H" not in task.parameters:
+                    missing_inputs.append("inertia_constants (or H)")
+                if "damping_coefficients" not in task.parameters and "D" not in task.parameters:
+                    missing_inputs.append("damping_coefficients (or D)")
+                if "mechanical_power" not in task.parameters and "Pm" not in task.parameters:
+                    missing_inputs.append("mechanical_power (or Pm)")
+                if "Ybus_reduced" not in task.parameters and "Ybus_red" not in task.parameters:
+                    missing_inputs.append("Ybus_reduced (or Ybus_red)")
+                if "internal_voltages" not in task.parameters and "E" not in task.parameters:
+                    missing_inputs.append("internal_voltages (or E)")
+                if "initial_angles_rad" not in task.parameters and "delta0" not in task.parameters:
+                    missing_inputs.append("initial_angles_rad (or delta0)")
+
+            if analysis_type == "critical_clearing_time":
+                smib_required = [
+                    ("smib_H", "H"),
+                    ("smib_Pm", "Pm"),
+                    ("smib_E", "E_gen"),
+                    ("smib_V_inf", "V_inf"),
+                    ("smib_X_total", "X_total"),
+                    ("smib_delta0", "delta0"),
+                ]
+                for primary_key, alias_key in smib_required:
+                    if primary_key not in task.parameters and alias_key not in task.parameters:
+                        missing_inputs.append(primary_key)
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Stability analysis ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random system fallbacks "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.TRANSIENT_STABILITY,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            # ── 2. Transient stability execution ──────────────────────────────
             if analysis_type in ("transient", "full"):
-                H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
-                D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                pm = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                    task.parameters.get("mechanical_power", [0.8, 0.6, 0.5])
-                )  # NOSONAR
+                H_val = task.parameters.get("inertia_constants", task.parameters.get("H"))
+                D_val = task.parameters.get("damping_coefficients", task.parameters.get("D"))
+                pm_val = task.parameters.get("mechanical_power", task.parameters.get("Pm"))
+                y_data = task.parameters.get("Ybus_reduced", task.parameters.get("Ybus_red"))
+                e_mag = task.parameters.get("internal_voltages", task.parameters.get("E"))
+                delta0_val = task.parameters.get("initial_angles_rad", task.parameters.get("delta0"))
+
+                H = np.array(H_val, dtype=float)
+                D = np.array(D_val, dtype=float)
+                pm = np.array(pm_val, dtype=float)
+                ybus_red = np.array(y_data, dtype=complex)
+                e_mag_arr = np.array(e_mag, dtype=float) if np.isrealobj(e_mag) else np.abs(np.array(e_mag, dtype=complex))
+                delta0 = np.array(delta0_val, dtype=float)
+                E = e_mag_arr * np.exp(1j * delta0)
                 n_gen = len(H)
 
-                # Build reduced Ybus from provided data or use defaults
-                y_data = task.parameters.get("Ybus_reduced")  # NOSONAR
-                if y_data is not None:
-                    ybus_red = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                        y_data, dtype=complex
-                    )  # NOSONAR
+                # Fault Ybus
+                fault_bus = int(task.parameters.get("fault_bus", 0))
+                fault_Ybus = task.parameters.get("fault_Ybus")
+                if fault_Ybus is not None:
+                    fault_Ybus = np.array(fault_Ybus, dtype=complex)
                 else:
-                    # Default 3-machine test system
-                    _local_rng = np.random.default_rng(42)
-                    G = _local_rng.uniform(  # NOSONAR
-                        2.0, 8.0, (n_gen, n_gen)
-                    )  # NOSONAR
-                    G = (G + G.T) / 2.0
-                    B = _local_rng.uniform(  # NOSONAR
-                        -12.0, -3.0, (n_gen, n_gen)
-                    )  # NOSONAR
-                    B = (B + B.T) / 2.0
-                    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
-                    np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    ybus_red = G + 1j * B
+                    fault_Ybus = ybus_red.copy()
+                    fault_impedance = float(task.parameters.get("fault_impedance_pu", 1e-6))
+                    fault_Ybus[fault_bus, fault_bus] += 1.0 / fault_impedance
 
-                e_mag = np.array(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                    task.parameters.get("internal_voltages", [1.1, 1.0, 1.05])
-                )  # NOSONAR
-                delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = e_mag * np.exp(1j * delta0)
+                # Post-fault Ybus
+                post_fault_Ybus = task.parameters.get("post_fault_Ybus")
+                if post_fault_Ybus is not None:
+                    post_fault_Ybus = np.array(post_fault_Ybus, dtype=complex)
+                else:
+                    post_fault_Ybus = ybus_red.copy()
+                    line_out = task.parameters.get("tripped_line_from_bus", None)
+                    if line_out is not None and int(line_out) < n_gen:
+                        post_fault_Ybus[int(line_out), int(line_out)] += 1j * 2.0
 
-                # Fault Ybus: add large shunt at fault_bus
-                fault_bus = task.parameters.get("fault_bus", 0)
-                fault_Ybus = ybus_red.copy()  # NOSONAR
-                fault_impedance = task.parameters.get("fault_impedance_pu", 1e-6)
-                fault_Ybus[fault_bus, fault_bus] += 1.0 / fault_impedance
-
-                # Post-fault Ybus: slightly modified
-                post_fault_Ybus = ybus_red.copy()  # NOSONAR
-                line_out = task.parameters.get("tripped_line_from_bus", None)
-                if line_out is not None and line_out < n_gen:
-                    post_fault_Ybus[line_out, line_out] += 1j * 2.0
-
-                t_fault = task.parameters.get("fault_time_s", 0.0)
-                t_clear = task.parameters.get("clearing_time_s", 0.15)
-                t_total = task.parameters.get("simulation_time_s", 5.0)
-                dt = task.parameters.get("time_step_s", 0.01)
+                t_fault = float(task.parameters.get("fault_time_s", 0.0))
+                t_clear = float(task.parameters.get("clearing_time_s", 0.15))
+                t_total = float(task.parameters.get("simulation_time_s", 5.0))
+                dt = float(task.parameters.get("time_step_s", 0.01))
 
                 transient_result = self.analyze_transient_stability(
                     H=H,
@@ -572,35 +615,22 @@ class StabilityAgent(BaseAgent):
                 )
                 results["transient_stability"] = transient_result
 
-            # --- Small-signal stability ---
+            # ── 3. Small-signal stability execution ───────────────────────────
             if analysis_type in ("small_signal", "full"):
-                H = np.array(task.parameters.get("inertia_constants", [3.0, 4.0, 5.0]))
-                D = np.array(task.parameters.get("damping_coefficients", [2.0, 2.0, 2.0]))
-                pm = np.array(task.parameters.get("mechanical_power", [0.8, 0.6, 0.5]))
-                n_gen = len(H)
+                H_val = task.parameters.get("inertia_constants", task.parameters.get("H"))
+                D_val = task.parameters.get("damping_coefficients", task.parameters.get("D"))
+                pm_val = task.parameters.get("mechanical_power", task.parameters.get("Pm"))
+                y_data = task.parameters.get("Ybus_reduced", task.parameters.get("Ybus_red"))
+                e_mag = task.parameters.get("internal_voltages", task.parameters.get("E"))
+                delta0_val = task.parameters.get("initial_angles_rad", task.parameters.get("delta0"))
 
-                y_data = task.parameters.get("Ybus_reduced")
-                if (
-                    y_data is not None
-                ):  # NOSONAR S6711: numpy.random legacy function used for non-crypto simulation; np.random.Generator migration is tracked separately
-                    ybus_red = np.array(y_data, dtype=complex)
-                else:
-                    _local_rng = np.random.default_rng(42)
-                    G = _local_rng.uniform(  # NOSONAR
-                        2.0, 8.0, (n_gen, n_gen)
-                    )  # NOSONAR
-                    G = (G + G.T) / 2.0
-                    B = _local_rng.uniform(  # NOSONAR
-                        -12.0, -3.0, (n_gen, n_gen)
-                    )  # NOSONAR
-                    B = (B + B.T) / 2.0
-                    np.fill_diagonal(G, np.sum(G, axis=1) - np.diag(G) + 1.0)
-                    np.fill_diagonal(B, -np.sum(np.abs(B), axis=1))
-                    ybus_red = G + 1j * B
-
-                e_mag = np.array(task.parameters.get("internal_voltages", [1.1, 1.0, 1.05]))
-                delta0 = np.array(task.parameters.get("initial_angles_rad", [0.3, 0.1, -0.2]))
-                E = e_mag * np.exp(1j * delta0)
+                H = np.array(H_val, dtype=float)
+                D = np.array(D_val, dtype=float)
+                pm = np.array(pm_val, dtype=float)
+                ybus_red = np.array(y_data, dtype=complex)
+                e_mag_arr = np.array(e_mag, dtype=float) if np.isrealobj(e_mag) else np.abs(np.array(e_mag, dtype=complex))
+                delta0 = np.array(delta0_val, dtype=float)
+                E = e_mag_arr * np.exp(1j * delta0)
 
                 ss_result = self.analyze_small_signal_stability(
                     H=H,
@@ -612,18 +642,20 @@ class StabilityAgent(BaseAgent):
                 )
                 results["small_signal_stability"] = ss_result
 
-            # --- Critical clearing time ---
+            # ── 4. Critical clearing time execution ───────────────────────────
             if analysis_type in ("critical_clearing_time", "full"):
-                cct_result = self.critical_clearing_time(
-                    H=float(task.parameters.get("smib_H", 5.0)),
-                    Pm=float(task.parameters.get("smib_Pm", 0.8)),
-                    E_gen=float(task.parameters.get("smib_E", 1.1)),
-                    V_inf=float(task.parameters.get("smib_V_inf", 1.0)),
-                    X_total=float(task.parameters.get("smib_X_total", 0.5)),
-                    X_faulted=float(task.parameters.get("smib_X_faulted", 1e6)),
-                    delta0=float(task.parameters.get("smib_delta0", 0.5)),
-                )
-                results["critical_clearing_time"] = cct_result
+                # Check if SMIB parameters provided
+                if "smib_H" in task.parameters or "H" in task.parameters:
+                    cct_result = self.critical_clearing_time(
+                        H=float(task.parameters.get("smib_H", task.parameters.get("H", 5.0))),
+                        Pm=float(task.parameters.get("smib_Pm", task.parameters.get("Pm", 0.8))),
+                        E_gen=float(task.parameters.get("smib_E", task.parameters.get("E_gen", 1.1))),
+                        V_inf=float(task.parameters.get("smib_V_inf", task.parameters.get("V_inf", 1.0))),
+                        X_total=float(task.parameters.get("smib_X_total", task.parameters.get("X_total", 0.5))),
+                        X_faulted=float(task.parameters.get("smib_X_faulted", task.parameters.get("X_faulted", 1e6))),
+                        delta0=float(task.parameters.get("smib_delta0", task.parameters.get("delta0", 0.5))),
+                    )
+                    results["critical_clearing_time"] = cct_result
 
             result = AgentResult(
                 agent_name=self.agent_name,

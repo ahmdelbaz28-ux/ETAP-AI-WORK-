@@ -1,11 +1,11 @@
 """
-tests/test_ieee_gold_standard_benchmarks.py — Scientific Validation & Benchmark Suite.
+tests/test_ieee_gold_standard_benchmarks.py — Scientific Validation & Independent Benchmark Suite.
 
-Validates the AhmedETAP simulation engines against standard IEEE and IEC benchmarks:
+Validates the AhmedETAP simulation engines against standard published IEEE and IEC benchmarks:
 1. IEEE 9-Bus WSCC System Load Flow (Newton-Raphson)
 2. IEEE 14-Bus Test Feeder Power Flow & Balance
-3. IEC 60909 Symmetrical Fault Current Verification
-4. IEEE 1584-2018 Arc Flash Incident Energy Verification
+3. IEC 60909-0:2016 4-Bus Industrial Network Symmetrical & Asymmetrical Fault Currents
+4. IEEE 1584-2018 Annex D Table D.1 Arc Flash Incident Energy & Boundary Published Cases
 """
 
 import math
@@ -14,11 +14,12 @@ import numpy as np
 import pytest
 
 from engine.benchmarks.ieee_cases import (
+    IEC_60909_4BUS_BENCHMARK_FAULTS,
     IEEE_9BUS_BENCHMARK_VOLTAGES,
+    IEEE_1584_ANNEX_D_PUBLISHED_CASES,
+    build_iec60909_benchmark_system,
     build_ieee_9bus_system,
     build_ieee_14bus_system,
-    calculate_iec_60909_theoretical_fault,
-    calculate_ieee_1584_incident_energy_benchmark,
 )
 from engine.engine import PowerSystemEngine
 from load_flow.load_flow import LoadFlowSolver
@@ -89,37 +90,90 @@ def test_ieee_14bus_load_flow_solution():
     assert losses < 25.0, f"System active losses {losses} MW too high for IEEE 14-bus system"
 
 
-def test_iec_60909_short_circuit_benchmark():
-    """Verify 3-phase fault calculation against IEC 60909 standard analytical equations."""
-    # Theoretical fault at 13.8 kV with c=1.05 and Zk=0.48 ohms
-    un_kv = 13.8
-    c_factor = 1.05
-    zk_ohm = 0.48
-    expected_ik = calculate_iec_60909_theoretical_fault(
-        un_kv=un_kv, c_factor=c_factor, zk_ohm=zk_ohm
+def test_iec_60909_independent_fault_benchmark():
+    """Verify actual fault analysis solver against independent published IEC 60909-0:2016 4-bus reference cases."""
+    system = build_iec60909_benchmark_system()
+    engine = PowerSystemEngine(system)
+    engine.run_load_flow()
+
+    benchmark_data = IEC_60909_4BUS_BENCHMARK_FAULTS["results"]
+
+    # 1. Bus 2 (10.5 kV MV Substation Bus) - 3-Phase, SLG, and Line-to-Line faults
+    b2_expected = benchmark_data[2]
+    r_3p_b2 = engine.run_fault_analysis("three_phase", bus_id=2)
+    r_lg_b2 = engine.run_fault_analysis("line_to_ground", bus_id=2)
+    r_ll_b2 = engine.run_fault_analysis("line_to_line", bus_id=2)
+
+    ik_3p_actual = r_3p_b2["fault_current_ka"]
+    ik_lg_actual = r_lg_b2["fault_current_ka"]
+    ik_ll_actual = r_ll_b2["fault_current_ka"]
+
+    assert abs(ik_3p_actual - b2_expected["three_phase_ik_ka"]) <= b2_expected["tolerance_ka"], (
+        f"Bus 2 3-phase fault {ik_3p_actual:.4f} kA deviates from benchmark {b2_expected['three_phase_ik_ka']:.4f} kA"
+    )
+    assert abs(ik_lg_actual - b2_expected["line_to_ground_ik_ka"]) <= b2_expected["tolerance_ka"], (
+        f"Bus 2 SLG fault {ik_lg_actual:.4f} kA deviates from benchmark {b2_expected['line_to_ground_ik_ka']:.4f} kA"
+    )
+    assert abs(ik_ll_actual - b2_expected["line_to_line_ik_ka"]) <= b2_expected["tolerance_ka"], (
+        f"Bus 2 LL fault {ik_ll_actual:.4f} kA deviates from benchmark {b2_expected['line_to_line_ik_ka']:.4f} kA"
     )
 
-    # Calculate via formula
-    analytical_ik = (c_factor * un_kv) / (math.sqrt(3) * zk_ohm)
-    diff = abs(expected_ik - analytical_ik)
-    assert diff < 0.01, f"IEC 60909 calculation error {diff} exceeds tolerance"
-    assert expected_ik > 10.0, f"Fault current {expected_ik} kA below lower bound"
-    assert expected_ik < 30.0, f"Fault current {expected_ik} kA above upper bound"
-
-
-def test_ieee_1584_arc_flash_benchmark():
-    """Verify Arc Flash incident energy and boundary calculations per IEEE 1584-2018."""
-    result = calculate_ieee_1584_incident_energy_benchmark(
-        bolted_fault_current_ka=20.0,
-        voltage_kv=13.8,
-        arc_duration_sec=0.1,
-        working_distance_mm=610.0,
+    # 2. Bus 3 (10.5 kV Industrial Load Bus) - 3-Phase fault
+    b3_expected = benchmark_data[3]
+    r_3p_b3 = engine.run_fault_analysis("three_phase", bus_id=3)
+    ik_3p_b3_actual = r_3p_b3["fault_current_ka"]
+    assert abs(ik_3p_b3_actual - b3_expected["three_phase_ik_ka"]) <= b3_expected["tolerance_ka"], (
+        f"Bus 3 3-phase fault {ik_3p_b3_actual:.4f} kA deviates from benchmark {b3_expected['three_phase_ik_ka']:.4f} kA"
     )
 
-    incident_energy = result["incident_energy_cal_cm2"]
-    afb_mm = result["arc_flash_boundary_mm"]
+    # 3. Bus 4 (0.4 kV LV Switchboard Bus) - 3-Phase fault
+    b4_expected = benchmark_data[4]
+    r_3p_b4 = engine.run_fault_analysis("three_phase", bus_id=4)
+    ik_3p_b4_actual = r_3p_b4["fault_current_ka"]
+    assert abs(ik_3p_b4_actual - b4_expected["three_phase_ik_ka"]) <= b4_expected["tolerance_ka"], (
+        f"Bus 4 3-phase fault {ik_3p_b4_actual:.4f} kA deviates from benchmark {b4_expected['three_phase_ik_ka']:.4f} kA"
+    )
 
-    # Verify positive finite values calculated per IEEE 1584-2018 model
-    assert incident_energy > 0.0, f"Incident energy {incident_energy} must be positive"
-    assert math.isfinite(incident_energy), "Incident energy must be finite"
-    assert afb_mm > 0.0, f"Arc flash boundary {afb_mm} mm must be positive"
+
+@pytest.mark.parametrize("case", IEEE_1584_ANNEX_D_PUBLISHED_CASES)
+def test_ieee_1584_published_reference_cases(case):
+    """Verify IEEE 1584-2018 Arc Flash solver against independently published Annex D benchmark cases."""
+    from core_model.system import System
+
+    engine = PowerSystemEngine(System(base_mva=100.0))
+    res = engine.run_arc_flash(
+        voltage_kv=case["voltage_kv"],
+        bolted_fault_current_ka=case["bolted_fault_current_ka"],
+        arc_duration_sec=case["arc_duration_sec"],
+        working_distance_mm=case["working_distance_mm"],
+        electrode_config=case["electrode_config"],
+        enclosure_type=case["enclosure_type"],
+    )
+
+    # 1. Full arc current must match published Annex D value within 5%
+    pub_i = case["published_arc_current_ka"]
+    actual_i = res["arc_current_ka"]
+    assert abs(actual_i - pub_i) / pub_i <= 0.05, (
+        f"Case {case['case_id']}: Arc current {actual_i} kA differs >5% from published {pub_i} kA"
+    )
+
+    # 2. Reduced arc current must match published reduced current within 5%
+    pub_i_red = case["published_reduced_arc_current_ka"]
+    actual_i_red = res["reduced_arc_current_ka"]
+    assert abs(actual_i_red - pub_i_red) / pub_i_red <= 0.05, (
+        f"Case {case['case_id']}: Reduced current {actual_i_red} kA differs >5% from published {pub_i_red} kA"
+    )
+    assert actual_i_red < actual_i, (
+        f"Case {case['case_id']}: Reduced current must be strictly less than full arc current"
+    )
+
+    # 3. Incident energy must match published value within 15%
+    pub_e = case["published_energy_cal_cm2"]
+    actual_e = res["incident_energy_cal_per_cm2"]
+    assert abs(actual_e - pub_e) / pub_e <= 0.15, (
+        f"Case {case['case_id']}: Energy {actual_e} cal/cm2 differs >15% from published {pub_e}"
+    )
+
+    # 4. Arc flash boundary must be strictly positive and finite
+    assert res["arc_flash_boundary_mm"] > 0.0
+    assert math.isfinite(res["arc_flash_boundary_mm"])
