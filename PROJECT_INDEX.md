@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-07T12:28:44.856196+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-07T13:45:55.709840+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 382 |
 | Python | Classes | 933 |
-| Python | Functions | 832 |
+| Python | Functions | 833 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 270 |
-| Total | Tests | 3858 |
+| Total | Tests | 3867 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -928,7 +928,7 @@ IEC 61850 data model mapping and real-time measurement pro
 - **Class** `SCADAAgent` (line 205)
   - Methods: `connect_scada()`, `read_measurements()`, `map_to_bus_data()`, `process_realtime_data()`, `get_iec61850_model()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/stability_agent.py` _30.6 KB_
+#### 📄 `agents/stability_agent.py` _32.1 KB_
 > AhmedETAP - Stability Analysis Agent
 ========================================================
 Transient and small-signal stability analysis per IEEE 3
@@ -1880,7 +1880,7 @@ Provides:
 - **async def** `send_test_notification()` (line 532)
 - **async def** `notification_websocket_endpoint()` (line 567)
 
-#### 📄 `api/pe_stamp.py` _6.9 KB_
+#### 📄 `api/pe_stamp.py` _8.3 KB_
 > Professional Engineer (PE) stamp workflow for regulated studies.
 Required by law in most jurisdictions for protection, arc flash, and safety studies.
 
@@ -1888,10 +1888,10 @@ Required by law in most jurisdictions for protection, arc flash, and safety stud
   - Methods: `verify()`
 - **Class** `PEStamp` (line 76)
   - Methods: `sign_study()`, `verify()`
-- **def** `generate_pe_stamp()` (line 112)
-- **def** `verify_pe_stamp()` (line 139)
-- **def** `create_pe_stamp()` (line 168)
-- **def** `requires_stamp()` (line 200)
+- **def** `generate_pe_stamp()` (line 136)
+- **def** `verify_pe_stamp()` (line 163)
+- **def** `create_pe_stamp()` (line 192)
+- **def** `requires_stamp()` (line 224)
 
 #### 📄 `api/projects.py` _20.3 KB_
 > api/projects.py — Power-system project CRUD router.
@@ -2310,19 +2310,19 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _15.5 KB_
+#### 📄 `api/studies.py` _15.7 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 398)
-- **def** `pre_flight_check()` (line 154)
-- **async def** `run_study()` (line 222)
-- **async def** `run_study_async()` (line 376)
-- **async def** `get_study_types()` (line 387)
-- **async def** `re_run_study()` (line 405)
+- **Class** `StudyReRunRequest` (line 402)
+- **def** `pre_flight_check()` (line 158)
+- **async def** `run_study()` (line 226)
+- **async def** `run_study_async()` (line 380)
+- **async def** `get_study_types()` (line 391)
+- **async def** `re_run_study()` (line 409)
 
   **API Routes:**
   - `GET /types`
@@ -2789,7 +2789,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _39.2 KB_
+#### 📄 `engine/capability_registry.py` _39.7 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2799,10 +2799,10 @@ Single source of tr
 - **Class** `LifecycleStatus` (line 38)
 - **Class** `CapabilityDefinition` (line 50)
   - Methods: `is_production_eligible()`
-- **Class** `CapabilityRegistry` (line 163)
+- **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 901)
-- **def** `get_capability_definition()` (line 911)
+- **def** `get_capability_registry()` (line 909)
+- **def** `get_capability_definition()` (line 919)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -2955,7 +2955,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _21.5 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _22.6 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -2964,7 +2964,7 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_9bus_system()` (line 21)
 - **def** `build_ieee_14bus_system()` (line 164)
 - **def** `build_iec60909_benchmark_system()` (line 307)
-- **def** `build_ieee_30bus_system()` (line 535)
+- **def** `build_ieee_30bus_system()` (line 558)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -3282,7 +3282,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _83.0 KB_
+#### 📄 `services/execution_orchestrator.py` _85.3 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3309,9 +3309,9 @@ Coo
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 1957)
+- **def** `get_execution_orchestrator()` (line 2006)
 
-#### 📄 `services/execution_request.py` _14.1 KB_
+#### 📄 `services/execution_request.py` _17.0 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3319,10 +3319,11 @@ Establishes:
 
 - **Class** `ExecutionRequest` (line 26)
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
-- **Class** `CanonicalExecutionResult` (line 210)
-  - Methods: `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 306)
+- **Class** `CanonicalExecutionResult` (line 212)
+  - Methods: `enforce_authoritative_boundary()`, `to_study_result()`
+- **Class** `IEngineeringExecutor` (line 342)
   - Methods: `execute()`
+- **def** `is_authoritative_production_result()` (line 355)
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
 > MCP Health Probe Service
@@ -3388,11 +3389,11 @@ Owns the native engineering execution pipeline behind
 - **Class** `StudyExecutor` (line 87)
   - Methods: `execute_native()`, `execute()`
 
-#### 📄 `services/study_service.py` _17.0 KB_
+#### 📄 `services/study_service.py` _17.2 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
-- **def** `execute_study_logic()` (line 381)
+- **def** `execute_study_logic()` (line 387)
 
 #### 📄 `services/yolo/main.py` _7.0 KB_
 > services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
@@ -5682,9 +5683,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | api-route | 92 |
-| ui-page | 61 |
-| python-module | 41 |
 | ui-component | 280 |
+| python-module | 41 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5787,7 +5788,7 @@ Provides
 | `test_cache_service.py` | 7 | 0 | **7** |
 | `test_caching.py` | 0 | 2 | **21** |
 | `test_cad_simready.py` | 3 | 0 | **3** |
-| `test_canonical_execution.py` | 25 | 0 | **25** |
+| `test_canonical_execution.py` | 30 | 0 | **30** |
 | `test_cdn_base.py` | 0 | 6 | **29** |
 | `test_celery_tasks.py` | 0 | 9 | **65** |
 | `test_certified_reports_and_pe_stamp.py` | 16 | 0 | **16** |
@@ -5851,7 +5852,7 @@ Provides
 | `test_iec60909_published_cases.py` | 0 | 4 | **15** |
 | `test_ieee14_30_published.py` | 0 | 2 | **4** |
 | `test_ieee_benchmarks.py` | 1 | 5 | **14** |
-| `test_ieee_gold_standard_benchmarks.py` | 4 | 0 | **4** |
+| `test_ieee_gold_standard_benchmarks.py` | 6 | 0 | **6** |
 | `test_integration_factories.py` | 0 | 4 | **10** |
 | `test_integration_metrics.py` | 0 | 3 | **13** |
 | `test_integration_tracing.py` | 0 | 3 | **8** |
@@ -5989,7 +5990,7 @@ Provides
 | `test_report_scenario.py` | 0 | 1 | **6** |
 | `test_scada_scenario.py` | 0 | 1 | **6** |
 | `test_short_circuit_scenario.py` | 0 | 1 | **6** |
-| `test_stability_scenario.py` | 0 | 1 | **7** |
+| `test_stability_scenario.py` | 0 | 1 | **9** |
 | `test_validation_scenario.py` | 0 | 1 | **6** |
 | `test_retry_behavior.py` | 11 | 0 | **11** |
 | `test_skill_loading.py` | 7 | 0 | **7** |
