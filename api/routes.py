@@ -277,20 +277,46 @@ def _validate_api_key_auth(request: Request, path: str) -> None:
     _check_admin_path_restricted(path)
 
 
+def _populate_request_identity_from_headers(request: Request) -> None:
+    """Helper to populate caller identity on request.state from headers if not already set."""
+    if not getattr(request.state, "user_id", None):
+        request.state.user_id = (
+            request.headers.get("x-user-id")
+            or request.headers.get("x-caller-id")
+            or "service_principal:api_caller"
+        )
+    if not getattr(request.state, "tenant_id", None):
+        request.state.tenant_id = request.headers.get("x-tenant-id") or "service_tenant_async"
+    if not getattr(request.state, "user_role", None):
+        request.state.user_role = request.headers.get("x-user-role") or "engineer"
+
+
 def _require_api_key(request: Request) -> None:
-    """Validate API key or Admin Bearer token when configured."""
+    """Validate API key or Admin Bearer token when configured and extract caller identity."""
     path = request.scope.get("path") or request.url.path
     if auth_disabled_allowed():
         _check_admin_path_restricted(path)
+        _populate_request_identity_from_headers(request)
         return
 
     auth_header = request.headers.get("authorization", "") or request.headers.get(
         "Authorization", ""
     )
     if _validate_bearer_auth(auth_header, path):
+        try:
+            from api.dependencies import _validate_jwt_access_token_sync
+            token = auth_header.split(" ", 1)[1].strip()
+            payload = _validate_jwt_access_token_sync(token)
+            request.state.user_id = payload.get("sub") or payload.get("user_id")
+            request.state.tenant_id = payload.get("tenant_id")
+            request.state.user_role = payload.get("role")
+        except Exception:
+            pass
+        _populate_request_identity_from_headers(request)
         return
 
     _validate_api_key_auth(request, path)
+    _populate_request_identity_from_headers(request)
 
 
 # ---------------------------------------------------------------------------
@@ -600,12 +626,25 @@ async def run_study_async(study_request: StudyRequest, request: Request) -> dict
             or request.headers.get("x-tenant-id")
             or "service_tenant_async"
         )
+        user_id = (
+            getattr(request.state, "user_id", "")
+            or request.headers.get("x-user-id")
+            or request.headers.get("x-caller-id")
+            or "service_principal:api_caller"
+        )
+        user_role = (
+            getattr(request.state, "user_role", "")
+            or request.headers.get("x-user-role")
+            or "engineer"
+        )
         task = execute_engineering_study_task.delay(
             {
                 "study_type": study_request.study_type,
                 "data": study_request.model_dump(),
                 "trace_id": trace_id,
+                "user_id": user_id,
                 "tenant_id": tenant_id,
+                "user_role": user_role,
                 "request_timestamp": str(time.time()),
             },
         )

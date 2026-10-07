@@ -233,7 +233,27 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
     system: Any | None,
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
-    """Execute a study using the native PowerSystemEngine."""
+    """
+    [LEGACY COMPATIBILITY ONLY]
+    Execute a study using the legacy direct PowerSystemEngine invocation.
+
+    WARNING: This function is quarantined for legacy test compatibility only.
+    All production code MUST execute studies via ExecutionOrchestrator and
+    StudyExecutor._dispatch() conforming to the Canonical Execution Flow.
+    Direct invocation of _run_native_study is deprecated and subject to removal.
+    """
+    import warnings
+    warnings.warn(
+        "_run_native_study is quarantined for legacy compatibility and deprecated. "
+        "Use ExecutionOrchestrator or StudyExecutor instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    logger.warning(
+        "[LEGACY_QUARANTINE] services.study_service._run_native_study called for study_type='%s'. "
+        "Production paths must route through ExecutionOrchestrator.",
+        study_type,
+    )
     if study_type in _STUDIES_REQUIRING_SYSTEM and system is None:
         raise ValueError(f"study_type '{study_type}' requires a 'system' to be provided")
 
@@ -292,7 +312,27 @@ def _run_etap_study(
     project_path: str,
     parameters: dict[str, Any],
 ) -> dict[str, Any]:
-    """Execute a study via the ETAP provider."""
+    """
+    [LEGACY COMPATIBILITY ONLY]
+    Execute a study via the legacy ETAP provider directly.
+
+    WARNING: This function is quarantined for legacy test compatibility only.
+    All production code MUST execute studies via ExecutionOrchestrator and
+    StudyExecutor._dispatch() conforming to the Canonical Execution Flow.
+    Direct invocation of _run_etap_study is deprecated and subject to removal.
+    """
+    import warnings
+    warnings.warn(
+        "_run_etap_study is quarantined for legacy compatibility and deprecated. "
+        "Use ExecutionOrchestrator or StudyExecutor instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    logger.warning(
+        "[LEGACY_QUARANTINE] services.study_service._run_etap_study called for study_type='%s'. "
+        "Production paths must route through ExecutionOrchestrator.",
+        study_type,
+    )
     # Check if ETAP is enabled
     if os.getenv("USE_ETAP", "false").lower() != "true":
         raise RuntimeError("ETAP functionality is disabled via USE_ETAP environment variable")

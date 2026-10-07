@@ -460,7 +460,7 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                     from services.study_executor import StudyExecutor
 
                     spec = SystemSpec.model_validate(system)
-                    built_system = StudyExecutor._build_system_from_spec(spec)
+                    built_system = StudyExecutor()._build_system_from_spec(spec)
                 except Exception:
                     built_system = system
             else:

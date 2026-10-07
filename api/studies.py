@@ -113,13 +113,25 @@ def _run_native_study(
     system: Optional[Any],
     parameters: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Re-export: dispatch a study to its handler via STUDY_DISPATCH.
+    """[LEGACY COMPATIBILITY WRAPPER]
+    Synchronous compatibility shim delegating to StudyExecutor._dispatch.
 
-    This is a synchronous convenience wrapper around
-    StudyExecutor._dispatch. It preserves the exact function signature
-    and validation behavior that the 12 test files and api/validation.py
-    expect.
+    WARNING: This wrapper exists strictly for backward-compatibility with
+    legacy unit tests. Production execution paths MUST NOT call this directly;
+    all production requests must route through ExecutionOrchestrator via
+    StudyExecutor conforming to the Canonical Execution Flow.
     """
+    import warnings
+    warnings.warn(
+        "api.studies._run_native_study is a quarantined legacy compatibility wrapper. "
+        "Production paths must use ExecutionOrchestrator.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    logger.warning(
+        "[LEGACY_QUARANTINE] api.studies._run_native_study called for '%s'.",
+        study_type,
+    )
     return StudyExecutor()._dispatch(study_type, system, parameters)
 
 
