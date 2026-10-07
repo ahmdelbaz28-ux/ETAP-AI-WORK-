@@ -154,7 +154,7 @@ jobs:
             echo "=== POD STATUS ==="
             kubectl -n etap get pods -o wide
             echo "=== API POD LOGS ==="
-            kubectl -n etap logs -l app.kubernetes.io/component=api --tail=50 || true
+            kubectl -n etap logs -l app.kubernetes.io/component=api --tail=50
             echo "=== API POD DESCRIPTION ==="
             kubectl -n etap describe pod -l app.kubernetes.io/component=api | tail -40
             exit 1
@@ -167,7 +167,7 @@ jobs:
             echo "=== POD STATUS ==="
             kubectl -n etap get pods -o wide
             echo "=== WORKER POD LOGS ==="
-            kubectl -n etap logs -l app.kubernetes.io/component=worker --tail=50 || true
+            kubectl -n etap logs -l app.kubernetes.io/component=worker --tail=50
             exit 1
           }
 
@@ -216,12 +216,12 @@ jobs:
         if: failure()
         run: |
           echo "=== NAMESPACE RESOURCES ==="
-          kubectl -n etap get all 2>&1 || true
+          kubectl -n etap get all 2>&1
           echo ""
           echo "=== ALL POD LOGS ==="
           for pod in $(kubectl -n etap get pods -o name 2>/dev/null); do
             echo "--- $pod ---"
-            kubectl -n etap logs "$pod" --tail=30 2>&1 || true
+            kubectl -n etap logs "$pod" --tail=30 2>&1
           done
           echo ""
           echo "=== EVENTS ==="

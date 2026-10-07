@@ -85,8 +85,7 @@ jobs:
             fi
 
             # Extract all FROM python: lines
-            # Intentional: grep exit 1 on no-match must not fail the gate
-            mapfile -t FROM_LINES < <(grep -E "^FROM python:" "$f" || true)
+            mapfile -t FROM_LINES < <(grep -E "^FROM python:" "$f")
 
             if [ ${#FROM_LINES[@]} -eq 0 ]; then
               echo "  ⚠️  $f — no 'FROM python:' found (non-Python image)"
@@ -219,8 +218,7 @@ jobs:
 
       - name: 🧹 Clean up
         if: always()
-        # Intentional: best-effort cleanup of stale test images
-        run: docker rmi etap-${{ matrix.name }}:test 2>/dev/null || true
+        run: docker rmi etap-${{ matrix.name }}:test 2>/dev/null
 
   # ── 4. SECURITY: scan built images with Trivy ────────────────────────────
   security-scan:
@@ -306,8 +304,7 @@ jobs:
 
       - name: 🧹 Clean up
         if: always()
-        # Intentional: best-effort cleanup of stale test images
-        run: docker rmi etap-${{ matrix.name }}:scan 2>/dev/null || true
+        run: docker rmi etap-${{ matrix.name }}:scan 2>/dev/null
 
   # ── 5. SUMMARY ───────────────────────────────────────────────────────────
   summary:

@@ -116,7 +116,7 @@ jobs:
             -not -name 'repositories.yaml' \
             -not -name 'kustomization.yaml' \
             -not -path '*/dashboards/*' \
-            2>/dev/null || true)
+            2>/dev/null)
           for f in $MANIFESTS; do
             if grep -q "kind:" "$f" 2>/dev/null; then
               kubeconform -strict -summary -ignore-missing-schemas \

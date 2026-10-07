@@ -76,7 +76,7 @@ jobs:
 
           # Extract GHSA IDs (strip comments + blanks), join with `|` so the
           # Node script can split on `|` to build the exception set.
-          EXCEPTIONS=$(grep -vE '^\s*#' "$EXCEPTIONS_FILE" | grep -E '^GHSA-' | tr -d '\r' | awk '{$1=$1};1' | paste -sd'|' - || true)
+          EXCEPTIONS=$(grep -vE '^\s*#' "$EXCEPTIONS_FILE" | grep -E '^GHSA-' | tr -d '\r' | awk '{$1=$1};1' | paste -sd'|' -)
           export EXCEPTIONS
           echo "Excepted advisory IDs: ${EXCEPTIONS:-<none>}"
 

@@ -210,7 +210,7 @@ jobs:
               "mkdir -p /workspace && cd /workspace && "
               "tar -xzf /tmp/pr-src.tar.gz && "
               "rm -f /tmp/pr-src.tar.gz && "
-              "python -m ensurepip --upgrade 2>&1 || true && "
+              "python -m ensurepip --upgrade 2>&1 && "
               "python -m pip install --upgrade pip setuptools wheel 2>&1 && "
               "python -m pip install -r requirements.txt 2>&1 && "
               "SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0 "

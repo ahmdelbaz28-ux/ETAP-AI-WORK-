@@ -212,7 +212,7 @@ jobs:
           cp -r contracts etap_integration scripts scada_model scada_protocols stage/
           # 5) data/ minus runtime DBs
           cp -r data stage/
-          rm -f stage/data/*.db* 2>/dev/null || true
+          rm -f stage/data/*.db* 2>/dev/null
           # 6) the FRESH UI build from this exact SHA
           cp -r ui-dist stage/
           # NOTE: skills/ is intentionally NOT shipped (HF file-size limit;
@@ -341,7 +341,7 @@ jobs:
           HEALTHY_HF=0
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' \
-              https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz || echo "000")
+              https://ahmdelbaz28-ahmedetap-platform.hf.space/healthz) || code="000"
             if [ "$code" = "200" ]; then
               echo "HF Space healthz OK"
               HEALTHY_HF=1
@@ -406,7 +406,7 @@ jobs:
           echo "Probing Vercel production deployment..."
           HEALTHY_VERCEL=0
           for i in $(seq 1 20); do
-            vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app || echo "000")
+            vcode=$(curl -s -o /dev/null -w '%{http_code}' https://etap-ai-work.vercel.app) || vcode="000"
             if [ "$vcode" = "200" ]; then
               echo "Vercel production health OK"
               HEALTHY_VERCEL=1

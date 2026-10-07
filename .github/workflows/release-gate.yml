@@ -123,9 +123,9 @@ jobs:
           # check-runs will never exist; a plain "missing = fail" rule would
           # fail every workflow-only commit. The gate therefore PROVES
           # non-applicability from the changed-file set and marks them N/A.
-          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r --root "$COMMIT_SHA" 2>/dev/null || true)
+          CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r --root "$COMMIT_SHA" 2>/dev/null)
           if [ -z "$CHANGED_FILES" ]; then
-            CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}^" "${COMMIT_SHA}" 2>/dev/null || true)
+            CHANGED_FILES=$(git diff --name-only "${COMMIT_SHA}^" "${COMMIT_SHA}" 2>/dev/null)
           fi
           echo "Changed files for this commit:"
           echo "$CHANGED_FILES" | sed 's/^/  /'

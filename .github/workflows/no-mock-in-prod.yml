@@ -91,7 +91,7 @@ jobs:
               --exclude="test_*" \
               --exclude="*_test.py" \
               api/ agents/ engine/ worker/ integrations/ etap_integration/ gis_integration/ services/ core/ \
-              2>/dev/null || true)
+              2>/dev/null)
 
             if [ -n "$matches" ]; then
               echo "  ❌ FOUND: $pattern"
@@ -144,7 +144,7 @@ jobs:
             --exclude-dir="scripts" \
             --exclude-dir="etap_integration" \
             api/ agents/ worker/ engine/ services/ \
-            2>/dev/null || true)
+            2>/dev/null)
 
           if [ -n "$matches" ]; then
             echo "❌ MockEtapProvider referenced in production code:"
@@ -197,8 +197,7 @@ jobs:
             --exclude-dir=".venv" \
             api/ agents/ engine/ worker/ integrations/ etap_integration/ gis_integration/ services/ core/ \
             2>/dev/null | grep -B1 "pass$\|return None\|return False\|return \[\]" \
-            | grep "except Exception:" \
-            || true)
+            | grep "except Exception:")
 
           if [ -n "$matches" ]; then
             SILENT_COUNT=$(echo "$matches" | wc -l)

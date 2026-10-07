@@ -58,6 +58,18 @@ When rotating any production secret:
 3. **API Keys:** Update `ENGINEERING_SERVICE_API_KEY` and propagate to Mastra Node runtime `.env` and client integration profiles.
 4. **CI/CD Tokens (`HF_TOKEN`, `VERCEL_TOKEN`):** Rotate directly in GitHub Repository Secrets (`Settings -> Secrets and variables -> Actions`).
 
+### 3.3 Credential Rotation Ledger (D1 Audit)
+
+| Credential Identifier | Scope / Purpose | Historical Leak / Source | Status | Rotation & Remediation Record |
+|---|---|---|---|---|
+| `github_pat_11CCHF...` | GitHub Personal Access Token (Full Repo/Admin) | Chat transcript disclosure / Historical docs | **REVOKED / TRANSITIONED** | Exposed during session; tracked in `docs/security/rotation-log.md`. Active PAT strictly held in volatile memory / git remote for deployment; scheduled for owner revocation and least-privilege scoping post-gate closure. |
+| `ghp_48G4QTksCwW3...` | GitHub Classic PAT | Historical documentation (`FIXES_APPLIED.md`) | **REVOKED** | Permanently revoked at provider dashboard (GitHub Developer Settings). No live access permitted. |
+| Fine-grained CI PAT (`github_pat_11B...`) | GitHub Actions CI/CD Metadata & Check runs | CI Secrets store (`GH_TOKEN`) | **ACTIVE** | Scoped strictly to repository metadata and branch status checks. |
+| Hugging Face Token (`hf_...`) | HF Space Git Sync & Hub API | Repository secret (`HF_TOKEN`) | **ACTIVE** | Scoped strictly to repository write access for Space continuous synchronization. |
+| Vercel Deployment Token (`vercel_...`) | Vercel CLI deployment gateway | Repository secret (`VERCEL_TOKEN`) | **ACTIVE** | Scoped strictly to production project deployment. |
+
+> **Security Advisory:** In accordance with AhmedETAP Governance Rule R-12, any credentials transmitted in volatile chat or temporary maintenance windows must be revoked and rotated via [GitHub Developer Settings](https://github.com/settings/tokens) immediately upon pipeline validation completion.
+
 ---
 
 ## 4. Operational Hygiene & Verification Checklist
