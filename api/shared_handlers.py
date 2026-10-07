@@ -617,176 +617,65 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
             "_status": 400,
         }
 
-    # -- ETAP Expert skill --------------------------------------------------
-    if study_type == "etap_expert":
+    # -- Validate mandatory question for interactive agents -----------------
+    if study_type in ("etap_expert", "etap_gui"):
         question = str(parameters.get("question", "")).strip()
         if not question:
             return {
-                "error": "'question' field is required for study_type='etap_expert'",
+                "error": f"'question' field is required for study_type='{study_type}'",
                 "_status": 400,
             }
-        try:
-            from agents.etap_expert_agent import ETAPExpertAgent  # type: ignore
 
-            agent = ETAPExpertAgent()
-            result = agent.answer(question)
-            return {
-                "study_type": "etap_expert",
-                "reference": f"ETAP-EXPERT-{int(time.time())}",
-                "status": "completed",
-                "success": True,
-                "data": result,
-            }
-        except ImportError as ie:
-            logger.warning("etap_expert_import_failed missing=%s", str(ie))
-            return {
-                "error": "ETAP Expert agent is not available on this deployment. Required dependencies are not installed.",
-                "status": "unavailable",
-                "study_type": "etap_expert",
-                "_status": 503,
-            }
-        except Exception as exc:
-            logger.exception("etap_expert study failed")
-            exc_str = str(exc)
-            # Provide more specific error messages for common failures
-            if "API key" in exc_str or "api_key" in exc_str or "GEMINI" in exc_str:
-                return {
-                    "error": "ETAP Expert agent requires a Vision API key (e.g., Gemini) configured on the server. Please set the GEMINI_API_KEY environment variable.",
-                    "status": "unavailable",
-                    "study_type": "etap_expert",
-                    "_status": 503,
-                }
-            return {
-                "error": "ETAP Expert agent encountered an error. Please verify the server configuration and try again.",
-                "status": "failed",
-                "study_type": "etap_expert",
-                "_status": 500,
-            }
+    # -- Canonical Execution Gateway (Phase 2 Canonical Delegation) ---------
+    from services.execution_orchestrator import get_execution_orchestrator
+    from services.execution_request import ExecutionRequest
+    from services.study_service import _run_async
 
-    # -- ETAP GUI Agent -----------------------------------------------------
-    if study_type == "etap_gui":
-        question = str(parameters.get("question", "")).strip()
-        if not question:
-            return {
-                "error": "'question' field is required for study_type='etap_gui'",
-                "_status": 400,
-            }
-        try:
-            from agents.etap_gui_agent import ETAPGUIAgent  # type: ignore
+    req = ExecutionRequest(
+        capability_id=study_type,
+        tenant_id="hf_space_tenant",
+        user_id="service_principal:hf_space",
+        user_role="engineer",
+        input={"system": system, "parameters": parameters},
+        metadata={"deployment": "hf_space", "caller": "run_study_lightweight"},
+    )
+    orchestrator = get_execution_orchestrator()
 
-            agent = ETAPGUIAgent()
-            result = agent.answer(question)
-            return {
-                "study_type": "etap_gui",
-                "reference": f"ETAP-GUI-{int(time.time())}",
-                "status": "completed",
-                "success": True,
-                "data": result,
-            }
-        except ImportError as ie:
-            logger.warning("etap_gui_import_failed missing=%s", str(ie))
-            return {
-                "error": "ETAP GUI agent is not available on this deployment. Required dependencies are not installed.",
-                "status": "unavailable",
-                "study_type": "etap_gui",
-                "_status": 503,
-            }
-        except Exception as exc:
-            logger.exception("etap_gui study failed")
-            exc_str = str(exc)
-            # Provide more specific error messages for common failures
-            if "API key" in exc_str or "api_key" in exc_str or "GEMINI" in exc_str:
-                return {
-                    "error": "ETAP GUI agent requires a Vision API key (e.g., Gemini) configured on the server. Please set the GEMINI_API_KEY environment variable.",
-                    "status": "unavailable",
-                    "study_type": "etap_gui",
-                    "_status": 503,
-                }
-            return {
-                "error": "ETAP GUI agent encountered an error. Please verify the server configuration and try again.",
-                "status": "failed",
-                "study_type": "etap_gui",
-                "_status": 500,
-            }
+    try:
+        canonical_res = _run_async(orchestrator.execute(req))
+    except Exception as exc:
+        logger.exception("HF Space canonical execution failed for %s: %s", study_type, exc)
+        return {
+            "error": f"Study '{study_type}' encountered an error: {exc}",
+            "status": "failed",
+            "study_type": study_type,
+            "_status": 500,
+        }
 
-    # -- Load Flow (native engine) ------------------------------------------
-    result_data: Any = None
-    engine_error: str | None = None
-
-    if study_type == "load_flow" and system:
-        try:
-            from core_model.bus import Bus  # type: ignore
-            from core_model.line import Line  # type: ignore
-            from core_model.system import System  # type: ignore
-
-            sys_model = System(base_mva=system.get("base_mva", 100.0))
-            bus_map: dict[int, Any] = {}
-            for b in system.get("buses", []):
-                bus = Bus(
-                    bus_id=b["bus_id"],
-                    voltage_magnitude=b.get("voltage_magnitude", 1.0),
-                    voltage_angle=b.get("voltage_angle", 0.0),
-                    bus_type=b.get("bus_type", "pq"),
-                )
-                bus.generation_power = complex(
-                    b.get("generation_power_real", 0.0),
-                    b.get("generation_power_imag", 0.0),
-                )
-                bus.load_power = complex(
-                    b.get("load_power_real", 0.0),
-                    b.get("load_power_imag", 0.0),
-                )
-                sys_model.add_bus(bus)
-                bus_map[b["bus_id"]] = bus
-
-            for ln in system.get("lines", []):
-                line = Line(
-                    line_id=ln["line_id"],
-                    from_bus=bus_map[ln["from_bus_id"]],
-                    to_bus=bus_map[ln["to_bus_id"]],
-                    z1=complex(ln.get("r1", 0.01), ln.get("x1", 0.05)),
-                    z0=complex(
-                        ln.get("r0", ln.get("r1", 0.01)),
-                        ln.get("x0", ln.get("x1", 0.05)),
-                    ),
-                    yshunt1=complex(0, ln.get("bshunt1", 0.02)),
-                    yshunt0=complex(0, ln.get("bshunt0", ln.get("bshunt1", 0.02))),
-                )
-                sys_model.add_line(line)
-
-            from engine.engine import PowerSystemEngine  # type: ignore
-
-            engine = PowerSystemEngine(sys_model)
-            result_data = engine.run_load_flow()
-            result_data = sanitize_result(result_data)
-        except ImportError:
-            engine_error = "Engine modules not available in HF Space deployment"
-        except Exception as exc:
-            logger.exception("load_flow_engine_failed error=%s", str(exc))
-            engine_error = "Load flow computation failed"
-
-    # -- Build response -----------------------------------------------------
-    # IMPORTANT: Studies that cannot be executed are NOT queued — there is no
-    # background queue worker. The response honestly reports the actual state.
+    ref_prefix = "ETAP-EXPERT" if study_type == "etap_expert" else ("ETAP-GUI" if study_type == "etap_gui" else "STUDY")
     response: dict[str, Any] = {
         "study_type": study_type,
-        "reference": f"STUDY-{int(time.time())}",
+        "reference": f"{ref_prefix}-{int(time.time())}",
     }
-    if result_data is not None:
+
+    if canonical_res.success:
         response["status"] = "completed"
-        response["result"] = result_data
-    else:
+        response["success"] = True
+        response["data"] = sanitize_result(canonical_res.data)
+        response["result"] = response["data"]
+        return response
+
+    err_msg = canonical_res.errors[0] if canonical_res.errors else "Study execution failed"
+    if canonical_res.status in ("unavailable", "rejected") or "unavailable" in err_msg.lower() or "not available" in err_msg.lower():
         response["status"] = "unavailable"
         response["is_simulated"] = True
-        response["message"] = (
-            f"Study '{study_type}' cannot be executed in this deployment. "
-            "No background queue processes this request."
-        )
-        if engine_error:
-            response["engine_note"] = engine_error
-        response["note"] = (
-            "Full computation engine available in self-hosted deployment. See /docs for details."
-        )
+        response["error"] = err_msg
+        response["_status"] = 503
+    else:
+        response["status"] = "failed"
+        response["success"] = False
+        response["error"] = err_msg
+        response["_status"] = 500
     return response
 
 

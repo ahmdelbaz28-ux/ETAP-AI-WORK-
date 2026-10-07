@@ -128,6 +128,7 @@ class CapabilityRegistry:
         self._agent_key_index: dict[str, str] = {}
         self._aliases: dict[str, str] = {
             "fault": "short_circuit",
+            "fault_analysis": "short_circuit",
             "coordination": "protection_coordination",
             "harmonic": "harmonic_analysis",
             "opf": "optimal_power_flow",

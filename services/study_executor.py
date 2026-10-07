@@ -387,7 +387,10 @@ class StudyExecutor:
             study_request=payload,
             trace_id=trace_id,
         )
-        return self.execute_native(req)
+        res = self.execute_native(req)
+        if res and hasattr(res, "study_type") and payload.study_type:
+            res.study_type = payload.study_type
+        return res
 
 
     async def _run_native_study(self, payload: StudyRequest, trace_id: str) -> dict[str, Any]:

@@ -304,21 +304,21 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
         system_input = request.get_system()
         params = request.get_parameters()
 
-        # Build system model if a specification is provided
-        if system_input is not None and not hasattr(system_input, "run_study"):
-            from core_model.specs import SystemSpec
-
-            if isinstance(system_input, (SystemSpec, dict)):
-                built_system = executor._build_system_from_spec(system_input)
-            else:
-                built_system = system_input
-        else:
-            built_system = system_input
-
         study_type = cap.study_type or request.capability_id
 
         # Deterministic single execution attempt (NO double-execution fallback)
         try:
+            # Build system model if a specification is provided
+            if system_input is not None and not hasattr(system_input, "run_study"):
+                from core_model.specs import SystemSpec
+
+                if isinstance(system_input, (SystemSpec, dict)):
+                    built_system = executor._build_system_from_spec(system_input)
+                else:
+                    built_system = system_input
+            else:
+                built_system = system_input
+
             loop = None
             try:
                 loop = asyncio.get_running_loop()
@@ -676,109 +676,178 @@ class EtapEngineeringExecutor(IEngineeringExecutor):
 
 
 class ExternalServiceExecutor(IEngineeringExecutor):
-    """Executes external engineering bridges and dedicated evaluators."""
+    """Executes external engineering bridges and remote solver endpoints.
+
+    Phase 3 Contract:
+    - Truly represents external execution boundary.
+    - Requires configured external endpoint (via request metadata or environment).
+    - If no external backend is configured, fails closed truthfully as unavailable.
+    - Never invokes local StudyExecutor or relabels local execution as external.
+    """
 
     async def execute(self, request: ExecutionRequest) -> CanonicalExecutionResult:
-        from engine.capability_registry import get_capability_registry
-        from services.study_executor import StudyExecutor
-
         cap_reg = get_capability_registry()
         cap = cap_reg.get(request.capability_id)
-        executor = StudyExecutor(cache=None)
-        params = request.get_parameters()
-        system = request.get_system()
+        cap_version = cap.version if cap else "1.0.0"
 
+        provider = (
+            request.metadata.get("external_provider")
+            or os.getenv(f"EXTERNAL_{request.capability_id.upper()}_PROVIDER")
+            or os.getenv("EXTERNAL_SERVICE_PROVIDER")
+            or "external_service"
+        )
+        endpoint = (
+            request.metadata.get("external_endpoint")
+            or os.getenv(f"EXTERNAL_{request.capability_id.upper()}_URL")
+            or os.getenv("EXTERNAL_SERVICE_URL")
+        )
+        timeout_sec = float(
+            request.metadata.get("timeout_sec")
+            or os.getenv("EXTERNAL_SERVICE_TIMEOUT_SEC", "30.0")
+        )
+
+        # Fail closed if no external service backend is configured
+        if not endpoint:
+            logger.warning(
+                "External service backend unavailable for %s: no external endpoint configured",
+                request.capability_id,
+            )
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap_version,
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="external_service",
+                provider=provider,
+                solver="external",
+                engine_version="unknown",
+                status="failed",
+                success=False,
+                data={},
+                errors=[
+                    f"External service backend unavailable: No external endpoint configured for '{request.capability_id}'"
+                ],
+                warnings=[],
+                provenance={
+                    "executor_kind": "external_service",
+                    "provider": provider,
+                    "external_endpoint": None,
+                    "external_execution_id": None,
+                    "status": "unavailable",
+                    "failure_reason": "NO_EXTERNAL_ENDPOINT_CONFIGURED",
+                },
+                trace_id=request.trace_id,
+            )
+
+        # Real external service HTTP bridge execution
         try:
-            loop = None
+            import httpx
+
+            submission_payload = {
+                "request_id": request.request_id,
+                "execution_id": request.execution_id,
+                "capability_id": request.capability_id,
+                "tenant_id": request.tenant_id,
+                "user_id": request.user_id,
+                "parameters": request.get_parameters(),
+                "system": request.get_system(),
+            }
+
+            headers = {
+                "X-Trace-ID": request.trace_id or "",
+                "X-Tenant-ID": request.tenant_id,
+                "X-User-ID": request.user_id,
+            }
+
+            async with httpx.AsyncClient(timeout=timeout_sec) as client:
+                response = await client.post(endpoint, json=submission_payload, headers=headers)
+
+            ext_status_code = response.status_code
+            ext_exec_id = response.headers.get("X-External-Execution-ID")
+
             try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
+                data = response.json()
+            except Exception:
+                data = {"raw_text": response.text}
 
-            if loop is not None and loop.is_running():
-                data = await loop.run_in_executor(
-                    None, executor._dispatch, request.capability_id, system, params
-                )
+            if isinstance(data, dict) and not ext_exec_id:
+                ext_exec_id = data.get("external_execution_id") or data.get("execution_id")
+
+            is_failed = (
+                ext_status_code >= 400
+                or (isinstance(data, dict) and data.get("success") is False)
+                or (isinstance(data, dict) and str(data.get("status", "")).lower() in ("failed", "rejected", "unavailable"))
+            )
+
+            errors: list[str] = []
+            if ext_status_code >= 400:
+                errors.append(f"External service returned HTTP {ext_status_code}")
+            if isinstance(data, dict):
+                if data.get("errors"):
+                    errors.extend(str(e) for e in data["errors"])
+                elif data.get("error"):
+                    errors.append(str(data["error"]))
+                warnings = [str(w) for w in data.get("warnings", [])]
             else:
-                data = executor._dispatch(request.capability_id, system, params)
+                warnings = []
+
+            success = not is_failed and not errors
+
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap_version,
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="external_service",
+                provider=provider,
+                solver="external_http_bridge",
+                engine_version="unknown",
+                status="completed" if success else "failed",
+                success=success,
+                data=data if isinstance(data, dict) else {"response": data},
+                errors=errors,
+                warnings=warnings,
+                provenance={
+                    "executor_kind": "external_service",
+                    "provider": provider,
+                    "external_endpoint": endpoint,
+                    "external_execution_id": ext_exec_id,
+                    "external_status_code": ext_status_code,
+                },
+                trace_id=request.trace_id,
+            )
+
         except Exception as exc:
-            logger.exception(
-                "External service execution failed for %s: %s", request.capability_id, exc
-            )
+            logger.exception("External service bridge request failed for %s: %s", request.capability_id, exc)
             return CanonicalExecutionResult(
                 execution_id=request.execution_id,
                 request_id=request.request_id,
                 capability_id=request.capability_id,
-                capability_version=cap.version if cap else "1.0.0",
+                capability_version=cap_version,
                 tenant_id=request.tenant_id,
                 user_id=request.user_id,
                 executor_kind="external_service",
-                provider="external_service",
-                solver="external",
+                provider=provider,
+                solver="external_http_bridge",
                 engine_version="unknown",
                 status="failed",
                 success=False,
                 data={},
-                errors=[str(exc)],
+                errors=[f"External service call failed: {exc}"],
+                warnings=[],
+                provenance={
+                    "executor_kind": "external_service",
+                    "provider": provider,
+                    "external_endpoint": endpoint,
+                    "external_execution_id": None,
+                    "failure_reason": str(exc),
+                },
                 trace_id=request.trace_id,
             )
-
-        if not isinstance(data, dict):
-            return CanonicalExecutionResult(
-                execution_id=request.execution_id,
-                request_id=request.request_id,
-                capability_id=request.capability_id,
-                capability_version=cap.version if cap else "1.0.0",
-                tenant_id=request.tenant_id,
-                user_id=request.user_id,
-                executor_kind="external_service",
-                provider="external_service",
-                solver="external",
-                engine_version="unknown",
-                status="failed",
-                success=False,
-                data={},
-                errors=["External service returned unrecognized/invalid payload contract"],
-                trace_id=request.trace_id,
-            )
-
-        is_failed = (
-            data.get("success") is False
-            or str(data.get("status", "")).lower() in ("failed", "rejected", "unavailable")
-            or bool(data.get("errors"))
-            or bool(data.get("error"))
-        )
-        errors: list[str] = []
-        if data.get("errors"):
-            errors.extend(str(e) for e in data["errors"])
-        elif data.get("error"):
-            errors.append(str(data["error"]))
-        elif is_failed:
-            errors.append(
-                f"External service execution reported failure for '{request.capability_id}'"
-            )
-
-        warnings = [str(w) for w in data.get("warnings", [])]
-        success = not is_failed and not errors
-
-        return CanonicalExecutionResult(
-            execution_id=request.execution_id,
-            request_id=request.request_id,
-            capability_id=request.capability_id,
-            capability_version=cap.version if cap else "1.0.0",
-            tenant_id=request.tenant_id,
-            user_id=request.user_id,
-            executor_kind="external_service",
-            provider="external_service",
-            solver="external",
-            engine_version="unknown",
-            status="completed" if success else "failed",
-            success=success,
-            data=data,
-            errors=errors,
-            warnings=warnings,
-            trace_id=request.trace_id,
-        )
 
 
 class CompositeEngineeringExecutor(IEngineeringExecutor):

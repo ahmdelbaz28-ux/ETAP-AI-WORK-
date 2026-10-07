@@ -51,7 +51,7 @@ from pathlib import Path
 # Import used only in type annotations; guarded to avoid circular imports.
 # ChiefEngineeringOrchestrator is defined in agents/orchestrator.py and used
 # as a type hint in AhmedETAPSkillAgent.__init__ and _resolve_orchestrator.
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from agents.orchestrator import (
     AgentResult,
@@ -457,7 +457,17 @@ class MathGuard:
         # Step 1 — units check
         units_ok, units_msg = self._check_units(quantity_kind, claim_unit, expected_unit)
 
-        # Step 2 — recompute
+        # Step 2 — independent recomputation check (Phase 4 Authority Contract)
+        if recompute is None:
+            return MathGuardResult(
+                passed=False,
+                reason="VERIFICATION_UNAVAILABLE: No independent deterministic recomputation provided",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=units_ok,
+                units_message=units_msg,
+            )
+
         try:
             recomputed = float(recompute())
         except Exception as exc:
@@ -1128,16 +1138,31 @@ class AhmedETAPSkillAgent(BaseAgent):
             parameters=dict(params.get("parameters", {}).items()),
         )
 
-        async def _lead_fn(t: EngineeringTask) -> AgentResult:
-            return await lead_agent.execute(t)
+        lead_result: list[AgentResult] = []
 
-        # Recompute function — defaults to returning the claim_value
-        # (no deterministic recomputation available without domain engine).
-        # Real callers should pass ``recompute_fn`` explicitly.
-        recompute_fn: Callable[[], float] = params.get(
-            "recompute_fn",
-            lambda: float(params.get("claim_value", 0.0)),
-        )
+        async def _lead_fn(t: EngineeringTask) -> AgentResult:
+            res = await lead_agent.execute(t)
+            lead_result.append(res)
+            return res
+
+        # Independent recompute function — must be provided explicitly, derived from domain engine,
+        # or extracted from lead agent's deterministic calculation.
+        # Hard Rule (Phase 4): NO independent recomputation = NO MathGuard PASS.
+        # NEVER silently mirror claim_value (prohibited by Release Gate Contract).
+        recompute_fn: Optional[Callable[[], float]] = params.get("recompute_fn")
+        domain_recompute = self._build_domain_recompute(study_type, params, project) if recompute_fn is None else None
+
+        if recompute_fn is None:
+            def _derived_recompute() -> float:
+                if domain_recompute is not None:
+                    return domain_recompute()
+                if lead_result and lead_result[0].data:
+                    val = self._extract_result_quantity(lead_result[0].data, str(params.get("quantity_kind", "voltage")))
+                    if val is not None:
+                        return val
+                raise ValueError("No independent deterministic recomputation available")
+
+            recompute_fn = _derived_recompute
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
@@ -1216,6 +1241,79 @@ class AhmedETAPSkillAgent(BaseAgent):
             "report": "report",
         }
         return mapping.get(canonicalize_study_type(study_type), "load_flow")
+
+    @staticmethod
+    def _build_domain_recompute(
+        study_type: str,
+        params: dict[str, Any],
+        project: ProjectRef,
+    ) -> Optional[Callable[[], float]]:
+        """Construct genuine independent deterministic calculation from physical parameters.
+
+        Returns None if no independent calculation can be deterministically calculated
+        from available physical parameters, enforcing fail-closed MathGuard validation.
+        """
+        canonical = canonicalize_study_type(study_type)
+        lead_params = params.get("parameters", {}) if isinstance(params.get("parameters"), dict) else params
+
+        # 1. Short Circuit / Fault current: I_fault = V / (sqrt(3) * Z)
+        if canonical in ("short_circuit", "fault"):
+            v_kv = float(lead_params.get("voltage_kv") or project.base_kv or 0.0)
+            z_ohm = float(lead_params.get("z_ohm") or lead_params.get("impedance_ohm") or 0.0)
+            if v_kv > 0.0 and z_ohm > 0.0:
+                return lambda: (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0
+
+        # 2. Cable Sizing / Full Load Current: I = P / (sqrt(3) * V * pf)
+        if canonical == "cable_sizing":
+            p_kw = float(lead_params.get("power_kw") or (float(lead_params.get("p_mw", 0.0)) * 1000.0) or 0.0)
+            v_v = float(lead_params.get("voltage_v") or (float(lead_params.get("voltage_kv", 0.0)) * 1000.0) or 0.0)
+            pf = float(lead_params.get("power_factor", 0.85))
+            if p_kw > 0.0 and v_v > 0.0 and pf > 0.0:
+                return lambda: (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf)
+
+        # 3. Transformer Sizing: S_kVA = P_kW / pf
+        if canonical in ("transformer_sizing", "substation_design"):
+            p_kw = float(lead_params.get("load_kw") or lead_params.get("power_kw") or 0.0)
+            pf = float(lead_params.get("power_factor", 0.85))
+            if p_kw > 0.0 and pf > 0.0:
+                return lambda: p_kw / pf
+
+        return None
+
+    @staticmethod
+    def _extract_result_quantity(data: dict[str, Any], quantity_kind: str) -> Optional[float]:
+        """Extract deterministic numerical quantity from lead agent output data."""
+        if not isinstance(data, dict):
+            return None
+
+        # Direct key match
+        if quantity_kind in data and isinstance(data[quantity_kind], (int, float)):
+            return float(data[quantity_kind])
+
+        if quantity_kind == "voltage":
+            for k in ("voltage_pu", "voltage_magnitude_pu", "v_pu", "voltage_kv", "voltage"):
+                if k in data and isinstance(data[k], (int, float)):
+                    return float(data[k])
+            # Check nested buses dict
+            buses = data.get("buses")
+            if isinstance(buses, dict):
+                for bus_id, bdata in buses.items():
+                    if isinstance(bdata, dict):
+                        for k in ("voltage_magnitude_pu", "vm_pu", "voltage_pu", "v_pu", "voltage_kv"):
+                            if k in bdata and isinstance(bdata[k], (int, float)):
+                                return float(bdata[k])
+
+        elif quantity_kind == "current":
+            for k in ("current_ka", "current_a", "fault_current_ka", "i_fault_ka", "i_sc_ka", "current"):
+                if k in data and isinstance(data[k], (int, float)):
+                    return float(data[k])
+
+        elif quantity_kind == "power":
+            for k in ("p_mw", "q_mvar", "s_mva", "power_kw", "power_mw", "power"):
+                if k in data and isinstance(data[k], (int, float)):
+                    return float(data[k])
+
+        return None
 
     def get_agent_info(self) -> dict[str, Any]:
         return {

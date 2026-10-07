@@ -56,7 +56,19 @@ def execute_engineering_study_task(self, study_data: dict):
         payload_dict = study_data.get("data", study_data)
         payload = StudyRequest(**payload_dict) if isinstance(payload_dict, dict) else payload_dict
 
-        result = execute_study_logic(payload, trace_id=trace_id, start_time=start_time)
+        from services.execution_request import ExecutionRequest
+
+        exec_request = ExecutionRequest.from_study_request(
+            study_request=payload,
+            user_id=study_data.get("user_id") or "service_principal:worker",
+            tenant_id=study_data.get("tenant_id") or "service_tenant_worker",
+            user_role="engineer",
+            trace_id=trace_id,
+        )
+
+        result = execute_study_logic(
+            payload, trace_id=trace_id, start_time=start_time, execution_request=exec_request
+        )
 
         logger.info("Completed engineering study: %s", study_type)
 
