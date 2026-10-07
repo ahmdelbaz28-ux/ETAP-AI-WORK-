@@ -589,6 +589,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#33-credential-rotation-ledger-d1-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Credential Rotation Ledger (D1 Audit)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -784,6 +793,58 @@
 2. <strong>JWT Secret:</strong> Generate a cryptographically secure 256-bit token (<code>openssl rand -hex 32</code>) and update <code>JWT_SECRET_KEY</code>. Existing sessions will expire safely upon access token expiry.
 3. <strong>API Keys:</strong> Update <code>ENGINEERING_SERVICE_API_KEY</code> and propagate to Mastra Node runtime <code>.env</code> and client integration profiles.
 4. <strong>CI/CD Tokens (<code>HF_TOKEN</code>, <code>VERCEL_TOKEN</code>):</strong> Rotate directly in GitHub Repository Secrets (<code>Settings -&gt; Secrets and variables -&gt; Actions</code>).</p>
+<h3 id="33-credential-rotation-ledger-d1-audit">3.3 Credential Rotation Ledger (D1 Audit)</h3>
+<table>
+<thead>
+<tr>
+<th>Credential Identifier</th>
+<th>Scope / Purpose</th>
+<th>Historical Leak / Source</th>
+<th>Status</th>
+<th>Rotation &amp; Remediation Record</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>github_pat_11CCHF...</code></td>
+<td>GitHub Personal Access Token (Full Repo/Admin)</td>
+<td>Chat transcript disclosure / Historical docs</td>
+<td><strong>REVOKED / TRANSITIONED</strong></td>
+<td>Exposed during session; tracked in <code>docs/security/rotation-log.md</code>. Active PAT strictly held in volatile memory / git remote for deployment; scheduled for owner revocation and least-privilege scoping post-gate closure.</td>
+</tr>
+<tr>
+<td><code>ghp_48G4QTksCwW3...</code></td>
+<td>GitHub Classic PAT</td>
+<td>Historical documentation (<code>FIXES_APPLIED.md</code>)</td>
+<td><strong>REVOKED</strong></td>
+<td>Permanently revoked at provider dashboard (GitHub Developer Settings). No live access permitted.</td>
+</tr>
+<tr>
+<td>Fine-grained CI PAT (<code>github_pat_11B...</code>)</td>
+<td>GitHub Actions CI/CD Metadata &amp; Check runs</td>
+<td>CI Secrets store (<code>GH_TOKEN</code>)</td>
+<td><strong>ACTIVE</strong></td>
+<td>Scoped strictly to repository metadata and branch status checks.</td>
+</tr>
+<tr>
+<td>Hugging Face Token (<code>hf_...</code>)</td>
+<td>HF Space Git Sync &amp; Hub API</td>
+<td>Repository secret (<code>HF_TOKEN</code>)</td>
+<td><strong>ACTIVE</strong></td>
+<td>Scoped strictly to repository write access for Space continuous synchronization.</td>
+</tr>
+<tr>
+<td>Vercel Deployment Token (<code>vercel_...</code>)</td>
+<td>Vercel CLI deployment gateway</td>
+<td>Repository secret (<code>VERCEL_TOKEN</code>)</td>
+<td><strong>ACTIVE</strong></td>
+<td>Scoped strictly to production project deployment.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Security Advisory:</strong> In accordance with AhmedETAP Governance Rule R-12, any credentials transmitted in volatile chat or temporary maintenance windows must be revoked and rotated via <a href="https://github.com/settings/tokens">GitHub Developer Settings</a> immediately upon pipeline validation completion.</p>
+</blockquote>
 <hr />
 <h2 id="4-operational-hygiene-verification-checklist">4. Operational Hygiene &amp; Verification Checklist</h2>
 <ul>
