@@ -46,8 +46,13 @@ overrides:
   liquidjs: ^10.29.0
   # HIGH: postCSS path traversal via sourceMappingURL (1 alert)
   postcss: ^8.5.18
-  # HIGH: shell-quote quadratic DoS in parse() (1 alert)
-  shell-quote: ^1.9.0
+  # CRITICAL: shell-quote quote() command injection (CVE-2026-102422, GHSA-pqg4-j6r4-53mv)
+  shell-quote: ^1.11.0
+  # HIGH: MCP TypeScript SDK OAuth credential exposure (CVE-2026-104850, GHSA-6qxp-vccf-f47h)
+  '@modelcontextprotocol/client': ^2.2.0
+  '@modelcontextprotocol/sdk': ^1.31.0
+  # MEDIUM: fast-copy stack exhaustion on deeply nested objects (GHSA-jggr-w7fw-pc2j)
+  fast-copy: ^4.1.0
   # MEDIUM: tar uncontrolled recursion in mapHas/filesFilter (1 alert)
   tar: ^7.5.21
   # MEDIUM: uuid missing buffer bounds check in v3/v5/v6 (2 alerts)

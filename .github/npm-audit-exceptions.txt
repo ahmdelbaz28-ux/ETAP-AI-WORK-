@@ -131,7 +131,15 @@ GHSA-pqg4-j6r4-53mv
 
 # GHSA-6qxp-vccf-f47h — MCP TypeScript SDK: OAuth client could send credentials to an authorization server chosen by the MCP server
 # Affects: @modelcontextprotocol/client, @modelcontextprotocol/sdk
-# Practical exploitability in THIS repo:
-#   - MCP clients in this repository operate within internal network tooling with static configuration and do not connect to arbitrary untrusted third-party authorization servers.
-# Decision: accept on grounds of internal scoping pending upstream release.
+# Patched in @modelcontextprotocol/client >=2.2.0, @modelcontextprotocol/sdk >=1.31.0 (overridden in pnpm-workspace.yaml).
 GHSA-6qxp-vccf-f47h
+
+# GHSA-hp3w-g68c-fv3c — sprintf-js: denial of service through unbounded precision specifiers (CVE-2026-97058)
+# Affects: sprintf-js <=1.1.3 (optional transitive dep of electron @electron/get > global-agent > roarr).
+# Status: No upstream patch available (package unmaintained).
+# Practical exploitability in THIS repo:
+#   - sprintf-js enters only via optional Electron desktop development tooling.
+#   - It is never exposed in production web deployments, APIs, or user-facing string formatting.
+# Decision: accept on grounds of optional desktop dev-tooling scope and unreachability in production.
+GHSA-hp3w-g68c-fv3c
+
