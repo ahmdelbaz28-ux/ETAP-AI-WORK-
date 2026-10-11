@@ -112,7 +112,7 @@ def test_earth_grid_positive_execution_design(grid_system, monkeypatch):
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 80"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.earth_grid_agent.EarthGridAgent"
 
 
@@ -140,4 +140,30 @@ def test_earth_grid_positive_execution_mesh_voltage(grid_system, monkeypatch):
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 80"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
+
+
+def test_earth_grid_production_eligibility():
+    """Verify that earth_grid meets all deterministic production maturity criteria."""
+    from engine.capability_registry import LifecycleStatus, get_capability_registry
+
+    reg = get_capability_registry()
+    cap = reg.get("earth_grid")
+    assert cap is not None
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEEE 80" in cap.standards_scope
+    assert cap.is_production_eligible() is True
+
+
+def test_earth_grid_scientific_benchmarks():
+    """Verify IEEE 80 worked example grounding benchmarks (70x70m Annex B and 50x40m Km/Ks)."""
+    from engine.benchmarks.ieee_cases import calculate_ieee_80_earth_grid_benchmark
+
+    res = calculate_ieee_80_earth_grid_benchmark()
+    assert res["all_passed"] is True
+    assert res["max_error_pct"] <= res["tolerance_limit_pct"]
+    assert res["case1_substation_70x70m"]["passed"] is True
+    assert res["case2_geometric_factors_50x40m"]["passed"] is True
+

@@ -882,7 +882,7 @@ class EarthGridAgent(BaseAgent):
                         "handler": "agents.earth_grid_agent.EarthGridAgent",
                         "agent_key": "earth_grid",
                         "standard": "IEEE 80",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

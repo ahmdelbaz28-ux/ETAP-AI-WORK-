@@ -27,6 +27,7 @@ from engine.benchmarks.ieee_cases import (
     calculate_iec_60364_cable_sizing_benchmark,
     calculate_iec_60909_theoretical_fault,
     calculate_ieee_30bus_opf_benchmark,
+    calculate_ieee_80_earth_grid_benchmark,
     calculate_ieee_399_motor_starting_benchmark,
     calculate_ieee_399_transient_stability_benchmark,
     calculate_ieee_519_harmonic_benchmarks,
@@ -273,6 +274,29 @@ def run_benchmarks() -> dict:
                 "case1_motor_feeder": cs_res["case1_motor_feeder"],
                 "case2_distribution_feeder": cs_res["case2_distribution_feeder"],
                 "case3_al_direct_buried_feeder": cs_res["case3_al_direct_buried_feeder"],
+            },
+        }
+    )
+
+    # 10. IEEE 80 Substation Earth Grid Design & Safety (70x70m Annex B & 50x40m Km/Ks)
+    t0 = time.perf_counter()
+    eg_res = calculate_ieee_80_earth_grid_benchmark()
+    t_eg = time.perf_counter() - t0
+    passed_eg = bool(eg_res["all_passed"])
+    if not passed_eg:
+        overall_passed = False
+    benchmarks.append(
+        {
+            "name": "IEEE 80 Substation Ground Grid Design & Tolerable Potentials",
+            "standard": "IEEE 80-2013 Section 16 & Annex B",
+            "cases_evaluated": 2,
+            "max_error_pct": eg_res["max_error_pct"],
+            "tolerance_limit_pct": eg_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_eg, 4),
+            "passed": passed_eg,
+            "details": {
+                "case1_substation_70x70m": eg_res["case1_substation_70x70m"],
+                "case2_geometric_factors_50x40m": eg_res["case2_geometric_factors_50x40m"],
             },
         }
     )

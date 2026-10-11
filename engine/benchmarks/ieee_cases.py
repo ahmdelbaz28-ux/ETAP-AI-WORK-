@@ -1360,6 +1360,146 @@ def calculate_iec_60364_cable_sizing_benchmark() -> dict[str, Any]:
     }
 
 
+def calculate_ieee_80_earth_grid_benchmark() -> dict[str, Any]:
+    """Execute canonical IEEE 80-2013 substation grounding grid benchmark cases.
+
+    Case 1: 70m x 70m Substation Grounding Grid (IEEE 80-2013 Annex B Worked Example)
+        - Dimensions: 70m x 70m, 16 ground rods x 3.0m, depth = 0.5m, conductor d = 0.01m
+        - Soil: rho = 100 ohm-m, rho_s = 2500 ohm-m (crushed rock), hs = 0.15m
+        - Fault: Ig = 3000 A, tf = 0.5s, body weight = 70 kg
+        - Analytical Cs = 0.82051, Etouch_allowable = 905.21 V, Estep_allowable = 2954.73 V
+        - E_mesh = 694.14 V (safe), E_step = 226.99 V (safe)
+
+    Case 2: 50m x 40m Substation Grounding Grid (IEEE 80 Section 16 Geometric Factors)
+        - Dimensions: 50m x 40m, 4 ground rods x 3.0m, depth = 0.5m
+        - Soil: rho = 80 ohm-m, Ig = 4000 A
+        - Km = 1.6526, Ks = 0.4091, E_mesh = 1455.01 V, E_step = 478.86 V
+    """
+    from agents.earth_grid_agent import EarthGridAgent
+
+    agent = EarthGridAgent()
+
+    # Case 1: 70m x 70m Annex B Example
+    cs_calc = agent._surface_derating_factor(rho_s=2500.0, rho_b=100.0, hs=0.15)
+    exp_cs = 0.82051282
+    err_cs = abs(cs_calc - exp_cs) / exp_cs * 100.0
+
+    allowable = agent._allowable_voltages(
+        rho_s=2500.0,
+        rho_b=100.0,
+        hs=0.15,
+        fault_duration_s=0.5,
+        body_weight_kg=70.0,
+    )
+    exp_etouch = 905.2055
+    calc_etouch = allowable["E_touch_allowable_V"]
+    err_etouch = abs(calc_etouch - exp_etouch) / exp_etouch * 100.0
+
+    exp_estep = 2954.7273
+    calc_estep = allowable["E_step_allowable_V"]
+    err_estep = abs(calc_estep - exp_estep) / exp_estep * 100.0
+
+    c1_design = agent.design_ground_grid(
+        rho=100.0,
+        Ig=3000.0,
+        grid_length_m=70.0,
+        grid_width_m=70.0,
+        n_rods=16,
+        rod_length_m=3.0,
+        rho_s=2500.0,
+        hs=0.15,
+        fault_duration_s=0.5,
+        conductor_diameter_m=0.01,
+        depth_m=0.5,
+        body_weight_kg=70.0,
+    )
+
+    c1_mesh_v = c1_design["mesh_voltage"]["E_mesh_V"]
+    c1_step_v = c1_design["step_voltage"]["E_step_V"]
+    c1_rg = c1_design["touch_voltage"]["R_grid_ohm"]
+    c1_gpr = c1_design["touch_voltage"]["GPR_V"]
+
+    pass_case1 = bool(
+        err_cs < 0.1
+        and err_etouch < 0.1
+        and err_estep < 0.1
+        and c1_design["safety"]["E_mesh_safe"] is True
+        and c1_design["safety"]["E_step_safe"] is True
+    )
+
+    # Case 2: 50m x 40m Geometric Factors
+    c2_mesh = agent.calculate_mesh_voltage(
+        rho=80.0,
+        Ig=4000.0,
+        grid_length_m=50.0,
+        grid_width_m=40.0,
+        n_rods=4,
+        rod_length_m=3.0,
+    )
+    c2_step = agent.calculate_step_voltage(
+        rho=80.0,
+        Ig=4000.0,
+        grid_length_m=50.0,
+        grid_width_m=40.0,
+        n_rods=4,
+        rod_length_m=3.0,
+    )
+
+    exp_km = 1.65256
+    calc_km = c2_mesh["K_m"]
+    err_km = abs(calc_km - exp_km) / exp_km * 100.0
+
+    exp_ks = 0.40908
+    calc_ks = c2_step["K_s"]
+    err_ks = abs(calc_ks - exp_ks) / exp_ks * 100.0
+
+    pass_case2 = bool(err_km < 0.1 and err_ks < 0.1 and c2_mesh["E_mesh_V"] > 0 and c2_step["E_step_V"] > 0)
+
+    max_err = max(err_cs, err_etouch, err_estep, err_km, err_ks)
+    all_passed = bool(pass_case1 and pass_case2)
+
+    return {
+        "standard": "IEEE 80-2013 Section 16 & Annex B",
+        "case1_substation_70x70m": {
+            "grid_dimensions_m": "70x70",
+            "soil_resistivity_ohm_m": 100.0,
+            "surface_resistivity_ohm_m": 2500.0,
+            "Cs_surface_derating": round(float(cs_calc), 5),
+            "expected_Cs": round(exp_cs, 5),
+            "Cs_error_pct": round(float(err_cs), 4),
+            "E_touch_allowable_V": round(float(calc_etouch), 2),
+            "expected_touch_V": exp_etouch,
+            "touch_error_pct": round(float(err_etouch), 4),
+            "E_step_allowable_V": round(float(calc_estep), 2),
+            "expected_step_V": exp_estep,
+            "step_error_pct": round(float(err_estep), 4),
+            "E_mesh_V": round(float(c1_mesh_v), 2),
+            "E_mesh_safe": c1_design["safety"]["E_mesh_safe"],
+            "E_step_V": round(float(c1_step_v), 2),
+            "E_step_safe": c1_design["safety"]["E_step_safe"],
+            "R_grid_ohm": round(float(c1_rg), 4),
+            "GPR_V": round(float(c1_gpr), 2),
+            "passed": pass_case1,
+        },
+        "case2_geometric_factors_50x40m": {
+            "grid_dimensions_m": "50x40",
+            "K_m": round(float(calc_km), 5),
+            "expected_K_m": round(exp_km, 5),
+            "K_m_error_pct": round(float(err_km), 4),
+            "K_s": round(float(calc_ks), 5),
+            "expected_K_s": round(exp_ks, 5),
+            "K_s_error_pct": round(float(err_ks), 4),
+            "E_mesh_V": round(float(c2_mesh["E_mesh_V"]), 2),
+            "E_step_V": round(float(c2_step["E_step_V"]), 2),
+            "passed": pass_case2,
+        },
+        "max_error_pct": round(float(max_err), 4),
+        "tolerance_limit_pct": 0.5,
+        "all_passed": all_passed,
+    }
+
+
+
 
 
 

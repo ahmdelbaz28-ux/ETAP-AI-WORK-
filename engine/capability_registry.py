@@ -537,14 +537,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="earth_grid",
             feature_flag="earth_grid",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 80 (Substation grounding grid design)",
-            validation_evidence="Earth grid unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 80-2013 Section 16 & Annex B / IEEE 81-2012 (Substation grounding grid design, mesh/step/touch voltage, and tolerable limits)",
+            validation_evidence="IEEE 80-2013 Annex B standard worked example (70x70m and 50x40m grids) in engine/benchmarks/ieee_cases.py and docs/validation/earth_grid_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Substation grounding grid design and step/touch potential per IEEE 80 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Substation grounding grid design and step/touch potential per IEEE 80 (Production validated).",
         )
     )
     registry.register(
