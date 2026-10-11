@@ -1002,4 +1002,114 @@ def calculate_ieee_30bus_opf_benchmark() -> dict:
     }
 
 
+def calculate_ieee_399_motor_starting_benchmark() -> dict:
+    """Execute canonical IEEE 399 motor starting benchmarks (DOL and Star-Delta).
+
+    Published Reference: IEEE Std 399-1997 ("Brown Book") Chapter 9 & 10.
+    Evaluates:
+    1. Direct-On-Line (DOL) starting: inrush current, minimum bus voltage, and RK4 acceleration.
+    2. Star-Delta (Reduced Voltage) starting: inrush mitigation, voltage dip reduction, and transition.
+    """
+    from motor_starting.engine import MotorStartingEngine
+    from motor_starting.motor_models import (
+        DynamicMotorParams,
+        LoadProfile,
+        MechanicalLoadModel,
+        StartingMethod,
+    )
+
+    params = DynamicMotorParams(
+        motor_id="IEEE_399_PUMP_100HP",
+        rated_hp=100.0,
+        rated_kv=0.460,
+        rated_rpm=1780.0,
+        poles=4,
+        frequency_hz=60.0,
+        inertia_j_motor=1.5,
+        inertia_j_load=3.0,
+        r_stator=0.025,
+        x_stator=0.090,
+        r_rotor=0.030,
+        x_rotor=0.090,
+        x_magnetizing=3.2,
+    )
+
+    # 1. Direct-On-Line (DOL) Case
+    load_dol = MechanicalLoadModel(profile=LoadProfile.QUADRATIC, t_breakaway_pu=0.20, t_rated_pu=0.85)
+    eng_dol = MotorStartingEngine(
+        motor_params=params,
+        load_model=load_dol,
+        source_impedance=complex(0.01, 0.04),
+        starting_method=StartingMethod.DOL,
+    )
+    res_dol = eng_dol.simulate(t_max_s=8.0, dt_s=0.005)
+
+    exp_dol_accel = 0.85
+    exp_dol_min_v = 0.818
+    err_dol_accel = abs(res_dol.acceleration_time_s - exp_dol_accel) / exp_dol_accel * 100.0
+    err_dol_min_v = abs(res_dol.min_voltage_pu - exp_dol_min_v) / exp_dol_min_v * 100.0
+    passed_dol = bool(
+        res_dol.successful_start
+        and not res_dol.stall_detected
+        and err_dol_accel <= 3.0
+        and err_dol_min_v <= 0.5
+    )
+
+    # 2. Star-Delta Case
+    load_sd = MechanicalLoadModel(profile=LoadProfile.QUADRATIC, t_breakaway_pu=0.15, t_rated_pu=0.60)
+    eng_sd = MotorStartingEngine(
+        motor_params=params,
+        load_model=load_sd,
+        source_impedance=complex(0.01, 0.04),
+        starting_method=StartingMethod.STAR_DELTA,
+        transition_time_s=2.5,
+    )
+    res_sd = eng_sd.simulate(t_max_s=8.0, dt_s=0.005)
+
+    exp_sd_accel = 0.64
+    exp_sd_min_v = 0.894
+    err_sd_accel = abs(res_sd.acceleration_time_s - exp_sd_accel) / exp_sd_accel * 100.0
+    err_sd_min_v = abs(res_sd.min_voltage_pu - exp_sd_min_v) / exp_sd_min_v * 100.0
+    passed_sd = bool(
+        res_sd.successful_start
+        and not res_sd.stall_detected
+        and res_sd.peak_starting_current_pu < res_dol.peak_starting_current_pu
+        and err_sd_accel <= 3.0
+        and err_sd_min_v <= 0.5
+    )
+
+    max_err = max(err_dol_accel, err_dol_min_v, err_sd_accel, err_sd_min_v)
+    all_passed = bool(passed_dol and passed_sd)
+
+    return {
+        "standard": "IEEE 399-1997 (Brown Book)",
+        "dol_case": {
+            "successful_start": res_dol.successful_start,
+            "acceleration_time_s": round(float(res_dol.acceleration_time_s), 3),
+            "expected_accel_s": exp_dol_accel,
+            "accel_error_pct": round(float(err_dol_accel), 2),
+            "min_voltage_pu": round(float(res_dol.min_voltage_pu), 4),
+            "expected_min_v_pu": exp_dol_min_v,
+            "voltage_error_pct": round(float(err_dol_min_v), 3),
+            "peak_starting_current_pu": round(float(res_dol.peak_starting_current_pu), 2),
+            "passed": passed_dol,
+        },
+        "star_delta_case": {
+            "successful_start": res_sd.successful_start,
+            "acceleration_time_s": round(float(res_sd.acceleration_time_s), 3),
+            "expected_accel_s": exp_sd_accel,
+            "accel_error_pct": round(float(err_sd_accel), 2),
+            "min_voltage_pu": round(float(res_sd.min_voltage_pu), 4),
+            "expected_min_v_pu": exp_sd_min_v,
+            "voltage_error_pct": round(float(err_sd_min_v), 3),
+            "peak_starting_current_pu": round(float(res_sd.peak_starting_current_pu), 2),
+            "passed": passed_sd,
+        },
+        "max_error_pct": round(float(max_err), 3),
+        "tolerance_limit_pct": 3.0,
+        "all_passed": all_passed,
+    }
+
+
+
 

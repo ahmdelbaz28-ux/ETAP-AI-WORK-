@@ -74,9 +74,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Harmonic analysis per IEEE 519-2022 - Production validated",
     },
     "motor_starting": {
-        "enabled": False,
-        "status": "beta",
-        "description": "Motor starting analysis (IEEE 399) - in development",
+        "enabled": True,
+        "status": "ga",
+        "rollout_percentage": 25,
+        "description": "Motor starting analysis per IEEE 399 - Production validated",
     },
     "transient_stability": {
         "enabled": False,

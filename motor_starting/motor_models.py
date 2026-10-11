@@ -124,7 +124,9 @@ class InductionMotorDynamics:
 
         te_raw = numerator / denominator
         # Normalize to rated torque at rated slip
-        s_rated = (self.p.sync_rpm - self.p.rated_rpm) / self.p.sync_rpm
+        s_rated = (self.p.sync_rpm - self.p.rated_rpm) / self.p.sync_rpm if self.p.sync_rpm > 0 else 0.03
+        if s_rated <= 1e-4:
+            s_rated = 0.03  # Typical 3% rated slip for induction motors
         num_rated = (self.v_th_ratio**2) * (self.p.r_rotor / s_rated)
         den_rated = (self.r_th + self.p.r_rotor / s_rated)**2 + (self.x_th + self.p.x_rotor)**2
         te_rated = num_rated / den_rated if den_rated > 0 else 1.0

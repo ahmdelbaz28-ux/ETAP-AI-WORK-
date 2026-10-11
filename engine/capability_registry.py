@@ -477,14 +477,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="motor_starting",
             feature_flag="motor_starting",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 399 (Motor dynamic starting)",
-            validation_evidence="Motor starting unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 399-1997 Chapter 9 & Chapter 10 (Induction Motor Dynamic Simulation & Voltage Dip Analysis)",
+            validation_evidence="IEEE 399 benchmark suite (DOL and Star-Delta RK4 dynamic simulation) in engine/benchmarks/ieee_cases.py and docs/validation/motor_starting_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Dynamic and static motor starting voltage dip assessment per IEEE 399 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Dynamic and static motor starting voltage dip assessment per IEEE 399-1997 (Production validated).",
         )
     )
     registry.register(

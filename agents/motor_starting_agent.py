@@ -538,8 +538,24 @@ class MotorStartingAgent(BaseAgent):
             p = task.parameters
             missing_inputs: list[str] = []
 
+            # If voltage_v not explicitly in p, derive from connected bus in system if available
+            if "voltage_v" not in p and "rated_voltage_v" not in p and "voltage_V" not in p:
+                sys_obj = p.get("system")
+                bus_id = p.get("bus_id", p.get("motor_bus_id"))
+                if sys_obj is not None:
+                    buses = sys_obj.get("buses") if isinstance(sys_obj, dict) else getattr(sys_obj, "buses", None)
+                    if buses:
+                        bus_list = buses if isinstance(buses, list) else list(buses.values()) if isinstance(buses, dict) else []
+                        for b in bus_list:
+                            b_id = b.get("bus_id") if isinstance(b, dict) else getattr(b, "bus_id", None)
+                            b_kv = b.get("base_kv") if isinstance(b, dict) else getattr(b, "base_kv", None)
+                            if (bus_id is None or b_id == bus_id) and b_kv:
+                                p["voltage_v"] = float(b_kv) * 1000.0
+                                break
+
             # ── Validate mandatory inputs ──
-            if "motor_hp" not in p and "rated_hp" not in p and "motor_kw" not in p:
+            has_kw = "motor_kw" in p or "motor_power_kw" in p
+            if "motor_hp" not in p and "rated_hp" not in p and not has_kw:
                 missing_inputs.append("motor_hp (or motor_kw)")
             if "voltage_v" not in p and "rated_voltage_v" not in p and "voltage_V" not in p:
                 missing_inputs.append("voltage_v")
@@ -567,7 +583,8 @@ class MotorStartingAgent(BaseAgent):
                 )
 
             # Common parameters
-            motor_hp = float(p.get("motor_hp", p.get("rated_hp", float(p.get("motor_kw", 0)) * 1.34102 if "motor_kw" in p else 0)))
+            kw_val = p.get("motor_kw", p.get("motor_power_kw"))
+            motor_hp = float(p.get("motor_hp", p.get("rated_hp", float(kw_val) * 1.34102 if kw_val is not None else 0)))
             voltage_v = float(p.get("voltage_v", p.get("rated_voltage_v", p.get("voltage_V", 0))))
 
             if motor_hp <= 0 or voltage_v <= 0:
@@ -587,7 +604,7 @@ class MotorStartingAgent(BaseAgent):
             starting_method = task.parameters.get("starting_method", "DOL")
             fla_a = task.parameters.get("fla_a")
             fla_val = float(fla_a) if fla_a is not None else None
-            rated_rpm = float(task.parameters.get("rated_speed_rpm", 1800.0))
+            rated_rpm = float(task.parameters.get("rated_speed_rpm", task.parameters.get("rated_rpm", 1780.0)))
 
             # Always compute rated_torque so it is available for any analysis type
             rated_torque = (motor_hp * 746) / (rated_rpm * 2 * np.pi / 60) if rated_rpm > 0 else 0
@@ -749,7 +766,7 @@ class MotorStartingAgent(BaseAgent):
                         "source": task.parameters.get("source", "simulation"),
                         "handler": "agents.motor_starting_agent.MotorStartingAgent",
                         "standard": "IEEE 399",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

@@ -74,11 +74,15 @@ class MotorStartingEngine:
         soft_start_ramp_time_s: float = 4.0,
         soft_start_initial_voltage: float = 0.35,
     ):
+        if isinstance(source_voltage_pu, (StartingMethod, str)):
+            starting_method = StartingMethod(source_voltage_pu) if isinstance(source_voltage_pu, str) else source_voltage_pu
+            source_voltage_pu = 1.0
+
         self.params = motor_params
         self.motor = InductionMotorDynamics(motor_params)
         self.load = load_model or MechanicalLoadModel(profile=LoadProfile.QUADRATIC)
         self.z_source = source_impedance
-        self.v_source = source_voltage_pu
+        self.v_source = float(source_voltage_pu)
         self.method = starting_method
         self.transition_time_s = transition_time_s
         self.soft_start_ramp_time_s = soft_start_ramp_time_s

@@ -26,6 +26,7 @@ from engine.benchmarks.ieee_cases import (
     build_ieee_14bus_system,
     calculate_iec_60909_theoretical_fault,
     calculate_ieee_30bus_opf_benchmark,
+    calculate_ieee_399_motor_starting_benchmark,
     calculate_ieee_519_harmonic_benchmarks,
     calculate_ieee_1584_incident_energy_benchmark,
 )
@@ -198,6 +199,30 @@ def run_benchmarks() -> dict:
             "details": {
                 "dc_opf": opf_res["dc_opf"],
                 "ac_opf": opf_res["ac_opf"],
+            },
+        }
+    )
+
+    # 7. IEEE 399 Motor Starting Dynamic Simulation (DOL & Star-Delta)
+    t0 = time.perf_counter()
+    ms_res = calculate_ieee_399_motor_starting_benchmark()
+    t_ms = time.perf_counter() - t0
+    passed_ms = ms_res["all_passed"]
+    if not passed_ms:
+        overall_passed = False
+
+    benchmarks.append(
+        {
+            "name": "IEEE 399 Motor Starting Dynamics (DOL & Star-Delta)",
+            "standard": "IEEE 399-1997 Chapter 9 & Chapter 10",
+            "cases_evaluated": 2,
+            "max_error_pct": ms_res["max_error_pct"],
+            "tolerance_limit_pct": ms_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_ms, 4),
+            "passed": passed_ms,
+            "details": {
+                "dol_case": ms_res["dol_case"],
+                "star_delta_case": ms_res["star_delta_case"],
             },
         }
     )
