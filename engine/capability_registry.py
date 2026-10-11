@@ -457,14 +457,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="optimal_power_flow",
             feature_flag="optimal_power_flow",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 3002.7 (Economic dispatch / OPF scaffold)",
-            validation_evidence="Optimal power flow unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 3002.7 & Alsac-Stott IEEE 30-bus benchmark (DC-OPF and AC-OPF economic dispatch)",
+            validation_evidence="IEEE 30-bus OPF benchmark suite (DC-OPF merit order and AC-OPF quadratic dispatch) in engine/benchmarks/ieee_cases.py and docs/validation/optimal_power_flow_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Optimal power flow economic dispatch and voltage optimization (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Optimal power flow economic dispatch and voltage optimization per IEEE 3002.7 (Production validated).",
         )
     )
     registry.register(

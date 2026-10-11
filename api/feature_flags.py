@@ -85,9 +85,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 0,
     },
     "optimal_power_flow": {
-        "enabled": False,
-        "status": "alpha",
-        "description": "OPF (economic dispatch) - experimental",
+        "enabled": True,
+        "status": "ga",
+        "rollout_percentage": 25,
+        "description": "Optimal power flow per IEEE 3002.7 / IEEE 30-bus - Production validated",
     },
     "cable_sizing": {
         "enabled": False,

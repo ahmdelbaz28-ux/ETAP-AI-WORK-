@@ -25,6 +25,7 @@ from engine.benchmarks.ieee_cases import (
     build_ieee_9bus_system,
     build_ieee_14bus_system,
     calculate_iec_60909_theoretical_fault,
+    calculate_ieee_30bus_opf_benchmark,
     calculate_ieee_519_harmonic_benchmarks,
     calculate_ieee_1584_incident_energy_benchmark,
 )
@@ -174,6 +175,30 @@ def run_benchmarks() -> dict:
             "execution_time_sec": round(t_harm, 4),
             "passed": passed_harm,
             "details": harm_res["benchmarks"],
+        }
+    )
+
+    # 6. IEEE 30-Bus Optimal Power Flow (DC-OPF & AC-OPF)
+    t0 = time.perf_counter()
+    opf_res = calculate_ieee_30bus_opf_benchmark()
+    t_opf = time.perf_counter() - t0
+    passed_opf = opf_res["all_passed"]
+    if not passed_opf:
+        overall_passed = False
+
+    benchmarks.append(
+        {
+            "name": "IEEE 30-Bus Optimal Power Flow (DC & AC)",
+            "standard": "IEEE 3002.7 / Alsac & Stott (1974)",
+            "total_load_mw": opf_res["total_load_mw"],
+            "max_error_pct": opf_res["max_error_pct"],
+            "tolerance_limit_pct": opf_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_opf, 4),
+            "passed": passed_opf,
+            "details": {
+                "dc_opf": opf_res["dc_opf"],
+                "ac_opf": opf_res["ac_opf"],
+            },
         }
     )
 

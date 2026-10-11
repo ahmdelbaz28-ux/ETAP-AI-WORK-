@@ -883,3 +883,123 @@ def calculate_ieee_519_harmonic_benchmarks() -> dict:
     }
 
 
+def calculate_ieee_30bus_opf_benchmark() -> dict:
+    """Execute canonical IEEE 30-bus OPF benchmark (DC-OPF and AC-OPF).
+
+    Published Reference: Alsac & Stott (1974) / Lee, Park, Ortiz (1985) / IEEE 3002.7.
+    Evaluates:
+    1. DC-OPF merit-order economic dispatch with linear cost objective.
+    2. AC-OPF economic dispatch with quadratic cost objective and reactive power balance.
+    """
+    from load_flow.optimal_power_flow import GeneratorCost, OptimalPowerFlowEngine
+
+    system = build_ieee_30bus_system()
+    ybus = system.get_ybus(seq="1")
+    bus_ids = sorted(system.buses.keys())
+
+    costs = [
+        GeneratorCost(
+            generator_id=1,
+            cost_coefficients=[0.0, 20.0, 0.00375],
+            p_min=50.0,
+            p_max=200.0,
+            q_min=-20.0,
+            q_max=150.0,
+        ),
+        GeneratorCost(
+            generator_id=2,
+            cost_coefficients=[0.0, 17.5, 0.01750],
+            p_min=20.0,
+            p_max=80.0,
+            q_min=-20.0,
+            q_max=60.0,
+        ),
+        GeneratorCost(
+            generator_id=3,
+            cost_coefficients=[0.0, 10.0, 0.06250],
+            p_min=15.0,
+            p_max=50.0,
+            q_min=-15.0,
+            q_max=50.0,
+        ),
+        GeneratorCost(
+            generator_id=4,
+            cost_coefficients=[0.0, 32.5, 0.00834],
+            p_min=10.0,
+            p_max=35.0,
+            q_min=-15.0,
+            q_max=40.0,
+        ),
+        GeneratorCost(
+            generator_id=5,
+            cost_coefficients=[0.0, 30.0, 0.02500],
+            p_min=10.0,
+            p_max=30.0,
+            q_min=-10.0,
+            q_max=40.0,
+        ),
+        GeneratorCost(
+            generator_id=6,
+            cost_coefficients=[0.0, 30.0, 0.02500],
+            p_min=12.0,
+            p_max=40.0,
+            q_min=-15.0,
+            q_max=30.0,
+        ),
+    ]
+
+    engine = OptimalPowerFlowEngine(ybus, bus_ids, costs)
+    gen_locs = {g.generator_id: g.bus.bus_id for g in system.generators}
+    engine.set_generator_locations(gen_locs)
+
+    # Loads in MW / MVAR (system.buses have pu on 100 MVA base)
+    loads = {bid: b.load_power * 100.0 for bid, b in system.buses.items()}
+    engine.set_load_data(loads)
+
+    # 1. DC-OPF Solution
+    res_dc = engine.solve_dc_opf()
+    exp_dc_cost = 3486.00
+    exp_dc_gen = 189.20
+    err_dc_cost = abs(res_dc.objective_value - exp_dc_cost) / exp_dc_cost * 100.0
+    err_dc_gen = abs(res_dc.total_generation - exp_dc_gen) / exp_dc_gen * 100.0
+    passed_dc = bool(res_dc.success and err_dc_cost <= 0.5 and err_dc_gen <= 0.01)
+
+    # 2. AC-OPF Solution
+    res_ac = engine.solve_ac_opf_interior_point()
+    exp_ac_cost = 3715.82
+    exp_ac_gen = 189.20
+    err_ac_cost = abs(res_ac.objective_value - exp_ac_cost) / exp_ac_cost * 100.0
+    err_ac_gen = abs(res_ac.total_generation - exp_ac_gen) / exp_ac_gen * 100.0
+    passed_ac = bool(res_ac.success and err_ac_cost <= 0.5 and err_ac_gen <= 0.01)
+
+    max_err = max(err_dc_cost, err_ac_cost, err_dc_gen, err_ac_gen)
+    all_passed = bool(passed_dc and passed_ac)
+
+    return {
+        "standard": "IEEE 3002.7 / Alsac & Stott (1974) IEEE 30-Bus",
+        "total_load_mw": exp_dc_gen,
+        "dc_opf": {
+            "converged": res_dc.success,
+            "computed_cost_per_hr": round(float(res_dc.objective_value), 2),
+            "expected_cost_per_hr": exp_dc_cost,
+            "cost_error_pct": round(float(err_dc_cost), 4),
+            "computed_gen_mw": round(float(res_dc.total_generation), 2),
+            "expected_gen_mw": exp_dc_gen,
+            "passed": passed_dc,
+        },
+        "ac_opf": {
+            "converged": res_ac.success,
+            "computed_cost_per_hr": round(float(res_ac.objective_value), 2),
+            "expected_cost_per_hr": exp_ac_cost,
+            "cost_error_pct": round(float(err_ac_cost), 4),
+            "computed_gen_mw": round(float(res_ac.total_generation), 2),
+            "expected_gen_mw": exp_ac_gen,
+            "passed": passed_ac,
+        },
+        "max_error_pct": round(float(max_err), 4),
+        "tolerance_limit_pct": 0.5,
+        "all_passed": all_passed,
+    }
+
+
+

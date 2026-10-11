@@ -688,7 +688,7 @@ class OptimalPowerFlowAgent(BaseAgent):
                         "source": task.parameters.get("source", "simulation"),
                         "handler": "agents.registry.OptimalPowerFlowAgent",
                         "standard": "IEEE 3002.7 / IEEE 30-bus",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

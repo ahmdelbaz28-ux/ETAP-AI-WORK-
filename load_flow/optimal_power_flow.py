@@ -487,41 +487,28 @@ class OptimalPowerFlowEngine:
                     grad[i] = coeffs[0]
             return grad
 
-        # Constraints (power balance at each bus)
-        constraints = []
+        # Constraints (system-wide active and reactive power balance)
+        total_p_load = sum(
+            (load.real if isinstance(load, complex) else float(load))
+            for load in self.load_data.values()
+        )
+        total_q_load = sum(
+            (load.imag if isinstance(load, complex) else 0.0)
+            for load in self.load_data.values()
+        )
 
-        for bus_id in self.bus_ids:
-            # Active power balance
-            def active_power_constraint(x, bus_id=bus_id):
-                P_gen_bus = sum(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    x[i] for i, gid in enumerate(gen_ids) if self.gen_buses.get(gid) == bus_id
-                )
-                p_load = self.load_data.get(
-                    bus_id, 0
-                ).real  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                return P_gen_bus - p_load
+        constraints = [
+            {"type": "eq", "fun": lambda x: float(sum(x[:n_gen]) - total_p_load)},
+            {"type": "eq", "fun": lambda x: float(sum(x[n_gen:]) - total_q_load)},
+        ]
 
-            constraints.append({"type": "eq", "fun": active_power_constraint})
-
-            # Reactive power balance
-            def reactive_power_constraint(x, bus_id=bus_id):
-                Q_gen_bus = sum(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                    x[n_gen + i]
-                    for i, gid in enumerate(gen_ids)
-                    if self.gen_buses.get(gid) == bus_id
-                )
-                q_load = self.load_data.get(
-                    bus_id, 0
-                ).imag  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-                return Q_gen_bus - q_load
-
-            constraints.append({"type": "eq", "fun": reactive_power_constraint})
-
-        # Variable bounds
+        # Variable bounds: first all P bounds, then all Q bounds matching x0 layout
         bounds = []
         for gid in gen_ids:
             gc = self.generator_costs[gid]
             bounds.append((gc.p_min, gc.p_max))  # P bounds
+        for gid in gen_ids:
+            gc = self.generator_costs[gid]
             bounds.append((gc.q_min, gc.q_max))  # Q bounds
 
         # Solve using SLSQP (Sequential Least Squares Quadratic Programming)

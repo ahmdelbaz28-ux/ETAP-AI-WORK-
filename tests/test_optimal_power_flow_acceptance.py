@@ -1,11 +1,13 @@
-"""tests/test_optimal_power_flow_acceptance.py — Dual Acceptance & Fail-Closed Gate Suite for OPF (PILOT).
+"""tests/test_optimal_power_flow_acceptance.py — Dual Acceptance & Fail-Closed Gate Suite for OPF (PRODUCTION).
 
 Validates:
 1. Fail-closed gate: Execution rejected with SpecializedExecutionUnavailableError when flag is OFF.
 2. Parameter validation: Rejection when empty parameters provided to native dispatch.
 3. System requirement: Rejection when system model is missing.
 4. Positive execution: Economic merit-order dispatch and DC-OPF calculation when flag is enabled,
-   returning IEEE 3002.7 metrics and pilot provenance.
+   returning IEEE 3002.7 metrics and production provenance.
+5. Production eligibility: Deterministic verification of is_production_eligible().
+6. Benchmark verification: Canonical IEEE 30-bus DC-OPF and AC-OPF dual-solver execution <= 0.5% tolerance.
 """
 
 from __future__ import annotations
@@ -118,5 +120,31 @@ def test_opf_positive_execution(opf_system, monkeypatch):
     assert result["total_generation_mw"] == pytest.approx(80.0, abs=1e-2)
 
     provenance = result.get("provenance", {})
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.registry.OptimalPowerFlowAgent"
+
+
+def test_optimal_power_flow_is_production_eligible():
+    """Verify that optimal_power_flow satisfies all criteria in is_production_eligible()."""
+    from engine.capability_registry import LifecycleStatus, get_capability_registry
+
+    registry = get_capability_registry()
+    cap = registry.get("optimal_power_flow")
+    assert cap is not None
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEEE 3002.7" in cap.standards_scope
+    assert "benchmark suite" in cap.validation_evidence
+    assert cap.is_production_eligible() is True
+
+
+def test_optimal_power_flow_ieee30_benchmark():
+    """Verify that canonical IEEE 30-bus DC-OPF and AC-OPF benchmarks pass within <= 0.5% tolerance."""
+    from engine.benchmarks.ieee_cases import calculate_ieee_30bus_opf_benchmark
+
+    bench = calculate_ieee_30bus_opf_benchmark()
+    assert bench["all_passed"] is True
+    assert bench["max_error_pct"] <= 0.5
+    assert bench["dc_opf"]["passed"] is True
+    assert bench["ac_opf"]["passed"] is True

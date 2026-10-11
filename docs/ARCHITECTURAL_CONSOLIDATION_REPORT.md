@@ -491,5 +491,6 @@ The following capability promotions have been certified against deterministic sc
 | Study | Lifecycle Status | Benchmark Evidence | Max Error % | Benchmark SHA | Date | Reviewer | Promotion Verdict |
 |---|---|---|---|---|---|---|---|
 | `harmonic_analysis` | `PRODUCTION` | IEEE 519-2022 (3 Published Networks: IEEE 13-bus feeder, 4-bus industrial ASD plant, 480V commercial SMPS facility in `engine/benchmarks/ieee_cases.py`) | 0.003% | `7f90ced0c` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
+| `optimal_power_flow` | `PRODUCTION` | IEEE 3002.7 / Alsac-Stott (1974) IEEE 30-Bus (DC-OPF & AC-OPF dual solver in `engine/benchmarks/ieee_cases.py`) | 0.0001% | `00583f6f3` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
 
 
