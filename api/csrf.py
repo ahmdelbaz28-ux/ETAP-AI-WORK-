@@ -289,4 +289,5 @@ async def get_csrf_token() -> dict[str, str]:
     The token is HMAC-signed and expires after ``CSRF_TOKEN_TTL`` seconds
     (default: 1 hour).
     """
-    return {"token": generate_csrf_token()}
+    token = generate_csrf_token()
+    return {"token": token, "csrf_token": token}

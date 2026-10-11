@@ -88,6 +88,7 @@ COPY --chown=user:user security/ /app/security/
 COPY --chown=user:user gis_integration/ /app/gis_integration/
 COPY --chown=user:user adms_control/ /app/adms_control/
 COPY --chown=user:user ml/ /app/ml/
+COPY --chown=user:user copilot/ /app/copilot/
 COPY --chown=user:user data/ /app/data/
 COPY --chown=user:user VERSION DEPLOY_SHA* /app/
 COPY --chown=user:user alembic.ini /app/alembic.ini

@@ -121,16 +121,16 @@ class BusSpec(_BaseSpecModel):
 class LineSpec(_BaseSpecModel):
     """Transmission line specification."""
 
-    line_id: int
-    from_bus_id: int = Field(validation_alias=AliasChoices("from_bus_id", "from"))
-    to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to"))
-    r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance"))
-    x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance"))
+    line_id: int = Field(validation_alias=AliasChoices("line_id", "branch_id", "id"))
+    from_bus_id: int = Field(validation_alias=AliasChoices("from_bus_id", "from_bus", "from"))
+    to_bus_id: int = Field(validation_alias=AliasChoices("to_bus_id", "to_bus", "to"))
+    r1: float = Field(default=0.01, validation_alias=AliasChoices("r1", "resistance", "r"))
+    x1: float = Field(default=0.05, validation_alias=AliasChoices("x1", "reactance", "x"))
     r0: float | None = None
     x0: float | None = None
     bshunt1: float = Field(
         default=0.02,
-        validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance"),
+        validation_alias=AliasChoices("bshunt1", "b1", "bshunt", "susceptance", "b"),
     )
     bshunt0: float | None = Field(default=None, validation_alias=AliasChoices("bshunt0", "b0"))
     rating_mva: float | None = None

@@ -99,10 +99,10 @@ def run_smoke_pipeline(base_url: str, ui_url: Optional[str] = None, api_key: Opt
     # -------------------------------------------------------------------------
     _log("Step 2/6: Fetching CSRF token...")
     status, csrf_body, csrf_headers = _request(f"{base_url}/api/v1/csrf/token")
-    if status != 200 or "csrf_token" not in csrf_body:
+    csrf_token = csrf_body.get("csrf_token") or csrf_body.get("token") if isinstance(csrf_body, dict) else None
+    if status != 200 or not csrf_token:
         _log(f"FAILED: /api/v1/csrf/token returned status {status}, body={csrf_body}")
         return False
-    csrf_token = csrf_body["csrf_token"]
     cookie_header = csrf_headers.get("Set-Cookie", "")
     _log(f"PASS: CSRF token acquired ({csrf_token[:8]}...)")
 
@@ -178,18 +178,17 @@ def run_smoke_pipeline(base_url: str, ui_url: Optional[str] = None, api_key: Opt
         "system_config": {
             "base_mva": 100.0,
             "buses": [
-                {"bus_id": 1, "name": "Bus-1", "base_kv": 115.0},
-                {"bus_id": 2, "name": "Bus-2", "base_kv": 13.8},
+                {"bus_id": 1, "name": "Bus-1", "base_kv": 115.0, "bus_type": "slack"},
+                {"bus_id": 2, "name": "Bus-2", "base_kv": 13.8, "bus_type": "pq", "load_power_real": 10.0},
             ],
-            "branches": [
+            "lines": [
                 {
-                    "branch_id": 1,
-                    "from_bus": 1,
-                    "to_bus": 2,
-                    "r": 0.01,
-                    "x": 0.05,
-                    "b": 0.0,
-                    "status": 1,
+                    "line_id": 1,
+                    "from_bus_id": 1,
+                    "to_bus_id": 2,
+                    "r1": 0.01,
+                    "x1": 0.05,
+                    "bshunt1": 0.0,
                 }
             ],
         },
