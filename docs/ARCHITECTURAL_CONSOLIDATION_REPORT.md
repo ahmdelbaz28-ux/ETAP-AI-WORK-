@@ -421,7 +421,13 @@ All relevant test suites were executed with JWT authentication configured. The e
     ```
     *Result:* **7 passed** (Verifies fail-closed gate rejection, parameter validation, positive merit-order dispatch, and PTDF line limits).
 
-**Total Verified Tests in Active Consolidation Harness:** **205 passed, 0 failed.**
+15. **Motor Starting Gated Pilot Suite (IEEE 399):**
+    ```powershell
+    pytest tests/test_motor_starting_acceptance.py tests/test_motor_starting_simulation.py -v
+    ```
+    *Result:* **10 passed** (Verifies fail-closed gate rejection, parameter validation, positive dynamic execution, and RK4 time-domain simulation).
+
+**Total Verified Tests in Active Consolidation Harness:** **215 passed, 0 failed.**
 
 ---
 

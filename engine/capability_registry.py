@@ -476,6 +476,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="motor_starting",
+            feature_flag="motor_starting",
             benchmark_status="PENDING",
             standards_scope="IEEE 399 (Motor dynamic starting)",
             validation_evidence="Motor starting unit test suite",

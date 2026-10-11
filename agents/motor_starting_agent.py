@@ -687,6 +687,12 @@ class MotorStartingAgent(BaseAgent):
                     **results,
                     "analysis_type": analysis_type,
                     "standards": self.standards,
+                    "provenance": {
+                        "source": task.parameters.get("source", "simulation"),
+                        "handler": "agents.motor_starting_agent.MotorStartingAgent",
+                        "standard": "IEEE 399",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

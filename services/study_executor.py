@@ -1008,6 +1008,14 @@ class StudyExecutor:
                     "optimal_power_flow", "Feature flag 'optimal_power_flow' is disabled"
                 )
 
+        if study_type == "motor_starting":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("motor_starting"):
+                raise SpecializedExecutionUnavailableError(
+                    "motor_starting", "Feature flag 'motor_starting' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key
