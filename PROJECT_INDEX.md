@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T08:32:17.767088+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T08:39:06.805712+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 935 |
 | Python | Functions | 835 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 277 |
-| Total | Tests | 3898 |
+| Test | Files | 278 |
+| Total | Tests | 3903 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -893,7 +893,7 @@ Encapsulates registration, life-cycle management, and c
 - **def** `get_agent_for_study()` (line 1597)
 - **def** `create_agent_registry()` (line 1608)
 
-#### 📄 `agents/renewable_agent.py` _35.4 KB_
+#### 📄 `agents/renewable_agent.py` _36.7 KB_
 > AhmedETAP - Renewable Integration Agent
 ===========================================================
 Solar PV and wind turbine integration analysis per
@@ -1727,25 +1727,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _18.6 KB_
+#### 📄 `api/feature_flags.py` _18.9 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 409)
-- **Class** `FeatureFlagListOut` (line 418)
-- **Class** `FeatureFlagPatch` (line 426)
+- **Class** `FeatureFlagOut` (line 415)
+- **Class** `FeatureFlagListOut` (line 424)
+- **Class** `FeatureFlagPatch` (line 432)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 295)
-- **def** `is_feature_enabled()` (line 300)
-- **def** `is_strict_feature_enabled()` (line 320)
-- **def** `get_disabled_studies()` (line 340)
-- **def** `get_flag_metadata()` (line 357)
-- **def** `evaluate_flag_with_rollout()` (line 388)
-- **async def** `list_feature_flags()` (line 481)
-- **async def** `get_feature_flag()` (line 500)
-- **async def** `update_feature_flag()` (line 523)
+- **def** `is_enabled()` (line 301)
+- **def** `is_feature_enabled()` (line 306)
+- **def** `is_strict_feature_enabled()` (line 326)
+- **def** `get_disabled_studies()` (line 346)
+- **def** `get_flag_metadata()` (line 363)
+- **def** `evaluate_flag_with_rollout()` (line 394)
+- **async def** `list_feature_flags()` (line 487)
+- **async def** `get_feature_flag()` (line 506)
+- **async def** `update_feature_flag()` (line 529)
 
   **API Routes:**
   - `GET /{key}`
@@ -2801,8 +2801,8 @@ Single source of tr
   - Methods: `is_production_eligible()`
 - **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 916)
-- **def** `get_capability_definition()` (line 926)
+- **def** `get_capability_registry()` (line 917)
+- **def** `get_capability_definition()` (line 927)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3383,7 +3383,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _63.3 KB_
+#### 📄 `services/study_executor.py` _63.7 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -5700,10 +5700,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| api-route | 92 |
 | ui-component | 280 |
 | ui-page | 61 |
+| api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
@@ -5947,6 +5947,7 @@ Provides
 | `test_registry_integrity_gate.py` | 5 | 0 | **5** |
 | `test_regression_fixes.py` | 0 | 9 | **22** |
 | `test_relays.py` | 0 | 5 | **50** |
+| `test_renewable_integration_acceptance.py` | 5 | 0 | **5** |
 | `test_reporting.py` | 0 | 6 | **31** |
 | `test_results_store.py` | 2 | 12 | **35** |
 | `test_router_completeness_gate.py` | 10 | 0 | **10** |
