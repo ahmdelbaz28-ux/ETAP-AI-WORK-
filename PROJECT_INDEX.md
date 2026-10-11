@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T19:49:13.513156+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T20:37:33.636532+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -5820,10 +5820,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
 | ui-component | 280 |
-| api-route | 92 |
 | python-module | 41 |
+| api-route | 92 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5835,7 +5835,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5850,12 +5850,12 @@ Provides
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
-| `gis_validation_electrical` | `gis_integration` | `api` |
+| `gis_validation_electrical` | `gis_integration` | — |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
 | `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
