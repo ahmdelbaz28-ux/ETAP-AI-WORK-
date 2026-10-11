@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T16:47:14.205099+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T17:08:27.782695+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,7 +10,7 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 393 |
+| Python | Files | 394 |
 | Python | Classes | 962 |
 | Python | Functions | 858 |
 | UI | Files (TSX/TS) | 240 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -1428,7 +1428,7 @@ corresp
 - **Class** `CoverageAnalyzer` (line 364)
   - Methods: `run()`
 
-#### 📄 `api/csrf.py` _11.1 KB_
+#### 📄 `api/csrf.py` _11.2 KB_
 > CSRF Protection for AhmedETAP Engineering Service API.
 
 Provides token-based CSRF protection for state-changing endpoints.
@@ -3295,7 +3295,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _91.5 KB_
+#### 📄 `services/execution_orchestrator.py` _91.7 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3322,7 +3322,7 @@ Coo
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 2133)
+- **def** `get_execution_orchestrator()` (line 2136)
 
 #### 📄 `services/execution_request.py` _16.9 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -4044,6 +4044,10 @@ Impl
 
 ### 📦 `copilot/`
 
+#### 📄 `copilot/__init__.py` _0.1 KB_
+> AhmedETAP Copilot Package.
+
+
 #### 📄 `copilot/mcp/__init__.py` _0.2 KB_
 > MCP Server — Engineering Copilot tool server.
 
@@ -4532,7 +4536,7 @@ Supports:
 - **Class** `MotorModel` (line 62)
   - Methods: `full_load_current()`, `starting_current()`, `starting_current_pu()`, `locked_rotor_current_pu()`, `running_current_pu()`, `acceleration_time()`, `voltage_dip_contribution()`, `calculate_starting_voltage_drop()`
 
-#### 📄 `core_model/specs.py` _22.3 KB_
+#### 📄 `core_model/specs.py` _22.4 KB_
 > Shared Pydantic spec models for power-system studies.
 
 These are the canonical request/response schemas for study execution.
@@ -5817,9 +5821,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | api-route | 92 |
+| ui-page | 61 |
 | python-module | 41 |
 | ui-component | 280 |
-| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -6338,7 +6342,7 @@ Provides
 
 | File | Size (KB) | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 5.6 KB | `b35c64b04502` |
+| `Dockerfile` | 5.7 KB | `82973426f2c8` |
 | `Dockerfile.engineering-service` | 4.7 KB | `b089e0c4259d` |
 | `Dockerfile.hf` | 3.7 KB | `edc59c0fec36` |
 | `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
