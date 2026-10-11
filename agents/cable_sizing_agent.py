@@ -623,9 +623,31 @@ class CableSizingAgent(BaseAgent):
         try:
             self.log_execution(f"Starting cable sizing analysis for task {task.task_id}")
 
+            if not task.parameters:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "INSUFFICIENT_ENGINEERING_INPUT: Cable sizing requires explicit engineering parameters. "
+                    "Synthetic or random defaults are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters  # shorthand
+
+            load_i = float(p.get("load_current_A", p.get("design_current_A", 200)))
+            sys_v = float(p.get("system_voltage_V", p.get("voltage_V", 400)))
 
             if analysis_type in ("ampacity", "full"):
                 results["ampacity"] = self.calculate_ampacity(
@@ -640,11 +662,11 @@ class CableSizingAgent(BaseAgent):
 
             if analysis_type in ("voltage_drop", "full"):
                 results["voltage_drop"] = self.calculate_voltage_drop(
-                    load_current_A=float(p.get("load_current_A", 200)),
+                    load_current_A=load_i,
                     cable_length_m=float(p.get("cable_length_m", 100)),
                     cross_section_mm2=int(p.get("cross_section_mm2", 70)),
                     conductor_material=p.get("conductor_material", "Cu"),
-                    system_voltage_V=float(p.get("system_voltage_V", 400)),
+                    system_voltage_V=sys_v,
                     power_factor=float(p.get("power_factor", 0.85)),
                     n_phases=int(p.get("n_phases", 3)),
                     frequency_Hz=float(p.get("frequency_Hz", 50)),
@@ -661,9 +683,9 @@ class CableSizingAgent(BaseAgent):
 
             if analysis_type in ("recommend", "full"):
                 results["recommendation"] = self.recommend_cable(
-                    load_current_A=float(p.get("load_current_A", 200)),
+                    load_current_A=load_i,
                     cable_length_m=float(p.get("cable_length_m", 100)),
-                    system_voltage_V=float(p.get("system_voltage_V", 400)),
+                    system_voltage_V=sys_v,
                     power_factor=float(p.get("power_factor", 0.85)),
                     conductor_material=p.get("conductor_material", "Cu"),
                     insulation=p.get("insulation", "XLPE"),
@@ -684,6 +706,12 @@ class CableSizingAgent(BaseAgent):
                     **results,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
+                    "provenance": {
+                        "handler": "agents.cable_sizing_agent.CableSizingAgent",
+                        "agent_key": "cable_sizing",
+                        "standard": "IEC 60364",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

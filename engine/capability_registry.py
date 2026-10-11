@@ -516,6 +516,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="cable_sizing",
+            feature_flag="cable_sizing",
             benchmark_status="PENDING",
             standards_scope="IEC 60364 (Ampacity, derating, and voltage drop)",
             validation_evidence="Cable sizing unit test suite",

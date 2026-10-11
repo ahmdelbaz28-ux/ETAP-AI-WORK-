@@ -1024,6 +1024,14 @@ class StudyExecutor:
                     "transient_stability", "Feature flag 'transient_stability' is disabled"
                 )
 
+        if study_type == "cable_sizing":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("cable_sizing"):
+                raise SpecializedExecutionUnavailableError(
+                    "cable_sizing", "Feature flag 'cable_sizing' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key

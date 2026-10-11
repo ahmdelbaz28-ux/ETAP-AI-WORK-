@@ -88,6 +88,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "alpha",
         "description": "OPF (economic dispatch) - experimental",
     },
+    "cable_sizing": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "Cable sizing per IEC 60364 (ampacity, derating, voltage drop) - PILOT fail-closed",
+        "rollout_percentage": 0,
+    },
     "data_import": {
         "enabled": False,
         "status": "beta",
