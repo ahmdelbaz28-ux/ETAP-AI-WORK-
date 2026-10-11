@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T10:48:41.683463+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T11:00:56.189399+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -3315,7 +3315,7 @@ Coo
 - **def** `set_execution_state_store()` (line 275)
 - **def** `get_execution_orchestrator()` (line 2133)
 
-#### 📄 `services/execution_request.py` _16.8 KB_
+#### 📄 `services/execution_request.py` _16.9 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3323,11 +3323,11 @@ Establishes:
 
 - **Class** `ExecutionRequest` (line 26)
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
-- **Class** `CanonicalExecutionResult` (line 209)
+- **Class** `CanonicalExecutionResult` (line 212)
   - Methods: `enforce_authoritative_boundary()`, `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 340)
+- **Class** `IEngineeringExecutor` (line 343)
   - Methods: `execute()`
-- **def** `is_authoritative_production_result()` (line 353)
+- **def** `is_authoritative_production_result()` (line 356)
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
 > MCP Health Probe Service
@@ -4493,7 +4493,7 @@ Supports:
 - **Class** `MotorModel` (line 62)
   - Methods: `full_load_current()`, `starting_current()`, `starting_current_pu()`, `locked_rotor_current_pu()`, `running_current_pu()`, `acceleration_time()`, `voltage_dip_contribution()`, `calculate_starting_voltage_drop()`
 
-#### 📄 `core_model/specs.py` _22.2 KB_
+#### 📄 `core_model/specs.py` _22.3 KB_
 > Shared Pydantic spec models for power-system studies.
 
 These are the canonical request/response schemas for study execution.
@@ -4514,7 +4514,7 @@ Both `api/studies.py` (HT
   - Methods: `validate_buses_count()`, `validate_base_mva()`
 - **Class** `StudyRequest` (line 373)
   - Methods: `normalize_study_request_input()`, `validate_parameters_count()`, `validate_etap_project_path()`, `validate_study_type()`
-- **Class** `StudyResult` (line 472)
+- **Class** `StudyResult` (line 476)
   - Methods: `sync_data_and_results()`, `to_canonical_dict()`
 
 #### 📄 `core_model/system.py` _7.6 KB_
@@ -5715,10 +5715,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
+| api-route | 92 |
+| ui-page | 61 |
 | python-module | 41 |
 | ui-component | 280 |
-| ui-page | 61 |
-| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -5747,7 +5747,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5758,7 +5758,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
