@@ -359,3 +359,21 @@ AhmedETAP Chat-First v3.0 introduces a unified conversational engineering worksp
   - Dual-control Maker-Checker enforcement on critical actions (HTTP 403 `MAKER_CHECKER_VIOLATION`).
   - Tenant isolation enforced strictly via `CurrentUser.tenant_id`.
 
+---
+
+## Live ETAP Network Auto-Draw & SCADA/ADMS Integrations (v3.1)
+
+Live drawing into ETAP DataHub etapAPI directly from existing SCADA/ADMS source projects (Zenon, project asset definitions, and CIM models).
+
+### Integration Modules & Contracts
+
+| Module | Files | Role & Standards | Feature Flag |
+|--------|-------|------------------|--------------|
+| **Zenon Network Export v1** | `integrations/zenon_network_export/contract.py`, `reader.py`, `mapping.py`, `config/zenon_field_mapping.yaml`, `scripts/zenon_export_collector.vba` | Strict Pydantic contract & reader for ABB/COPA-DATA zenon SCADA topology. Missing values flagged explicitly; zero guessing. | `zenon_import` (default: `False`) |
+| **ETAP REST Draw Element Expansion** | `etap_integration/etap_rest.py` | Expanded `ElementKind` & `_REQUIRED_PROPS` for bus, transformer, breaker, line, cable, load, generator, motor, capacitor, reactor, switch, fuse, relay. | `etap_rest_draw` (default: `False`) |
+| **Atomic Draw Plan Builder** | `etap_integration/draw_plan_builder.py` | Dependency ordering (buses → transformers → switchgear → lines/loads/generators), chunking `<= 50` items, pre-flight bus connectivity checks, atomic rollback across failed chunks via `delete_elements`. | `etap_rest_draw` |
+| **Dual-Control Project Draw Endpoint** | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | Maker-Checker gated endpoint parsing `project.system_config` ("adms_assets" / "zenon_network"), creating bounded `PendingAction` chunks. Admin approval required. | `etap_draw_full_network` (default: `False`) |
+| **Operational Post-Draw Verifier** | `etap_integration/post_draw_verifier.py` | Dispatches Load Flow study to `etap_worker_service` and verifies bus voltages against baseline within declared tolerance (default 2.0%). Failures flagged explicitly; offline workers report `BLOCKED`. | — |
+| **External ADMS Connectors (Abstract)** | `integrations/external_adms_connectors.py` | Abstract fail-closed interfaces for ArcFM / Feeder Services and Schneider Electric EcoStruxure ADMS / GRR. Proprietary contracts are not mocked; reports `BLOCKED`. | `arcfm_connector`, `adms_ecostruxure_connector` (default: `False`) |
+
+

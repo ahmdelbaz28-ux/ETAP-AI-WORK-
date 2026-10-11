@@ -158,6 +158,26 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "status": "alpha",
         "description": "Automatic ETAP drawing via DataHub etapAPI (dual-control, OFF by default)",
     },
+    "zenon_import": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "Zenon network export v1 parsing and IR conversion (fail-closed, OFF by default)",
+    },
+    "etap_draw_full_network": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "Full multi-element ETAP drawing from project assets (dual-control, OFF by default)",
+    },
+    "arcfm_connector": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "ArcFM / Feeder Services connector (abstract, fail-closed BLOCKED)",
+    },
+    "adms_ecostruxure_connector": {
+        "enabled": False,
+        "status": "alpha",
+        "description": "EcoStruxure ADMS / GRR connector (abstract, fail-closed BLOCKED)",
+    },
     "production_hardening": {
         "enabled": True,
         "status": "ga",

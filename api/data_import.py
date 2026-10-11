@@ -317,12 +317,24 @@ SUPPORTED_FORMATS: list[SupportedFormat] = [
         extensions=[".csv", ".tsv"],
         max_size_mb=10,
     ),
+    SupportedFormat(
+        id="zenon-network",
+        name="Zenon Network Export",
+        description="ABB/COPA-DATA zenon SCADA network export v1",
+        standard="Zenon Export v1",
+        extensions=[".znx", ".json"],
+        max_size_mb=10,
+    ),
 ]
 
 
 def _detect_format(filename: str) -> SupportedFormat:
     """Detect the format from the file extension."""
     name_lower = filename.lower()
+    for fmt in SUPPORTED_FORMATS:
+        if fmt.id == "zenon-network":
+            if name_lower.endswith(".znx") or ("zenon" in name_lower and name_lower.endswith(".json")):
+                return fmt
     for fmt in SUPPORTED_FORMATS:
         for ext in fmt.extensions:
             if name_lower.endswith(ext):
@@ -358,7 +370,7 @@ def _validate_magic_bytes(fmt_id: str, content: bytes) -> None:
 
     header_sample = content[:1024].lstrip(b"\xef\xbb\xbf \t\r\n")
 
-    if fmt_id in ("json", "etap-project"):
+    if fmt_id in ("json", "etap-project", "zenon-network"):
         if not header_sample.startswith((b"{", b"[")):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -782,6 +794,90 @@ def _cim_add_branch(elem: Any, branches: list[BranchRecord], warnings: list[str]
 
 
 # ---------------------------------------------------------------------------
+def _parse_zenon_network(
+    content: bytes,
+) -> tuple[list[BusRecord], list[BranchRecord], dict[str, Any], list[str]]:
+    """Parse a Zenon Network Export v1 JSON payload into BusRecord and BranchRecord lists."""
+    if not is_feature_enabled("zenon_import", default=False):
+        raise ValueError("Feature 'zenon_import' is disabled")
+
+    from integrations.zenon_network_export.reader import parse_zenon_export
+
+    res = parse_zenon_export(content)
+    if res.errors:
+        raise ValueError("; ".join(res.errors))
+
+    buses: list[BusRecord] = []
+    for b in res.contract.buses:
+        buses.append(
+            BusRecord(
+                id=b.id,
+                name=b.name,
+                voltage_kv=b.base_kv if b.base_kv is not None else b.kv,
+                type=(b.bus_type or "PQ").upper(),
+            )
+        )
+
+    branches: list[BranchRecord] = []
+    for line in res.contract.lines:
+        branches.append(
+            BranchRecord(
+                id=line.id,
+                from_bus=line.from_bus,
+                to_bus=line.to_bus,
+                type="LINE",
+                r_pu=line.r_pu,
+                x_pu=line.x_pu,
+                rating_mva=line.rating_mva,
+            )
+        )
+    for cable in res.contract.cables:
+        branches.append(
+            BranchRecord(
+                id=cable.id,
+                from_bus=cable.from_bus,
+                to_bus=cable.to_bus,
+                type="CABLE",
+                r_pu=cable.r_pu,
+                x_pu=cable.x_pu,
+                rating_mva=None,
+            )
+        )
+    for xf in res.contract.transformers:
+        branches.append(
+            BranchRecord(
+                id=xf.id,
+                from_bus=xf.from_bus,
+                to_bus=xf.to_bus,
+                type="TRANSFORMER",
+                r_pu=xf.r_pu,
+                x_pu=xf.x_pu,
+                rating_mva=xf.rating_mva,
+            )
+        )
+    for brk in res.contract.breakers:
+        branches.append(
+            BranchRecord(
+                id=brk.id,
+                from_bus=brk.from_bus or brk.bus or "",
+                to_bus=brk.to_bus or "",
+                type="BREAKER",
+                r_pu=None,
+                x_pu=None,
+                rating_mva=None,
+            )
+        )
+
+    metadata: dict[str, Any] = {
+        "project": res.contract.project.model_dump(),
+        "contract_version": res.contract.contract_version,
+        "extra_elements": res.extra_elements,
+        "raw_contract": res.contract.model_dump(),
+    }
+    return buses, branches, metadata, res.warnings
+
+
+# ---------------------------------------------------------------------------
 # Core parsing helper
 # ---------------------------------------------------------------------------
 
@@ -801,6 +897,8 @@ def _parse_model_content(
             buses, branches, metadata, warnings = _parse_csv(content)
         elif fmt.id in ("json", "etap-project"):
             buses, branches, metadata, warnings = _parse_json(content)
+        elif fmt.id == "zenon-network":
+            buses, branches, metadata, warnings = _parse_zenon_network(content)
         elif fmt.id == "psse-raw":
             buses, branches, metadata, warnings = _parse_psse_raw(content)
         elif fmt.id == "matpower":
@@ -866,6 +964,15 @@ async def preview_import(
         r"[\x00-\x1f\x7f]", "", file.filename.replace("..", "").replace("/", "_").replace("\\", "_")
     )
     fmt = _detect_format(safe_filename)
+
+    if fmt.id == "zenon-network" and not is_feature_enabled("zenon_import", default=False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FEATURE_DISABLED",
+                "message": "Zenon network import is disabled (flag zenon_import OFF).",
+            },
+        )
 
     # Stream read with 10 MiB limit
     chunks: list[bytes] = []
@@ -1080,6 +1187,15 @@ async def execute_import(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Import preview expired or not found",
+        )
+
+    if preview.get("format") == "zenon-network" and not is_feature_enabled("zenon_import", default=False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "FEATURE_DISABLED",
+                "message": "Zenon network import is disabled (flag zenon_import OFF).",
+            },
         )
 
     # Tenant isolation check

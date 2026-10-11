@@ -36,6 +36,8 @@ class ADMSAssetType(StrEnum):
     SWITCH = "SWITCH"
     TRANSFORMER = "TRANSFORMER"
     LINE = "LINE"
+    LOAD = "LOAD"
+    GENERATOR = "GENERATOR"
 
 
 @dataclass(frozen=True)

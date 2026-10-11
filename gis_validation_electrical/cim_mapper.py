@@ -146,6 +146,8 @@ def map_adms_to_cim(  # NOSONAR
             ADMSAssetType.FEEDER,
             ADMSAssetType.TRANSFORMER,
             ADMSAssetType.SWITCH,
+            ADMSAssetType.LOAD,
+            ADMSAssetType.GENERATOR,
         ):
             continue
 
@@ -155,18 +157,12 @@ def map_adms_to_cim(  # NOSONAR
             kind = "feeder"
         elif a.asset_type == ADMSAssetType.TRANSFORMER:
             kind = "transformer"
+        elif a.asset_type == ADMSAssetType.LOAD:
+            kind = "load"
+        elif a.asset_type == ADMSAssetType.GENERATOR:
+            kind = "generator"
         else:
             kind = "switch"
-
-        kind = (
-            "line"
-            if a.asset_type == ADMSAssetType.LINE
-            else (
-                "feeder"
-                if a.asset_type == ADMSAssetType.FEEDER
-                else ("transformer" if a.asset_type == ADMSAssetType.TRANSFORMER else "switch")
-            )
-        )
 
         ce_id = f"CE::{a.asset_id}"
         ce = CIMConductingEquipment(
@@ -177,6 +173,26 @@ def map_adms_to_cim(  # NOSONAR
         )
         conducting_equipment[ce_id] = ce
         traceability[ce_id] = a.asset_id
+
+        # Point terminals for Load / Generator
+        if a.asset_type in (ADMSAssetType.LOAD, ADMSAssetType.GENERATOR):
+            pt_geom = a.geometry or {}
+            pt_coords = pt_geom.get("coordinates")
+            if isinstance(pt_coords, list) and len(pt_coords) >= 2:
+                pt_key = (float(pt_coords[0]), float(pt_coords[1]))
+                node_id = sub_coords_to_node.get(pt_key)
+                if node_id:
+                    t_id = f"TE::{a.asset_id}::1"
+                    t = CIMTerminal(
+                        cim_id=t_id,
+                        equipment_id=ce_id,
+                        connectivity_node_id=f"CN::{node_id}",
+                        terminal_role="from",
+                        metadata=dict(a.metadata),
+                    )
+                    terminals[t.cim_id] = t
+                    traceability[t.cim_id] = a.asset_id
+            continue
 
         ep = endpoints_from_linestring(a.geometry or {})
         if not ep:

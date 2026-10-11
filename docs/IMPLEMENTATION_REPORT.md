@@ -347,10 +347,36 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 | Docker Build | Push to main | ✅ Passing |
 | Security Scan | Nightly + push | ✅ Passing |
 | E2E Tests | After build | ✅ Passing |
-| Stress Test | Scheduled | ✅ 685 reqs, 0 failures |
+---
+
+## Live ETAP Network Auto-Draw & SCADA/ADMS Integrations (Phase 7 Extension)
+
+### Objective
+
+Complete the "missing link" for live ETAP network drawing from existing project data (Zenon SCADA export, internal `core_model`, and DataHub etapAPI REST), building extend-only without breaking existing functionality or modifying signatures.
+
+### Deliverables
+
+| Deliverable | Description | File(s) | Status |
+|-------------|-------------|---------|--------|
+| **Zenon Contract & Reader** | Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, VBA export script, data_import format handler | `integrations/zenon_network_export/contract.py`, `reader.py`, `mapping.py`, `config/zenon_field_mapping.yaml`, `scripts/zenon_export_collector.vba`, `api/data_import.py` | ✅ Complete |
+| **ETAP REST Draw Expansion** | Expanded `ElementKind` & `_REQUIRED_PROPS` to cover full substation topology (13 element kinds) | `etap_integration/etap_rest.py` | ✅ Complete |
+| **Draw Plan Builder** | Deterministic dependency ordering (`buses -> transformers -> switchgear -> branches/loads`), chunking (`<=50`), pre-flight connectivity validation, and atomic multi-chunk rollback | `etap_integration/draw_plan_builder.py` | ✅ Complete |
+| **Dual-Control Endpoint** | Maker-Checker endpoint proposing bounded `PendingAction` chunks from `project.system_config`, requiring admin approval | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | ✅ Complete |
+| **Operational Verifier** | Post-draw Load Flow validation comparing bus voltages against baseline within declared tolerance | `etap_integration/post_draw_verifier.py` | ✅ Complete |
+| **CIM & Asset Expansion** | Extend-only support for `LOAD` and `GENERATOR` assets in CIM mapping; abstract fail-closed ArcFM and EcoStruxure ADMS connectors | `gis_integration/models.py`, `gis_validation_electrical/cim_mapper.py`, `integrations/external_adms_connectors.py` | ✅ Complete |
+
+### Test Evidence
+
+- `tests/test_zenon_network_import.py` — 14 tests covering contract validation, zero-guessing warnings, topological checks, and feature flag gating
+- `tests/test_etap_full_network_draw.py` — 13 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, and dual-control endpoint
+- `tests/test_export_cim.py` — 11 tests verifying backward compatibility of CIM export
+- `tests/test_etap_rest_draw.py` — 15 tests verifying base ETAP REST draw flow
+- `tests/test_data_import_parsing.py` — 20 tests verifying import parsing
 
 ---
 
 ## Conclusion
 
-All six implementation phases have been completed successfully. The AhmedETAP now provides a comprehensive, production-ready suite of power system analysis tools with full standards compliance, enterprise-grade security, and intelligent agent orchestration. The platform is ready for deployment and operational use.
+All implementation phases and the Live ETAP Network Auto-Draw extension have been completed successfully. The platform provides a verified, fail-closed, dual-control network drawing pipeline from live SCADA/ADMS exports into ETAP DataHub etapAPI with zero mocking in production and zero synthetic guessing.
+

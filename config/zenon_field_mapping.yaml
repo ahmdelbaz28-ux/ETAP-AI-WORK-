@@ -1,0 +1,87 @@
+# zenon Field Mapping Configuration (v1)
+# Maps zenon variable tags and schema attributes to AhmedETAP electrical model fields.
+# If a field is not listed here and not found in the standard contract,
+# an explicit warning is emitted (no silent synthetic guessing).
+
+version: "1.0.0"
+
+bus_mapping:
+  U_NOM: "base_kv"
+  UN: "base_kv"
+  NOMINAL_VOLTAGE: "base_kv"
+  V_MAG: "v_mag"
+  V_ANG: "v_ang"
+  VM: "v_mag"
+  VA: "v_ang"
+
+line_mapping:
+  R: "r_pu"
+  X: "x_pu"
+  B: "b_pu"
+  R1: "r_pu"
+  X1: "x_pu"
+  B1: "b_pu"
+  LENGTH: "length_km"
+  LEN_KM: "length_km"
+  I_MAX: "rating_a"
+  INOM: "rating_a"
+  S_MAX: "rating_mva"
+  SNOM: "rating_mva"
+
+cable_mapping:
+  R: "r_pu"
+  X: "x_pu"
+  B: "b_pu"
+  LENGTH: "length_km"
+  I_MAX: "rating_a"
+
+transformer_mapping:
+  SR: "rating_mva"
+  SNOM: "rating_mva"
+  UR1: "prim_kv"
+  UR2: "sec_kv"
+  VNOM_PRI: "prim_kv"
+  VNOM_SEC: "sec_kv"
+  UK: "x_pu"
+  URR: "r_pu"
+  TAP: "tap_ratio"
+
+breaker_mapping:
+  POS: "status"
+  STATE: "status"
+  STATUS: "status"
+  IR: "rated_a"
+  INOM: "rated_a"
+  IK: "breaking_capacity_ka"
+
+switch_mapping:
+  POS: "status"
+  STATE: "status"
+  IR: "rated_a"
+
+load_mapping:
+  P: "p_mw"
+  Q: "q_mvar"
+  PL: "p_mw"
+  QL: "q_mvar"
+  ACTIVE_POWER: "p_mw"
+  REACTIVE_POWER: "q_mvar"
+
+generator_mapping:
+  PG: "p_mw"
+  QG: "q_mvar"
+  SN: "rating_mva"
+  V_SET: "v_setpoint"
+  Q_MIN: "q_min"
+  Q_MAX: "q_max"
+
+motor_mapping:
+  KW: "rated_kw"
+  KV: "rated_kv"
+  PF: "pf"
+  EFF: "efficiency"
+
+relay_mapping:
+  PICKUP: "pickup_a"
+  TIME_DIAL: "time_dial"
+  CURVE: "curve_type"

@@ -87,12 +87,36 @@ class ETAPRestError(Exception):
         self.details = details or {}
 
 
-ElementKind = Literal["bus", "transformer", "breaker"]
+ElementKind = Literal[
+    "bus",
+    "transformer",
+    "breaker",
+    "line",
+    "cable",
+    "load",
+    "generator",
+    "motor",
+    "capacitor",
+    "reactor",
+    "switch",
+    "fuse",
+    "relay",
+]
 
 _REQUIRED_PROPS: dict[str, tuple[str, ...]] = {
     "bus": ("name", "base_kv"),
     "transformer": ("name", "from_bus", "to_bus"),
     "breaker": ("name", "from_bus", "to_bus"),
+    "line": ("name", "from_bus", "to_bus", "r_pu", "x_pu", "rating_mva"),
+    "cable": ("name", "from_bus", "to_bus"),
+    "load": ("name", "bus"),
+    "generator": ("name", "bus"),
+    "motor": ("name", "bus"),
+    "capacitor": ("name", "bus"),
+    "reactor": ("name", "from_bus", "to_bus"),
+    "switch": ("name", "from_bus", "to_bus"),
+    "fuse": ("name", "from_bus", "to_bus"),
+    "relay": ("name", "bus"),
 }
 
 _FORBIDDEN_GEOM_KEYS = ("x", "y", "coordinates", "pos", "position")
