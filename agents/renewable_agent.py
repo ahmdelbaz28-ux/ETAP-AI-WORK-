@@ -792,18 +792,37 @@ class RenewableAgent(BaseAgent):
                     execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                 )
 
-            analysis_type = task.parameters.get("analysis_type", "full")
-            results: dict[str, Any] = {}
             p = task.parameters
+            # Support parameter aliases and unit conversions (MW -> kW)
+            if "pv_capacity_mw" in p and "pv_dc_capacity_kw" not in p:
+                p["pv_dc_capacity_kw"] = float(p["pv_capacity_mw"]) * 1000.0
+            if "solar_capacity_mw" in p and "pv_dc_capacity_kw" not in p:
+                p["pv_dc_capacity_kw"] = float(p["solar_capacity_mw"]) * 1000.0
+            if "wind_capacity_mw" in p and "wind_rated_power_kw" not in p:
+                p["wind_rated_power_kw"] = float(p["wind_capacity_mw"]) * 1000.0
+
+            if "analysis_type" not in p:
+                has_solar = any(k in p for k in ("pv_dc_capacity_kw", "solar_capacity_kw", "pv_capacity_mw", "solar_capacity_mw"))
+                has_wind = any(k in p for k in ("wind_rated_power_kw", "wind_capacity_kw", "wind_capacity_mw"))
+                if has_solar and not has_wind:
+                    analysis_type = "solar_pv"
+                elif has_wind and not has_solar:
+                    analysis_type = "wind"
+                else:
+                    analysis_type = "full"
+            else:
+                analysis_type = p["analysis_type"]
+
+            results: dict[str, Any] = {}
             missing_inputs: list[str] = []
 
             # ── Validate mandatory inputs ──
             if analysis_type in ("solar_pv", "full"):
-                if "pv_dc_capacity_kw" not in p and "capacity_kw" not in p and "solar_capacity_kw" not in p:
+                if "pv_dc_capacity_kw" not in p and "capacity_kw" not in p and "solar_capacity_kw" not in p and "pv_capacity_mw" not in p:
                     missing_inputs.append("pv_dc_capacity_kw (or capacity_kw)")
 
             if analysis_type in ("wind", "full"):
-                if "wind_rated_power_kw" not in p and "capacity_kw" not in p and "wind_capacity_kw" not in p:
+                if "wind_rated_power_kw" not in p and "capacity_kw" not in p and "wind_capacity_kw" not in p and "wind_capacity_mw" not in p:
                     missing_inputs.append("wind_rated_power_kw (or capacity_kw)")
 
             if analysis_type in ("hosting_capacity",):
@@ -908,7 +927,7 @@ class RenewableAgent(BaseAgent):
                         "handler": "agents.renewable_agent.RenewableAgent",
                         "agent_key": "renewable_integration",
                         "standard": "IEEE 1547",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

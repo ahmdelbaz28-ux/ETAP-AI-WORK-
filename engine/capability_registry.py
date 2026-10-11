@@ -557,14 +557,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="renewable_integration",
             feature_flag="renewable_integration",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 1547-2018 (Distributed energy resource grid integration)",
-            validation_evidence="Renewable integration unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 1547-2018 Clause 5 & 6 / IEEE 1547.1-2020 / IEC 61400-12-1 (DER interconnection, measured solar PV/wind curves, voltage regulation, and ride-through)",
+            validation_evidence="IEEE 1547-2018 / IEC 61400-12-1 benchmark suite (measured NSRDB 24h solar profile, Vestas V80 wind curve, Category II compliance) in engine/benchmarks/ieee_cases.py and docs/validation/renewable_integration_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Distributed energy resource (PV/Wind) grid integration per IEEE 1547-2018 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Distributed energy resource (PV/Wind) grid integration per IEEE 1547-2018 (Production validated).",
         )
     )
     registry.register(

@@ -496,6 +496,8 @@ The following capability promotions have been certified against deterministic sc
 | `transient_stability` | `PRODUCTION` | IEEE 399-1997 Ch 8 / Anderson & Fouad (SMIB EAC & 3-Machine RK4 in `engine/benchmarks/ieee_cases.py`) | 0.0025% | `adee85aa9` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
 | `cable_sizing` | `PRODUCTION` | IEC 60364-5-52:2009 / IEC 60949:1988 (3 Real Feeder Loads: 50kW motor, 120kW MDB, 25kW Al HVAC in `engine/benchmarks/ieee_cases.py`) | 0.000% | `50314b58c` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
 | `earth_grid` | `PRODUCTION` | IEEE 80-2013 Annex B / IEEE 81-2012 (Substation Grounding Grid worked examples: 70x70m & 50x40m in `engine/benchmarks/ieee_cases.py`) | 0.000% | `9d215da9e` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
+| `renewable_integration` | `PRODUCTION` | IEEE 1547-2018 / IEC 61400-12-1 (Measured 24h Solar PV, Vestas V80 Wind Curve, Cat II Compliance in `engine/benchmarks/ieee_cases.py`) | 0.000% | `b1ac30b25` | 2026-10-11 | Eng. Ahmed Elbaz / Platform Core Team | **GO — CERTIFIED PRODUCTION** |
+
 
 
 

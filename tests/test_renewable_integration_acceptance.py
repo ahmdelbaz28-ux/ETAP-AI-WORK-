@@ -105,7 +105,7 @@ def test_renewable_integration_positive_execution_solar(renewable_system, monkey
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 1547"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.renewable_agent.RenewableAgent"
 
 
@@ -130,4 +130,31 @@ def test_renewable_integration_positive_execution_hosting_capacity(renewable_sys
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 1547"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
+
+
+def test_renewable_integration_production_eligibility():
+    """Verify that renewable_integration meets all deterministic production maturity criteria."""
+    from engine.capability_registry import LifecycleStatus, get_capability_registry
+
+    reg = get_capability_registry()
+    cap = reg.get("renewable_integration")
+    assert cap is not None
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEEE 1547" in cap.standards_scope
+    assert cap.is_production_eligible() is True
+
+
+def test_renewable_integration_scientific_benchmarks():
+    """Verify IEEE 1547 / IEC 61400-12-1 measured renewable integration benchmarks."""
+    from engine.benchmarks.ieee_cases import calculate_ieee_1547_renewable_benchmark
+
+    res = calculate_ieee_1547_renewable_benchmark()
+    assert res["all_passed"] is True
+    assert res["max_error_pct"] <= res["tolerance_limit_pct"]
+    assert res["case1_measured_solar_pv"]["passed"] is True
+    assert res["case2_wind_turbine_curve"]["passed"] is True
+    assert res["case3_ieee1547_compliance"]["passed"] is True
+

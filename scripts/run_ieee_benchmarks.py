@@ -31,6 +31,7 @@ from engine.benchmarks.ieee_cases import (
     calculate_ieee_399_motor_starting_benchmark,
     calculate_ieee_399_transient_stability_benchmark,
     calculate_ieee_519_harmonic_benchmarks,
+    calculate_ieee_1547_renewable_benchmark,
     calculate_ieee_1584_incident_energy_benchmark,
 )
 from load_flow.load_flow import LoadFlowSolver
@@ -297,6 +298,30 @@ def run_benchmarks() -> dict:
             "details": {
                 "case1_substation_70x70m": eg_res["case1_substation_70x70m"],
                 "case2_geometric_factors_50x40m": eg_res["case2_geometric_factors_50x40m"],
+            },
+        }
+    )
+
+    # 11. IEEE 1547 Renewable Energy Integration (Measured Solar PV, Wind Curve, Compliance)
+    t0 = time.perf_counter()
+    ren_res = calculate_ieee_1547_renewable_benchmark()
+    t_ren = time.perf_counter() - t0
+    passed_ren = bool(ren_res["all_passed"])
+    if not passed_ren:
+        overall_passed = False
+    benchmarks.append(
+        {
+            "name": "IEEE 1547 Renewable Integration (Measured PV, Wind Curve & Grid Compliance)",
+            "standard": "IEEE 1547-2018 / IEC 61400-12-1",
+            "cases_evaluated": 3,
+            "max_error_pct": ren_res["max_error_pct"],
+            "tolerance_limit_pct": ren_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_ren, 4),
+            "passed": passed_ren,
+            "details": {
+                "case1_measured_solar_pv": ren_res["case1_measured_solar_pv"],
+                "case2_wind_turbine_curve": ren_res["case2_wind_turbine_curve"],
+                "case3_ieee1547_compliance": ren_res["case3_ieee1547_compliance"],
             },
         }
     )
