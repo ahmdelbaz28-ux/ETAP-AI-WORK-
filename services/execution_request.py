@@ -144,7 +144,11 @@ class ExecutionRequest(BaseModel):
         }
         capability_id = alias_map.get(raw_capability_id, raw_capability_id)
         params = dict(getattr(study_request, "parameters", {}) or {})
+        if not params and hasattr(study_request, "params"):
+            params = dict(getattr(study_request, "params", {}) or {})
         system = getattr(study_request, "system", None) or getattr(study_request, "system_spec", None)
+        if system is None and "system" in params:
+            system = params.pop("system")
         if system is not None:
             from core_model.specs import SystemSpec
             if isinstance(system, SystemSpec):
@@ -163,33 +167,26 @@ class ExecutionRequest(BaseModel):
                     bid = getattr(first_bus, "bus_id", None) if not isinstance(first_bus, dict) else first_bus.get("bus_id")
                     if bid is not None:
                         params["bus_id"] = bid
-        elif capability_id == "arc_flash":
-            if "voltage_kv" not in params:
-                params["voltage_kv"] = 13.8
-            if "bolted_fault_current_ka" not in params:
-                params["bolted_fault_current_ka"] = 20.0
-            if "arc_duration_sec" not in params:
-                params["arc_duration_sec"] = 0.1
-            if "working_distance_mm" not in params:
-                params["working_distance_mm"] = 610.0
-        elif capability_id in ("protection_coordination", "coordination", "protection"):
-            if "upstream_relay_id" not in params:
-                params["upstream_relay_id"] = 1
-            if "downstream_relay_id" not in params:
-                params["downstream_relay_id"] = 2
+
         task_id = getattr(study_request, "task_id", None) or uuid.uuid4().hex
         pe_stamp = getattr(study_request, "pe_stamp", None)
+        dry_run = bool(getattr(study_request, "dry_run", False))
 
         input_payload: dict[str, Any] = {
             "parameters": params,
             "system": system,
             "use_etap": getattr(study_request, "use_etap", False),
             "etap_project_path": getattr(study_request, "etap_project_path", None),
+            "dry_run": dry_run,
         }
 
         approval = None
         if pe_stamp:
             approval = {"pe_stamp": pe_stamp, "approved": True}
+
+        exec_metadata = dict(metadata or {})
+        if dry_run:
+            exec_metadata["dry_run"] = True
 
         return cls(
             request_id=task_id,
@@ -201,7 +198,7 @@ class ExecutionRequest(BaseModel):
             approval_context=approval,
             trace_id=trace_id or uuid.uuid4().hex,
             idempotency_key=idempotency_key or uuid.uuid4().hex,
-            metadata=metadata or {},
+            metadata=exec_metadata,
         )
 
 
@@ -303,6 +300,7 @@ class CanonicalExecutionResult(BaseModel):
 
         return StudyResult(
             study_type=st,
+            status=self.status or ("completed" if legacy_success else "failed"),
             success=legacy_success,
             data=clean_data,
             results=clean_data,

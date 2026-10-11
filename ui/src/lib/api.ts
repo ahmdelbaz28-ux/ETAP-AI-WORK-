@@ -227,13 +227,15 @@ export async function runStudy(
   if (!params.system) {
     throw new Error("System configuration is required. Please provide a valid power system model.");
   }
+  const { system, ...parameters } = params;
   return request<StudyResult>("/api/v1/studies/run", {
     method: "POST",
     body: JSON.stringify({
       study_type: studyType,
-      params,
+      parameters,
+      params: parameters,
       dry_run: dryRun,
-      system: params.system,
+      system: system ?? params.system,
     }),
   });
 }

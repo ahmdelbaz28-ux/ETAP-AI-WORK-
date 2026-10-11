@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import time
+import uuid
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
@@ -216,6 +218,61 @@ async def _persist_study_result(
         )
 
 
+def _extract_trusted_identity(
+    req: Request | None,
+    user: Optional[CurrentUser],
+    api_key: str = "",
+    user_id: Optional[str] = None,
+    tenant_id: Optional[str] = None,
+) -> tuple[str, str, str]:
+    """Extract authenticated caller identity fail-closed.
+    Never trusts raw X-User-* or X-Tenant-ID headers without validated credential.
+    """
+    if user is not None and getattr(user, "user_id", None):
+        uid = str(user.user_id).strip()
+        tid = str(
+            user.tenant_id
+            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+            or ""
+        ).strip()
+        if not tid or tid.lower() in ("default", "none", "null"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Trusted tenant identity required for authenticated user execution",
+            )
+        urole = str(getattr(user, "role", "engineer"))
+        return uid, tid, urole
+
+    if api_key:
+        key_hash = hashlib.sha256(str(api_key).encode("utf-8")).hexdigest()[:12]
+        uid = user_id or f"service_principal:{key_hash}"
+        tid = (
+            tenant_id
+            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+            or (req.headers.get("x-tenant-id") if req and hasattr(req, "headers") else "")
+            or f"service_tenant_{key_hash[:8]}"
+        ).strip()
+        urole = "service_principal"
+        return uid, tid, urole
+
+    if user_id and tenant_id and (req is None or getattr(req, "state", None) is None):
+        return str(user_id).strip(), str(tenant_id).strip(), "engineer"
+
+    if auth_disabled_allowed() or not is_production_environment():
+        return (
+            user_id or "service_principal:dev_test",
+            tenant_id
+            or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
+            or "service_tenant_dev",
+            "engineer",
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required: valid JWT user session or trusted API-key service identity mandatory",
+    )
+
+
 @router.post(
     "/run",
     response_model=StudyResult,
@@ -260,49 +317,9 @@ async def run_study(
     _increment_counter("request")
 
     try:
-        # Determine trusted identity (fail-closed)
-        if user is not None and getattr(user, "user_id", None):
-            user_id = str(user.user_id).strip()
-            tenant_id = str(
-                user.tenant_id
-                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
-                or ""
-            ).strip()
-            if not tenant_id or tenant_id.lower() in ("default", "none", "null"):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Trusted tenant identity required for authenticated user execution",
-                )
-            user_role = str(getattr(user, "role", "engineer"))
-        elif _:
-            # Concrete service identity for authenticated API-key clients
-            key_hash = hashlib.sha256(str(_).encode("utf-8")).hexdigest()[:12]
-            user_id = user_id or f"service_principal:{key_hash}"
-            tenant_id = (
-                tenant_id
-                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
-                or (req.headers.get("x-tenant-id") if req and hasattr(req, "headers") else "")
-                or f"service_tenant_{key_hash[:8]}"
-            ).strip()
-            user_role = "service_principal"
-        elif user_id and tenant_id and (req is None or getattr(req, "state", None) is None):
-            # Programmatic direct invocation in tests / internal helpers
-            user_role = "engineer"
-        elif auth_disabled_allowed() or not is_production_environment():
-            # In local dev / test environments where auth is explicitly disabled, assign concrete dev identity
-            user_id = user_id or "service_principal:dev_test"
-            tenant_id = (
-                tenant_id
-                or (getattr(req.state, "tenant_id", "") if req and hasattr(req, "state") else "")
-                or "service_tenant_dev"
-            ).strip()
-            user_role = "engineer"
-        else:
-            # Unauthenticated authoritative execution in production: Fail Closed
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required: valid JWT user session or trusted API-key service identity mandatory",
-            )
+        user_id, tenant_id, user_role = _extract_trusted_identity(
+            req, user, _, user_id, tenant_id
+        )
 
         # Route execution strictly through Canonical Execution Orchestrator
         # (Semantic cache governance is owned by the orchestrator at Step 10b)
@@ -372,19 +389,189 @@ async def run_study(
         ) from e  # NOSONAR
 
 
+def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
+    """Lazy load Celery components for async study tasks."""
+    try:
+        from celery.result import AsyncResult
+
+        from worker.celery_app import app as celery_app
+        from worker.tasks import execute_engineering_study_task
+
+        return (AsyncResult, execute_engineering_study_task, celery_app)
+    except ImportError as e:
+        logger.warning("Celery not available: %s", e)
+        return (None, None, None)
+
+
+def _extract_caller_identity(
+    request: Request,
+    user: Optional[CurrentUser],
+) -> tuple[str, str, str]:
+    """Extract authoritative caller identity and tenant. Never trust raw unverified headers."""
+    if user is not None:
+        user_id = str(user.user_id).strip()
+        tenant_id = str(user.tenant_id).strip() or "default"
+        role = str(user.role).strip() or "engineer"
+        return user_id, tenant_id, role
+
+    # Service-principal authentication via valid API key
+    req_state = getattr(request, "state", None)
+    tenant_id = (getattr(req_state, "tenant_id", "") if req_state else "") or "service_tenant_async"
+    user_id = (getattr(req_state, "user_id", "") if req_state else "") or "service_principal:api_caller"
+    user_role = (getattr(req_state, "user_role", "") if req_state else "") or "admin"
+    return user_id, tenant_id, user_role
+
+
 @router.post(
     "/run_async",
-    response_model=StudyResult,
-    responses={400: {"description": "Invalid study request parameters"}},
+    responses={
+        200: {"description": "Task accepted for async processing"},
+        202: {"description": "Task accepted for async processing"},
+        400: {"description": "Invalid study request parameters"},
+        401: {"description": "Unauthorized — missing or invalid credentials"},
+        503: {"description": "Celery is not available for async processing"},
+    },
 )
 async def run_study_async(
-    req: Request,
     payload: StudyRequest,
+    req: Request,
     _: Annotated[str, Depends(get_api_key)],
     user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)],
-):
-    """Execute a study asynchronously or via batch execution routed through Canonical Execution Orchestrator (Phase 15)."""
-    return await run_study(req, payload, _, user)
+) -> dict[str, Any]:
+    """Execute an engineering study asynchronously using Celery with durable task ownership."""
+    _validate_study_request(payload)
+
+    _, execute_engineering_study_task, _ = get_celery_components()
+    if not execute_engineering_study_task:
+        raise HTTPException(
+            status_code=503, detail="Celery is not available for async processing"
+        )
+
+    user_id, tenant_id, user_role = _extract_caller_identity(req, user)
+    trace_id = getattr(req.state, "trace_id", None) or str(uuid.uuid4())
+
+    try:
+        task = execute_engineering_study_task.delay(
+            {
+                "study_type": payload.study_type,
+                "data": payload.model_dump(),
+                "trace_id": trace_id,
+                "user_id": user_id,
+                "tenant_id": tenant_id,
+                "user_role": user_role,
+                "request_timestamp": str(time.time()),
+            }
+        )
+    except Exception as exc:
+        logger.exception("Failed to enqueue async study task: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to enqueue async study task to message broker",
+        ) from exc
+
+    from services.task_ownership import record_task_ownership
+
+    record_task_ownership(
+        task_id=task.id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        user_role=user_role,
+        study_type=payload.study_type,
+        metadata={"trace_id": trace_id},
+    )
+
+    logger.info(
+        "Enqueued async study task_id=%s study_type=%s user_id=%s tenant_id=%s",
+        task.id,
+        payload.study_type,
+        user_id,
+        tenant_id,
+    )
+
+    return {
+        "task_id": task.id,
+        "status": "accepted",
+        "study_type": payload.study_type,
+        "submitted_at": str(time.time()),
+    }
+
+
+@router.get(
+    "/task_status/{task_id}",
+    responses={
+        400: {"description": "Bad request"},
+        401: {"description": "Unauthorized — missing or invalid credentials"},
+        403: {"description": "Forbidden — insufficient permissions"},
+        404: {"description": "Task not found"},
+        503: {"description": "Celery is not available"},
+    },
+)
+async def get_task_status(
+    task_id: str,
+    req: Request,
+    _: Annotated[str, Depends(get_api_key)],
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)],
+) -> dict[str, Any]:
+    """Get the status of an async study task with tenant isolation and ownership enforcement."""
+    user_id, tenant_id, user_role = _extract_caller_identity(req, user)
+
+    from services.task_ownership import (
+        TaskAccessForbiddenError,
+        TaskOwnershipError,
+        TaskTenantMismatchError,
+        verify_task_access,
+    )
+
+    try:
+        verify_task_access(
+            task_id=task_id,
+            caller_user_id=user_id,
+            caller_tenant_id=tenant_id,
+            caller_role=user_role,
+        )
+    except TaskTenantMismatchError as exc:
+        # Cross-tenant: non-disclosing 404
+        raise HTTPException(status_code=404, detail="Task not found") from exc
+    except TaskOwnershipError as exc:
+        # Missing ownership metadata: fail-closed 404
+        raise HTTPException(status_code=404, detail="Task not found") from exc
+    except TaskAccessForbiddenError as exc:
+        # Same tenant, not owner/admin: 403 Forbidden
+        raise HTTPException(status_code=403, detail="Insufficient permissions to access task") from exc
+
+    celeryasyncresult, _, celery_app = get_celery_components()
+    if not celeryasyncresult or not celery_app:
+        raise HTTPException(status_code=503, detail="Celery is not available")
+
+    try:
+        task_result = celeryasyncresult(task_id, app=celery_app)
+        response: dict[str, Any] = {
+            "task_id": task_id,
+            "status": task_result.status,
+            "result": None,
+        }
+
+        if task_result.ready():
+            if task_result.successful():
+                res = task_result.result
+                response["result"] = res
+                if isinstance(res, dict) and res.get("success") is False:
+                    response["status"] = "FAILURE"
+                    if "errors" in res:
+                        response["error"] = res["errors"]
+            elif task_result.failed():
+                response["status"] = "FAILURE"
+                response["error"] = str(task_result.info)
+
+        if task_result.status == "PROGRESS":
+            response["meta"] = task_result.info
+
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Error getting task status for %s: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 @router.get("/types")

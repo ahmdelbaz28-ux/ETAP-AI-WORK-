@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from unittest.mock import patch
+
 import pytest
 
 from core.exceptions import SpecializedExecutionUnavailableError

@@ -484,7 +484,7 @@ class TestBatteryStorageAgent:
             task_id="bess-unit",
             description="BESS analysis",
             study_types=[StudyType.LOAD_FLOW],
-            parameters={"technology": "LFP"},
+            parameters={"technology": "LFP", "demo": True},
         )
         result = await agent.execute(task)
         assert result.status == AgentStatus.COMPLETED
@@ -560,7 +560,11 @@ class TestSCADAAgent:
             task_id="scada-unit",
             description="SCADA data processing",
             study_types=[StudyType.LOAD_FLOW],
-            parameters={"measurements": []},
+            parameters={
+                "measurements": [],
+                "scada_server": "substation1.grid.local",
+                "simulate": True,
+            },
         )
         result = await agent.execute(task)
         assert result.status == AgentStatus.COMPLETED

@@ -782,12 +782,67 @@ class BatteryStorageAgent(BaseAgent):
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
+            allow_demo = bool(p.get("demo") or p.get("allow_synthetic") or p.get("synthetic"))
+            missing_inputs: list[str] = []
 
-            # Default load profile: synthetic commercial building
+            # ── Mandatory input validation: no silent synthetic substitution ──
+            if analysis_type in ("sizing", "full"):
+                if "load_profile_kw" not in p and not allow_demo:
+                    missing_inputs.append("load_profile_kw (or explicit demo=True)")
+
+            if analysis_type in ("dispatch", "full"):
+                if "energy_prices" not in p and not allow_demo:
+                    missing_inputs.append("energy_prices (or explicit demo=True)")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Battery storage analysis ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults are "
+                    "strictly forbidden in production unless explicitly requested with demo=True."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.OPTIMAL_POWER_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            # Load profile handling
             if "load_profile_kw" in p:
-                load_profile = np.array(p["load_profile_kw"], dtype=float)
+                lp_raw = p["load_profile_kw"]
+                if not isinstance(lp_raw, (list, tuple, np.ndarray)) or len(lp_raw) == 0:
+                    err_msg = "INSUFFICIENT_ENGINEERING_INPUT: load_profile_kw must be a non-empty sequence."
+                    return AgentResult(
+                        agent_name=self.agent_name,
+                        study_type=StudyType.OPTIMAL_POWER_FLOW,
+                        status=AgentStatus.FAILED,
+                        data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                        validation_errors=[err_msg],
+                        execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                    )
+                load_profile = np.array(lp_raw, dtype=float)
+                if not np.all(np.isfinite(load_profile)) or np.any(load_profile < 0):
+                    err_msg = "INSUFFICIENT_ENGINEERING_INPUT: load_profile_kw values must be finite and non-negative."
+                    return AgentResult(
+                        agent_name=self.agent_name,
+                        study_type=StudyType.OPTIMAL_POWER_FLOW,
+                        status=AgentStatus.FAILED,
+                        data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                        validation_errors=[err_msg],
+                        execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                    )
             else:
                 load_profile = self._default_load_profile()
+                results["load_profile_synthetic"] = True
 
             if analysis_type in ("sizing", "full"):
                 results["sizing"] = self.size_bess(
@@ -802,11 +857,33 @@ class BatteryStorageAgent(BaseAgent):
                 )
 
             if analysis_type in ("dispatch", "full"):
-                # Energy prices: synthetic TOU
+                # Energy prices handling
                 if "energy_prices" in p:
-                    prices = np.array(p["energy_prices"], dtype=float)
+                    ep_raw = p["energy_prices"]
+                    if not isinstance(ep_raw, (list, tuple, np.ndarray)) or len(ep_raw) == 0:
+                        err_msg = "INSUFFICIENT_ENGINEERING_INPUT: energy_prices must be a non-empty sequence."
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.OPTIMAL_POWER_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                        )
+                    prices = np.array(ep_raw, dtype=float)
+                    if not np.all(np.isfinite(prices)):
+                        err_msg = "INSUFFICIENT_ENGINEERING_INPUT: energy_prices values must be finite."
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.OPTIMAL_POWER_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                        )
                 else:
                     prices = self._default_energy_prices(len(load_profile))
+                    results["energy_prices_synthetic"] = True
 
                 strategy = p.get("dispatch_strategy", "arbitrage")
                 bess_power = float(
@@ -877,6 +954,9 @@ class BatteryStorageAgent(BaseAgent):
                 status=AgentStatus.COMPLETED,
                 data={
                     **results,
+                    "authoritative": not allow_demo,
+                    "synthetic": allow_demo,
+                    "demo_mode": allow_demo,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
                     "provenance": {
@@ -884,6 +964,8 @@ class BatteryStorageAgent(BaseAgent):
                         "agent_key": "battery_storage",
                         "standard": "IEC 62933",
                         "lifecycle": "pilot",
+                        "authoritative": not allow_demo,
+                        "synthetic": allow_demo,
                     },
                 },
             )

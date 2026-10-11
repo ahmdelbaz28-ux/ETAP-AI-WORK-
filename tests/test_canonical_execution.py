@@ -1224,6 +1224,7 @@ async def test_real_agent_executor_stability_and_expert():
         tenant_id="tenant_agent_real",
         user_id="engineer_alice",
         user_role="engineer",
+        metadata={"pilot_opt_in": True},
         input={
             "system": _REAL_TEST_SYSTEM,
             "parameters": {
@@ -1270,6 +1271,7 @@ async def test_real_agent_executor_failure_propagation():
         tenant_id="tenant_agent_fail",
         user_id="engineer_alice",
         user_role="engineer",
+        metadata={"pilot_opt_in": True},
         input={
             "system": _REAL_TEST_SYSTEM,
             "parameters": {
@@ -1515,4 +1517,105 @@ def test_authoritative_production_result_provenance_enforced():
     )
     assert is_authoritative_production_result(non_auth_res) is False
     assert non_auth_res.authoritative is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_rejects_pilot_when_flag_off_pre_agent():
+    """PILOT capability with feature flag OFF is rejected pre-agent by orchestrator.execute()."""
+    from unittest.mock import patch
+
+    orchestrator = ExecutionOrchestrator()
+    request = ExecutionRequest(
+        capability_id="digital_twin",
+        tenant_id="tenant_p2",
+        user_id="user_p2",
+        input={"system": _MOCK_SYSTEM_SPEC, "telemetry": {"v": 1.0}},
+    )
+    with patch("api.feature_flags.is_strict_feature_enabled", return_value=False):
+        res = await orchestrator.execute(request)
+        assert res.success is False
+        assert res.status == "rejected"
+        assert "PILOT_FEATURE_FLAG_DISABLED" in res.errors[0] or "pilot" in res.errors[0].lower()
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_rejects_disabled_even_when_flag_on():
+    """DISABLED capability is strictly rejected even if its feature flag is turned ON."""
+    from unittest.mock import patch
+
+    orchestrator = ExecutionOrchestrator()
+    request = ExecutionRequest(
+        capability_id="generative_design",
+        tenant_id="tenant_p2",
+        user_id="user_p2",
+        input={"system": _MOCK_SYSTEM_SPEC},
+    )
+    # Even if feature flag is forced True, DISABLED must fail closed
+    with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+        res = await orchestrator.execute(request)
+        assert res.success is False
+        assert res.status == "rejected"
+        assert "CAPABILITY_DISABLED" in res.errors[0] or "disabled" in res.errors[0].lower()
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_rejects_internal_on_public_user_paths():
+    """INTERNAL capability is rejected when called by non-internal/public roles."""
+    from engine.capability_registry import CapabilityDefinition, get_capability_registry
+
+    reg = get_capability_registry()
+    # Register a temporary internal capability definition
+    reg.register(
+        CapabilityDefinition(
+            capability_id="internal_test_tool",
+            study_type="internal_test_tool",
+            executor_kind=ExecutorKind.NATIVE,
+            handler="run_test",
+            lifecycle_status=LifecycleStatus.INTERNAL,
+            standards_scope="Internal tooling",
+            validation_evidence="Unit tests",
+            production_supported=False,
+        )
+    )
+
+    orchestrator = ExecutionOrchestrator()
+    # Public engineer role
+    request = ExecutionRequest(
+        capability_id="internal_test_tool",
+        tenant_id="tenant_p2",
+        user_id="user_p2",
+        user_role="engineer",
+        input={"system": _MOCK_SYSTEM_SPEC},
+    )
+    res = await orchestrator.execute(request)
+    assert res.success is False
+    assert res.status == "rejected"
+    assert "CAPABILITY_INTERNAL_RESTRICTED" in res.errors[0]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_executes_eligible_production_capability():
+    """Eligible PRODUCTION capability passes lifecycle gate and executes."""
+    valid_system = {
+        "base_mva": 100.0,
+        "buses": [
+            {"bus_id": 1, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "slack", "base_kv": 11.0},
+            {"bus_id": 2, "voltage_magnitude": 1.0, "voltage_angle": 0.0, "bus_type": "pq", "base_kv": 11.0},
+        ],
+        "lines": [
+            {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05, "bshunt1": 0.0},
+        ],
+    }
+    orchestrator = ExecutionOrchestrator()
+    request = ExecutionRequest(
+        capability_id="load_flow",
+        tenant_id="tenant_p2",
+        user_id="user_p2",
+        user_role="engineer",
+        input={"system": valid_system, "parameters": {"max_iter": 20, "tol": 1e-4}},
+    )
+    res = await orchestrator.execute(request)
+    assert res.success is True
+    assert res.status == "completed"
+
 

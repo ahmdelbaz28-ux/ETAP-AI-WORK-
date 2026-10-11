@@ -517,14 +517,72 @@ class MotorStartingAgent(BaseAgent):
         self.status = AgentStatus.RUNNING
 
         try:
-            self.log_execution(f"Starting motor starting analysis for task {task.task_id}")
+            if not task.parameters:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "INSUFFICIENT_ENGINEERING_INPUT: Motor starting analysis requires explicit engineering parameters. "
+                    "Synthetic or random defaults are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
+            p = task.parameters
+            missing_inputs: list[str] = []
+
+            # ── Validate mandatory inputs ──
+            if "motor_hp" not in p and "rated_hp" not in p and "motor_kw" not in p:
+                missing_inputs.append("motor_hp (or motor_kw)")
+            if "voltage_v" not in p and "rated_voltage_v" not in p and "voltage_V" not in p:
+                missing_inputs.append("voltage_v")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Motor starting analysis ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             # Common parameters
-            motor_hp = float(task.parameters.get("motor_hp", 100.0))
-            voltage_v = float(task.parameters.get("voltage_v", 460.0))
+            motor_hp = float(p.get("motor_hp", p.get("rated_hp", float(p.get("motor_kw", 0)) * 1.34102 if "motor_kw" in p else 0)))
+            voltage_v = float(p.get("voltage_v", p.get("rated_voltage_v", p.get("voltage_V", 0))))
+
+            if motor_hp <= 0 or voltage_v <= 0:
+                self.status = AgentStatus.FAILED
+                err_msg = "INSUFFICIENT_ENGINEERING_INPUT: motor_hp and voltage_v must be > 0."
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
             nema_code = task.parameters.get("nema_code", "F")
             starting_method = task.parameters.get("starting_method", "DOL")
             fla_a = task.parameters.get("fla_a")

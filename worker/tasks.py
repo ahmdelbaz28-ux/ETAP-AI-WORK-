@@ -72,6 +72,17 @@ def execute_engineering_study_task(self, study_data: dict):
 
         logger.info("Completed engineering study: %s", study_type)
 
+        if not getattr(result, "success", False):
+            current_task.update_state(
+                state="FAILURE",
+                meta={
+                    "status": "Study failed",
+                    "error": getattr(result, "errors", ["Unknown study failure"]),
+                    "result": result.model_dump(),
+                },
+            )
+            return result.model_dump()
+
         current_task.update_state(
             state="SUCCESS",
             meta={

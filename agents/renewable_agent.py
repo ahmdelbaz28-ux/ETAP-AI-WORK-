@@ -795,9 +795,45 @@ class RenewableAgent(BaseAgent):
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
+            missing_inputs: list[str] = []
 
-            pv_dc_kw = float(p.get("pv_dc_capacity_kw", p.get("capacity_kw", 500)))
-            pv_ac_kw = float(p.get("pv_ac_capacity_kw", pv_dc_kw * 0.85 if "capacity_kw" in p else 400))
+            # ── Validate mandatory inputs ──
+            if analysis_type in ("solar_pv", "full"):
+                if "pv_dc_capacity_kw" not in p and "capacity_kw" not in p and "solar_capacity_kw" not in p:
+                    missing_inputs.append("pv_dc_capacity_kw (or capacity_kw)")
+
+            if analysis_type in ("wind", "full"):
+                if "wind_rated_power_kw" not in p and "capacity_kw" not in p and "wind_capacity_kw" not in p:
+                    missing_inputs.append("wind_rated_power_kw (or capacity_kw)")
+
+            if analysis_type in ("hosting_capacity",):
+                if "feeder_capacity_kva" not in p and "feeder_head_kva" not in p:
+                    missing_inputs.append("feeder_capacity_kva")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Renewable energy analysis ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            pv_dc_kw = float(p.get("pv_dc_capacity_kw", p.get("capacity_kw", p.get("solar_capacity_kw", 0))))
+            pv_ac_kw = float(p.get("pv_ac_capacity_kw", pv_dc_kw * 0.85 if pv_dc_kw > 0 else 0))
 
             if analysis_type in ("solar_pv", "full"):
                 pv_losses = PVSystemLossConfig(

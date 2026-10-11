@@ -642,12 +642,72 @@ class CableSizingAgent(BaseAgent):
                     execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                 )
 
-            analysis_type = task.parameters.get("analysis_type", "full")
-            results: dict[str, Any] = {}
             p = task.parameters  # shorthand
+            if "analysis_type" not in p:
+                if "cross_section_mm2" in p and "fault_current_kA" in p and "load_current_A" not in p:
+                    analysis_type = "short_circuit"
+                else:
+                    analysis_type = "full"
+            else:
+                analysis_type = p["analysis_type"]
+            results: dict[str, Any] = {}
+            missing_inputs: list[str] = []
+
+            # ── Validate mandatory engineering parameters ──
+            if analysis_type in ("voltage_drop", "recommend", "full"):
+                if "load_current_A" not in p and "design_current_A" not in p:
+                    missing_inputs.append("load_current_A (or design_current_A)")
+                if "cable_length_m" not in p:
+                    missing_inputs.append("cable_length_m")
+                if "system_voltage_V" not in p and "voltage_V" not in p:
+                    missing_inputs.append("system_voltage_V (or voltage_V)")
+
+            if analysis_type in ("ampacity", "short_circuit"):
+                if "cross_section_mm2" not in p:
+                    missing_inputs.append("cross_section_mm2")
+
+            if analysis_type in ("short_circuit",):
+                if "fault_current_kA" not in p:
+                    missing_inputs.append("fault_current_kA")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Cable sizing ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             load_i = float(p.get("load_current_A", p.get("design_current_A", 200)))
             sys_v = float(p.get("system_voltage_V", p.get("voltage_V", 400)))
+            cable_l = float(p.get("cable_length_m", 100))
+
+            if load_i <= 0 or sys_v <= 0 or cable_l <= 0:
+                self.status = AgentStatus.FAILED
+                err_msg = "INSUFFICIENT_ENGINEERING_INPUT: load_current_A, system_voltage_V, and cable_length_m must all be > 0."
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             if analysis_type in ("ampacity", "full"):
                 results["ampacity"] = self.calculate_ampacity(
@@ -663,7 +723,7 @@ class CableSizingAgent(BaseAgent):
             if analysis_type in ("voltage_drop", "full"):
                 results["voltage_drop"] = self.calculate_voltage_drop(
                     load_current_A=load_i,
-                    cable_length_m=float(p.get("cable_length_m", 100)),
+                    cable_length_m=cable_l,
                     cross_section_mm2=int(p.get("cross_section_mm2", 70)),
                     conductor_material=p.get("conductor_material", "Cu"),
                     system_voltage_V=sys_v,

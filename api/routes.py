@@ -99,9 +99,6 @@ from api.websocket import scada_websocket_endpoint
 from api.zip_generator_config import router as zip_generator_config_router
 from core.bootstrap import lifespan, logger
 from core.tracing import get_tracer
-from services.study_service import (
-    StudyRequest,
-)
 
 # ─── Shared format constants ────────────────────────────────────────────────
 # Imported from api._messages (SonarCloud python:S1192 — consolidated).
@@ -596,122 +593,7 @@ def get_celery_components() -> tuple[Any | None, Any | None, Any | None]:
         return _celery_cache
 
 
-@app.post(
-    "/api/v1/studies/run_async",
-    responses={
-        400: {"description": "Bad request"},
-        401: {"description": "Unauthorized — missing or invalid API key"},
-        500: {"description": MSG_INTERNAL_ERROR},
-    },
-)
-async def run_study_async(study_request: StudyRequest, request: Request) -> dict[str, Any]:
-    """Execute an engineering study asynchronously using Celery."""
-    _require_api_key(request)  # Add authentication check
 
-    _, execute_engineering_study_task, _ = (
-        get_celery_components()
-    )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-    if not execute_engineering_study_task:
-        raise HTTPException(
-            status_code=500, detail="Celery is not available for async processing"
-        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-
-    try:
-        # Send the task to Celery queue - using getattr to avoid Pylance type checking errors
-
-        trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
-        tenant_id = (
-            getattr(request.state, "tenant_id", "")
-            or request.headers.get("x-tenant-id")
-            or "service_tenant_async"
-        )
-        user_id = (
-            getattr(request.state, "user_id", "")
-            or request.headers.get("x-user-id")
-            or request.headers.get("x-caller-id")
-            or "service_principal:api_caller"
-        )
-        user_role = (
-            getattr(request.state, "user_role", "")
-            or request.headers.get("x-user-role")
-            or "engineer"
-        )
-        task = execute_engineering_study_task.delay(
-            {
-                "study_type": study_request.study_type,
-                "data": study_request.model_dump(),
-                "trace_id": trace_id,
-                "user_id": user_id,
-                "tenant_id": tenant_id,
-                "user_role": user_role,
-                "request_timestamp": str(time.time()),
-            },
-        )
-
-        logger.info(f"Started async study execution with task_id: {task.id}")
-
-        return {
-            "task_id": task.id,
-            "status": "accepted",
-            "study_type": study_request.study_type,
-            "submitted_at": str(time.time()),
-        }
-    except Exception as e:
-        logger.exception("Error submitting async study: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=MSG_INTERNAL_ERROR
-        ) from e  # SECURITY AUDIT S-23
-
-
-@app.get(
-    "/api/v1/studies/task_status/{task_id}",
-    responses={
-        400: {"description": "Bad request"},
-        401: {"description": "Unauthorized — missing or invalid API key"},
-        404: {"description": "Task not found"},
-        500: {"description": MSG_INTERNAL_ERROR},
-    },
-)
-async def get_task_status(task_id: str, request: Request) -> dict[str, Any]:
-    """Get the status of an async study task."""
-    _require_api_key(request)  # Add authentication check
-
-    (
-        celeryasyncresult,
-        _,
-        celery_app,
-    ) = (  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-        get_celery_components()
-    )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-
-    if not celeryasyncresult or not celery_app:
-        raise HTTPException(
-            status_code=500, detail="Celery is not available"
-        )  # NOSONAR HTTPException responses will be documented in API refactoring sprint
-
-    try:
-        # Using the retrieved AsyncResult class to create an instance
-        task_result = celeryasyncresult(task_id, app=celery_app)
-
-        response = {"task_id": task_id, "status": task_result.status, "result": None}
-
-        if task_result.ready():
-            if task_result.successful():
-                response["result"] = task_result.result
-            elif task_result.failed():
-                response["error"] = str(task_result.info)
-
-        # If task is in progress, get progress info
-        if task_result.status == "PROGRESS":
-            response["meta"] = task_result.info
-
-        return response
-    except Exception as e:
-        logger.exception("Error getting task status: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=MSG_INTERNAL_ERROR
-        ) from e  # SECURITY AUDIT S-23
 
 
 @app.websocket("/ws/scada/live")

@@ -285,6 +285,8 @@ class SCADAAgent(BaseAgent):
             "protocol": protocol,
             "timeout_ms": timeout_ms,
             "connected_at": datetime.now(UTC).isoformat() if success else None,
+            "simulated": True,
+            "authoritative": False,
         }
 
     # ------------------------------------------------------------------
@@ -869,11 +871,68 @@ class SCADAAgent(BaseAgent):
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
+            missing_inputs: list[str] = []
+
+            # ── Check if caller demanded live physical integration ──
+            if p.get("require_live") or p.get("live_required") or p.get("mode") == "live":
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "REAL_INTEGRATION_UNAVAILABLE: Physical IEC 61850 substation MMS connection "
+                    "is unavailable in the current runtime environment. Live success cannot be reported."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={"error_code": "REAL_INTEGRATION_UNAVAILABLE", "message": err_msg},
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            # ── Mandatory input validation ──
+            if analysis_type in ("connect", "full"):
+                server_param = p.get("scada_server", p.get("server"))
+                if not server_param or not str(server_param).strip():
+                    if not p.get("demo") and not p.get("simulate"):
+                        missing_inputs.append("scada_server")
+                port_param = p.get("scada_port", p.get("port", 102))
+                try:
+                    port_int = int(port_param)
+                    if port_int <= 0 or port_int > 65535:
+                        missing_inputs.append("scada_port must be between 1 and 65535")
+                except (ValueError, TypeError):
+                    missing_inputs.append("scada_port must be an integer")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: SCADA integration ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
+            server_name = p.get("scada_server", p.get("server", "scada.simulated.local"))
+            port_val = int(p.get("scada_port", p.get("port", 102)))
 
             if analysis_type in ("connect", "full"):
                 results["connection"] = self.connect_scada(
-                    server=p.get("scada_server", "scada.local"),
-                    port=int(p.get("scada_port", 102)),
+                    server=server_name,
+                    port=port_val,
                     protocol=p.get("scada_protocol", "IEC61850"),
                     timeout_ms=int(p.get("timeout_ms", 5000)),
                 )
@@ -881,7 +940,7 @@ class SCADAAgent(BaseAgent):
             if analysis_type in ("read", "full"):
                 conn_id = p.get(
                     "connection_id",
-                    f"{p.get('scada_server', 'scada.local')}:{p.get('scada_port', 102)}",
+                    f"{server_name}:{port_val}",
                 )
                 results["measurements"] = self.read_measurements(
                     connection_id=conn_id,
@@ -947,6 +1006,9 @@ class SCADAAgent(BaseAgent):
                 status=AgentStatus.COMPLETED,
                 data={
                     **results,
+                    "authoritative": False,
+                    "simulated": True,
+                    "live_connection": False,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
                     "provenance": {
@@ -954,6 +1016,8 @@ class SCADAAgent(BaseAgent):
                         "agent_key": "scada",
                         "standard": "IEC 61850",
                         "lifecycle": "pilot",
+                        "authoritative": False,
+                        "simulated": True,
                     },
                 },
             )

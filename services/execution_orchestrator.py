@@ -449,6 +449,34 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                 request.capability_id,
                 f"No agent registered for key '{agent_key}' in canonical agent registry",
             )
+        # Defense-in-depth: Validate lifecycle & feature flag before agent dispatch
+        if cap:
+            cap_status = (
+                cap.lifecycle_status.value
+                if isinstance(cap.lifecycle_status, LifecycleStatus)
+                else str(cap.lifecycle_status).lower()
+            )
+            if cap_status in ("disabled", "unavailable"):
+                raise SpecializedExecutionUnavailableError(
+                    request.capability_id,
+                    f"Capability '{request.capability_id}' is {cap_status.upper()} in capability registry",
+                )
+            if cap_status == "pilot" and cap.feature_flag:
+                pilot_opt_in = bool(
+                    (request.metadata or {}).get("pilot_opt_in")
+                    or (request.metadata or {}).get("allow_pilot")
+                    or (isinstance(request.input, dict) and request.input.get("pilot_opt_in"))
+                    or str(request.execution_policy or "").lower() in ("pilot", "experimental", "allow_pilot")
+                    or str(request.provider_policy or "").lower() in ("pilot", "experimental")
+                )
+                if not pilot_opt_in:
+                    from api.feature_flags import is_strict_feature_enabled
+
+                    if not is_strict_feature_enabled(cap.feature_flag):
+                        raise SpecializedExecutionUnavailableError(
+                            request.capability_id,
+                            f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled",
+                        )
 
         params = request.get_parameters()
         system = request.get_system()
@@ -1215,76 +1243,7 @@ class ExecutionOrchestrator:
                 raise_on_error=raise_on_error,
             )
 
-        # ── 4. Validate Lifecycle State ──────────────────────────────────────
-        status_str = (
-            cap.lifecycle_status.value
-            if isinstance(cap.lifecycle_status, LifecycleStatus)
-            else str(cap.lifecycle_status).lower()
-        )
-
-        if status_str == "disabled":
-            # Check if gated by feature flag
-            flag_enabled = False
-            if cap.feature_flag:
-                try:
-                    from api.feature_flags import is_strict_feature_enabled
-
-                    flag_enabled = is_strict_feature_enabled(cap.feature_flag)
-                except Exception:
-                    flag_enabled = False
-            if not flag_enabled:
-                exc = SpecializedExecutionUnavailableError(
-                    request.capability_id,
-                    f"Capability '{request.capability_id}' is disabled by feature flag '{cap.feature_flag}'",
-                )
-                if raise_on_error:
-                    raise exc
-                return self._build_rejection(
-                    request,
-                    reason="CAPABILITY_DISABLED",
-                    message=str(exc),
-                    cap=cap,
-                    raise_on_error=False,
-                )
-        elif status_str == "unavailable":
-            exc = SpecializedExecutionUnavailableError(
-                request.capability_id,
-                f"Specialized execution backend is unavailable for capability '{request.capability_id}'",
-            )
-            if raise_on_error:
-                raise exc
-            return self._build_rejection(
-                request,
-                reason="CAPABILITY_UNAVAILABLE",
-                message=str(exc),
-                cap=cap,
-                raise_on_error=False,
-            )
-
-        # ── 4b. Enforce Deterministic Production Maturity Gate ────────────────
-        is_prod_status = (status_str == "production")
-        caller_demands_prod = (
-            bool(request.metadata.get("demand_production_certification", False))
-            or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
-        )
-        if is_prod_status or caller_demands_prod:
-            is_eligible = getattr(cap, "is_production_eligible", lambda: False)()
-            if not is_eligible:
-                err_msg = (
-                    f"Capability '{request.capability_id}' fails production maturity criteria: "
-                    f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
-                    f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
-                    f"Production execution refused."
-                )
-                return self._build_rejection(
-                    request,
-                    reason="PRODUCTION_MATURITY_GATE_REJECTED",
-                    message=err_msg,
-                    cap=cap,
-                    raise_on_error=raise_on_error,
-                )
-
-        # ── 5. Validate Authorization ────────────────────────────────────────
+        # ── 4. Validate Authorization ────────────────────────────────────────
         if cap.authorization_policy:
             auth_policy = str(cap.authorization_policy).lower().strip()
             raw_role = getattr(request, "user_role", None) or (request.metadata or {}).get(
@@ -1344,7 +1303,7 @@ class ExecutionOrchestrator:
                     raise_on_error=raise_on_error,
                 )
 
-        # ── 6. Validate Approval Requirements ────────────────────────────────
+        # ── 5. Validate Approval Requirements ────────────────────────────────
         if cap.approval_policy in ("maker_checker", "dual_control"):
             approval = request.approval_context or {}
             if not approval.get("approved"):
@@ -1363,6 +1322,134 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
+
+        # ── 6. Validate Lifecycle State ──────────────────────────────────────
+        status_str = (
+            cap.lifecycle_status.value
+            if isinstance(cap.lifecycle_status, LifecycleStatus)
+            else str(cap.lifecycle_status).lower()
+        )
+
+        if status_str == "disabled":
+            # DISABLED: always reject execution — a flag must NEVER override it
+            exc = SpecializedExecutionUnavailableError(
+                request.capability_id,
+                f"Capability '{request.capability_id}' is DISABLED and cannot be executed.",
+            )
+            if raise_on_error:
+                raise exc
+            return self._build_rejection(
+                request,
+                reason="CAPABILITY_DISABLED",
+                message=str(exc),
+                cap=cap,
+                raise_on_error=False,
+            )
+        elif status_str == "unavailable":
+            # UNAVAILABLE: always reject
+            exc = SpecializedExecutionUnavailableError(
+                request.capability_id,
+                f"Specialized execution backend is UNAVAILABLE for capability '{request.capability_id}'",
+            )
+            if raise_on_error:
+                raise exc
+            return self._build_rejection(
+                request,
+                reason="CAPABILITY_UNAVAILABLE",
+                message=str(exc),
+                cap=cap,
+                raise_on_error=False,
+            )
+        elif status_str == "internal":
+            # INTERNAL: reject on public-user paths
+            caller_role = getattr(request, "user_role", None) or (request.metadata or {}).get("role", "")
+            if caller_role not in ("admin", "system", "internal"):
+                exc = SpecializedExecutionUnavailableError(
+                    request.capability_id,
+                    f"Capability '{request.capability_id}' is INTERNAL and unreachable via public execution paths.",
+                )
+                if raise_on_error:
+                    raise exc
+                return self._build_rejection(
+                    request,
+                    reason="CAPABILITY_INTERNAL_RESTRICTED",
+                    message=str(exc),
+                    cap=cap,
+                    raise_on_error=False,
+                )
+        elif status_str == "pilot":
+            # PILOT: reject by default; allow only via explicit server-side pilot policy and is_strict_feature_enabled(cap.feature_flag)
+            pilot_allowed = False
+            if (
+                bool((request.metadata or {}).get("pilot_opt_in"))
+                or bool((request.metadata or {}).get("allow_pilot"))
+                or bool((request.input or {}).get("pilot_opt_in") if isinstance(request.input, dict) else False)
+                or str(request.execution_policy or "").lower() in ("pilot", "experimental", "allow_pilot")
+                or str(request.provider_policy or "").lower() in ("pilot", "experimental")
+            ):
+                pilot_allowed = True
+            elif cap.feature_flag:
+                try:
+                    from api.feature_flags import is_strict_feature_enabled
+
+                    pilot_allowed = is_strict_feature_enabled(cap.feature_flag)
+                except Exception:
+                    pilot_allowed = False
+            elif cap.approval_policy in ("maker_checker", "dual_control"):
+                approval = request.approval_context or {}
+                if approval.get("approved"):
+                    pilot_allowed = True
+
+            if not pilot_allowed:
+                exc = SpecializedExecutionUnavailableError(
+                    request.capability_id,
+                    f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled.",
+                )
+                if raise_on_error:
+                    raise exc
+                return self._build_rejection(
+                    request,
+                    reason="PILOT_FEATURE_FLAG_DISABLED",
+                    message=str(exc),
+                    cap=cap,
+                    raise_on_error=False,
+                )
+        elif status_str == "production":
+            is_eligible = getattr(cap, "is_production_eligible", lambda: False)()
+            if not is_eligible:
+                err_msg = (
+                    f"Capability '{request.capability_id}' fails production maturity criteria: "
+                    f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
+                    f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
+                    f"Production execution refused."
+                )
+                return self._build_rejection(
+                    request,
+                    reason="PRODUCTION_MATURITY_GATE_REJECTED",
+                    message=err_msg,
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
+
+        # ── 6b. Enforce Deterministic Production Maturity Gate for demands ───
+        caller_demands_prod = (
+            bool(request.metadata.get("demand_production_certification", False))
+            or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
+        )
+        if status_str != "production" and caller_demands_prod:
+            err_msg = (
+                f"Capability '{request.capability_id}' fails production maturity criteria: "
+                f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
+                f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
+                f"Production execution refused."
+            )
+            return self._build_rejection(
+                request,
+                reason="PRODUCTION_MATURITY_GATE_REJECTED",
+                message=err_msg,
+                cap=cap,
+                raise_on_error=raise_on_error,
+            )
 
         # ── 7. Validate Request Schema ───────────────────────────────────────
         params = request.get_parameters()
@@ -1407,6 +1494,46 @@ class ExecutionOrchestrator:
                         cap=cap,
                         raise_on_error=raise_on_error,
                     )
+
+        # ── 7b. Dry-Run Short-Circuit (Guaranteed Zero Solver Invocation) ─────
+        is_dry_run = bool(
+            (request.input or {}).get("dry_run")
+            or (request.metadata or {}).get("dry_run")
+        )
+        if is_dry_run:
+            logger.info(
+                "Dry-run execution requested for capability '%s'; validated preconditions without solver invocation.",
+                request.capability_id,
+            )
+            return CanonicalExecutionResult(
+                execution_id=request.execution_id,
+                request_id=request.request_id,
+                capability_id=request.capability_id,
+                capability_version=cap.version if cap else "1.0.0",
+                tenant_id=request.tenant_id,
+                user_id=request.user_id,
+                executor_kind="dry_run",
+                provider="validation_gate",
+                solver="dry_run_validator",
+                engine_version=getattr(cap, "version", "1.0.0"),
+                status="dry_run",
+                success=True,
+                data={
+                    "dry_run": True,
+                    "validated": True,
+                    "capability_id": request.capability_id,
+                    "parameters": request.get_parameters(),
+                    "system_validated": request.get_system() is not None,
+                },
+                validation_status="passed",
+                validation_report={"dry_run": True, "message": "Preconditions, system model, and schema validated successfully"},
+                risk_class=getattr(cap, "risk_class", "low"),
+                risk_score=0.0,
+                warnings=[],
+                errors=[],
+                authoritative=False,
+                execution_path="DRY_RUN_VALIDATION",
+            )
 
         # ── 8. Resolve Capability & Policies ─────────────────────────────────
         provider_policy = request.provider_policy or cap.provider_policy

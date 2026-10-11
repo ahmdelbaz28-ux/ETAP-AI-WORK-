@@ -736,9 +736,62 @@ class EarthGridAgent(BaseAgent):
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
+            missing_inputs: list[str] = []
+
+            # ── Validate mandatory inputs ──
+            if analysis_type in ("design", "mesh_voltage", "step_voltage", "touch_voltage", "full"):
+                if "rho_soil" not in p and "soil_resistivity_ohm_m" not in p:
+                    missing_inputs.append("rho_soil (or soil_resistivity_ohm_m)")
+                if "Ig_max" not in p and "fault_current_A" not in p:
+                    missing_inputs.append("Ig_max (or fault_current_A)")
+
+            if analysis_type in ("design", "full"):
+                if "grid_length_m" not in p:
+                    missing_inputs.append("grid_length_m")
+                if "grid_width_m" not in p:
+                    missing_inputs.append("grid_width_m")
+
+            if analysis_type == "soil_resistivity":
+                if "probe_spacings_m" not in p or "measured_resistances_ohm" not in p:
+                    missing_inputs.append("probe_spacings_m and measured_resistances_ohm")
+
+            if missing_inputs:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    f"INSUFFICIENT_ENGINEERING_INPUT: Earth grid analysis ({analysis_type}) requires explicit "
+                    f"engineering parameters: {', '.join(missing_inputs)}. Synthetic or random defaults "
+                    "are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.SHORT_CIRCUIT,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "missing_inputs": missing_inputs,
+                        "analysis_type": analysis_type,
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             rho_val = float(p.get("rho_soil", p.get("soil_resistivity_ohm_m", 100.0)))
             ig_val = float(p.get("Ig_max", p.get("fault_current_A", 5000.0)))
+
+            if rho_val <= 0 or ig_val <= 0:
+                self.status = AgentStatus.FAILED
+                err_msg = "INSUFFICIENT_ENGINEERING_INPUT: rho_soil and Ig_max must be > 0."
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.SHORT_CIRCUIT,
+                    status=AgentStatus.FAILED,
+                    data={"error_code": "INSUFFICIENT_ENGINEERING_INPUT", "message": err_msg},
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
 
             if analysis_type in ("design", "full"):
                 results["grid_design"] = self.design_ground_grid(

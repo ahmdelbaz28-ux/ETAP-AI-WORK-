@@ -378,7 +378,15 @@ class StudyRequest(_BaseSpecModel):
         default=None,
         validation_alias=AliasChoices("system", "system_spec"),
     )
-    parameters: dict[str, Any] = Field(default_factory=dict)
+    parameters: dict[str, Any] = Field(
+        default_factory=dict,
+        validation_alias=AliasChoices("parameters", "params"),
+        description="Engineering parameters for the study execution",
+    )
+    dry_run: bool = Field(
+        default=False,
+        description="If True, validates schema, system model, and preconditions without executing engineering solver",
+    )
     task_id: str | None = None
     use_etap: bool = Field(
         default=False,
@@ -389,6 +397,37 @@ class StudyRequest(_BaseSpecModel):
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_study_request_input(cls, data: Any) -> Any:
+        """Normalize legacy UI and API request shapes.
+
+        - Aliases 'params' to 'parameters' if 'parameters' is not explicitly set.
+        - If 'params' or 'parameters' contains an embedded 'system' and top-level 'system' is absent,
+          lifts 'system' to the top level.
+        - Preserves all valid non-default engineering inputs without silent dropping.
+        """
+        if isinstance(data, dict):
+            # Normalization of params -> parameters
+            raw_params = data.get("parameters")
+            if raw_params is None and "params" in data:
+                raw_params = data.get("params")
+                data["parameters"] = raw_params
+            elif isinstance(raw_params, dict) and not raw_params and data.get("params"):
+                data["parameters"] = data.get("params")
+                raw_params = data["parameters"]
+
+            # If embedded system in parameters/params
+            if isinstance(raw_params, dict) and "system" in raw_params:
+                if "system" not in data and "system_spec" not in data:
+                    data["system"] = raw_params.get("system")
+
+            # dry_run boolean normalization
+            if "dry_run" in data and not isinstance(data["dry_run"], bool):
+                data["dry_run"] = str(data["dry_run"]).lower() in ("true", "1", "yes")
+
+        return data
 
     @field_validator("parameters")
     @classmethod
