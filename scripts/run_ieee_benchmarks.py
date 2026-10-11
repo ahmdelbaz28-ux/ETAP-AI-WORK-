@@ -26,6 +26,7 @@ from engine.benchmarks.ieee_cases import (
     build_ieee_14bus_system,
     calculate_iec_60364_cable_sizing_benchmark,
     calculate_iec_60909_theoretical_fault,
+    calculate_iec_62933_bess_benchmark,
     calculate_ieee_30bus_opf_benchmark,
     calculate_ieee_80_earth_grid_benchmark,
     calculate_ieee_399_motor_starting_benchmark,
@@ -322,6 +323,31 @@ def run_benchmarks() -> dict:
                 "case1_measured_solar_pv": ren_res["case1_measured_solar_pv"],
                 "case2_wind_turbine_curve": ren_res["case2_wind_turbine_curve"],
                 "case3_ieee1547_compliance": ren_res["case3_ieee1547_compliance"],
+            },
+        }
+    )
+
+    # 12. IEC 62933 Battery Energy Storage System (8760h Sizing, ROI, TOU Arbitrage & Aging)
+    t0 = time.perf_counter()
+    bess_res = calculate_iec_62933_bess_benchmark()
+    t_bess = time.perf_counter() - t0
+    passed_bess = bool(bess_res["all_passed"])
+    if not passed_bess:
+        overall_passed = False
+    benchmarks.append(
+        {
+            "name": "IEC 62933 Battery Energy Storage System (8760h Sizing, ROI, TOU Dispatch & Aging)",
+            "standard": "IEC 62933-1 / IEC 62933-2-1 / IEC 62933-5-2",
+            "cases_evaluated": 4,
+            "max_error_pct": bess_res["max_error_pct"],
+            "tolerance_limit_pct": bess_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_bess, 4),
+            "passed": passed_bess,
+            "details": {
+                "case1_sizing_8760h": bess_res["case1_sizing_8760h"],
+                "case2_financial_roi": bess_res["case2_financial_roi"],
+                "case3_tou_arbitrage_dispatch": bess_res["case3_tou_arbitrage_dispatch"],
+                "case4_lfp_cycle_life": bess_res["case4_lfp_cycle_life"],
             },
         }
     )

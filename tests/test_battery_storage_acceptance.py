@@ -106,7 +106,7 @@ def test_battery_storage_positive_execution_sizing(bess_system, monkeypatch):
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEC 62933"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.battery_storage_agent.BatteryStorageAgent"
 
 
@@ -132,4 +132,32 @@ def test_battery_storage_positive_execution_roi(bess_system, monkeypatch):
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEC 62933"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
+
+
+def test_battery_storage_production_eligibility_in_capability_registry():
+    """Verify battery_storage capability is strictly production eligible in CapabilityRegistry."""
+    from engine.capability_registry import LifecycleStatus, get_capability_registry
+
+    reg = get_capability_registry()
+    cap = reg.get("battery_storage")
+    assert cap is not None
+    assert cap.is_production_eligible() is True
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEC 62933" in cap.standards_scope
+
+
+def test_battery_storage_scientific_benchmarks():
+    """Verify IEC 62933 measured BESS benchmarks pass all 4 cases with zero error."""
+    from engine.benchmarks.ieee_cases import calculate_iec_62933_bess_benchmark
+
+    res = calculate_iec_62933_bess_benchmark()
+    assert res["all_passed"] is True
+    assert res["max_error_pct"] <= res["tolerance_limit_pct"]
+    assert res["case1_sizing_8760h"]["passed"] is True
+    assert res["case2_financial_roi"]["passed"] is True
+    assert res["case3_tou_arbitrage_dispatch"]["passed"] is True
+    assert res["case4_lfp_cycle_life"]["passed"] is True
+

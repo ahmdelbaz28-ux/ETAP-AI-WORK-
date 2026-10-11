@@ -779,9 +779,31 @@ class BatteryStorageAgent(BaseAgent):
                     execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                 )
 
-            analysis_type = task.parameters.get("analysis_type", "full")
+            # Support parameter aliases: capacity_mwh -> bess_energy_kwh, power_mw -> bess_power_kw
+            p = dict(task.parameters)
+            if "capacity_mwh" in p and "bess_energy_kwh" not in p:
+                p["bess_energy_kwh"] = float(p["capacity_mwh"]) * 1000.0
+            if "capacity_mw" in p and "bess_energy_kwh" not in p:
+                p["bess_energy_kwh"] = float(p["capacity_mw"]) * 1000.0
+            if "power_mw" in p and "bess_power_kw" not in p:
+                p["bess_power_kw"] = float(p["power_mw"]) * 1000.0
+
+            # Infer analysis_type if not explicitly provided
+            if "analysis_type" in p:
+                analysis_type = p["analysis_type"]
+            else:
+                if "load_profile_kw" in p and "energy_prices" in p:
+                    analysis_type = "full"
+                elif "load_profile_kw" in p:
+                    analysis_type = "sizing"
+                elif "energy_prices" in p:
+                    analysis_type = "dispatch"
+                elif "bess_energy_kwh" in p or "bess_power_kw" in p:
+                    analysis_type = "roi"
+                else:
+                    analysis_type = "full"
+
             results: dict[str, Any] = {}
-            p = task.parameters
             allow_demo = bool(p.get("demo") or p.get("allow_synthetic") or p.get("synthetic"))
             missing_inputs: list[str] = []
 
@@ -906,17 +928,23 @@ class BatteryStorageAgent(BaseAgent):
                 )
 
             if analysis_type in ("roi", "full"):
+                bess_power = float(p.get("bess_power_kw", 500))
+                bess_energy = float(p.get("bess_energy_kwh", 2000))
                 annual_revenue = float(
                     p.get(
                         "annual_revenue_usd",
                         results.get("dispatch", {})
                         .get("financial", {})
-                        .get("daily_net_revenue_$", 200)
+                        .get("daily_net_revenue_$", bess_power * 0.15)
                         * 365,
                     ),
                 )
-                bess_power = float(p.get("bess_power_kw", 500))
-                bess_energy = float(p.get("bess_energy_kwh", 2000))
+                if "sizing" not in results:
+                    results["sizing"] = {
+                        "power_capacity_kw": bess_power,
+                        "energy_capacity_kwh": bess_energy,
+                        "sizing_basis": "user_specified",
+                    }
 
                 results["roi"] = self.calculate_roi(
                     bess_power_kw=bess_power,
@@ -963,7 +991,7 @@ class BatteryStorageAgent(BaseAgent):
                         "handler": "agents.battery_storage_agent.BatteryStorageAgent",
                         "agent_key": "battery_storage",
                         "standard": "IEC 62933",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                         "authoritative": not allow_demo,
                         "synthetic": allow_demo,
                     },

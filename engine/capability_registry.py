@@ -577,14 +577,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="battery_storage",
             feature_flag="battery_storage",
-            benchmark_status="PENDING",
-            standards_scope="IEC 62933 (BESS sizing and dispatch)",
-            validation_evidence="Battery storage unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEC 62933-1:2018 / IEC 62933-2-1:2017 (Clause 5 & 6) / IEC 62933-5-2:2020",
+            validation_evidence="IEC 62933 BESS Sizing, Dispatch & Degradation Benchmarks (Benchmark #12 in scripts/run_ieee_benchmarks.py; tests/test_battery_storage_acceptance.py; tests/scenarios/test_battery_storage_scenario.py)",
+            production_supported=True,
             risk_class="medium",
-            version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Battery energy storage system (BESS) sizing and dispatch per IEC 62933 (pilot status).",
+            version="2.0.0",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Battery energy storage system (BESS) sizing, TOU arbitrage dispatch, financial ROI & cycle life degradation per IEC 62933.",
         )
     )
     registry.register(

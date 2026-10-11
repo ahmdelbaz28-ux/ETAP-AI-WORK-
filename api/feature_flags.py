@@ -110,10 +110,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Renewable energy integration (PV/Wind) per IEEE 1547-2018 - Production validated",
     },
     "battery_storage": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Battery energy storage system (BESS) sizing & dispatch per IEC 62933 - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "ga",
+        "description": "Battery energy storage system (BESS) sizing & dispatch per IEC 62933 - Production validated",
+        "rollout_percentage": 25,
     },
     "scada": {
         "enabled": False,
