@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T08:46:58.362223+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T08:53:45.108609+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 935 |
 | Python | Functions | 835 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 279 |
-| Total | Tests | 3908 |
+| Test | Files | 280 |
+| Total | Tests | 3913 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -916,7 +916,7 @@ Typed goal router and dependency-aware study planner for multi-agent workflo
 - **def** `determine_execution_order()` (line 256)
 - **def** `create_router()` (line 261)
 
-#### 📄 `agents/scada_agent.py` _35.1 KB_
+#### 📄 `agents/scada_agent.py` _36.2 KB_
 > AhmedETAP - SCADA Integration Agent
 =======================================================
 IEC 61850 data model mapping and real-time measurement pro
@@ -1727,25 +1727,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _19.1 KB_
+#### 📄 `api/feature_flags.py` _19.3 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 421)
-- **Class** `FeatureFlagListOut` (line 430)
-- **Class** `FeatureFlagPatch` (line 438)
+- **Class** `FeatureFlagOut` (line 427)
+- **Class** `FeatureFlagListOut` (line 436)
+- **Class** `FeatureFlagPatch` (line 444)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 307)
-- **def** `is_feature_enabled()` (line 312)
-- **def** `is_strict_feature_enabled()` (line 332)
-- **def** `get_disabled_studies()` (line 352)
-- **def** `get_flag_metadata()` (line 369)
-- **def** `evaluate_flag_with_rollout()` (line 400)
-- **async def** `list_feature_flags()` (line 493)
-- **async def** `get_feature_flag()` (line 512)
-- **async def** `update_feature_flag()` (line 535)
+- **def** `is_enabled()` (line 313)
+- **def** `is_feature_enabled()` (line 318)
+- **def** `is_strict_feature_enabled()` (line 338)
+- **def** `get_disabled_studies()` (line 358)
+- **def** `get_flag_metadata()` (line 375)
+- **def** `evaluate_flag_with_rollout()` (line 406)
+- **async def** `list_feature_flags()` (line 499)
+- **async def** `get_feature_flag()` (line 518)
+- **async def** `update_feature_flag()` (line 541)
 
   **API Routes:**
   - `GET /{key}`
@@ -2801,8 +2801,8 @@ Single source of tr
   - Methods: `is_production_eligible()`
 - **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 918)
-- **def** `get_capability_definition()` (line 928)
+- **def** `get_capability_registry()` (line 919)
+- **def** `get_capability_definition()` (line 929)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3383,7 +3383,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _64.0 KB_
+#### 📄 `services/study_executor.py` _64.3 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -5701,8 +5701,8 @@ Provides
 | Type | Count |
 |:---|---:|
 | ui-page | 61 |
-| python-module | 41 |
 | api-route | 92 |
+| python-module | 41 |
 | ui-component | 280 |
 | **TOTAL** | **474** |
 
@@ -5732,7 +5732,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5743,7 +5743,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5956,6 +5956,7 @@ Provides
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
 | `test_run_study_behavioral_equivalence.py` | 0 | 4 | **17** |
 | `test_run_study_registry.py` | 0 | 2 | **12** |
+| `test_scada_acceptance.py` | 5 | 0 | **5** |
 | `test_scada_chaos_and_readback.py` | 3 | 0 | **3** |
 | `test_scada_control_gateway.py` | 0 | 1 | **7** |
 | `test_scada_interlock.py` | 0 | 2 | **11** |
