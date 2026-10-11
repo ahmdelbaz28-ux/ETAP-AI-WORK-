@@ -1056,6 +1056,14 @@ class StudyExecutor:
                     "battery_storage", "Feature flag 'battery_storage' is disabled"
                 )
 
+        if study_type == "scada":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("scada"):
+                raise SpecializedExecutionUnavailableError(
+                    "scada", "Feature flag 'scada' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key

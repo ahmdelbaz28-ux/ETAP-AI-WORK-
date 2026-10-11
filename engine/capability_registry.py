@@ -596,6 +596,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="scada",
+            feature_flag="scada",
             benchmark_status="PENDING",
             standards_scope="IEC 61850 (SCADA data mapping and state estimation)",
             validation_evidence="SCADA agent unit test suite",
