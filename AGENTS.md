@@ -251,7 +251,17 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standard**: IEC 61850
 - **Methods**: Real-time data model mapping, state estimation
 
-### 24. ETAP Expert Skill Agent (`ETAPExpertAgent`)
+### 24. Digital Twin Agent (`DigitalTwinAgent`)
+- **File**: `agents/digital_twin_agent.py`
+- **StudyType**: `digital_twin`
+- **LifecycleStatus**: `PILOT` (Silent-Observer; no automated actuation)
+- **Feature Flag**: `digital_twin` (Fail-closed via `is_strict_feature_enabled`)
+- **Standards**: ISO 23247, IEC 63278, IEC 61850, ISO 15926, OPC UA (IEC 62541)
+- **Engine**: State Store, Event Bus, Time Series Store (`digital_twin/time_series_store.py`), Topology Store (`digital_twin/topology_store.py`)
+- **Thresholds**: MDI < 0.05 (Synchronized), MDI > 0.15 (Drift Warning & Human Calibration Suggestion). Staleness threshold > 30s (`STALE_DATA`).
+- **Validation**: `docs/validation/digital_twin_validation.md`
+
+### 25. ETAP Expert Skill Agent (`ETAPExpertAgent`)
 - **File**: `agents/etap_expert_agent.py`
 - **Skill knowledge base**: `skills/etap-expert.md` (4,400+ lines, loaded once at startup)
 - **System prompt**: `skills/etap-ai-agent-system-prompt.md` + `prompts/etap_expert_agent.prompt.yaml`
@@ -268,7 +278,7 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Standards**: IEEE 80/141/242/399/519/1547/1584, IEC 60909/61363/61660/61850/62351, NEC, NFPA 70E
 - **Test Suite**: `tests/test_etap_expert_skill.py` (22 tests covering all 4 formats + workflow)
 
-### 25. Generative Design Agent (`DesignAgent`)
+### 26. Generative Design Agent (`DesignAgent`)
 - **File**: `agents/design_agent.py`
 - **Prompt**: `design_agent` (manifest → `design_agent.prompt.yaml`)
 - **StudyType**: `GENERATIVE_DESIGN`
@@ -278,14 +288,14 @@ All Python agents inherit from `BaseAgent` in `agents/orchestrator.py`.
 - **Purpose**: Generative topology synthesis of substation Single-Line Diagrams (SLD), transformer sizing, switchgear rating, and protection scheme allocation from explicit user parameters.
 - **Honest Limits & Constraints**: Scaffold status only (commit `7617d30be`). Does not modify existing ETAP project files or mutate production topologies directly. Outputs are NOT field-validated against live utility configurations; human expert review and engineering stamp are strictly required prior to physical implementation. Fails closed (`AgentStatus.FAILED` with `reason="flag_disabled"`) whenever the `generative_design` feature flag is inactive.
 
-### 26. ETAP GUI Agent (`ETAPGUIAgent`)
+### 27. ETAP GUI Agent (`ETAPGUIAgent`)
 - **File**: `agents/etap_gui_agent.py`
 - **StudyType**: `ETAP_GUI`
 - **Key**: `etap_gui`
 - **Engine**: CUA Execution Engine (`agents/cua_executor.py`, `agents/browser_cua_executor.py`)
 - **Purpose**: Computer-Use Agent (CUA) automation for interacting with graphical desktop ETAP and browser-based interfaces with kill-switch safeguards.
 
-### 27. AhmedETAP Orchestration Agent (`AhmedETAPOrchestrationAgent`)
+### 28. AhmedETAP Orchestration Agent (`AhmedETAPOrchestrationAgent`)
 - **File**: `agents/ahmed_etap_orchestrator.py`
 - **Key**: `ahmed_etap`
 - **Purpose**: Autonomous end-to-end multi-agent study orchestrator, synthesizing results across load flow, short circuit, and protection into unified deliverables.

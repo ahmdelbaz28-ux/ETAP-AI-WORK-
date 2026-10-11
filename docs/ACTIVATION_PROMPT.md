@@ -238,7 +238,7 @@ $env:FEATURE_FLAG_MOTOR_STARTING = "true"
 7. **`renewable_integration`** — محرك موجود، IEEE 1547
 8. **`battery_storage`** — محرك موجود، IEC 62933
 9. **`scada`** — يتطلب Modbus/OPC UA حقيقي → تأخير حتى توفر البنية التحتية
-10. **`digital_twin`** — يتطلب stream حقيقي → تأخير حتى توفر البنية التحتية
+10. **`digital_twin`** — تم إنجازها وتفعيلها كـ PILOT (silent-observer) مع بوابة نضارة البيانات STALE_DATA وعزل المشتركين (ISO 23247 / IEC 61850)
 11. **`generative_design`** — scaffold فقط، مخاطرة عالية → آخراً
 12. **`breaker_duty`** — scaffold فقط، مخاطرة متوسطة → تالي لاخير
 

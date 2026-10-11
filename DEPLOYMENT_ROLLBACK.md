@@ -51,9 +51,10 @@ When an individual study or capability (e.g., `transient_stability`, `harmonic_a
 # Step 1: Immediate feature flag deactivation via runtime override
 # Set the study feature flag to false without modifying code
 export FEATURE_FLAG_<STUDY_NAME>="false"
-# Example: Immediately halt transient stability or breaker duty
+# Example: Immediately halt transient stability, breaker duty, or digital twin
 export FEATURE_FLAG_TRANSIENT_STABILITY="false"
 export FEATURE_FLAG_BREAKER_DUTY="false"
+export FEATURE_FLAG_DIGITAL_TWIN="false"
 
 # Step 2: In-code capability rollback
 # In engine/capability_registry.py: revert lifecycle_status back to PILOT or DISABLED:
