@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T06:29:11.180248+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T07:00:38.732888+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,12 +10,12 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 382 |
-| Python | Classes | 933 |
+| Python | Files | 384 |
+| Python | Classes | 935 |
 | Python | Functions | 835 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 270 |
-| Total | Tests | 3867 |
+| Test | Files | 271 |
+| Total | Tests | 3871 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -1727,25 +1727,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _18.0 KB_
+#### 📄 `api/feature_flags.py` _18.2 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 390)
-- **Class** `FeatureFlagListOut` (line 399)
-- **Class** `FeatureFlagPatch` (line 407)
+- **Class** `FeatureFlagOut` (line 396)
+- **Class** `FeatureFlagListOut` (line 405)
+- **Class** `FeatureFlagPatch` (line 413)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 276)
-- **def** `is_feature_enabled()` (line 281)
-- **def** `is_strict_feature_enabled()` (line 301)
-- **def** `get_disabled_studies()` (line 321)
-- **def** `get_flag_metadata()` (line 338)
-- **def** `evaluate_flag_with_rollout()` (line 369)
-- **async def** `list_feature_flags()` (line 462)
-- **async def** `get_feature_flag()` (line 481)
-- **async def** `update_feature_flag()` (line 504)
+- **def** `is_enabled()` (line 282)
+- **def** `is_feature_enabled()` (line 287)
+- **def** `is_strict_feature_enabled()` (line 307)
+- **def** `get_disabled_studies()` (line 327)
+- **def** `get_flag_metadata()` (line 344)
+- **def** `evaluate_flag_with_rollout()` (line 375)
+- **async def** `list_feature_flags()` (line 468)
+- **async def** `get_feature_flag()` (line 487)
+- **async def** `update_feature_flag()` (line 510)
 
   **API Routes:**
   - `GET /{key}`
@@ -2801,8 +2801,8 @@ Single source of tr
   - Methods: `is_production_eligible()`
 - **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 909)
-- **def** `get_capability_definition()` (line 919)
+- **def** `get_capability_registry()` (line 910)
+- **def** `get_capability_definition()` (line 920)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3383,7 +3383,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _55.9 KB_
+#### 📄 `services/study_executor.py` _61.2 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -3773,6 +3773,22 @@ Implements immutable state snapsho
   - Methods: `to_dict()`, `is_layer_synced()`, `to_json()`
 - **Class** `StateStore` (line 247)
   - Methods: `update_bus_state()`, `update_switch_state()`, `commit()`, `get_current()`, `get_version()`, `get_current_version()`, `rollback()`, `diff()`
+
+#### 📄 `digital_twin/time_series_store.py` _4.7 KB_
+> AhmedETAP - Digital Twin Time-Series Telemetry Store
+===================================================
+High-resolution, tenant-isolated time-series 
+
+- **Class** `TimeSeriesStore` (line 27)
+  - Methods: `append()`, `get_range()`, `get_daily_rollup()`
+
+#### 📄 `digital_twin/topology_store.py` _3.0 KB_
+> AhmedETAP - Digital Twin Topology Store
+=======================================
+Tenant-isolated topology and switching state tracking store for the di
+
+- **Class** `TopologyStore` (line 25)
+  - Methods: `set_breaker_state()`, `get_breaker_state()`, `get_tenant_topology()`
 
 #### 📄 `digital_twin/validation_gateway.py` _24.7 KB_
 > Validation Gateway - Three Truths Enforcement
@@ -5684,10 +5700,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
-| ui-component | 280 |
 | python-module | 41 |
+| api-route | 92 |
+| ui-component | 280 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5699,7 +5715,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5730,7 +5746,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5814,6 +5830,7 @@ Provides
 | `test_dependencies.py` | 3 | 4 | **24** |
 | `test_design_agent_scaffold.py` | 8 | 0 | **8** |
 | `test_digital_twin_coverage.py` | 14 | 0 | **14** |
+| `test_digital_twin_pilot.py` | 4 | 0 | **4** |
 | `test_digital_twin_rollback.py` | 1 | 0 | **1** |
 | `test_digital_twin_sync.py` | 15 | 0 | **15** |
 | `test_distributed_singletons.py` | 14 | 0 | **14** |
