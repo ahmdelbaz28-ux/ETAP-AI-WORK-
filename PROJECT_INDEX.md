@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T14:00:34.364669+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T14:21:10.484706+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 385 |
 | Python | Classes | 938 |
-| Python | Functions | 848 |
+| Python | Functions | 849 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 283 |
-| Total | Tests | 3959 |
+| Total | Tests | 3961 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -646,7 +646,7 @@ in
 - **Class** `BaseAgent` (line 25)
   - Methods: `system_prompt()`, `prompt_model()`, `prompt_temperature()`, `get_agent_info()`, `execute()`, `validate_result()`, `log_execution()`
 
-#### 📄 `agents/battery_storage_agent.py` _42.8 KB_
+#### 📄 `agents/battery_storage_agent.py` _44.2 KB_
 > AhmedETAP - Battery Storage Agent
 =====================================================
 Battery Energy Storage System (BESS) analysis per IEC 62933.
@@ -2791,7 +2791,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _41.7 KB_
+#### 📄 `engine/capability_registry.py` _41.9 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2957,7 +2957,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _57.4 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _64.5 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -5719,9 +5719,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
 | ui-component | 280 |
 | api-route | 92 |
+| ui-page | 61 |
 | python-module | 41 |
 | **TOTAL** | **474** |
 
@@ -5818,7 +5818,7 @@ Provides
 | `test_autodesk_connector.py` | 0 | 11 | **62** |
 | `test_backward_compatibility.py` | 7 | 0 | **7** |
 | `test_bandit_and_cascade.py` | 7 | 0 | **7** |
-| `test_battery_storage_acceptance.py` | 5 | 0 | **5** |
+| `test_battery_storage_acceptance.py` | 7 | 0 | **7** |
 | `test_breaker_duty.py` | 0 | 1 | **10** |
 | `test_browser_cua_executor.py` | 14 | 0 | **14** |
 | `test_bypass_prevention.py` | 4 | 0 | **4** |
@@ -6167,7 +6167,7 @@ Provides
 | `scripts/run_comprehensive_tests.bat` | bat | 1.3 KB |  |
 | `scripts/run_cov.bat` | bat | 0.3 KB |  |
 | `scripts/run_git.py` | py | 0.0 KB |  |
-| `scripts/run_ieee_benchmarks.py` | py | 12.5 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
+| `scripts/run_ieee_benchmarks.py` | py | 13.6 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
 | `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
