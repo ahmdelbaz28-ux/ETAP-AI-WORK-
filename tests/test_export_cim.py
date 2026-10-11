@@ -55,6 +55,7 @@ async def _ensure_cim_user(session) -> None:
         session.add(
             User(
                 id=TEST_USER.user_id,
+                tenant_id=TEST_USER.tenant_id,
                 username=TEST_USER.username,
                 email=TEST_USER.email,
                 password_hash="test-pw-hash",

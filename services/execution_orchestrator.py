@@ -1377,7 +1377,27 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=False,
                 )
-        elif status_str == "pilot":
+        # ── 6a. Enforce Deterministic Production Maturity Gate for demands ───
+        caller_demands_prod = (
+            bool((request.metadata or {}).get("demand_production_certification", False))
+            or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
+        )
+        if caller_demands_prod and status_str != "production":
+            err_msg = (
+                f"Capability '{request.capability_id}' fails production maturity criteria: "
+                f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
+                f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
+                f"Production execution refused."
+            )
+            return self._build_rejection(
+                request,
+                reason="PRODUCTION_MATURITY_GATE_REJECTED",
+                message=err_msg,
+                cap=cap,
+                raise_on_error=raise_on_error,
+            )
+
+        if status_str == "pilot":
             # PILOT: reject by default; allow only via explicit server-side pilot policy and is_strict_feature_enabled(cap.feature_flag)
             pilot_allowed = False
             if (
@@ -1430,26 +1450,6 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
-
-        # ── 6b. Enforce Deterministic Production Maturity Gate for demands ───
-        caller_demands_prod = (
-            bool(request.metadata.get("demand_production_certification", False))
-            or str(request.execution_policy or "").lower() in ("strict_production", "production_certified")
-        )
-        if status_str != "production" and caller_demands_prod:
-            err_msg = (
-                f"Capability '{request.capability_id}' fails production maturity criteria: "
-                f"lifecycle_status='{status_str}', benchmark_status='{getattr(cap, 'benchmark_status', 'NONE')}', "
-                f"standards_scope='{getattr(cap, 'standards_scope', '')}'. "
-                f"Production execution refused."
-            )
-            return self._build_rejection(
-                request,
-                reason="PRODUCTION_MATURITY_GATE_REJECTED",
-                message=err_msg,
-                cap=cap,
-                raise_on_error=raise_on_error,
-            )
 
         # ── 7. Validate Request Schema ───────────────────────────────────────
         params = request.get_parameters()

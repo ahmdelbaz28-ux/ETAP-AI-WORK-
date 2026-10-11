@@ -321,9 +321,9 @@ class TestStructuralAntiBypassRegressions(unittest.TestCase):
 
         orchestrator = ExecutionOrchestrator()
 
-        # Request transient_stability with strict production certification demand
+        # Request digital_twin (pilot/unvalidated capability) with strict production certification demand
         req = ExecutionRequest(
-            capability_id="transient_stability",
+            capability_id="digital_twin",
             tenant_id="cert_tenant",
             user_id="lead_engineer_1",
             user_role="lead_engineer",
