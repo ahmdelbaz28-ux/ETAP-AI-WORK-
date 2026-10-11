@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from api.database import async_session, init_db
 from api.dependencies import CurrentUser, get_current_user_from_header
@@ -25,11 +25,11 @@ async def _setup_db():
     yield
 
 
-def _build_test_client(user: CurrentUser) -> TestClient:
+def _build_test_app(user: CurrentUser) -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_current_user_from_header] = lambda: user
-    return TestClient(app, raise_server_exceptions=False)
+    return app
 
 
 @pytest.mark.asyncio
@@ -42,28 +42,28 @@ async def test_get_notifications_no_422():
         role="engineer",
         tenant_id="tenant-notif",
     )
-    client = _build_test_client(user=test_user)
+    app = _build_test_app(user=test_user)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        # 1. Bare path
+        resp_bare = await client.get("/api/v1/notifications")
+        assert resp_bare.status_code == 200, f"Expected 200, got {resp_bare.status_code}: {resp_bare.text}"
+        data_bare = resp_bare.json()
+        assert "notifications" in data_bare
+        assert "total" in data_bare
+        assert "unread_count" in data_bare
 
-    # 1. Bare path
-    resp_bare = client.get("/api/v1/notifications")
-    assert resp_bare.status_code == 200, f"Expected 200, got {resp_bare.status_code}: {resp_bare.text}"
-    data_bare = resp_bare.json()
-    assert "notifications" in data_bare
-    assert "total" in data_bare
-    assert "unread_count" in data_bare
+        # 2. Path with trailing slash
+        resp_slash = await client.get("/api/v1/notifications/")
+        assert resp_slash.status_code == 200, resp_slash.text
 
-    # 2. Path with trailing slash
-    resp_slash = client.get("/api/v1/notifications/")
-    assert resp_slash.status_code == 200, resp_slash.text
+        # 3. Path with unread_only query param
+        resp_unread = await client.get("/api/v1/notifications/?unread_only=true")
+        assert resp_unread.status_code == 200, resp_unread.text
+        assert resp_unread.json()["notifications"] == []
 
-    # 3. Path with unread_only query param
-    resp_unread = client.get("/api/v1/notifications/?unread_only=true")
-    assert resp_unread.status_code == 200, resp_unread.text
-    assert resp_unread.json()["notifications"] == []
-
-    # 4. Path with notification_type query param
-    resp_type = client.get("/api/v1/notifications/?notification_type=study_complete")
-    assert resp_type.status_code == 200, resp_type.text
+        # 4. Path with notification_type query param
+        resp_type = await client.get("/api/v1/notifications/?notification_type=study_complete")
+        assert resp_type.status_code == 200, resp_type.text
 
 
 @pytest.mark.asyncio
@@ -76,7 +76,7 @@ async def test_notifications_unread_and_create():
         role="engineer",
         tenant_id="tenant-notif",
     )
-    client = _build_test_client(user=test_user)
+    app = _build_test_app(user=test_user)
 
     # Create notification in database
     async with async_session() as session:
@@ -89,15 +89,16 @@ async def test_notifications_unread_and_create():
         )
         await session.commit()
 
-    # Get notifications
-    resp = client.get("/api/v1/notifications")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["total"] >= 1
-    assert data["unread_count"] >= 1
-    assert any(n["title"] == "Transformer Overload Alert" for n in data["notifications"])
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
+        # Get notifications
+        resp = await client.get("/api/v1/notifications")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] >= 1
+        assert data["unread_count"] >= 1
+        assert any(n["title"] == "Transformer Overload Alert" for n in data["notifications"])
 
-    # Get unread endpoint
-    unread_resp = client.get("/api/v1/notifications/unread")
-    assert unread_resp.status_code == 200
-    assert unread_resp.json()["unread_count"] >= 1
+        # Get unread endpoint
+        unread_resp = await client.get("/api/v1/notifications/unread")
+        assert unread_resp.status_code == 200
+        assert unread_resp.json()["unread_count"] >= 1
