@@ -11,6 +11,7 @@ Verifies:
 from __future__ import annotations
 
 from typing import AsyncGenerator
+
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
