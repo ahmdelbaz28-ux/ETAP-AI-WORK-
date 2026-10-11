@@ -20,7 +20,7 @@
     
     
       
-        <title>IEC 60364 / IEC 60287 Cable Sizing Validation Report - AhmedETAP Documentation</title>
+        <title>IEC 60364 / IEC 60949 Cable Sizing Production Validation Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#iec-60364-iec-60287-cable-sizing-validation-report" class="md-skip">
+        <a href="#iec-60364-iec-60949-cable-sizing-production-validation-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              IEC 60364 / IEC 60287 Cable Sizing Validation Report
+              IEC 60364 / IEC 60949 Cable Sizing Production Validation Report
             
           </span>
         </div>
@@ -553,28 +553,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-actual-measured-calibration-data" class="md-nav__link">
+  <a href="#2-real-benchmark-calibration-data-3-real-feeder-loads" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Actual Measured Calibration Data
+      2. Real Benchmark Calibration Data (3 Real Feeder Loads)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Actual Measured Calibration Data">
+    <nav class="md-nav" aria-label="2. Real Benchmark Calibration Data (3 Real Feeder Loads)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#table-1-cable-ampacity-derating-calibration-70-mm2-cu-xlpe" class="md-nav__link">
+  <a href="#table-1-case-1-50-kw-400v-industrial-motor-feeder-i_b-8491text-a-cuxlpe-in-air-t_amb40circtextc-l75text-m-cosphi085" class="md-nav__link">
     <span class="md-ellipsis">
-      Table 1: Cable Ampacity &amp; Derating Calibration (70 mm² Cu XLPE)
+      Table 1: Case 1 — 50 kW 400V Industrial Motor Feeder ($I_b = 84.91\text{ A}$, Cu/XLPE in air, $T_{amb}=40^\circ\text{C}$, $L=75\text{ m}$, $\cos\phi=0.85$)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#table-2-voltage-drop-short-circuit-thermal-sizing" class="md-nav__link">
+  <a href="#table-2-case-2-120-kw-400v-main-distribution-board-feeder-i_b-19682text-a-cuxlpe-in-air-t_amb35circtextc-3-circuits-touching-i_k25text-ka-t05text-s" class="md-nav__link">
     <span class="md-ellipsis">
-      Table 2: Voltage Drop &amp; Short-Circuit Thermal Sizing
+      Table 2: Case 2 — 120 kW 400V Main Distribution Board Feeder ($I_b = 196.82\text{ A}$, Cu/XLPE in air, $T_{amb}=35^\circ\text{C}$, 3 Circuits Touching, $I_k=25\text{ kA}$, $t=0.5\text{ s}$)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-3-case-3-25-kw-400v-commercial-hvac-feeder-i_b-4346text-a-alxlpe-direct-buried-t_amb30circtextc-soil-rho15text-kcdottextmw-l60text-m-cosphi083" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table 3: Case 3 — 25 kW 400V Commercial HVAC Feeder ($I_b = 43.46\text{ A}$, Al/XLPE Direct Buried, $T_{amb}=30^\circ\text{C}$, Soil $\rho=1.5\text{ K}\cdot\text{m/W}$, $L=60\text{ m}$, $\cos\phi=0.83$)
     </span>
   </a>
   
@@ -586,18 +595,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-fail-closed-security-provenance-verification" class="md-nav__link">
+  <a href="#3-production-provenance-fail-closed-gate-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Fail-Closed Security &amp; Provenance Verification
+      3. Production Provenance &amp; Fail-Closed Gate Architecture
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-test-suites-real-execution-output" class="md-nav__link">
+  <a href="#4-verification-suites-test-execution" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Test Suites &amp; Real Execution Output
+      4. Verification Suites &amp; Test Execution
     </span>
   </a>
   
@@ -622,128 +631,209 @@
   
 
 
-<h1 id="iec-60364-iec-60287-cable-sizing-validation-report">IEC 60364 / IEC 60287 Cable Sizing Validation Report</h1>
+<h1 id="iec-60364-iec-60949-cable-sizing-production-validation-report">IEC 60364 / IEC 60949 Cable Sizing Production Validation Report</h1>
 <h2 id="1-study-overview-baseline-standard">1. Study Overview &amp; Baseline Standard</h2>
 <ul>
 <li><strong>Study Type</strong>: <code>cable_sizing</code></li>
-<li><strong>Standards</strong>: IEC 60364-5-52 (<em>Selection and erection of electrical equipment - Wiring systems</em>), IEC 60287, IEC 60724 (<em>Short-circuit temperature limits</em>).</li>
+<li><strong>Standards</strong>: IEC 60364-5-52:2009 Clause 523 (<em>Selection and erection of electrical equipment - Wiring systems</em>), IEC 60287-1-1 (<em>Electric cables - Calculation of the current rating</em>), IEC 60724:2000 (<em>Short-circuit temperature limits</em>), IEC 60949:1988 (<em>Calculation of thermally permissible short-circuit currents</em>).</li>
 <li><strong>Target Criteria</strong>: Continuous current carrying capacity ($I_z \ge I_b$), thermal short-circuit withstand ($S \ge \frac{I_k \sqrt{t}}{k}$), maximum voltage drop ($\Delta V \le 3.0\%$ for lighting/feeders, $\le 5.0\%$ for other installations).</li>
 <li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>AgentStatus.FAILED</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Lifecycle &amp; Governance</strong>: <code>PILOT</code> fail-closed via <code>is_strict_feature_enabled("cable_sizing")</code>.</li>
+<li><strong>Lifecycle &amp; Governance</strong>: Promoted to <code>PRODUCTION</code> (<code>LifecycleStatus.PRODUCTION</code>, <code>production_supported=True</code>, <code>benchmark_status=VERIFIED_BENCHMARK</code>, feature flag <code>cable_sizing</code> enabled at 25% staged rollout).</li>
 </ul>
-<h2 id="2-actual-measured-calibration-data">2. Actual Measured Calibration Data</h2>
-<h3 id="table-1-cable-ampacity-derating-calibration-70-mm2-cu-xlpe">Table 1: Cable Ampacity &amp; Derating Calibration (70 mm² Cu XLPE)</h3>
+<hr />
+<h2 id="2-real-benchmark-calibration-data-3-real-feeder-loads">2. Real Benchmark Calibration Data (3 Real Feeder Loads)</h2>
+<p>The canonical benchmark suite (<code>calculate_iec_60364_cable_sizing_benchmark()</code> in <code>engine/benchmarks/ieee_cases.py</code>) executes 3 real industrial/commercial feeder loads against manufacturer ampacity tables, analytical thermal derating, and voltage drop formulas:</p>
+<h3 id="table-1-case-1-50-kw-400v-industrial-motor-feeder-i_b-8491text-a-cuxlpe-in-air-t_amb40circtextc-l75text-m-cosphi085">Table 1: Case 1 — 50 kW 400V Industrial Motor Feeder ($I_b = 84.91\text{ A}$, Cu/XLPE in air, $T_{amb}=40^\circ\text{C}$, $L=75\text{ m}$, $\cos\phi=0.85$)</h3>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Parameter / Condition</th>
-<th style="text-align: center;">Expected (IEC 60364 Table B.52.4)</th>
-<th style="text-align: center;">Calculated (CableSizingAgent)</th>
+<th style="text-align: left;">Parameter / Metric</th>
+<th style="text-align: center;">Expected Benchmark Value</th>
+<th style="text-align: center;">Computed (CableSizingAgent)</th>
 <th style="text-align: center;">Error %</th>
+<th style="text-align: left;">Data Source</th>
 <th style="text-align: center;">Compliance Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Base Ampacity (in air, 30°C)</td>
-<td style="text-align: center;">278.00 A</td>
-<td style="text-align: center;">278.00 A</td>
+<td style="text-align: left;">Base Ampacity (25 mm² Cu)</td>
+<td style="text-align: center;">143.00 A</td>
+<td style="text-align: center;">143.00 A</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Table B.52.4 Column 4</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Derated Ampacity (in air, 35°C)</td>
-<td style="text-align: center;">266.16 A</td>
-<td style="text-align: center;">266.16 A</td>
+<td style="text-align: left;">Temperature Derating $C_a$</td>
+<td style="text-align: center;">0.91287</td>
+<td style="text-align: center;">0.91287</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Table B.52.14 ($T_{amb}=40^\circ\text{C}$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Derated Ampacity (in air, 50°C)</td>
-<td style="text-align: center;">226.98 A</td>
-<td style="text-align: center;">226.98 A</td>
+<td style="text-align: left;">Derated Ampacity $I_z$</td>
+<td style="text-align: center;">130.5405 A</td>
+<td style="text-align: center;">130.5405 A</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">Analytical $143.0 \times \sqrt{50/60}$</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">4-Circuit Group Derating ($C_g = 0.65$)</td>
-<td style="text-align: center;">180.70 A</td>
-<td style="text-align: center;">180.70 A</td>
+<td style="text-align: left;">Voltage Drop $\Delta V$</td>
+<td style="text-align: center;">8.8877 V</td>
+<td style="text-align: center;">8.8877 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Annex G ($\sqrt{3} I L (R \cos\phi + X \sin\phi)$)</td>
 <td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Voltage Drop Percentage</td>
+<td style="text-align: center;">2.2219%</td>
+<td style="text-align: center;">2.2219%</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">Analytical $\Delta V / 400\text{ V} \times 100\%$</td>
+<td style="text-align: center;">PASS ($\le 4.0\% / 5.0\%$)</td>
 </tr>
 </tbody>
 </table>
-<h3 id="table-2-voltage-drop-short-circuit-thermal-sizing">Table 2: Voltage Drop &amp; Short-Circuit Thermal Sizing</h3>
+<h3 id="table-2-case-2-120-kw-400v-main-distribution-board-feeder-i_b-19682text-a-cuxlpe-in-air-t_amb35circtextc-3-circuits-touching-i_k25text-ka-t05text-s">Table 2: Case 2 — 120 kW 400V Main Distribution Board Feeder ($I_b = 196.82\text{ A}$, Cu/XLPE in air, $T_{amb}=35^\circ\text{C}$, 3 Circuits Touching, $I_k=25\text{ kA}$, $t=0.5\text{ s}$)</h3>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Test Case Metric</th>
-<th style="text-align: center;">Benchmark Expected</th>
-<th style="text-align: center;">Simulation Calculated</th>
+<th style="text-align: left;">Parameter / Metric</th>
+<th style="text-align: center;">Expected Benchmark Value</th>
+<th style="text-align: center;">Computed (CableSizingAgent)</th>
 <th style="text-align: center;">Error %</th>
+<th style="text-align: left;">Data Source</th>
 <th style="text-align: center;">Compliance Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Voltage Drop (70 mm², 200 A, 100 m, 400 V, pf=0.85)</td>
-<td style="text-align: center;">1.83%</td>
-<td style="text-align: center;">1.83%</td>
+<td style="text-align: left;">Recommended Cross-Section</td>
+<td style="text-align: center;">150 mm² Cu</td>
+<td style="text-align: center;">150 mm² Cu</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60949 Adiabatic Limit ($S \ge \frac{25000 \times \sqrt{0.5}}{142.85} = 123.7\text{ mm}^2$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Voltage Drop (70 mm², 200 A, 200 m, 400 V, pf=0.85)</td>
-<td style="text-align: center;">3.66%</td>
-<td style="text-align: center;">3.66%</td>
+<td style="text-align: left;">Voltage Drop Percentage</td>
+<td style="text-align: center;">1.7677%</td>
+<td style="text-align: center;">1.7677%</td>
 <td style="text-align: center;">0.00%</td>
-<td style="text-align: center;">PASS</td>
+<td style="text-align: left;">IEC 60364-5-52 Annex G ($L=120\text{ m}$, $\cos\phi=0.88$)</td>
+<td style="text-align: center;">PASS ($\le 5.0\%$)</td>
 </tr>
 <tr>
-<td style="text-align: left;">Thermal SC Withstand ($I_k = 25\text{ kA}$, $t = 1.0\text{ s}$)</td>
-<td style="text-align: center;">Minimum 175 mm² (185 mm² std)</td>
-<td style="text-align: center;">185 mm² std</td>
+<td style="text-align: left;">Adiabatic SC Withstand</td>
+<td style="text-align: center;">Adequate ($I^2t \le I^2t_{perm}$)</td>
+<td style="text-align: center;">Adequate (<code>True</code>)</td>
 <td style="text-align: center;">0.00%</td>
-<td style="text-align: center;">PASS</td>
-</tr>
-<tr>
-<td style="text-align: left;">SC Thermal Utilization Ratio (185 mm² Cu XLPE)</td>
-<td style="text-align: center;">0.892</td>
-<td style="text-align: center;">0.892</td>
-<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60724 ($250^\circ\text{C}$ limit for XLPE)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 </tbody>
 </table>
-<h2 id="3-fail-closed-security-provenance-verification">3. Fail-Closed Security &amp; Provenance Verification</h2>
+<h3 id="table-3-case-3-25-kw-400v-commercial-hvac-feeder-i_b-4346text-a-alxlpe-direct-buried-t_amb30circtextc-soil-rho15text-kcdottextmw-l60text-m-cosphi083">Table 3: Case 3 — 25 kW 400V Commercial HVAC Feeder ($I_b = 43.46\text{ A}$, Al/XLPE Direct Buried, $T_{amb}=30^\circ\text{C}$, Soil $\rho=1.5\text{ K}\cdot\text{m/W}$, $L=60\text{ m}$, $\cos\phi=0.83$)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter / Metric</th>
+<th style="text-align: center;">Expected Benchmark Value</th>
+<th style="text-align: center;">Computed (CableSizingAgent)</th>
+<th style="text-align: center;">Error %</th>
+<th style="text-align: left;">Data Source</th>
+<th style="text-align: center;">Compliance Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Base Ampacity (25 mm² Al)</td>
+<td style="text-align: center;">114.00 A</td>
+<td style="text-align: center;">114.00 A</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Table B.52.4 (Aluminum)</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Direct Burial Method Factor</td>
+<td style="text-align: center;">0.8500</td>
+<td style="text-align: center;">0.8500</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Table B.52.2 / Method D</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Soil Resistivity Derating $C_s$</td>
+<td style="text-align: center;">0.8900</td>
+<td style="text-align: center;">0.8900</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Table B.52.15 ($\rho=1.5$)</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Derated Ampacity $I_z$</td>
+<td style="text-align: center;">86.2410 A</td>
+<td style="text-align: center;">86.2410 A</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">Analytical $114 \times 0.85 \times 0.89$</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Voltage Drop $\Delta V$</td>
+<td style="text-align: center;">5.7877 V</td>
+<td style="text-align: center;">5.7877 V</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEC 60364-5-52 Annex G (Aluminum $R_{80}=1.490\,\Omega/\text{km}$)</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Voltage Drop Percentage</td>
+<td style="text-align: center;">1.4469%</td>
+<td style="text-align: center;">1.4469%</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">Analytical $\Delta V / 400\text{ V} \times 100\%$</td>
+<td style="text-align: center;">PASS ($\le 3.0\% / 5.0\%$)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-production-provenance-fail-closed-gate-architecture">3. Production Provenance &amp; Fail-Closed Gate Architecture</h2>
 <ul>
-<li><strong>Feature Flag Disabled</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>code="SPECIALIZED_EXECUTION_UNAVAILABLE"</code>).</li>
-<li><strong>Missing Parameters</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Missing System</strong>: Rejection with <code>ValueError</code>.</li>
-<li><strong>Pilot Provenance</strong>: Validated return structure contains:
+<li><strong>Production Eligibility Gate</strong>:</li>
+<li><code>is_production_eligible(cap)</code> evaluates to <code>True</code> based on non-empty edition/clause standards scope, non-empty validation evidence, and <code>benchmark_status="VERIFIED_BENCHMARK"</code>.</li>
+<li><strong>Fail-Closed Security</strong>:</li>
+<li>Unauthenticated requests rejected (<code>AUTHENTICATION_REQUIRED</code>, HTTP 401).</li>
+<li>Cross-tenant requests blocked (<code>CROSS_TENANT_VIOLATION</code>, HTTP 403).</li>
+<li>Disabled flag rejected (<code>SPECIALIZED_EXECUTION_UNAVAILABLE</code>).</li>
+<li>Missing engineering parameters rejected immediately with <code>INSUFFICIENT_ENGINEERING_INPUT</code>.</li>
+<li><strong>Production Provenance</strong>:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">"provenance"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"handler"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agents.cable_sizing_agent.CableSizingAgent"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"agent_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cable_sizing"</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"standard"</span><span class="p">:</span><span class="w"> </span><span class="s2">"IEC 60364"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pilot"</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"production"</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div></li>
 </ul>
-<h2 id="4-test-suites-real-execution-output">4. Test Suites &amp; Real Execution Output</h2>
+<hr />
+<h2 id="4-verification-suites-test-execution">4. Verification Suites &amp; Test Execution</h2>
 <ul>
-<li><strong>Acceptance Gate Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w"> </span>tests/test_cable_sizing_acceptance.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>5/5 passed</strong> (100% pass rate).</li>
-<li><strong>Scenario Multi-Turn Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/scenarios/test_cable_sizing_scenario.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>7/7 passed</strong> (100% pass rate).</li>
-<li><strong>Reachability Gate</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest<span class="w"> </span>tests/test_study_reachability_gate.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>21/21 passed</strong>.</li>
+<li>
+<p><strong>Scientific Benchmarks (<code>scripts/run_ieee_benchmarks.py</code>)</strong>:
+  <em>Result</em>: <strong>9/9 PASSED in 2.33s</strong> (IEC 60364 benchmark verified).</p>
+</li>
+<li>
+<p><strong>Acceptance Gate Suite (<code>tests/test_cable_sizing_acceptance.py</code>)</strong>:
+  <em>Result</em>: <strong>7/7 PASSED</strong> (Eligibility, fail-closed, Positive Ampacity, Positive Recommendation, Scientific Benchmarks).</p>
+</li>
+<li>
+<p><strong>Multi-Turn Scenario Suite (<code>tests/scenarios/test_cable_sizing_scenario.py</code>)</strong>:
+  <em>Result</em>: <strong>7/7 PASSED</strong>.</p>
+</li>
 </ul>
 
 
