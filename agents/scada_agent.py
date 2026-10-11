@@ -433,12 +433,17 @@ class SCADAAgent(BaseAgent):
 
         for bus_id, tag_map in bus_mapping.items():
             bus_entry: dict[str, Any] = {"bus_id": bus_id}
+            bus_m = next((m for m in measurements if str(m.get("bus_id")) == str(bus_id)), None)
 
             # Voltage magnitude
             v_tag = tag_map.get("voltage_tag")
             if v_tag and v_tag in meas_by_tag:
                 v_kv = meas_by_tag[v_tag].get("value", 0.0)
                 bus_entry["voltage_kv"] = float(v_kv)
+                bus_entry["voltage_pu"] = float(v_kv / base_kv) if base_kv > 0 else 0.0
+            elif bus_m and "voltage_magnitude_kv" in bus_m:
+                v_kv = float(bus_m["voltage_magnitude_kv"])
+                bus_entry["voltage_kv"] = v_kv
                 bus_entry["voltage_pu"] = float(v_kv / base_kv) if base_kv > 0 else 0.0
             else:
                 bus_entry["voltage_pu"] = 1.0  # Default flat start
@@ -449,6 +454,8 @@ class SCADAAgent(BaseAgent):
             a_tag = tag_map.get("angle_tag")
             if a_tag and a_tag in meas_by_tag:
                 bus_entry["angle_deg"] = float(meas_by_tag[a_tag].get("value", 0.0))
+            elif bus_m and "voltage_angle_deg" in bus_m:
+                bus_entry["angle_deg"] = float(bus_m["voltage_angle_deg"])
             else:
                 bus_entry["angle_deg"] = 0.0
 
@@ -575,7 +582,9 @@ class SCADAAgent(BaseAgent):
         validated: list[dict[str, Any]] = []
         for m in measurements:
             tag = m.get("tag", "")
-            value = m.get("value", 0.0)
+            value = float(
+                m.get("value", m.get("voltage_magnitude_kv", m.get("active_power_mw", 0.0)))
+            )
             quality = m.get("quality", "good")
 
             rules = validation_rules.get(tag, {})
@@ -590,6 +599,7 @@ class SCADAAgent(BaseAgent):
             validated.append(
                 {
                     **m,
+                    "value": value,
                     "quality": quality,
                     "original_value": value,
                 },
@@ -890,8 +900,12 @@ class SCADAAgent(BaseAgent):
                     execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                 )
 
+            # ── Preloaded measurements detection ──
+            preloaded_meas = p.get("measurements") or p.get("raw_measurements")
+            has_preloaded_measurements = bool(preloaded_meas)
+
             # ── Mandatory input validation ──
-            if analysis_type in ("connect", "full"):
+            if analysis_type == "connect" or (analysis_type == "full" and not has_preloaded_measurements):
                 server_param = p.get("scada_server", p.get("server"))
                 if not server_param or not str(server_param).strip():
                     if not p.get("demo") and not p.get("simulate"):
@@ -930,50 +944,74 @@ class SCADAAgent(BaseAgent):
             port_val = int(p.get("scada_port", p.get("port", 102)))
 
             if analysis_type in ("connect", "full"):
-                results["connection"] = self.connect_scada(
-                    server=server_name,
-                    port=port_val,
-                    protocol=p.get("scada_protocol", "IEC61850"),
-                    timeout_ms=int(p.get("timeout_ms", 5000)),
-                )
+                if has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
+                    results["connection"] = {
+                        "status": "connected",
+                        "server": "preloaded_dataset",
+                        "port": port_val,
+                        "protocol": p.get("scada_protocol", "IEC61850"),
+                        "connected": True,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                else:
+                    results["connection"] = self.connect_scada(
+                        server=server_name,
+                        port=port_val,
+                        protocol=p.get("scada_protocol", "IEC61850"),
+                        timeout_ms=int(p.get("timeout_ms", 5000)),
+                    )
 
             if analysis_type in ("read", "full"):
-                conn_id = p.get(
-                    "connection_id",
-                    f"{server_name}:{port_val}",
-                )
-                results["measurements"] = self.read_measurements(
-                    connection_id=conn_id,
-                    measurement_tags=p.get("measurement_tags"),
-                    iec61850_refs=p.get("iec61850_refs"),
-                )
+                if has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
+                    results["measurements"] = {
+                        "success": True,
+                        "measurement_count": len(preloaded_meas),
+                        "measurements": preloaded_meas,
+                        "protocol": p.get("scada_protocol", "IEC61850"),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                else:
+                    conn_id = p.get(
+                        "connection_id",
+                        f"{server_name}:{port_val}",
+                    )
+                    results["measurements"] = self.read_measurements(
+                        connection_id=conn_id,
+                        measurement_tags=p.get("measurement_tags"),
+                        iec61850_refs=p.get("iec61850_refs"),
+                    )
 
             if analysis_type in ("map_bus", "full"):
                 # Use measurements from read step or from task parameters
-                raw_meas = p.get("raw_measurements")
+                raw_meas = p.get("raw_measurements") or p.get("measurements")
                 if raw_meas is None and "measurements" in results:
                     raw_meas = results["measurements"].get("measurements", [])
 
-                bus_mapping = p.get(
-                    "bus_mapping",
-                    {
-                        "BUS1": {
-                            "voltage_tag": "V_BUS1_KV",
-                            "P_load_tag": "P_BUS1_MW",
-                            "Q_load_tag": "Q_BUS1_MVAR",
-                        },
-                        "BUS2": {
-                            "voltage_tag": "V_BUS2_KV",
-                            "P_load_tag": "P_BUS2_MW",
-                            "Q_load_tag": "Q_BUS2_MVAR",
-                        },
-                        "BUS3": {
-                            "voltage_tag": "V_BUS3_KV",
-                            "P_load_tag": "P_BUS3_MW",
-                            "Q_load_tag": "Q_BUS3_MVAR",
-                        },
+                default_bus_mapping = {
+                    "BUS1": {
+                        "voltage_tag": "V_BUS1_KV",
+                        "P_load_tag": "P_BUS1_MW",
+                        "Q_load_tag": "Q_BUS1_MVAR",
                     },
-                )
+                    "BUS2": {
+                        "voltage_tag": "V_BUS2_KV",
+                        "P_load_tag": "P_BUS2_MW",
+                        "Q_load_tag": "Q_BUS2_MVAR",
+                    },
+                    "BUS3": {
+                        "voltage_tag": "V_BUS3_KV",
+                        "P_load_tag": "P_BUS3_MW",
+                        "Q_load_tag": "Q_BUS3_MVAR",
+                    },
+                }
+                if not p.get("bus_mapping") and raw_meas and any("bus_id" in m for m in raw_meas):
+                    bus_mapping = {
+                        str(m["bus_id"]): {"bus_id": str(m["bus_id"])}
+                        for m in raw_meas
+                        if "bus_id" in m
+                    }
+                else:
+                    bus_mapping = p.get("bus_mapping", default_bus_mapping)
 
                 results["bus_data"] = self.map_to_bus_data(
                     measurements=raw_meas or [],
@@ -983,7 +1021,7 @@ class SCADAAgent(BaseAgent):
                 )
 
             if analysis_type in ("process", "full"):
-                raw_meas = p.get("raw_measurements")
+                raw_meas = p.get("raw_measurements") or p.get("measurements")
                 if raw_meas is None and "measurements" in results:
                     raw_meas = results["measurements"].get("measurements", [])
 

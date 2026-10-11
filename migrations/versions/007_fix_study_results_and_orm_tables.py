@@ -140,12 +140,17 @@ def upgrade() -> None:
             "notifications",
             sa.Column("id", sa.String(36), primary_key=True),
             sa.Column("user_id", sa.String(36), nullable=False, index=True),
-            sa.Column("type", sa.String(64), nullable=False),
+            sa.Column("notification_type", sa.String(64), nullable=False, index=True),
             sa.Column("title", sa.String(255), nullable=False),
-            sa.Column("message", sa.Text(), nullable=True),
+            sa.Column("message", sa.Text(), nullable=False),
+            sa.Column("priority", sa.String(16), default="normal"),
             sa.Column("data", sa.JSON(), nullable=True),
             sa.Column("is_read", sa.Boolean(), default=False),
+            sa.Column("is_archived", sa.Boolean(), default=False),
+            sa.Column("requires_email", sa.Boolean(), default=False),
+            sa.Column("email_sent", sa.Boolean(), default=False),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+            sa.Column("read_at", sa.DateTime(timezone=True), nullable=True),
         )
         # NOTE: index already created by index=True in Column definition above
 

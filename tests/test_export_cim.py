@@ -24,6 +24,7 @@ from starlette.testclient import TestClient
 
 import api.export as export_mod
 import api.feature_flags as feature_flags_mod
+from api.auth import User
 from api.data_import import _parse_cim_xml
 from api.database import async_session
 from api.dependencies import CurrentUser, get_api_key, get_current_user_from_header
@@ -45,6 +46,23 @@ TEST_USER = CurrentUser(
     role="engineer",
     tenant_id="tenant_cim_export",
 )
+
+
+async def _ensure_cim_user(session) -> None:
+    """Ensure TEST_USER exists to satisfy foreign key constraints."""
+    user = await session.get(User, TEST_USER.user_id)
+    if not user:
+        session.add(
+            User(
+                id=TEST_USER.user_id,
+                username=TEST_USER.username,
+                email=TEST_USER.email,
+                password_hash="test-pw-hash",
+                role=TEST_USER.role,
+                is_active=True,
+            )
+        )
+        await session.flush()
 
 
 @pytest.fixture
@@ -171,6 +189,7 @@ async def test_missing_gis_fail_closed(export_client: TestClient):
     proj_id = f"proj-missing-gis-{uuid.uuid4().hex[:8]}"
 
     async with async_session() as session:
+        await _ensure_cim_user(session)
         p = Project(
             id=proj_id,
             name="Missing GIS Substation Network",
@@ -250,6 +269,7 @@ async def test_export_endpoint_acceptance(export_client: TestClient):
     proj_id = f"proj-accept-{uuid.uuid4().hex[:8]}"
 
     async with async_session() as session:
+        await _ensure_cim_user(session)
         p = Project(
             id=proj_id,
             name="EcoStruxure Pilot Grid",
