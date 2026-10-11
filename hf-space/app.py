@@ -842,13 +842,8 @@ async def platform_info():
 @app.head("/version", tags=["Platform"])
 async def get_version():
     """Return platform version and deployed Git SHA if available."""
-    deploy_sha = (
-        os.getenv("DEPLOY_SHA")
-        or os.getenv("COMMIT_SHA")
-        or os.getenv("HF_COMMIT_SHA")
-        or "unknown"
-    )
-    if deploy_sha == "unknown":
+    deploy_sha = os.getenv("DEPLOY_SHA")
+    if not deploy_sha:
         for candidate in [Path("DEPLOY_SHA"), Path("/app/DEPLOY_SHA")]:
             if candidate.exists():
                 try:
@@ -858,6 +853,12 @@ async def get_version():
                         break
                 except Exception:
                     pass
+    if not deploy_sha:
+        deploy_sha = (
+            os.getenv("COMMIT_SHA")
+            or os.getenv("HF_COMMIT_SHA")
+            or "unknown"
+        )
     return JSONResponse(
         content={
             "version": VERSION,

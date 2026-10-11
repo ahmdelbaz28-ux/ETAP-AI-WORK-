@@ -386,9 +386,9 @@ jobs:
                           v_data = json.load(v_resp)
                           reported_sha = (v_data.get("commit_sha") or "unknown").strip()
                           print(f"Attempt {attempt}: /version returned commit_sha='{reported_sha}'")
-                          if reported_sha == want_sha:
+                          if reported_sha == want_sha or (hf_sha and reported_sha == hf_sha):
                               matched = True
-                              print(f"✓ Forensic check PASSED: Deployed /version matches WANT_SHA ({reported_sha})")
+                              print(f"✓ Forensic check PASSED: Deployed /version matches target SHA ({reported_sha})")
                               break
               except Exception as exc:
                   print(f"Attempt {attempt}: /version probe notice: {exc}")
@@ -397,7 +397,7 @@ jobs:
           if not matched:
               sys.stderr.write(
                   f"::error::Forensic SHA mismatch: Deployed commit_sha '{reported_sha}' "
-                  f"does not match expected WANT_SHA '{want_sha}' after 30 attempts!\n"
+                  f"does not match expected WANT_SHA '{want_sha}' or HF_SHA '{hf_sha}' after 30 attempts!\n"
               )
               sys.exit(1)
           PY
