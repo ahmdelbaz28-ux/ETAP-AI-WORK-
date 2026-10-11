@@ -10,25 +10,55 @@ Verifies:
 
 from __future__ import annotations
 
+from typing import AsyncGenerator
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
 
-from api.database import async_session, init_db
+from api.database import Base, get_db
 from api.dependencies import CurrentUser, get_current_user_from_header
 from api.notifications import create_notification, router
+
+TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
+test_engine = create_async_engine(
+    TEST_DB_URL,
+    echo=False,
+    poolclass=StaticPool,
+    connect_args={"check_same_thread": False},
+)
+test_session_factory = async_sessionmaker(
+    test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
 @pytest.fixture(autouse=True)
 async def _setup_db():
-    await init_db()
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+async def _override_get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with test_session_factory() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 def _build_test_app(user: CurrentUser) -> FastAPI:
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_current_user_from_header] = lambda: user
+    app.dependency_overrides[get_db] = _override_get_db
     return app
 
 
@@ -79,7 +109,7 @@ async def test_notifications_unread_and_create():
     app = _build_test_app(user=test_user)
 
     # Create notification in database
-    async with async_session() as session:
+    async with test_session_factory() as session:
         await create_notification(
             db=session,
             user_id="user-notif-2",
