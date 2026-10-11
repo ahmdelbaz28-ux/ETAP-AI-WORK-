@@ -856,6 +856,133 @@ class StudyExecutor:
                     study_type, f"Optimization execution unavailable: {exc}"
                 ) from exc
 
+        if study_type == "digital_twin":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("digital_twin"):
+                raise SpecializedExecutionUnavailableError(
+                    "digital_twin", "Feature flag 'digital_twin' is disabled"
+                )
+            sys_obj = parameters.get("system")
+            if sys_obj is None:
+                raise ValueError("SYSTEM_MODEL_REQUIRED")
+
+            import numpy as np
+            import time
+            from datetime import datetime, timezone
+
+            now_epoch = time.time()
+            now_dt = datetime.now(timezone.utc)
+
+            measurements = parameters.get("measurements") or []
+            scada_snapshot = parameters.get("scada_snapshot")
+
+            is_stale = False
+            stale_reason = ""
+            snapshot_ts = None
+
+            if scada_snapshot and isinstance(scada_snapshot, dict):
+                raw_ts = scada_snapshot.get("timestamp")
+                snapshot_ts = raw_ts
+                if raw_ts is not None:
+                    try:
+                        if isinstance(raw_ts, (int, float)):
+                            age = now_epoch - float(raw_ts)
+                        else:
+                            dt = datetime.fromisoformat(str(raw_ts).replace("Z", "+00:00"))
+                            age = (now_dt - dt).total_seconds()
+                        if age > 30.0:
+                            is_stale = True
+                            stale_reason = f"SCADA snapshot timestamp age ({age:.1f}s) exceeds 30s"
+                    except Exception:
+                        pass
+                for r in scada_snapshot.get("readings", []):
+                    q = str(r.get("quality") or r.get("quality_code") or "").upper()
+                    if q == "BAD":
+                        is_stale = True
+                        stale_reason = "BAD quality reading in SCADA snapshot"
+                        break
+
+            if measurements and isinstance(measurements, list):
+                for m in measurements:
+                    q = str(m.get("quality_code") or m.get("quality") or "").upper()
+                    if q == "BAD":
+                        is_stale = True
+                        stale_reason = "BAD quality measurement"
+                        break
+                    raw_ts = m.get("timestamp")
+                    if raw_ts is not None:
+                        try:
+                            if isinstance(raw_ts, (int, float)):
+                                age = now_epoch - float(raw_ts)
+                            else:
+                                dt = datetime.fromisoformat(str(raw_ts).replace("Z", "+00:00"))
+                                age = (now_dt - dt).total_seconds()
+                            if age > 30.0:
+                                is_stale = True
+                                stale_reason = f"Measurement timestamp age ({age:.1f}s) exceeds 30s"
+                                break
+                        except Exception:
+                            pass
+
+            if is_stale:
+                return {
+                    "success": False,
+                    "reason": "STALE_DATA",
+                    "detail": stale_reason or "Stale telemetry data detected",
+                    "lifecycle": "pilot",
+                }
+
+            from agents.digital_twin_agent import DigitalTwinAgent
+
+            ag = DigitalTwinAgent()
+
+            predicted = parameters.get("predicted_values") or [1.0, 1.0, 1.0]
+            measured = parameters.get("measured_values") or [1.0, 1.0, 1.0]
+            cov = parameters.get("covariance_matrix")
+
+            pred_arr = np.array(predicted, dtype=float)
+            meas_arr = np.array(measured, dtype=float)
+            cov_arr = np.array(cov, dtype=float) if cov is not None else None
+
+            md = ag.compute_model_deviation_index(pred_arr, meas_arr, cov_arr)
+            dq = ag.compute_data_quality_index(measurements)
+            historical_mdi = parameters.get("historical_mdi") or [md["mdi"]]
+            pc = ag.compute_predictive_confidence(historical_mdi)
+
+            mdi_val = md["mdi"]
+            drift_detected = mdi_val > 0.15
+            drift_flags = ["drift"] if drift_detected else []
+            cal_suggestion = (
+                f"Model calibration recommended: MDI ({mdi_val:.4f}) exceeds 0.15 threshold"
+                if drift_detected
+                else ""
+            )
+
+            provenance = {
+                "source": parameters.get("source", "simulation"),
+                "handler": "agents.digital_twin_agent.DigitalTwinAgent",
+                "trace_id": parameters.get("trace_id"),
+                "tenant_id": parameters.get("tenant_id"),
+                "scada_timestamp": snapshot_ts or now_epoch,
+                "lifecycle": "pilot",
+            }
+
+            return {
+                "success": True,
+                "mdi": md["mdi"],
+                "mdi_status": md["status"],
+                "dqi": dq["dqi_percent"],
+                "pcl": pc["pcl_percent"],
+                "model_deviation": md,
+                "data_quality": dq,
+                "predictive_confidence": pc,
+                "drift_flags": drift_flags,
+                "calibration_suggestion": cal_suggestion,
+                "warnings": drift_flags,
+                "provenance": provenance,
+            }
+
         # Specialized agent studies require explicit parameters; empty parameters to native dispatch port fails closed
         if not parameters:
             raise SpecializedExecutionUnavailableError(

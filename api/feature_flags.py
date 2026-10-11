@@ -172,6 +172,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Breaker Duty evaluation per IEC 62271-100 against catalog switchgear limits",
         "rollout_percentage": 0,
     },
+    "digital_twin": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "Digital twin sync (PILOT silent-observer, fail-closed)",
+        "rollout_percentage": 0,
+    },
     "chat_system_prompt": {
         "enabled": False,
         "status": "beta",

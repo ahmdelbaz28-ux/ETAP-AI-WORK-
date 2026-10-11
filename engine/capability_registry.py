@@ -609,14 +609,15 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="digital_twin",
+            feature_flag="digital_twin",
             benchmark_status="NONE",
             standards_scope="Platform Digital Twin Synchronization",
             validation_evidence="Digital twin state store tests",
             production_supported=False,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.UNAVAILABLE,
-            description="Real-time digital twin synchronization (fails closed until computational backend available).",
+            lifecycle_status=LifecycleStatus.PILOT,
+            description="Real-time digital twin synchronization (PILOT silent-observer; no actuation).",
         )
     )
     registry.register(
