@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T11:00:56.189399+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T11:50:26.953027+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 385 |
 | Python | Classes | 938 |
-| Python | Functions | 838 |
+| Python | Functions | 842 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 283 |
-| Total | Tests | 3945 |
+| Total | Tests | 3947 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -1733,19 +1733,19 @@ Provides:
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 427)
-- **Class** `FeatureFlagListOut` (line 436)
-- **Class** `FeatureFlagPatch` (line 444)
+- **Class** `FeatureFlagOut` (line 428)
+- **Class** `FeatureFlagListOut` (line 437)
+- **Class** `FeatureFlagPatch` (line 445)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 313)
-- **def** `is_feature_enabled()` (line 318)
-- **def** `is_strict_feature_enabled()` (line 338)
-- **def** `get_disabled_studies()` (line 358)
-- **def** `get_flag_metadata()` (line 375)
-- **def** `evaluate_flag_with_rollout()` (line 406)
-- **async def** `list_feature_flags()` (line 499)
-- **async def** `get_feature_flag()` (line 518)
-- **async def** `update_feature_flag()` (line 541)
+- **def** `is_enabled()` (line 314)
+- **def** `is_feature_enabled()` (line 319)
+- **def** `is_strict_feature_enabled()` (line 339)
+- **def** `get_disabled_studies()` (line 359)
+- **def** `get_flag_metadata()` (line 376)
+- **def** `evaluate_flag_with_rollout()` (line 407)
+- **async def** `list_feature_flags()` (line 500)
+- **async def** `get_feature_flag()` (line 519)
+- **async def** `update_feature_flag()` (line 542)
 
   **API Routes:**
   - `GET /{key}`
@@ -2791,7 +2791,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _40.1 KB_
+#### 📄 `engine/capability_registry.py` _40.3 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2957,7 +2957,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _23.6 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _29.8 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -2969,6 +2969,10 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_30bus_system()` (line 558)
 - **def** `calculate_iec_60909_theoretical_fault()` (line 704)
 - **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 711)
+- **def** `build_ieee_13bus_harmonic_system()` (line 734)
+- **def** `build_industrial_4bus_harmonic_system()` (line 767)
+- **def** `build_commercial_480v_harmonic_system()` (line 804)
+- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 839)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -5715,10 +5719,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
-| python-module | 41 |
 | ui-component | 280 |
+| api-route | 92 |
+| python-module | 41 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5747,7 +5751,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5758,7 +5762,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5881,7 +5885,7 @@ Provides
 | `test_gis_model_interpolate.py` | 0 | 2 | **9** |
 | `test_gis_validation.py` | 0 | 6 | **30** |
 | `test_guards.py` | 50 | 0 | **50** |
-| `test_harmonic_analysis_acceptance.py` | 4 | 0 | **4** |
+| `test_harmonic_analysis_acceptance.py` | 6 | 0 | **6** |
 | `test_harmonic_analysis_ieee519.py` | 0 | 1 | **4** |
 | `test_hf_space_auth.py` | 0 | 3 | **12** |
 | `test_hf_space_data_survival.py` | 2 | 0 | **2** |
@@ -6163,7 +6167,7 @@ Provides
 | `scripts/run_comprehensive_tests.bat` | bat | 1.3 KB |  |
 | `scripts/run_cov.bat` | bat | 0.3 KB |  |
 | `scripts/run_git.py` | py | 0.0 KB |  |
-| `scripts/run_ieee_benchmarks.py` | py | 6.0 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
+| `scripts/run_ieee_benchmarks.py` | py | 6.8 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
 | `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
