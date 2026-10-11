@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T07:10:18.375329+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T07:47:48.013622+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,8 +14,8 @@
 | Python | Classes | 935 |
 | Python | Functions | 835 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 271 |
-| Total | Tests | 3871 |
+| Test | Files | 272 |
+| Total | Tests | 3875 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -864,7 +864,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _64.2 KB_
+#### 📄 `agents/registry.py` _64.7 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -876,22 +876,22 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `HarmonicAnalysisAgent` (line 474)
   - Methods: `execute()`, `validate_result()`
-- **Class** `OptimalPowerFlowAgent` (line 592)
+- **Class** `OptimalPowerFlowAgent` (line 601)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 724)
+- **Class** `ProtectionCoordinationAgent` (line 733)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 827)
+- **Class** `ETAPExecutionAgent` (line 836)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 941)
+- **Class** `ValidationAgent` (line 950)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1274)
+- **Class** `ReportGenerationAgent` (line 1283)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 129)
 - **def** `resolve_agent_key()` (line 134)
 - **def** `validate_agent_keys()` (line 139)
-- **def** `get_study_type_mapping()` (line 1577)
-- **def** `get_agent_for_study()` (line 1582)
-- **def** `create_agent_registry()` (line 1593)
+- **def** `get_study_type_mapping()` (line 1586)
+- **def** `get_agent_for_study()` (line 1591)
+- **def** `create_agent_registry()` (line 1602)
 
 #### 📄 `agents/renewable_agent.py` _35.4 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -2801,8 +2801,8 @@ Single source of tr
   - Methods: `is_production_eligible()`
 - **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 910)
-- **def** `get_capability_definition()` (line 920)
+- **def** `get_capability_registry()` (line 911)
+- **def** `get_capability_definition()` (line 921)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -3383,7 +3383,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _61.2 KB_
+#### 📄 `services/study_executor.py` _61.7 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -5700,10 +5700,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| api-route | 92 |
-| ui-page | 61 |
 | ui-component | 280 |
+| api-route | 92 |
+| python-module | 41 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5862,6 +5862,7 @@ Provides
 | `test_gis_model_interpolate.py` | 0 | 2 | **9** |
 | `test_gis_validation.py` | 0 | 6 | **30** |
 | `test_guards.py` | 50 | 0 | **50** |
+| `test_harmonic_analysis_acceptance.py` | 4 | 0 | **4** |
 | `test_harmonic_analysis_ieee519.py` | 0 | 1 | **4** |
 | `test_hf_space_auth.py` | 0 | 3 | **12** |
 | `test_hf_space_data_survival.py` | 2 | 0 | **2** |
