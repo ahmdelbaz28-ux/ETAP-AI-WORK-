@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T14:21:10.484706+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T15:09:32.989425+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,18 +10,18 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 385 |
-| Python | Classes | 938 |
-| Python | Functions | 849 |
+| Python | Files | 392 |
+| Python | Classes | 962 |
+| Python | Functions | 856 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 283 |
-| Total | Tests | 3961 |
+| Test | Files | 285 |
+| Total | Tests | 3988 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 453 |
+| Environment | Variables | 454 |
 | Scripts | | 168 |
 | AI | Agents | 31 |
-| Integrations | | 21 |
+| Integrations | | 22 |
 | UI | Search Index Entries | 474 |
 
 ---
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -70,6 +70,7 @@
 
 - **`anthropic_vision`** (12.5 KB) — classes: `AnthropicVisionClient`
 - **`etap_component_importer`** (13.7 KB) — classes: `ETAPComponentImporter`
+- **`external_adms_connectors`** (3.9 KB) — classes: `BaseADMSConnector`, `ArcFMFeederConnector`, `EcoStruxureADMSConnector`
 - **`gemini_vision`** (10.0 KB) — classes: `GeminiVisionClient`
 - **`langfuse_evals`** (19.3 KB) — classes: _none_
 - **`langfuse_integration`** (20.7 KB) — classes: `LangfuseTracker`
@@ -120,7 +121,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **453** variables
+Total: **454** variables
 
 ### General
 
@@ -380,6 +381,7 @@ Total: **453** variables
 - `ETAP_REST_URL`
 - `ETAP_SECRETS_DIR`
 - `ETAP_WORKER_HOST`
+- `ETAP_WORKER_SERVICE_URL`
 - `EXTERNAL_SERVICE_PROVIDER`
 - `EXTERNAL_SERVICE_TIMEOUT_SEC`
 - `EXTERNAL_SERVICE_URL`
@@ -1459,7 +1461,7 @@ act
 - **async def** `authenticate_cua_confirmation_ws()` (line 90)
 - **async def** `cua_confirmation_ws()` (line 523)
 
-#### 📄 `api/data_import.py` _42.5 KB_
+#### 📄 `api/data_import.py` _46.4 KB_
 > api/data_import.py — Power-system data import router (P9).
 
 Provides endpoints for uploading, previewing (dry-run), and executing power-system
@@ -1474,10 +1476,10 @@ model i
 - **Class** `ImportExecuteRequest` (line 245)
 - **Class** `ImportExecuteResponse` (line 254)
 - **async def** `safe_parse_form()` (line 111)
-- **async def** `list_formats()` (line 830)
-- **async def** `preview_import()` (line 840)
-- **async def** `execute_import()` (line 1056)
-- **async def** `upload_file()` (line 1224)
+- **async def** `list_formats()` (line 928)
+- **async def** `preview_import()` (line 938)
+- **async def** `execute_import()` (line 1163)
+- **async def** `upload_file()` (line 1340)
 
 #### 📄 `api/database.py` _17.9 KB_
 > api/database.py — Async SQLAlchemy database configuration.
@@ -1683,7 +1685,7 @@ Provides:
 - **def** `get_recovery_suggestions()` (line 840)
 - **def** `setup_structured_logging()` (line 1109)
 
-#### 📄 `api/etap_draw.py` _15.1 KB_
+#### 📄 `api/etap_draw.py` _26.9 KB_
 > ETAP Draw Endpoints API Router — /api/v1/etap/draw/*
 
 Safe automatic ETAP drawing via DataHub etapAPI REST (server-side Auto-Build).
@@ -1691,11 +1693,14 @@ Mirrors the SCADA
 
 - **Class** `EtapDrawProposeRequest` (line 114)
 - **Class** `EtapDrawResolveRequest` (line 118)
+- **Class** `EtapDrawFromProjectRequest` (line 503)
 - **def** `is_draw_enabled()` (line 79)
 - **async def** `propose_draw()` (line 143)
 - **async def** `list_pending_draws()` (line 236)
 - **async def** `resolve_draw()` (line 283)
 - **async def** `get_draw_status()` (line 440)
+- **def** `is_full_network_draw_enabled()` (line 478)
+- **async def** `propose_draw_from_project()` (line 642)
 
 #### 📄 `api/export.py` _49.6 KB_
 > api/export.py — Advanced Export Service (P9).
@@ -1727,25 +1732,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _19.4 KB_
+#### 📄 `api/feature_flags.py` _20.2 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 430)
-- **Class** `FeatureFlagListOut` (line 439)
-- **Class** `FeatureFlagPatch` (line 447)
+- **Class** `FeatureFlagOut` (line 450)
+- **Class** `FeatureFlagListOut` (line 459)
+- **Class** `FeatureFlagPatch` (line 467)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 316)
-- **def** `is_feature_enabled()` (line 321)
-- **def** `is_strict_feature_enabled()` (line 341)
-- **def** `get_disabled_studies()` (line 361)
-- **def** `get_flag_metadata()` (line 378)
-- **def** `evaluate_flag_with_rollout()` (line 409)
-- **async def** `list_feature_flags()` (line 502)
-- **async def** `get_feature_flag()` (line 521)
-- **async def** `update_feature_flag()` (line 544)
+- **def** `is_enabled()` (line 336)
+- **def** `is_feature_enabled()` (line 341)
+- **def** `is_strict_feature_enabled()` (line 361)
+- **def** `get_disabled_studies()` (line 381)
+- **def** `get_flag_metadata()` (line 398)
+- **def** `evaluate_flag_with_rollout()` (line 429)
+- **async def** `list_feature_flags()` (line 522)
+- **async def** `get_feature_flag()` (line 541)
+- **async def** `update_feature_flag()` (line 564)
 
   **API Routes:**
   - `GET /{key}`
@@ -4315,6 +4320,15 @@ Provides ETAP COM automation, provider abstraction, worker service,
 error recovery, compatibility ch
 
 
+#### 📄 `etap_integration/draw_plan_builder.py` _17.8 KB_
+> ETAP Draw Plan Builder.
+
+Builds bounded, dependency-ordered EtapDrawPlan chunks from internal models
+(core_model.System or dictionaries from sync_engi
+
+- **def** `build_draw_plan()` (line 36)
+- **async def** `execute_draw_plans_atomic()` (line 134)
+
 #### 📄 `etap_integration/etap_adapter.py` _6.8 KB_
 > ETAP Adapter module for the Engineering Service.
 Provides a common interface for ETAP integration with optional functionality.
@@ -4387,19 +4401,19 @@ for COM automation failures, study executi
 - **def** `get_etap_provider()` (line 628)
 - **def** `get_etap_executor()` (line 805)
 
-#### 📄 `etap_integration/etap_rest.py` _14.2 KB_
+#### 📄 `etap_integration/etap_rest.py` _14.8 KB_
 > Safe automatic ETAP drawing via the OFFICIAL DataHub etapAPI REST path.
 
 Surgical addition: sends electrical components as DATA, asks ETAP to generate
 
 - **Class** `ETAPRestError` (line 80)
-- **Class** `EtapElement` (line 101)
+- **Class** `EtapElement` (line 125)
   - Methods: `to_payload()`
-- **Class** `EtapDrawPlan` (line 136)
-- **Class** `DrawResult` (line 155)
-- **Class** `EtapRestClient` (line 184)
+- **Class** `EtapDrawPlan` (line 160)
+- **Class** `DrawResult` (line 179)
+- **Class** `EtapRestClient` (line 208)
   - Methods: `health_check()`, `create_elements()`, `trigger_autobuild()`, `get_elements()`, `delete_elements()`, `apply_draw()`
-- **def** `get_rest_client_from_env()` (line 172)
+- **def** `get_rest_client_from_env()` (line 196)
 
 #### 📄 `etap_integration/etap_worker_service.py` _8.3 KB_
 > Windows ETAP Worker Service
@@ -4411,6 +4425,17 @@ Provides a REST API for the
 - **Class** `StudyResponse` (line 85)
 - **async def** `health_check()` (line 94)
 - **async def** `execute_study()` (line 137)
+
+#### 📄 `etap_integration/post_draw_verifier.py` _8.1 KB_
+> Operational Post-Draw Verification Engine.
+
+Dispatches Load Flow calculation on the generated ETAP project via the ETAP
+worker service (or local engin
+
+- **Class** `BusVerificationDetail` (line 31)
+- **Class** `NetworkVerificationResult` (line 42)
+- **def** `verify_bus_results()` (line 53)
+- **async def** `dispatch_load_flow_verification()` (line 136)
 
 #### 📄 `etap_integration/scada_client.py` _13.0 KB_
 > AhmedETAP Platform — SCADA Client (IEC 61850)
@@ -4627,6 +4652,19 @@ Parses ETAP project and library XML files to extract standardized
 
 - **Class** `ETAPComponentImporter` (line 49)
   - Methods: `parse_xml_content()`
+
+#### 📄 `integrations/external_adms_connectors.py` _3.9 KB_
+> Abstract External ADMS and GIS Feeder Connector Interfaces.
+
+Provides fail-closed abstract placeholders for enterprise utility integrations:
+- Schneid
+
+- **Class** `BaseADMSConnector` (line 30)
+  - Methods: `connect()`, `fetch_feeder_topology()`, `sync_switch_states()`
+- **Class** `ArcFMFeederConnector` (line 49)
+  - Methods: `connect()`, `fetch_feeder_topology()`, `sync_switch_states()`
+- **Class** `EcoStruxureADMSConnector` (line 77)
+  - Methods: `connect()`, `fetch_feeder_topology()`, `sync_switch_states()`
 
 #### 📄 `integrations/gemini_vision.py` _10.0 KB_
 > Gemini Vision Integration for AhmedETAP
@@ -4877,6 +4915,55 @@ This module provides:
 - **def** `list_files()` (line 503)
 - **def** `health_check()` (line 536)
 
+#### 📄 `integrations/zenon_network_export/__init__.py` _1.0 KB_
+> Zenon Network Export integration module.
+
+Provides contract models, field mappers, and parsers for importing
+ABB / COPA-DATA zenon SCADA topology into
+
+
+#### 📄 `integrations/zenon_network_export/contract.py` _9.5 KB_
+> Zenon Network Export v1 Contract Schema.
+
+Strict Pydantic models for importing electrical topology and parameters exported
+from ABB/COPA-DATA zenon SC
+
+- **Class** `ZenonProjectMetadata` (line 17)
+- **Class** `ZenonElementBase` (line 32)
+- **Class** `ZenonBus` (line 43)
+- **Class** `ZenonLine` (line 53)
+- **Class** `ZenonCable` (line 66)
+- **Class** `ZenonTransformer` (line 79)
+- **Class** `ZenonBreaker` (line 93)
+- **Class** `ZenonSwitch` (line 104)
+- **Class** `ZenonLoad` (line 114)
+- **Class** `ZenonGenerator` (line 124)
+- **Class** `ZenonMotor` (line 137)
+- **Class** `ZenonRelay` (line 148)
+- **Class** `ZenonCapacitor` (line 158)
+- **Class** `ZenonReactor` (line 167)
+- **Class** `ZenonSource` (line 178)
+- **Class** `ZenonNetworkExport` (line 188)
+
+#### 📄 `integrations/zenon_network_export/mapping.py` _3.5 KB_
+> zenon field mapping engine.
+
+Loads user-configurable mappings from YAML and applies them to normalize
+raw zenon SCADA tags and object parameters to ca
+
+- **Class** `ZenonFieldMapper` (line 21)
+  - Methods: `map_element_attributes()`
+
+#### 📄 `integrations/zenon_network_export/reader.py` _9.5 KB_
+> Zenon Network Export Reader.
+
+Parses a Zenon Network Export v1 contract (JSON/dict) and maps it into:
+1. An internal core_model.System electrical IR (
+
+- **Class** `ZenonImportResult` (line 34)
+  - Methods: `is_valid()`
+- **def** `parse_zenon_export()` (line 57)
+
 ### 📦 `knowledge/`
 
 #### 📄 `knowledge/__init__.py` _0.6 KB_
@@ -4953,11 +5040,11 @@ Produces folium/leaflet
 - **Class** `GISWriteError` (line 24)
 - **Class** `GISCapabilityError` (line 28)
 
-#### 📄 `gis_integration/models.py` _1.5 KB_
+#### 📄 `gis_integration/models.py` _1.6 KB_
 - **Class** `GISFeature` (line 16)
 - **Class** `ADMSAssetType` (line 33)
-- **Class** `ADMSAsset` (line 42)
-- **Class** `GeoCRSInfo` (line 64)
+- **Class** `ADMSAsset` (line 44)
+- **Class** `GeoCRSInfo` (line 66)
 
 #### 📄 `gis_integration/transformer.py` _6.9 KB_
 - **Class** `GisToAdmsTransformer` (line 9)
@@ -5092,7 +5179,7 @@ Supports:
 
 #### 📄 `gis_validation_electrical/__init__.py` _0.1 KB_
 
-#### 📄 `gis_validation_electrical/cim_mapper.py` _8.0 KB_
+#### 📄 `gis_validation_electrical/cim_mapper.py` _8.8 KB_
 - **Class** `CIMConductingEquipment` (line 10)
 - **Class** `CIMConnectivityNode` (line 18)
 - **Class** `CIMTerminal` (line 26)
@@ -5719,10 +5806,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 280 |
+| python-module | 41 |
 | api-route | 92 |
 | ui-page | 61 |
-| python-module | 41 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -5734,16 +5821,16 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
-| `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `load_flow`, `services` |
+| `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
 | `digital_twin` | `coordination`, `core_model`, `engine`, `fault_analysis`, `gis_integration`, `gis_model`, `load_flow`, `relays`, `scada_model` | `agents`, `copilot`, `core` |
 | `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
-| `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `services`, `worker` |
+| `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `integrations`, `services`, `worker` |
 | `etap_user_guide` | — | — |
 | `fault_analysis` | — | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
@@ -5752,7 +5839,7 @@ Provides
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
 | `guards` | — | `agents`, `security`, `services` |
-| `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
+| `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
@@ -5765,7 +5852,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | `api` |
+| `worker` | `etap_integration`, `services` | — |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -5868,6 +5955,7 @@ Provides
 | `test_etap_com_mocked.py` | 0 | 5 | **37** |
 | `test_etap_expert_proof.py` | 33 | 0 | **33** |
 | `test_etap_expert_skill.py` | 27 | 0 | **27** |
+| `test_etap_full_network_draw.py` | 0 | 5 | **13** |
 | `test_etap_gui_agent.py` | 36 | 0 | **36** |
 | `test_etap_parameter_roundtrip.py` | 0 | 6 | **11** |
 | `test_etap_rest_draw.py` | 15 | 0 | **15** |
@@ -6026,6 +6114,7 @@ Provides
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
 | `test_workflow_chains.py` | 4 | 0 | **4** |
+| `test_zenon_network_import.py` | 0 | 3 | **14** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
 | `test_battery_storage_scenario.py` | 0 | 1 | **6** |
 | `test_cable_sizing_scenario.py` | 0 | 1 | **7** |
