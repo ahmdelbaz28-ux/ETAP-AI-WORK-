@@ -24,6 +24,7 @@ from engine.benchmarks.ieee_cases import (
     IEEE_9BUS_BENCHMARK_VOLTAGES,
     build_ieee_9bus_system,
     build_ieee_14bus_system,
+    calculate_iec_60364_cable_sizing_benchmark,
     calculate_iec_60909_theoretical_fault,
     calculate_ieee_30bus_opf_benchmark,
     calculate_ieee_399_motor_starting_benchmark,
@@ -248,6 +249,30 @@ def run_benchmarks() -> dict:
             "details": {
                 "smib_cct_case": ts_res["smib_cct_case"],
                 "multimachine_rk4_case": ts_res["multimachine_rk4_case"],
+            },
+        }
+    )
+
+    # 9. IEC 60364 Cable Sizing (3 Real Feeder Loads & Thermal SC Withstand)
+    t0 = time.perf_counter()
+    cs_res = calculate_iec_60364_cable_sizing_benchmark()
+    t_cs = time.perf_counter() - t0
+    passed_cs = bool(cs_res["all_passed"])
+    if not passed_cs:
+        overall_passed = False
+    benchmarks.append(
+        {
+            "name": "IEC 60364 Cable Sizing & Thermal Withstand (3 Real Feeder Loads)",
+            "standard": "IEC 60364-5-52 / IEC 60949",
+            "cases_evaluated": 3,
+            "max_error_pct": cs_res["max_error_pct"],
+            "tolerance_limit_pct": cs_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_cs, 4),
+            "passed": passed_cs,
+            "details": {
+                "case1_motor_feeder": cs_res["case1_motor_feeder"],
+                "case2_distribution_feeder": cs_res["case2_distribution_feeder"],
+                "case3_al_direct_buried_feeder": cs_res["case3_al_direct_buried_feeder"],
             },
         }
     )

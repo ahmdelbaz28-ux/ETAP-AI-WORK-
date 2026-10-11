@@ -1211,6 +1211,156 @@ def calculate_ieee_399_transient_stability_benchmark() -> dict[str, Any]:
     }
 
 
+def calculate_iec_60364_cable_sizing_benchmark() -> dict[str, Any]:
+    """Execute canonical IEC 60364-5-52 and IEC 60949 cable sizing benchmark cases.
+
+    Validates 3 real engineering loads against standard tables and formulas:
+    Case 1: 50 kW 400V 3-phase industrial motor feeder (Cu/XLPE in air, Tamb=40°C, L=75m, pf=0.85)
+        - Expected base ampacity (25 mm² Cu): 143.0 A
+        - Expected Ca derating: sqrt(50/60) = 0.912871 -> Derated = 130.54 A
+        - Expected voltage drop: 8.888 V (2.22%)
+
+    Case 2: 120 kW 400V 3-phase main distribution board feeder (Cu/XLPE in air, Tamb=35°C, 3 grouped circuits, Ik=25kA, t=0.5s)
+        - Expected recommendation: 150 mm² Cu XLPE (governed by SC adiabatic withstand)
+        - Expected voltage drop: 1.77% (< 5.0% limit)
+        - SC adiabatic withstand: adequate=True
+
+    Case 3: 25 kW 400V 3-phase commercial HVAC feeder (Al/XLPE direct buried, Tamb=30°C, rho=1.5 K*m/W, L=60m, pf=0.83)
+        - Expected base ampacity (25 mm² Al): 114.0 A
+        - Expected derating (0.85 burial * 0.89 soil): 86.241 A
+        - Expected voltage drop: 5.79 V (1.45%)
+    """
+    from agents.cable_sizing_agent import CableSizingAgent
+
+    agent = CableSizingAgent()
+
+    # Case 1: 50 kW Motor Feeder
+    amp1 = agent.calculate_ampacity(
+        cross_section_mm2=25.0,
+        conductor_material="Cu",
+        insulation="XLPE",
+        installation_method="in_air",
+        ambient_temp_C=40.0,
+        n_circuits=1,
+    )
+    vd1 = agent.calculate_voltage_drop(
+        load_current_A=84.906,
+        cable_length_m=75.0,
+        cross_section_mm2=25.0,
+        conductor_material="Cu",
+        system_voltage_V=400.0,
+        power_factor=0.85,
+        n_phases=3,
+    )
+
+    exp_amp1_derated = 143.0 * (50.0 / 60.0) ** 0.5
+    calc_amp1_derated = amp1["derated_ampacity_A"]
+    err_amp1 = abs(calc_amp1_derated - exp_amp1_derated) / exp_amp1_derated * 100.0
+
+    exp_vd1_pct = 2.2219
+    calc_vd1_pct = vd1["voltage_drop_percent"]
+    err_vd1 = abs(calc_vd1_pct - exp_vd1_pct) / exp_vd1_pct * 100.0
+
+    pass_case1 = bool(err_amp1 < 0.1 and err_vd1 < 0.1 and amp1["base_ampacity_A"] == 143.0)
+
+    # Case 2: 120 kW Main Distribution Feeder
+    rec2 = agent.recommend_cable(
+        load_current_A=196.82,
+        cable_length_m=120.0,
+        system_voltage_V=400.0,
+        power_factor=0.88,
+        conductor_material="Cu",
+        insulation="XLPE",
+        installation_method="in_air",
+        ambient_temp_C=35.0,
+        n_circuits=3,
+        fault_current_kA=25.0,
+        fault_duration_s=0.5,
+        max_vdrop_percent=5.0,
+        n_phases=3,
+    )
+
+    rec_xsec2 = rec2.get("recommended_cross_section_mm2")
+    sc_ok2 = rec2.get("short_circuit_result", {}).get("adequate", False)
+    vd2_pct = rec2.get("voltage_drop_result", {}).get("voltage_drop_percent", 999.0)
+    pass_case2 = bool(rec_xsec2 == 150 and sc_ok2 and vd2_pct < 5.0)
+
+    # Case 3: 25 kW Al Direct Buried HVAC Feeder
+    amp3 = agent.calculate_ampacity(
+        cross_section_mm2=25.0,
+        conductor_material="Al",
+        insulation="XLPE",
+        installation_method="direct_buried",
+        ambient_temp_C=30.0,
+        n_circuits=1,
+        soil_resistivity_KmW=1.5,
+    )
+    vd3 = agent.calculate_voltage_drop(
+        load_current_A=43.46,
+        cable_length_m=60.0,
+        cross_section_mm2=25.0,
+        conductor_material="Al",
+        system_voltage_V=400.0,
+        power_factor=0.83,
+        n_phases=3,
+    )
+
+    exp_amp3_derated = 114.0 * 0.85 * 0.89  # 86.241 A
+    calc_amp3_derated = amp3["derated_ampacity_A"]
+    err_amp3 = abs(calc_amp3_derated - exp_amp3_derated) / exp_amp3_derated * 100.0
+
+    exp_vd3_pct = 1.4469
+    calc_vd3_pct = vd3["voltage_drop_percent"]
+    err_vd3 = abs(calc_vd3_pct - exp_vd3_pct) / exp_vd3_pct * 100.0
+
+    pass_case3 = bool(err_amp3 < 0.1 and err_vd3 < 0.1 and amp3["base_ampacity_A"] == 114.0)
+
+    max_err = max(err_amp1, err_vd1, err_amp3, err_vd3)
+    all_passed = bool(pass_case1 and pass_case2 and pass_case3)
+
+    return {
+        "standard": "IEC 60364-5-52 / IEC 60949",
+        "case1_motor_feeder": {
+            "load_current_A": 84.906,
+            "cross_section_mm2": 25.0,
+            "conductor": "Cu/XLPE",
+            "base_ampacity_A": amp1["base_ampacity_A"],
+            "derated_ampacity_A": round(float(calc_amp1_derated), 4),
+            "expected_derated_A": round(float(exp_amp1_derated), 4),
+            "ampacity_error_pct": round(float(err_amp1), 4),
+            "voltage_drop_percent": round(float(calc_vd1_pct), 4),
+            "expected_vdrop_pct": exp_vd1_pct,
+            "vdrop_error_pct": round(float(err_vd1), 4),
+            "passed": pass_case1,
+        },
+        "case2_distribution_feeder": {
+            "load_current_A": 196.82,
+            "recommended_xsection_mm2": rec_xsec2,
+            "expected_xsection_mm2": 150,
+            "voltage_drop_percent": round(float(vd2_pct), 4),
+            "short_circuit_withstand_adequate": sc_ok2,
+            "passed": pass_case2,
+        },
+        "case3_al_direct_buried_feeder": {
+            "load_current_A": 43.46,
+            "cross_section_mm2": 25.0,
+            "conductor": "Al/XLPE",
+            "base_ampacity_A": amp3["base_ampacity_A"],
+            "derated_ampacity_A": round(float(calc_amp3_derated), 4),
+            "expected_derated_A": round(float(exp_amp3_derated), 4),
+            "ampacity_error_pct": round(float(err_amp3), 4),
+            "voltage_drop_percent": round(float(calc_vd3_pct), 4),
+            "expected_vdrop_pct": exp_vd3_pct,
+            "vdrop_error_pct": round(float(err_vd3), 4),
+            "passed": pass_case3,
+        },
+        "max_error_pct": round(float(max_err), 4),
+        "tolerance_limit_pct": 0.5,
+        "all_passed": all_passed,
+    }
+
+
+
 
 
 

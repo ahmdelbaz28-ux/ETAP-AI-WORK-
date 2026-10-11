@@ -105,7 +105,7 @@ def test_cable_sizing_positive_execution_ampacity(cable_system, monkeypatch):
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEC 60364"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.cable_sizing_agent.CableSizingAgent"
 
 
@@ -136,4 +136,34 @@ def test_cable_sizing_positive_execution_recommendation(cable_system, monkeypatc
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEC 60364"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
+
+
+def test_cable_sizing_production_eligibility():
+    """Verify that cable_sizing meets all deterministic production maturity criteria."""
+    from engine.capability_registry import (
+        LifecycleStatus,
+        get_capability_registry,
+    )
+
+    reg = get_capability_registry()
+    cap = reg.get("cable_sizing")
+    assert cap is not None
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEC 60364" in cap.standards_scope
+    assert cap.is_production_eligible() is True
+
+
+def test_cable_sizing_scientific_benchmarks():
+    """Verify the 3 real-world feeder loads benchmark suite per IEC 60364-5-52 and IEC 60949."""
+    from engine.benchmarks.ieee_cases import calculate_iec_60364_cable_sizing_benchmark
+
+    res = calculate_iec_60364_cable_sizing_benchmark()
+    assert res["all_passed"] is True
+    assert res["max_error_pct"] <= res["tolerance_limit_pct"]
+    assert res["case1_motor_feeder"]["passed"] is True
+    assert res["case2_distribution_feeder"]["passed"] is True
+    assert res["case3_al_direct_buried_feeder"]["passed"] is True
+

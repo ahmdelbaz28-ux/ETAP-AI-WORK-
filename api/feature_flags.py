@@ -92,10 +92,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Optimal power flow per IEEE 3002.7 / IEEE 30-bus - Production validated",
     },
     "cable_sizing": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Cable sizing per IEC 60364 (ampacity, derating, voltage drop) - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "ga",
+        "rollout_percentage": 25,
+        "description": "Cable sizing per IEC 60364 (ampacity, derating, voltage drop) - Production validated",
     },
     "earth_grid": {
         "enabled": False,

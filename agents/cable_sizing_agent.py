@@ -711,7 +711,7 @@ class CableSizingAgent(BaseAgent):
 
             if analysis_type in ("ampacity", "full"):
                 results["ampacity"] = self.calculate_ampacity(
-                    cross_section_mm2=int(p.get("cross_section_mm2", 70)),
+                    cross_section_mm2=float(p.get("cross_section_mm2", 70)),
                     conductor_material=p.get("conductor_material", "Cu"),
                     insulation=p.get("insulation", "XLPE"),
                     installation_method=p.get("installation_method", "in_air"),
@@ -724,7 +724,7 @@ class CableSizingAgent(BaseAgent):
                 results["voltage_drop"] = self.calculate_voltage_drop(
                     load_current_A=load_i,
                     cable_length_m=cable_l,
-                    cross_section_mm2=int(p.get("cross_section_mm2", 70)),
+                    cross_section_mm2=float(p.get("cross_section_mm2", 70)),
                     conductor_material=p.get("conductor_material", "Cu"),
                     system_voltage_V=sys_v,
                     power_factor=float(p.get("power_factor", 0.85)),
@@ -734,7 +734,7 @@ class CableSizingAgent(BaseAgent):
 
             if analysis_type in ("short_circuit", "full"):
                 results["short_circuit"] = self.verify_short_circuit_rating(
-                    cross_section_mm2=int(p.get("cross_section_mm2", 70)),
+                    cross_section_mm2=float(p.get("cross_section_mm2", 70)),
                     conductor_material=p.get("conductor_material", "Cu"),
                     insulation=p.get("insulation", "XLPE"),
                     fault_current_kA=float(p.get("fault_current_kA", 25)),
@@ -770,7 +770,7 @@ class CableSizingAgent(BaseAgent):
                         "handler": "agents.cable_sizing_agent.CableSizingAgent",
                         "agent_key": "cable_sizing",
                         "standard": "IEC 60364",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

@@ -517,14 +517,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="cable_sizing",
             feature_flag="cable_sizing",
-            benchmark_status="PENDING",
-            standards_scope="IEC 60364 (Ampacity, derating, and voltage drop)",
-            validation_evidence="Cable sizing unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEC 60364-5-52:2009 Clause 523 & Table B.52.4 / IEC 60949:1988 (Ampacity derating, grouping, voltage drop, and adiabatic short-circuit withstand)",
+            validation_evidence="IEC 60364-5-52 / IEC 60949 benchmark suite (3 real loads: 50kW motor, 120kW MDB, 25kW Al HVAC) in engine/benchmarks/ieee_cases.py and docs/validation/cable_sizing_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Cable ampacity, derating, and voltage drop sizing per IEC 60364 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Cable ampacity, derating, and voltage drop sizing per IEC 60364 (Production validated).",
         )
     )
     registry.register(
