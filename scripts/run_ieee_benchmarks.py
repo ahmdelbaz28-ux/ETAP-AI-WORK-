@@ -27,6 +27,7 @@ from engine.benchmarks.ieee_cases import (
     calculate_iec_60909_theoretical_fault,
     calculate_ieee_30bus_opf_benchmark,
     calculate_ieee_399_motor_starting_benchmark,
+    calculate_ieee_399_transient_stability_benchmark,
     calculate_ieee_519_harmonic_benchmarks,
     calculate_ieee_1584_incident_energy_benchmark,
 )
@@ -223,6 +224,30 @@ def run_benchmarks() -> dict:
             "details": {
                 "dol_case": ms_res["dol_case"],
                 "star_delta_case": ms_res["star_delta_case"],
+            },
+        }
+    )
+
+    # 8. IEEE 399 Transient Stability & Critical Clearing Time (SMIB & 3-Machine RK4)
+    t0 = time.perf_counter()
+    ts_res = calculate_ieee_399_transient_stability_benchmark()
+    t_ts = time.perf_counter() - t0
+    passed_ts = ts_res["all_passed"]
+    if not passed_ts:
+        overall_passed = False
+
+    benchmarks.append(
+        {
+            "name": "IEEE 399 Transient Stability & CCT (SMIB & 3-Machine RK4)",
+            "standard": "IEEE 399-1997 Chapter 8 / Anderson & Fouad",
+            "cases_evaluated": 2,
+            "max_error_pct": ts_res["max_error_pct"],
+            "tolerance_limit_pct": ts_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_ts, 4),
+            "passed": passed_ts,
+            "details": {
+                "smib_cct_case": ts_res["smib_cct_case"],
+                "multimachine_rk4_case": ts_res["multimachine_rk4_case"],
             },
         }
     )

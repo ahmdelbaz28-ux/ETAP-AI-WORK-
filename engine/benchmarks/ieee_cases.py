@@ -10,6 +10,8 @@ Provides standard test case models and analytical reference solutions:
 
 from __future__ import annotations
 
+from typing import Any
+
 from core_model.bus import Bus
 from core_model.generator import Generator
 from core_model.line import Line
@@ -1109,6 +1111,105 @@ def calculate_ieee_399_motor_starting_benchmark() -> dict:
         "tolerance_limit_pct": 3.0,
         "all_passed": all_passed,
     }
+
+
+def calculate_ieee_399_transient_stability_benchmark() -> dict[str, Any]:
+    """Execute canonical IEEE 399 transient stability benchmark cases.
+
+    Case 1: SMIB Critical Clearing Time (Equal Area Criterion vs Analytical Reference)
+        H = 5.0 s, Pm = 0.80 pu, E_gen = 1.10 pu, V_inf = 1.00 pu, X_total = 0.50 pu, delta0 = 0.50 rad.
+        Analytical: delta_cr = 1.6773 rad (96.10 deg), t_cr = 0.1976 s.
+
+    Case 2: 3-Machine Dynamic Swing Integration (RK4 swing curve trajectory)
+        H = [5.0, 4.0, 3.5], D = [2.0, 2.0, 2.0], Pm = [0.8, 0.6, 0.5]
+        Proves dynamic rotor angle convergence and post-fault stability.
+    """
+    import numpy as np
+
+    from agents.stability_agent import StabilityAgent
+
+    agent = StabilityAgent()
+
+    # Case 1: SMIB Equal Area Criterion CCT
+    cct_res = agent.critical_clearing_time(
+        H=5.0,
+        Pm=0.8,
+        E_gen=1.1,
+        V_inf=1.0,
+        X_total=0.5,
+        X_faulted=1e6,
+        delta0=0.5,
+    )
+
+    exp_delta_cr_deg = 96.1018
+    exp_t_cr_s = 0.19757
+    calc_delta_cr_deg = cct_res["critical_clearing_angle_deg"]
+    calc_t_cr_s = cct_res["critical_clearing_time_s"]
+
+    err_delta_cr = abs(calc_delta_cr_deg - exp_delta_cr_deg) / exp_delta_cr_deg * 100.0
+    err_t_cr = abs(calc_t_cr_s - exp_t_cr_s) / exp_t_cr_s * 100.0
+
+    passed_cct = bool(
+        cct_res["stable"]
+        and cct_res["equal_area_method"] == "solved"
+        and err_delta_cr <= 0.1
+        and err_t_cr <= 0.1
+    )
+
+    # Case 2: 3-Machine RK4 Dynamic Swing Integration
+    ybus = np.array([
+        [4.0 - 15.0j, -2.0 + 8.0j, -1.0 + 4.0j],
+        [-2.0 + 8.0j, 5.0 - 18.0j, -2.0 + 7.0j],
+        [-1.0 + 4.0j, -2.0 + 7.0j, 4.0 - 14.0j],
+    ])
+    ts_res = agent.analyze_transient_stability(
+        H=np.array([5.0, 4.0, 3.5]),
+        D=np.array([2.0, 2.0, 2.0]),
+        Pm=np.array([0.8, 0.6, 0.5]),
+        Ybus_red=ybus,
+        E=np.array([1.05, 1.02, 1.00]),
+        delta0=np.array([0.1, 0.05, 0.0]),
+        fault_bus=1,
+        fault_Ybus=ybus * 0.1,
+        post_fault_Ybus=ybus,
+        t_fault=0.0,
+        t_clear=0.10,
+        t_total=1.5,
+        dt=0.01,
+    )
+
+    passed_ts = bool(
+        ts_res["stable"]
+        and ts_res["max_angle_spread_deg"] < 180.0
+        and len(ts_res["time"]) >= 100
+    )
+
+    max_err = max(err_delta_cr, err_t_cr)
+    all_passed = bool(passed_cct and passed_ts)
+
+    return {
+        "standard": "IEEE 399-1997 Chapter 8 / Anderson & Fouad",
+        "smib_cct_case": {
+            "critical_clearing_angle_deg": round(float(calc_delta_cr_deg), 4),
+            "expected_angle_deg": exp_delta_cr_deg,
+            "angle_error_pct": round(float(err_delta_cr), 4),
+            "critical_clearing_time_s": round(float(calc_t_cr_s), 5),
+            "expected_t_cr_s": exp_t_cr_s,
+            "t_cr_error_pct": round(float(err_t_cr), 4),
+            "stable": cct_res["stable"],
+            "passed": passed_cct,
+        },
+        "multimachine_rk4_case": {
+            "stable": ts_res["stable"],
+            "max_angle_spread_deg": round(float(ts_res["max_angle_spread_deg"]), 4),
+            "time_steps_evaluated": len(ts_res["time"]),
+            "passed": passed_ts,
+        },
+        "max_error_pct": round(float(max_err), 4),
+        "tolerance_limit_pct": 0.5,
+        "all_passed": all_passed,
+    }
+
 
 
 

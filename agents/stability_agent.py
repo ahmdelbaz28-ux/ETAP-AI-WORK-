@@ -698,7 +698,7 @@ class StabilityAgent(BaseAgent):
                         "handler": "agents.stability_agent.StabilityAgent",
                         "agent_key": "transient_stability",
                         "standard": "IEEE 399",
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

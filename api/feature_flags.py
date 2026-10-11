@@ -80,10 +80,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Motor starting analysis per IEEE 399 - Production validated",
     },
     "transient_stability": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Transient stability analysis (IEEE 399) - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "ga",
+        "rollout_percentage": 25,
+        "description": "Transient stability analysis per IEEE 399 - Production validated",
     },
     "optimal_power_flow": {
         "enabled": True,

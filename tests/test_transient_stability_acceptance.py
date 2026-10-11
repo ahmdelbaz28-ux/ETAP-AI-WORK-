@@ -1,11 +1,13 @@
-"""tests/test_transient_stability_acceptance.py — Dual Acceptance & Fail-Closed Gate Suite for Transient Stability (PILOT).
+"""tests/test_transient_stability_acceptance.py — Production Acceptance & Numerical Gate Suite for Transient Stability (PRODUCTION).
 
 Validates:
-1. Fail-closed gate: Execution rejected with SpecializedExecutionUnavailableError when flag is OFF.
+1. Fail-closed gate: Execution rejected with SpecializedExecutionUnavailableError when flag is explicitly disabled via env override.
 2. Parameter validation: Rejection when empty parameters provided to native dispatch.
 3. System requirement: Rejection when system model is missing.
 4. Positive execution: SMIB critical clearing time and multi-machine transient stability (RK4)
-   when flag is enabled, returning IEEE 399 metrics and pilot provenance.
+   when flag is enabled, returning IEEE 399 metrics and production provenance.
+5. Deterministic production eligibility via engine.capability_registry.is_production_eligible().
+6. IEEE 399 benchmark certification (SMIB Equal Area Criterion CCT and 3-Machine RK4 Dynamic Swing).
 """
 
 from __future__ import annotations
@@ -15,6 +17,8 @@ import pytest
 
 from core.exceptions import SpecializedExecutionUnavailableError
 from core_model.specs import BusSpec, LineSpec, SystemSpec
+from engine.benchmarks.ieee_cases import calculate_ieee_399_transient_stability_benchmark
+from engine.capability_registry import LifecycleStatus, get_capability_registry
 from services.study_executor import StudyExecutor
 
 
@@ -41,7 +45,7 @@ def fixture_stability_system():
 
 
 def test_transient_stability_rejected_when_flag_disabled(stability_system, monkeypatch):
-    """Fail-Closed Test 1: Flag disabled (default) must raise SpecializedExecutionUnavailableError."""
+    """Fail-Closed Test 1: Flag disabled via env override must raise SpecializedExecutionUnavailableError."""
     monkeypatch.setenv("FEATURE_FLAG_TRANSIENT_STABILITY", "false")
     executor = StudyExecutor(cache=None)
 
@@ -120,7 +124,7 @@ def test_transient_stability_positive_execution_cct(stability_system, monkeypatc
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 399"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("handler") == "agents.stability_agent.StabilityAgent"
 
 
@@ -160,4 +164,25 @@ def test_transient_stability_positive_execution_multimachine(stability_system, m
 
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEEE 399"
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
+
+
+def test_transient_stability_is_production_eligible():
+    """Verify that transient_stability meets all deterministic criteria for PRODUCTION."""
+    cap = get_capability_registry().get("transient_stability")
+    assert cap is not None, "transient_stability capability must be registered"
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEEE 399" in cap.standards_scope
+    assert "engine/benchmarks/ieee_cases.py" in cap.validation_evidence
+    assert cap.is_production_eligible() is True
+
+
+def test_transient_stability_ieee399_benchmark():
+    """Verify IEEE 399 SMIB CCT and 3-Machine RK4 dynamic simulation benchmarks within tolerance."""
+    res = calculate_ieee_399_transient_stability_benchmark()
+    assert res["all_passed"] is True, f"IEEE 399 transient stability benchmark failed: {res}"
+    assert res["max_error_pct"] <= 0.5, f"Error exceeded tolerance: {res['max_error_pct']}%"
+    assert res["smib_cct_case"]["passed"] is True
+    assert res["multimachine_rk4_case"]["passed"] is True

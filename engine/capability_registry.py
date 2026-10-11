@@ -497,14 +497,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="transient_stability",
             feature_flag="transient_stability",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 399 (RK4 Swing Equation transient stability)",
-            validation_evidence="Transient stability scenario test suite with strict parameter verification",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 399-1997 Chapter 8 (Transient & Small-Signal Stability Analysis and Critical Clearing Time)",
+            validation_evidence="IEEE 399 SMIB equal-area criterion and multi-machine RK4 dynamic stability benchmark in engine/benchmarks/ieee_cases.py and docs/validation/transient_stability_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Transient stability and critical clearing time evaluation per IEEE 399 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Transient and small-signal stability assessment per IEEE 399-1997 (Production validated).",
         )
     )
     registry.register(

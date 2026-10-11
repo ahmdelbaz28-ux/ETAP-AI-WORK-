@@ -440,7 +440,16 @@ _PROD_CAPABILITY_TEST_INPUTS = {
                 {"load_id": 1, "bus_id": 2, "p_mw": 10.0, "q_mvar": 5.0},
             ],
         },
-        "parameters": {"analysis_type": "critical_clearing_time"},
+        "parameters": {
+            "analysis_type": "critical_clearing_time",
+            "smib_H": 5.0,
+            "smib_Pm": 0.8,
+            "smib_E": 1.1,
+            "smib_V_inf": 1.0,
+            "smib_X_total": 0.5,
+            "smib_X_faulted": 1e6,
+            "smib_delta0": 0.5,
+        },
     },
     "cable_sizing": {
         "system": {
