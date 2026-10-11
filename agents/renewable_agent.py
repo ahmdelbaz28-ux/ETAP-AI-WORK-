@@ -773,9 +773,31 @@ class RenewableAgent(BaseAgent):
         try:
             self.log_execution(f"Starting renewable analysis for task {task.task_id}")
 
+            if not task.parameters:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "INSUFFICIENT_ENGINEERING_INPUT: Renewable energy integration requires explicit engineering parameters. "
+                    "Synthetic or random defaults are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.LOAD_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
+
+            pv_dc_kw = float(p.get("pv_dc_capacity_kw", p.get("capacity_kw", 500)))
+            pv_ac_kw = float(p.get("pv_ac_capacity_kw", pv_dc_kw * 0.85 if "capacity_kw" in p else 400))
 
             if analysis_type in ("solar_pv", "full"):
                 pv_losses = PVSystemLossConfig(
@@ -786,8 +808,8 @@ class RenewableAgent(BaseAgent):
                     availability_pct=float(p.get("pv_availability_pct", 99.0)),
                 )
                 results["solar_pv"] = self.analyze_solar_pv(
-                    dc_capacity_kw=float(p.get("pv_dc_capacity_kw", 500)),
-                    ac_capacity_kw=float(p.get("pv_ac_capacity_kw", 400)),
+                    dc_capacity_kw=pv_dc_kw,
+                    ac_capacity_kw=pv_ac_kw,
                     irradiance_kw_m2=p.get("irradiance_profile"),  # type: ignore[reportArgumentType]
                     temperature_c=p.get("temperature_profile"),  # type: ignore[reportArgumentType]
                     noct_C=float(p.get("noct_C", 45.0)),
@@ -846,6 +868,12 @@ class RenewableAgent(BaseAgent):
                     **results,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
+                    "provenance": {
+                        "handler": "agents.renewable_agent.RenewableAgent",
+                        "agent_key": "renewable_integration",
+                        "standard": "IEEE 1547",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

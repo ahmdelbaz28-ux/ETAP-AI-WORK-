@@ -556,6 +556,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="renewable_integration",
+            feature_flag="renewable_integration",
             benchmark_status="PENDING",
             standards_scope="IEEE 1547-2018 (Distributed energy resource grid integration)",
             validation_evidence="Renewable integration unit test suite",

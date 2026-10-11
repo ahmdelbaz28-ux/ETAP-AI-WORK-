@@ -100,6 +100,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Substation grounding grid design and step/touch potential per IEEE 80 - PILOT fail-closed",
         "rollout_percentage": 0,
     },
+    "renewable_integration": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "Renewable energy integration (PV/Wind) per IEEE 1547-2018 - PILOT fail-closed",
+        "rollout_percentage": 0,
+    },
     "data_import": {
         "enabled": False,
         "status": "beta",

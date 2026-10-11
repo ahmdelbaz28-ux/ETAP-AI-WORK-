@@ -1040,6 +1040,14 @@ class StudyExecutor:
                     "earth_grid", "Feature flag 'earth_grid' is disabled"
                 )
 
+        if study_type == "renewable_integration":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("renewable_integration"):
+                raise SpecializedExecutionUnavailableError(
+                    "renewable_integration", "Feature flag 'renewable_integration' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key
