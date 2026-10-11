@@ -1812,8 +1812,14 @@
 </code></pre></div>
     <em>Result:</em> <strong>7 passed</strong> (Verifies fail-closed gate rejection, parameter validation, positive merit-order dispatch, and PTDF line limits).</p>
 </li>
+<li>
+<p><strong>Motor Starting Gated Pilot Suite (IEEE 399):</strong>
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">pytest</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_motor_starting_acceptance</span><span class="p">.</span><span class="n">py</span> <span class="n">tests</span><span class="p">/</span><span class="n">test_motor_starting_simulation</span><span class="p">.</span><span class="n">py</span> <span class="n">-v</span>
+</code></pre></div>
+    <em>Result:</em> <strong>10 passed</strong> (Verifies fail-closed gate rejection, parameter validation, positive dynamic execution, and RK4 time-domain simulation).</p>
+</li>
 </ol>
-<p><strong>Total Verified Tests in Active Consolidation Harness:</strong> <strong>205 passed, 0 failed.</strong></p>
+<p><strong>Total Verified Tests in Active Consolidation Harness:</strong> <strong>215 passed, 0 failed.</strong></p>
 <hr />
 <h2 id="16-remaining-issues-blockers">16. Remaining Issues &amp; Blockers</h2>
 <p>To maintain transparency, the following technical items are classified by severity following the Phase 23 Production Gate Audit (Commit <code>e7c5e49d1</code>):</p>
@@ -1846,7 +1852,7 @@
 <hr />
 <h2 id="17-launch-decision">17. Launch Decision</h2>
 <h3 id="final-verdict">Final Verdict:</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>PRODUCTION GATE: PASS — READY FOR CANONICAL PRODUCTION DEPLOYMENT
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>PRODUCTION GATE: PASS — READY FOR CANONICAL PRODUCTION DEPLOYMENT
 </code></pre></div>
 <h3 id="supporting-evidence-rationale">Supporting Evidence &amp; Rationale:</h3>
 <ol>
