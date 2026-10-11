@@ -52,6 +52,7 @@ When an individual study or capability (e.g., `transient_stability`, `harmonic_a
 # Set the study feature flag to false without modifying code
 export FEATURE_FLAG_<STUDY_NAME>="false"
 # Example: Immediately halt transient stability, breaker duty, or digital twin
+export FEATURE_FLAG_HARMONIC_ANALYSIS="false"
 export FEATURE_FLAG_TRANSIENT_STABILITY="false"
 export FEATURE_FLAG_BREAKER_DUTY="false"
 export FEATURE_FLAG_DIGITAL_TWIN="false"

@@ -528,15 +528,18 @@ class HarmonicAnalysisAgent(BaseAgent):
                 )
 
             # Set system data
-            ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
-                seq="1"
-            )  # NOSONAR
-            bus_ids = sorted(system_data.buses.keys())
-            engine.set_system_data(ybus, bus_ids)
+            if hasattr(engine, "set_system") and hasattr(system_data, "lines"):
+                engine.set_system(system_data)
+            else:
+                ybus = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
+                    seq="1"
+                )  # NOSONAR
+                bus_ids = [str(b) for b in sorted(system_data.buses.keys())]
+                engine.set_system_data(ybus, bus_ids)
 
             # Add harmonic sources
             for source_data in harmonic_sources:
-                source = HarmonicSource(**source_data)
+                source = HarmonicSource(**source_data) if isinstance(source_data, dict) else source_data
                 engine.add_harmonic_source(source)
 
             # Run analysis
@@ -558,6 +561,12 @@ class HarmonicAnalysisAgent(BaseAgent):
                     "violations": result_data.violations,
                     "report": report,
                     "standard": self.standard,
+                    "provenance": {
+                        "source": task.parameters.get("source", "simulation"),
+                        "handler": "agents.registry.HarmonicAnalysisAgent",
+                        "standard": self.standard,
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

@@ -691,6 +691,8 @@ class StudyExecutor:
         if registration.handler_type == "native":
             return self._dispatch_native(registration, system, parameters)
         if registration.handler_type == "agent":
+            if registration.requires_system and system is not None and "system" not in parameters and parameters:
+                parameters = {"system": system, **parameters}
             return self._dispatch_agent(canonical, parameters)
         raise SpecializedExecutionUnavailableError(
             canonical, f"handler_type '{registration.handler_type}' is external/not supported natively"
@@ -868,7 +870,6 @@ class StudyExecutor:
                 raise ValueError("SYSTEM_MODEL_REQUIRED")
 
             import numpy as np
-            import time
             from datetime import datetime, timezone
 
             now_epoch = time.time()
@@ -989,6 +990,14 @@ class StudyExecutor:
                 study_type,
                 f"Study type '{study_type}' is a specialized study requiring specific parameters; empty parameters provided to native dispatch",
             )
+
+        if study_type == "harmonic_analysis":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("harmonic_analysis"):
+                raise SpecializedExecutionUnavailableError(
+                    "harmonic_analysis", "Feature flag 'harmonic_analysis' is disabled"
+                )
 
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType

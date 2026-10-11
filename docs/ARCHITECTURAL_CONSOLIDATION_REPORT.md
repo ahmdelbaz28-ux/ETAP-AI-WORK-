@@ -409,7 +409,13 @@ All relevant test suites were executed with JWT authentication configured. The e
     ```
     *Result:* **27 passed** (Verifies Format A/B/C/D classification, 6-step workflow, and Mastra agent registration).
 
-**Total Verified Tests in Active Consolidation Harness:** **190 passed, 0 failed.**
+13. **Harmonic Analysis Gated Pilot Suite (IEEE 519-2022):**
+    ```powershell
+    pytest tests/test_harmonic_analysis_acceptance.py tests/test_harmonic_analysis_ieee519.py -v
+    ```
+    *Result:* **8 passed** (Verifies fail-closed gate rejection, parameter validation, positive execution, and IEEE 519-2022 superposition).
+
+**Total Verified Tests in Active Consolidation Harness:** **198 passed, 0 failed.**
 
 ---
 

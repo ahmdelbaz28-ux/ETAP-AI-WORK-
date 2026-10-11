@@ -436,6 +436,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="harmonic_analysis",
+            feature_flag="harmonic_analysis",
             benchmark_status="PENDING",
             standards_scope="IEEE 519-2022 (Harmonic flow scaffold)",
             validation_evidence="Harmonic analysis unit test suite",
