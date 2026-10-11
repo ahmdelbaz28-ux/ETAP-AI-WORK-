@@ -645,7 +645,7 @@ class OptimalPowerFlowAgent(BaseAgent):
                 seq="1"
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
-            costs = [GeneratorCost(**gc) for gc in generator_costs]
+            costs = [GeneratorCost(**gc) if isinstance(gc, dict) else gc for gc in generator_costs]
 
             if self._opf_factory is not None:
                 opf = self._opf_factory(ybus, bus_ids, costs)
@@ -684,6 +684,12 @@ class OptimalPowerFlowAgent(BaseAgent):
                     "total_losses_mw": opf_result.total_losses,
                     "method": opf_result.method_used,
                     "report": report,
+                    "provenance": {
+                        "source": task.parameters.get("source", "simulation"),
+                        "handler": "agents.registry.OptimalPowerFlowAgent",
+                        "standard": "IEEE 3002.7 / IEEE 30-bus",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

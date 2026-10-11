@@ -456,6 +456,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="optimal_power_flow",
+            feature_flag="optimal_power_flow",
             benchmark_status="PENDING",
             standards_scope="IEEE 3002.7 (Economic dispatch / OPF scaffold)",
             validation_evidence="Optimal power flow unit test suite",

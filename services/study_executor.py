@@ -869,8 +869,9 @@ class StudyExecutor:
             if sys_obj is None:
                 raise ValueError("SYSTEM_MODEL_REQUIRED")
 
-            import numpy as np
             from datetime import datetime, timezone
+
+            import numpy as np
 
             now_epoch = time.time()
             now_dt = datetime.now(timezone.utc)
@@ -997,6 +998,14 @@ class StudyExecutor:
             if not is_strict_feature_enabled("harmonic_analysis"):
                 raise SpecializedExecutionUnavailableError(
                     "harmonic_analysis", "Feature flag 'harmonic_analysis' is disabled"
+                )
+
+        if study_type == "optimal_power_flow":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("optimal_power_flow"):
+                raise SpecializedExecutionUnavailableError(
+                    "optimal_power_flow", "Feature flag 'optimal_power_flow' is disabled"
                 )
 
         # Resolve across all registered specialized agents in canonical registry

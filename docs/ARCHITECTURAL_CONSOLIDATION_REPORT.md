@@ -415,7 +415,13 @@ All relevant test suites were executed with JWT authentication configured. The e
     ```
     *Result:* **8 passed** (Verifies fail-closed gate rejection, parameter validation, positive execution, and IEEE 519-2022 superposition).
 
-**Total Verified Tests in Active Consolidation Harness:** **198 passed, 0 failed.**
+14. **Optimal Power Flow Gated Pilot Suite (IEEE 3002.7 / IEEE 30-bus):**
+    ```powershell
+    pytest tests/test_optimal_power_flow_acceptance.py tests/test_opf_correctness.py -v
+    ```
+    *Result:* **7 passed** (Verifies fail-closed gate rejection, parameter validation, positive merit-order dispatch, and PTDF line limits).
+
+**Total Verified Tests in Active Consolidation Harness:** **205 passed, 0 failed.**
 
 ---
 
