@@ -68,9 +68,10 @@ def _acquire_flags_lock():
 # ─── Defaults (loaded on first import or when DB file is missing) ────────
 DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
     "harmonic_analysis": {
-        "enabled": False,
-        "status": "beta",
-        "description": "Harmonic analysis (IEEE 519) - in development",
+        "enabled": True,
+        "status": "ga",
+        "rollout_percentage": 25,
+        "description": "Harmonic analysis per IEEE 519-2022 - Production validated",
     },
     "motor_starting": {
         "enabled": False,

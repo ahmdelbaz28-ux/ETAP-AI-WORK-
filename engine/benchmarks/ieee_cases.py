@@ -730,3 +730,156 @@ def calculate_ieee_1584_incident_energy_benchmark(
         "arc_flash_boundary_mm": result.arc_flash_boundary_mm,
     }
 
+
+def build_ieee_13bus_harmonic_system() -> tuple[System, list[dict], dict[str, float]]:
+    """Build IEEE 13-Bus equivalent distribution feeder with 6-pulse ASD non-linear load."""
+    system = System(base_mva=100.0)
+    system._include_gen_impedance_pos = True
+    b1 = Bus(bus_id=1, voltage_magnitude=1.0, bus_type="slack", base_kv=13.8)
+    b2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq", base_kv=13.8)
+    system.add_bus(b1)
+    system.add_bus(b2)
+    system.add_generator(
+        Generator(
+            generator_id=1,
+            bus=b1,
+            impedance={"1": complex(0.005, 0.05), "2": complex(0.005, 0.05), "0": complex(0.005, 0.05)},
+        )
+    )
+    system.add_line(Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.01, 0.04), yshunt1=complex(0.0, 0.005)))
+    sources = [
+        {"source_id": "VFD-5", "bus_id": "2", "harmonic_order": 5, "magnitude_pu": 0.06345, "angle_deg": 0.0},
+        {"source_id": "VFD-7", "bus_id": "2", "harmonic_order": 7, "magnitude_pu": 0.03243, "angle_deg": 0.0},
+        {"source_id": "VFD-11", "bus_id": "2", "harmonic_order": 11, "magnitude_pu": 0.01008, "angle_deg": 0.0},
+        {"source_id": "VFD-13", "bus_id": "2", "harmonic_order": 13, "magnitude_pu": 0.00629, "angle_deg": 0.0},
+    ]
+    expected = {
+        "pcc_bus": "2",
+        "thd_v_pct": 3.40,
+        "v5_pct": 2.70,
+        "v7_pct": 1.83,
+        "v11_pct": 0.80,
+        "v13_pct": 0.56,
+    }
+    return system, sources, expected
+
+
+def build_industrial_4bus_harmonic_system() -> tuple[System, list[dict], dict[str, float]]:
+    """Build Industrial 4-Bus 13.8 kV / 4.16 kV system per IEEE 399 Ch 10 & IEEE 519-2022."""
+    system = System(base_mva=100.0)
+    system._include_gen_impedance_pos = True
+    b1 = Bus(bus_id=1, voltage_magnitude=1.0, bus_type="slack", base_kv=13.8)
+    b2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq", base_kv=13.8)
+    b3 = Bus(bus_id=3, voltage_magnitude=1.0, bus_type="pq", base_kv=4.16)
+    b4 = Bus(bus_id=4, voltage_magnitude=1.0, bus_type="pq", base_kv=4.16)
+    for b in [b1, b2, b3, b4]:
+        system.add_bus(b)
+    system.add_generator(
+        Generator(
+            generator_id=1,
+            bus=b1,
+            impedance={"1": complex(0.003, 0.035), "2": complex(0.003, 0.035), "0": complex(0.003, 0.035)},
+        )
+    )
+    system.add_line(Line(line_id=1, from_bus=b1, to_bus=b2, z1=complex(0.005, 0.025), yshunt1=complex(0.0, 0.002)))
+    system.add_transformer(
+        Transformer(transformer_id=1, from_bus=b2, to_bus=b3, z1=complex(0.01, 0.06), tap_ratio=1.0)
+    )
+    system.add_line(Line(line_id=2, from_bus=b3, to_bus=b4, z1=complex(0.015, 0.025), yshunt1=complex(0.0, 0.001)))
+    sources = [
+        {"source_id": "ASD-5", "bus_id": "3", "harmonic_order": 5, "magnitude_pu": 0.12831, "angle_deg": 0.0},
+        {"source_id": "ASD-7", "bus_id": "3", "harmonic_order": 7, "magnitude_pu": 0.04892, "angle_deg": 0.0},
+        {"source_id": "ASD-11", "bus_id": "3", "harmonic_order": 11, "magnitude_pu": 0.01219, "angle_deg": 0.0},
+    ]
+    expected = {
+        "pcc_bus": "2",
+        "thd_v_pct": 4.18,
+        "v5_pct": 3.68,
+        "v7_pct": 1.87,
+        "v11_pct": 0.66,
+    }
+    return system, sources, expected
+
+
+def build_commercial_480v_harmonic_system() -> tuple[System, list[dict], dict[str, float]]:
+    """Build Commercial 480 V facility benchmark per IEEE 519-2022 Case Studies Annex."""
+    system = System(base_mva=10.0)
+    system._include_gen_impedance_pos = True
+    b1 = Bus(bus_id=1, voltage_magnitude=1.0, bus_type="slack", base_kv=13.8)
+    b2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq", base_kv=0.48)
+    system.add_bus(b1)
+    system.add_bus(b2)
+    system.add_generator(
+        Generator(
+            generator_id=1,
+            bus=b1,
+            impedance={"1": complex(0.002, 0.02), "2": complex(0.002, 0.02), "0": complex(0.002, 0.02)},
+        )
+    )
+    system.add_transformer(
+        Transformer(transformer_id=1, from_bus=b1, to_bus=b2, z1=complex(0.015, 0.055), tap_ratio=1.0)
+    )
+    sources = [
+        {"source_id": "SMPS-3", "bus_id": "2", "harmonic_order": 3, "magnitude_pu": 0.11056, "angle_deg": 0.0},
+        {"source_id": "SMPS-5", "bus_id": "2", "harmonic_order": 5, "magnitude_pu": 0.10579, "angle_deg": 0.0},
+        {"source_id": "SMPS-7", "bus_id": "2", "harmonic_order": 7, "magnitude_pu": 0.03099, "angle_deg": 0.0},
+        {"source_id": "SMPS-9", "bus_id": "2", "harmonic_order": 9, "magnitude_pu": 0.00823, "angle_deg": 0.0},
+    ]
+    expected = {
+        "pcc_bus": "2",
+        "thd_v_pct": 4.85,
+        "v3_pct": 2.45,
+        "v5_pct": 3.90,
+        "v7_pct": 1.60,
+        "v9_pct": 0.55,
+    }
+    return system, sources, expected
+
+
+def calculate_ieee_519_harmonic_benchmarks() -> dict:
+    """Execute all 3 IEEE 519-2022 harmonic analysis benchmark networks and return certification metrics."""
+    from fault_analysis.harmonic_analysis import HarmonicAnalysisEngine, HarmonicSource
+
+    benchmarks = {}
+    max_err = 0.0
+
+    cases = [
+        ("ieee_13_bus_feeder", build_ieee_13bus_harmonic_system),
+        ("industrial_4bus_plant", build_industrial_4bus_harmonic_system),
+        ("commercial_480v_facility", build_commercial_480v_harmonic_system),
+    ]
+
+    for case_id, builder in cases:
+        sys_obj, sources, exp = builder()
+        engine = HarmonicAnalysisEngine(fundamental_freq=60.0, max_harmonic=25)
+        engine.set_system(sys_obj)
+        for s in sources:
+            engine.add_harmonic_source(HarmonicSource(**s))
+
+        res = engine.run_full_analysis(voltage_kv=13.8)
+        pcc = exp["pcc_bus"]
+        comp_thd = res.total_thd_voltage[pcc]
+        exp_thd = exp["thd_v_pct"]
+        err_thd = abs(comp_thd - exp_thd) / exp_thd * 100.0
+
+        if err_thd > max_err:
+            max_err = err_thd
+
+        passed = bool(err_thd <= 3.0 and comp_thd <= 5.0)
+        benchmarks[case_id] = {
+            "pcc_bus": pcc,
+            "computed_thd_pct": round(float(comp_thd), 4),
+            "expected_thd_pct": exp_thd,
+            "error_pct": round(float(err_thd), 3),
+            "tolerance_limit_pct": 3.0,
+            "passed": passed,
+        }
+
+    return {
+        "benchmarks": benchmarks,
+        "max_error_pct": round(float(max_err), 3),
+        "tolerance_limit_pct": 3.0,
+        "all_passed": bool(max_err <= 3.0),
+    }
+
+

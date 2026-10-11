@@ -1,11 +1,13 @@
-"""tests/test_harmonic_analysis_acceptance.py — Dual Acceptance & Fail-Closed Gate Suite for Harmonic Analysis (PILOT).
+"""tests/test_harmonic_analysis_acceptance.py — Dual Acceptance & Fail-Closed Gate Suite for Harmonic Analysis (PRODUCTION).
 
 Validates:
 1. Fail-closed gate: Execution rejected with SpecializedExecutionUnavailableError when flag is OFF.
 2. Parameter validation: Rejection when empty parameters provided to native dispatch.
 3. System requirement: Rejection when system model is missing.
-4. Positive execution: Full analytical execution when flag is enabled via strict environment override,
-   returning IEEE 519-2022 THD/TDD metrics and pilot provenance.
+4. Positive execution: Full analytical execution when flag is enabled,
+   returning IEEE 519-2022 THD/TDD metrics and production provenance.
+5. Production eligibility: Deterministic verification of is_production_eligible().
+6. Benchmark verification: 3 published IEEE 519 cases passing within <= 3.0% error.
 """
 
 from __future__ import annotations
@@ -124,6 +126,36 @@ def test_harmonic_analysis_positive_execution(sample_system, monkeypatch):
     assert result["standard"] == "IEEE 519-2022"
 
     provenance = result.get("provenance", {})
-    assert provenance.get("lifecycle") == "pilot"
+    assert provenance.get("lifecycle") == "production"
     assert provenance.get("standard") == "IEEE 519-2022"
     assert provenance.get("handler") == "agents.registry.HarmonicAnalysisAgent"
+
+
+def test_harmonic_analysis_is_production_eligible():
+    """Verify that harmonic_analysis satisfies all criteria in is_production_eligible()."""
+    from engine.capability_registry import LifecycleStatus, get_capability_registry
+
+    registry = get_capability_registry()
+    cap = registry.get("harmonic_analysis")
+    assert cap is not None
+    assert cap.lifecycle_status == LifecycleStatus.PRODUCTION
+    assert cap.production_supported is True
+    assert cap.benchmark_status == "VERIFIED_BENCHMARK"
+    assert "IEEE 519-2022" in cap.standards_scope
+    assert "benchmark suite" in cap.validation_evidence
+    assert cap.is_production_eligible() is True
+
+
+def test_harmonic_analysis_3_published_benchmarks():
+    """Verify that all 3 published IEEE 519-2022 benchmarks pass with error <= 3.0%."""
+    from engine.benchmarks.ieee_cases import calculate_ieee_519_harmonic_benchmarks
+
+    bench_results = calculate_ieee_519_harmonic_benchmarks()
+    assert bench_results["all_passed"] is True
+    assert bench_results["max_error_pct"] <= 3.0
+    assert len(bench_results["benchmarks"]) == 3
+
+    for case_id, case in bench_results["benchmarks"].items():
+        assert case["passed"] is True
+        assert case["error_pct"] <= 3.0
+        assert case["computed_thd_pct"] <= 5.0

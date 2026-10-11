@@ -565,7 +565,7 @@ class HarmonicAnalysisAgent(BaseAgent):
                         "source": task.parameters.get("source", "simulation"),
                         "handler": "agents.registry.HarmonicAnalysisAgent",
                         "standard": self.standard,
-                        "lifecycle": "pilot",
+                        "lifecycle": "production",
                     },
                 },
             )

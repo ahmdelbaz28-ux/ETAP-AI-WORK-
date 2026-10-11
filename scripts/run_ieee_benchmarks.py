@@ -25,6 +25,7 @@ from engine.benchmarks.ieee_cases import (
     build_ieee_9bus_system,
     build_ieee_14bus_system,
     calculate_iec_60909_theoretical_fault,
+    calculate_ieee_519_harmonic_benchmarks,
     calculate_ieee_1584_incident_energy_benchmark,
 )
 from load_flow.load_flow import LoadFlowSolver
@@ -152,6 +153,27 @@ def run_benchmarks() -> dict:
             "arc_flash_boundary_mm": round(afb_mm, 2),
             "execution_time_sec": round(t_arc, 4),
             "passed": passed_arc,
+        }
+    )
+
+    # 5. IEEE 519-2022 Harmonic Analysis (3 Benchmark Networks)
+    t0 = time.perf_counter()
+    harm_res = calculate_ieee_519_harmonic_benchmarks()
+    t_harm = time.perf_counter() - t0
+    passed_harm = harm_res["all_passed"]
+    if not passed_harm:
+        overall_passed = False
+
+    benchmarks.append(
+        {
+            "name": "IEEE 519 Harmonic Distortion (3 Networks)",
+            "standard": "IEEE 519-2022 Table 1 & Table 2",
+            "cases_evaluated": len(harm_res["benchmarks"]),
+            "max_error_pct": harm_res["max_error_pct"],
+            "tolerance_limit_pct": harm_res["tolerance_limit_pct"],
+            "execution_time_sec": round(t_harm, 4),
+            "passed": passed_harm,
+            "details": harm_res["benchmarks"],
         }
     )
 

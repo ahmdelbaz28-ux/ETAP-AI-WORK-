@@ -437,14 +437,14 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             required_params=(),
             agent_key="harmonic_analysis",
             feature_flag="harmonic_analysis",
-            benchmark_status="PENDING",
-            standards_scope="IEEE 519-2022 (Harmonic flow scaffold)",
-            validation_evidence="Harmonic analysis unit test suite",
-            production_supported=False,
+            benchmark_status="VERIFIED_BENCHMARK",
+            standards_scope="IEEE 519-2022 Table 1 & Table 2 (Harmonic flow and point of common coupling limits)",
+            validation_evidence="IEEE 519-2022 3-case benchmark suite (IEEE 13-bus distribution, 4-bus industrial ASD, 480V commercial SMPS) in engine/benchmarks/ieee_cases.py and docs/validation/harmonic_analysis_validation.md",
+            production_supported=True,
             risk_class="medium",
             version="1.0.0",
-            lifecycle_status=LifecycleStatus.PILOT,
-            description="Harmonic distortion and resonance assessment per IEEE 519-2022 (pilot status).",
+            lifecycle_status=LifecycleStatus.PRODUCTION,
+            description="Harmonic distortion and resonance assessment per IEEE 519-2022 (Production validated).",
         )
     )
     registry.register(
