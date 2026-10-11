@@ -760,6 +760,25 @@ class BatteryStorageAgent(BaseAgent):
         try:
             self.log_execution(f"Starting battery storage analysis for task {task.task_id}")
 
+            if not task.parameters:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "INSUFFICIENT_ENGINEERING_INPUT: Battery storage analysis requires explicit engineering parameters. "
+                    "Synthetic or random defaults are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.OPTIMAL_POWER_FLOW,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
@@ -860,6 +879,12 @@ class BatteryStorageAgent(BaseAgent):
                     **results,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
+                    "provenance": {
+                        "handler": "agents.battery_storage_agent.BatteryStorageAgent",
+                        "agent_key": "battery_storage",
+                        "standard": "IEC 62933",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

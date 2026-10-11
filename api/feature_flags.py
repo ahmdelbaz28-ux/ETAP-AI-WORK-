@@ -106,6 +106,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Renewable energy integration (PV/Wind) per IEEE 1547-2018 - PILOT fail-closed",
         "rollout_percentage": 0,
     },
+    "battery_storage": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "Battery energy storage system (BESS) sizing & dispatch per IEC 62933 - PILOT fail-closed",
+        "rollout_percentage": 0,
+    },
     "data_import": {
         "enabled": False,
         "status": "beta",

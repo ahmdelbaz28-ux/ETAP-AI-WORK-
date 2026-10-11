@@ -576,6 +576,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="battery_storage",
+            feature_flag="battery_storage",
             benchmark_status="PENDING",
             standards_scope="IEC 62933 (BESS sizing and dispatch)",
             validation_evidence="Battery storage unit test suite",

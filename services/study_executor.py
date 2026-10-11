@@ -1048,6 +1048,14 @@ class StudyExecutor:
                     "renewable_integration", "Feature flag 'renewable_integration' is disabled"
                 )
 
+        if study_type == "battery_storage":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("battery_storage"):
+                raise SpecializedExecutionUnavailableError(
+                    "battery_storage", "Feature flag 'battery_storage' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key
