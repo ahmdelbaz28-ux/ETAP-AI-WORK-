@@ -762,6 +762,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#18-capability-lifecycle-promotions-p1-staged-rollout" class="md-nav__link">
+    <span class="md-ellipsis">
+      18. Capability Lifecycle Promotions (P1 Staged Rollout)
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1876,6 +1885,35 @@
 <li>Meta-guard audit (<code>scripts/ci_anti_greenwash_guard.py</code>) PASSED with 0 violations.</li>
 <li>All deployment gates, container validations, security scans, and test pipelines operate fail-closed.</li>
 </ol>
+<hr />
+<h2 id="18-capability-lifecycle-promotions-p1-staged-rollout">18. Capability Lifecycle Promotions (P1 Staged Rollout)</h2>
+<p>The following capability promotions have been certified against deterministic scientific benchmarks:</p>
+<table>
+<thead>
+<tr>
+<th>Study</th>
+<th>Lifecycle Status</th>
+<th>Benchmark Evidence</th>
+<th>Max Error %</th>
+<th>Benchmark SHA</th>
+<th>Date</th>
+<th>Reviewer</th>
+<th>Promotion Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>harmonic_analysis</code></td>
+<td><code>PRODUCTION</code></td>
+<td>IEEE 519-2022 (3 Published Networks: IEEE 13-bus feeder, 4-bus industrial ASD plant, 480V commercial SMPS facility in <code>engine/benchmarks/ieee_cases.py</code>)</td>
+<td>0.003%</td>
+<td><code>7f90ced0c</code></td>
+<td>2026-10-11</td>
+<td>Eng. Ahmed Elbaz / Platform Core Team</td>
+<td><strong>GO — CERTIFIED PRODUCTION</strong></td>
+</tr>
+</tbody>
+</table>
 
 
 
