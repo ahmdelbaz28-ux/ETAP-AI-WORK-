@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T17:08:27.782695+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T18:43:54.329036+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -1732,25 +1732,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _20.2 KB_
+#### 📄 `api/feature_flags.py` _20.0 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 450)
-- **Class** `FeatureFlagListOut` (line 459)
-- **Class** `FeatureFlagPatch` (line 467)
+- **Class** `FeatureFlagOut` (line 447)
+- **Class** `FeatureFlagListOut` (line 456)
+- **Class** `FeatureFlagPatch` (line 464)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 336)
-- **def** `is_feature_enabled()` (line 341)
-- **def** `is_strict_feature_enabled()` (line 361)
-- **def** `get_disabled_studies()` (line 381)
-- **def** `get_flag_metadata()` (line 398)
-- **def** `evaluate_flag_with_rollout()` (line 429)
-- **async def** `list_feature_flags()` (line 522)
-- **async def** `get_feature_flag()` (line 541)
-- **async def** `update_feature_flag()` (line 564)
+- **def** `is_enabled()` (line 333)
+- **def** `is_feature_enabled()` (line 338)
+- **def** `is_strict_feature_enabled()` (line 358)
+- **def** `get_disabled_studies()` (line 378)
+- **def** `get_flag_metadata()` (line 395)
+- **def** `evaluate_flag_with_rollout()` (line 426)
+- **async def** `list_feature_flags()` (line 519)
+- **async def** `get_feature_flag()` (line 538)
+- **async def** `update_feature_flag()` (line 561)
 
   **API Routes:**
   - `GET /{key}`
@@ -2259,7 +2259,7 @@ Endpoints:
   - `POST /keys/{provider}/test`
   - `GET /health`
 
-#### 📄 `api/shared_handlers.py` _32.9 KB_
+#### 📄 `api/shared_handlers.py` _33.0 KB_
 > Shared Handlers & Utilities for AhmedETAP
 ==========================================
 
@@ -2278,8 +2278,8 @@ Lightweight, dependency-free implementations of common logic use
 - **def** `build_knowledge_info()` (line 480)
 - **def** `sanitize_result()` (line 545)
 - **def** `run_study_lightweight()` (line 593)
-- **def** `handle_etap_expert_chat()` (line 687)
-- **def** `handle_etap_gui_chat()` (line 706)
+- **def** `handle_etap_expert_chat()` (line 688)
+- **def** `handle_etap_gui_chat()` (line 707)
 
 #### 📄 `api/solver_parameters.py` _8.5 KB_
 > api/solver_parameters.py — Solver Parameters Management API.
@@ -5820,10 +5820,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
 | ui-page | 61 |
-| python-module | 41 |
 | ui-component | 280 |
+| python-module | 41 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -6343,7 +6343,7 @@ Provides
 | File | Size (KB) | Hash |
 |:---|---:|:---|
 | `Dockerfile` | 5.7 KB | `82973426f2c8` |
-| `Dockerfile.engineering-service` | 4.7 KB | `b089e0c4259d` |
+| `Dockerfile.engineering-service` | 4.7 KB | `8dfe9fd83701` |
 | `Dockerfile.hf` | 3.7 KB | `edc59c0fec36` |
 | `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
 | `docker-compose.yml` | 9.0 KB | `b8659d57e3be` |
