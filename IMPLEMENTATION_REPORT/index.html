@@ -1060,6 +1060,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-etap-network-auto-draw-scadaadms-integrations-phase-7-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live ETAP Network Auto-Draw &amp; SCADA/ADMS Integrations (Phase 7 Extension)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Live ETAP Network Auto-Draw &amp; SCADA/ADMS Integrations (Phase 7 Extension)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Objective
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deliverables_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deliverables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-evidence_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Evidence
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#conclusion" class="md-nav__link">
     <span class="md-ellipsis">
       Conclusion
@@ -2048,15 +2090,75 @@
 <td>✅ Passing</td>
 </tr>
 <tr>
-<td>Stress Test</td>
-<td>Scheduled</td>
-<td>✅ 685 reqs, 0 failures</td>
+<td>---</td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
+<h2 id="live-etap-network-auto-draw-scadaadms-integrations-phase-7-extension">Live ETAP Network Auto-Draw &amp; SCADA/ADMS Integrations (Phase 7 Extension)</h2>
+<h3 id="objective_6">Objective</h3>
+<p>Complete the "missing link" for live ETAP network drawing from existing project data (Zenon SCADA export, internal <code>core_model</code>, and DataHub etapAPI REST), building extend-only without breaking existing functionality or modifying signatures.</p>
+<h3 id="deliverables_6">Deliverables</h3>
+<table>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Description</th>
+<th>File(s)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Zenon Contract &amp; Reader</strong></td>
+<td>Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, VBA export script, data_import format handler</td>
+<td><code>integrations/zenon_network_export/contract.py</code>, <code>reader.py</code>, <code>mapping.py</code>, <code>config/zenon_field_mapping.yaml</code>, <code>scripts/zenon_export_collector.vba</code>, <code>api/data_import.py</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>ETAP REST Draw Expansion</strong></td>
+<td>Expanded <code>ElementKind</code> &amp; <code>_REQUIRED_PROPS</code> to cover full substation topology (13 element kinds)</td>
+<td><code>etap_integration/etap_rest.py</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>Draw Plan Builder</strong></td>
+<td>Deterministic dependency ordering (<code>buses -&gt; transformers -&gt; switchgear -&gt; branches/loads</code>), chunking (<code>&lt;=50</code>), pre-flight connectivity validation, and atomic multi-chunk rollback</td>
+<td><code>etap_integration/draw_plan_builder.py</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>Dual-Control Endpoint</strong></td>
+<td>Maker-Checker endpoint proposing bounded <code>PendingAction</code> chunks from <code>project.system_config</code>, requiring admin approval</td>
+<td><code>api/etap_draw.py</code> (<code>POST /api/v1/etap/draw/from-project</code>)</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>Operational Verifier</strong></td>
+<td>Post-draw Load Flow validation comparing bus voltages against baseline within declared tolerance</td>
+<td><code>etap_integration/post_draw_verifier.py</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>CIM &amp; Asset Expansion</strong></td>
+<td>Extend-only support for <code>LOAD</code> and <code>GENERATOR</code> assets in CIM mapping; abstract fail-closed ArcFM and EcoStruxure ADMS connectors</td>
+<td><code>gis_integration/models.py</code>, <code>gis_validation_electrical/cim_mapper.py</code>, <code>integrations/external_adms_connectors.py</code></td>
+<td>✅ Complete</td>
+</tr>
+</tbody>
+</table>
+<h3 id="test-evidence_6">Test Evidence</h3>
+<ul>
+<li><code>tests/test_zenon_network_import.py</code> — 14 tests covering contract validation, zero-guessing warnings, topological checks, and feature flag gating</li>
+<li><code>tests/test_etap_full_network_draw.py</code> — 13 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, and dual-control endpoint</li>
+<li><code>tests/test_export_cim.py</code> — 11 tests verifying backward compatibility of CIM export</li>
+<li><code>tests/test_etap_rest_draw.py</code> — 15 tests verifying base ETAP REST draw flow</li>
+<li><code>tests/test_data_import_parsing.py</code> — 20 tests verifying import parsing</li>
+</ul>
 <hr />
 <h2 id="conclusion">Conclusion</h2>
-<p>All six implementation phases have been completed successfully. The AhmedETAP now provides a comprehensive, production-ready suite of power system analysis tools with full standards compliance, enterprise-grade security, and intelligent agent orchestration. The platform is ready for deployment and operational use.</p>
+<p>All implementation phases and the Live ETAP Network Auto-Draw extension have been completed successfully. The platform provides a verified, fail-closed, dual-control network drawing pipeline from live SCADA/ADMS exports into ETAP DataHub etapAPI with zero mocking in production and zero synthetic guessing.</p>
 
 
 
