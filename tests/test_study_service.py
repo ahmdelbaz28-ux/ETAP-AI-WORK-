@@ -60,6 +60,15 @@ def test_execute_study_logic_different_types(sample_3bus_network):
     # Test different study types
     for study_type in ["load_flow", "fault_analysis", "arc_flash"]:
         base_request.study_type = study_type
+        if study_type == "arc_flash":
+            base_request.parameters = {
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 25.0,
+                "arc_duration_sec": 0.1,
+                "working_distance_mm": 455.0,
+            }
+        else:
+            base_request.parameters = {"tolerance": 1e-6, "max_iterations": 50}
         result = execute_study_logic(base_request, f"test-trace-{study_type}", 0.0)
 
         assert result.success is True

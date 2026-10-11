@@ -645,8 +645,9 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
         canonical_res = _run_async(orchestrator.execute(req))
     except Exception as exc:
         logger.exception("HF Space canonical execution failed for %s: %s", study_type, exc)
+        engine_error = "Load flow computation failed" if study_type == "load_flow" else f"Study '{study_type}' computation failed"
         return {
-            "error": f"Study '{study_type}' encountered an error: {exc}",
+            "error": engine_error,
             "status": "failed",
             "study_type": study_type,
             "_status": 500,

@@ -35,7 +35,7 @@ def test_alembic_config_and_head_revision() -> None:
     head_rev = get_head_revision()
     assert head_rev is not None
     # Verify matches latest migration revision ID
-    assert head_rev == "013_add_totp_secret_to_users"
+    assert head_rev == "014_fix_notifications_schema"
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_schema_health_reporting() -> None:
     """Verify check_schema_health returns head revision."""
     health = await check_schema_health()
     assert health["status"] == "synchronized"
-    assert health["head_revision"] == "013_add_totp_secret_to_users"
+    assert health["head_revision"] == "014_fix_notifications_schema"
 
 
 @pytest.mark.asyncio

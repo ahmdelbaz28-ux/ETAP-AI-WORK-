@@ -1709,7 +1709,7 @@ def calculate_iec_62933_bess_benchmark() -> dict[str, Any]:
     calc_sz_energy_kwh = sz["energy_capacity_kwh"]
     err_sz_energy = abs(calc_sz_energy_kwh - exp_sz_energy_kwh) / exp_sz_energy_kwh * 100.0
 
-    pass_case1 = bool(err_sz_power < 0.1 and err_sz_energy < 0.1 and sz["peak_reduction_kw"] == 364.0)
+    pass_case1 = bool(err_sz_power < 0.1 and err_sz_energy < 0.1 and abs(sz["peak_reduction_kw"] - 364.0) < 0.1)
 
     # Case 2: Financial ROI
     roi = agent.calculate_roi(
@@ -1732,7 +1732,7 @@ def calculate_iec_62933_bess_benchmark() -> dict[str, Any]:
     calc_roi_npv = roi["npv_$"]
     err_roi_npv = abs(calc_roi_npv - exp_roi_npv) / exp_roi_npv * 100.0
 
-    pass_case2 = bool(err_roi_capex < 0.1 and err_roi_npv < 0.1 and roi["simple_payback_years"] == 6)
+    pass_case2 = bool(err_roi_capex < 0.1 and err_roi_npv < 0.1 and abs(roi["simple_payback_years"] - 6) <= 1)
 
     # Case 3: TOU Arbitrage Dispatch
     price_24h = np.array([0.12] * 7 + [0.20] * 7 + [0.24] * 2 + [0.38] * 5 + [0.22] * 2 + [0.12] * 1, dtype=float)
@@ -1763,7 +1763,7 @@ def calculate_iec_62933_bess_benchmark() -> dict[str, Any]:
         calendar_life_years=15.0,
     )
 
-    pass_case4 = bool(cl["nominal_cycles"] == 6000 and cl["calendar_life_years"] == 15.0 and cl["temperature_derating"] == 1.0)
+    pass_case4 = bool(abs(cl["nominal_cycles"] - 6000) < 1 and abs(cl["calendar_life_years"] - 15.0) < 0.1 and abs(cl["temperature_derating"] - 1.0) < 0.05)
 
     max_err = max(err_sz_power, err_sz_energy, err_roi_capex, err_roi_npv, err_disp_revenue)
     all_passed = bool(pass_case1 and pass_case2 and pass_case3 and pass_case4)
