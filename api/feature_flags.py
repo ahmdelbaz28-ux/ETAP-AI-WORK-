@@ -94,6 +94,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "Cable sizing per IEC 60364 (ampacity, derating, voltage drop) - PILOT fail-closed",
         "rollout_percentage": 0,
     },
+    "earth_grid": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "Substation grounding grid design and step/touch potential per IEEE 80 - PILOT fail-closed",
+        "rollout_percentage": 0,
+    },
     "data_import": {
         "enabled": False,
         "status": "beta",

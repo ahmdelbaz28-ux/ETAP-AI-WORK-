@@ -714,14 +714,36 @@ class EarthGridAgent(BaseAgent):
         try:
             self.log_execution(f"Starting earth grid analysis for task {task.task_id}")
 
+            if not task.parameters:
+                self.status = AgentStatus.FAILED
+                err_msg = (
+                    "INSUFFICIENT_ENGINEERING_INPUT: Earth grid design requires explicit engineering parameters. "
+                    "Synthetic or random defaults are strictly forbidden in production."
+                )
+                self.log_execution(err_msg, level="ERROR")
+                return AgentResult(
+                    agent_name=self.agent_name,
+                    study_type=StudyType.SHORT_CIRCUIT,
+                    status=AgentStatus.FAILED,
+                    data={
+                        "error_code": "INSUFFICIENT_ENGINEERING_INPUT",
+                        "message": err_msg,
+                    },
+                    validation_errors=[err_msg],
+                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                )
+
             analysis_type = task.parameters.get("analysis_type", "full")
             results: dict[str, Any] = {}
             p = task.parameters
 
+            rho_val = float(p.get("rho_soil", p.get("soil_resistivity_ohm_m", 100.0)))
+            ig_val = float(p.get("Ig_max", p.get("fault_current_A", 5000.0)))
+
             if analysis_type in ("design", "full"):
                 results["grid_design"] = self.design_ground_grid(
-                    rho=float(p.get("rho_soil", 100.0)),
-                    Ig=float(p.get("Ig_max", 5000.0)),
+                    rho=rho_val,
+                    Ig=ig_val,
                     grid_length_m=float(p.get("grid_length_m", 50.0)),
                     grid_width_m=float(p.get("grid_width_m", 40.0)),
                     n_rods=int(p.get("n_rods", 4)),
@@ -736,8 +758,8 @@ class EarthGridAgent(BaseAgent):
 
             if analysis_type in ("mesh_voltage", "full"):
                 results["mesh_voltage"] = self.calculate_mesh_voltage(
-                    rho=float(p.get("rho_soil", 100.0)),
-                    Ig=float(p.get("Ig_max", 5000.0)),
+                    rho=rho_val,
+                    Ig=ig_val,
                     grid_length_m=float(p.get("grid_length_m", 50.0)),
                     grid_width_m=float(p.get("grid_width_m", 40.0)),
                     n_rods=int(p.get("n_rods", 4)),
@@ -746,8 +768,8 @@ class EarthGridAgent(BaseAgent):
 
             if analysis_type in ("step_voltage", "full"):
                 results["step_voltage"] = self.calculate_step_voltage(
-                    rho=float(p.get("rho_soil", 100.0)),
-                    Ig=float(p.get("Ig_max", 5000.0)),
+                    rho=rho_val,
+                    Ig=ig_val,
                     grid_length_m=float(p.get("grid_length_m", 50.0)),
                     grid_width_m=float(p.get("grid_width_m", 40.0)),
                     n_rods=int(p.get("n_rods", 4)),
@@ -756,8 +778,8 @@ class EarthGridAgent(BaseAgent):
 
             if analysis_type in ("touch_voltage", "full"):
                 results["touch_voltage"] = self.calculate_touch_voltage(
-                    rho=float(p.get("rho_soil", 100.0)),
-                    Ig=float(p.get("Ig_max", 5000.0)),
+                    rho=rho_val,
+                    Ig=ig_val,
                     grid_length_m=float(p.get("grid_length_m", 50.0)),
                     grid_width_m=float(p.get("grid_width_m", 40.0)),
                     n_rods=int(p.get("n_rods", 4)),
@@ -779,7 +801,7 @@ class EarthGridAgent(BaseAgent):
                         E_step_V=gd["step_voltage"]["E_step_V"],
                         E_touch_V=gd["touch_voltage"]["E_touch_perimeter_V"],
                         rho_s=float(p.get("rho_surface", 3000.0)),
-                        rho_b=float(p.get("rho_soil", 100.0)),
+                        rho_b=rho_val,
                         hs=float(p.get("hs_surface_m", 0.1)),
                         fault_duration_s=float(p.get("fault_duration_s", 0.5)),
                         body_weight_kg=float(p.get("body_weight_kg", 70.0)),
@@ -790,7 +812,7 @@ class EarthGridAgent(BaseAgent):
                         E_step_V=float(p.get("E_step_V", 300)),
                         E_touch_V=float(p.get("E_touch_V", 800)),
                         rho_s=float(p.get("rho_surface", 3000.0)),
-                        rho_b=float(p.get("rho_soil", 100.0)),
+                        rho_b=rho_val,
                         hs=float(p.get("hs_surface_m", 0.1)),
                         fault_duration_s=float(p.get("fault_duration_s", 0.5)),
                     )
@@ -803,6 +825,12 @@ class EarthGridAgent(BaseAgent):
                     **results,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
+                    "provenance": {
+                        "handler": "agents.earth_grid_agent.EarthGridAgent",
+                        "agent_key": "earth_grid",
+                        "standard": "IEEE 80",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

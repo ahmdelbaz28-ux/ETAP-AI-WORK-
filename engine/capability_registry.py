@@ -536,6 +536,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="earth_grid",
+            feature_flag="earth_grid",
             benchmark_status="PENDING",
             standards_scope="IEEE 80 (Substation grounding grid design)",
             validation_evidence="Earth grid unit test suite",

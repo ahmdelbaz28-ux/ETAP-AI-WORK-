@@ -1032,6 +1032,14 @@ class StudyExecutor:
                     "cable_sizing", "Feature flag 'cable_sizing' is disabled"
                 )
 
+        if study_type == "earth_grid":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("earth_grid"):
+                raise SpecializedExecutionUnavailableError(
+                    "earth_grid", "Feature flag 'earth_grid' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key
