@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T13:29:02.745392+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T13:40:33.639337+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 385 |
 | Python | Classes | 938 |
-| Python | Functions | 846 |
+| Python | Functions | 847 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 283 |
-| Total | Tests | 3955 |
+| Total | Tests | 3957 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 453 |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -2791,7 +2791,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _41.1 KB_
+#### 📄 `engine/capability_registry.py` _41.4 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2957,7 +2957,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _46.9 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _51.8 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -5720,9 +5720,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | api-route | 92 |
-| ui-page | 61 |
-| python-module | 41 |
 | ui-component | 280 |
+| python-module | 41 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5751,7 +5751,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `engine`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5762,7 +5762,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5858,7 +5858,7 @@ Provides
 | `test_distributed_singletons.py` | 14 | 0 | **14** |
 | `test_dr_resilience_drill.py` | 4 | 0 | **4** |
 | `test_dspy_baseline_gate.py` | 3 | 0 | **3** |
-| `test_earth_grid_acceptance.py` | 5 | 0 | **5** |
+| `test_earth_grid_acceptance.py` | 7 | 0 | **7** |
 | `test_edge_cases.py` | 0 | 7 | **31** |
 | `test_email_webhooks.py` | 0 | 7 | **23** |
 | `test_engine_deep.py` | 0 | 6 | **18** |
@@ -6167,7 +6167,7 @@ Provides
 | `scripts/run_comprehensive_tests.bat` | bat | 1.3 KB |  |
 | `scripts/run_cov.bat` | bat | 0.3 KB |  |
 | `scripts/run_git.py` | py | 0.0 KB |  |
-| `scripts/run_ieee_benchmarks.py` | py | 10.5 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
+| `scripts/run_ieee_benchmarks.py` | py | 11.4 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
 | `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
