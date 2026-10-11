@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-11T15:09:32.989425+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-11T15:37:54.654976+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,9 +10,9 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 392 |
+| Python | Files | 393 |
 | Python | Classes | 962 |
-| Python | Functions | 856 |
+| Python | Functions | 858 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 285 |
 | Total | Tests | 3988 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -918,7 +918,7 @@ Typed goal router and dependency-aware study planner for multi-agent workflo
 - **def** `determine_execution_order()` (line 256)
 - **def** `create_router()` (line 261)
 
-#### 📄 `agents/scada_agent.py` _39.4 KB_
+#### 📄 `agents/scada_agent.py` _41.6 KB_
 > AhmedETAP - SCADA Integration Agent
 =======================================================
 IEC 61850 data model mapping and real-time measurement pro
@@ -4238,7 +4238,7 @@ Why this
 - **def** `upgrade()` (line 46)
 - **def** `downgrade()` (line 193)
 
-#### 📄 `migrations/versions/007_fix_study_results_and_orm_tables.py` _11.0 KB_
+#### 📄 `migrations/versions/007_fix_study_results_and_orm_tables.py` _11.4 KB_
 > Fix study_results column drift + add missing ORM tables.
 
 Revision ID: 007_fix_study_results_and_orm_tables
@@ -4246,7 +4246,7 @@ Revises: 006_scada_gis_email
 Create Date: 
 
 - **def** `upgrade()` (line 44)
-- **def** `downgrade()` (line 251)
+- **def** `downgrade()` (line 256)
 
 #### 📄 `migrations/versions/008_add_tenant_id_and_rls.py` _7.7 KB_
 > Add tenant_id column and Row-Level Security (RLS) policies.
@@ -4308,6 +4308,16 @@ Create Date: 2026-10-04 00:00:00.0
 
 - **def** `upgrade()` (line 19)
 - **def** `downgrade()` (line 33)
+
+#### 📄 `migrations/versions/014_fix_notifications_schema.py` _2.8 KB_
+> Align notifications table columns with Notification ORM model.
+
+Revision ID: 014_fix_notifications_schema
+Revises: 013_add_totp_secret_to_users
+Create
+
+- **def** `upgrade()` (line 19)
+- **def** `downgrade()` (line 62)
 
 #### 📄 `migrations/versions/__init__.py` _0.0 KB_
 
@@ -5806,10 +5816,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
 | api-route | 92 |
-| ui-page | 61 |
+| python-module | 41 |
 | ui-component | 280 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5821,7 +5831,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5852,7 +5862,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
