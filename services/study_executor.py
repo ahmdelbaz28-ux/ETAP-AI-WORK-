@@ -1016,6 +1016,14 @@ class StudyExecutor:
                     "motor_starting", "Feature flag 'motor_starting' is disabled"
                 )
 
+        if study_type == "transient_stability":
+            from api.feature_flags import is_strict_feature_enabled
+
+            if not is_strict_feature_enabled("transient_stability"):
+                raise SpecializedExecutionUnavailableError(
+                    "transient_stability", "Feature flag 'transient_stability' is disabled"
+                )
+
         # Resolve across all registered specialized agents in canonical registry
         from agents.models import AgentStatus, EngineeringTask, StudyType
         from agents.registry import create_agent_registry, resolve_agent_key

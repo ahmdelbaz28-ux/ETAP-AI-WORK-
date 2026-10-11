@@ -79,8 +79,9 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
     },
     "transient_stability": {
         "enabled": False,
-        "status": "alpha",
-        "description": "Transient stability (swing equation) - experimental",
+        "status": "pilot",
+        "description": "Transient stability analysis (IEEE 399) - PILOT fail-closed",
+        "rollout_percentage": 0,
     },
     "optimal_power_flow": {
         "enabled": False,

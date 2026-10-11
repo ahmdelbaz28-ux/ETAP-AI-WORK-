@@ -694,6 +694,12 @@ class StabilityAgent(BaseAgent):
                     **results,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
+                    "provenance": {
+                        "handler": "agents.stability_agent.StabilityAgent",
+                        "agent_key": "transient_stability",
+                        "standard": "IEEE 399",
+                        "lifecycle": "pilot",
+                    },
                 },
             )
 

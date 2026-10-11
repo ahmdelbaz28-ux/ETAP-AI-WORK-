@@ -496,6 +496,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=True,
             required_params=(),
             agent_key="transient_stability",
+            feature_flag="transient_stability",
             benchmark_status="PENDING",
             standards_scope="IEEE 399 (RK4 Swing Equation transient stability)",
             validation_evidence="Transient stability scenario test suite with strict parameter verification",
