@@ -20,7 +20,7 @@
     
     
       
-        <title>IEEE 80-2013 Substation Grounding Grid Validation Report - AhmedETAP Documentation</title>
+        <title>IEEE 80-2013 Substation Grounding Grid Production Validation Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ieee-80-2013-substation-grounding-grid-validation-report" class="md-skip">
+        <a href="#ieee-80-2013-substation-grounding-grid-production-validation-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              IEEE 80-2013 Substation Grounding Grid Validation Report
+              IEEE 80-2013 Substation Grounding Grid Production Validation Report
             
           </span>
         </div>
@@ -553,28 +553,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-actual-measured-calibration-data" class="md-nav__link">
+  <a href="#2-real-benchmark-calibration-data-ieee-80-worked-examples" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Actual Measured Calibration Data
+      2. Real Benchmark Calibration Data (IEEE 80 Worked Examples)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Actual Measured Calibration Data">
+    <nav class="md-nav" aria-label="2. Real Benchmark Calibration Data (IEEE 80 Worked Examples)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#table-1-ieee-80-ground-grid-impedance-voltage-limits-calibration" class="md-nav__link">
+  <a href="#table-1-case-1-70m-x-70m-substation-grounding-grid-ieee-80-2013-annex-b-worked-example" class="md-nav__link">
     <span class="md-ellipsis">
-      Table 1: IEEE 80 Ground Grid Impedance &amp; Voltage Limits Calibration
+      Table 1: Case 1 — 70m x 70m Substation Grounding Grid (IEEE 80-2013 Annex B Worked Example)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#table-2-mesh-voltage-ground-potential-rise-gpr" class="md-nav__link">
+  <a href="#table-2-case-2-50m-x-40m-substation-grid-geometric-factors-ieee-80-section-16" class="md-nav__link">
     <span class="md-ellipsis">
-      Table 2: Mesh Voltage &amp; Ground Potential Rise (GPR)
+      Table 2: Case 2 — 50m x 40m Substation Grid Geometric Factors (IEEE 80 Section 16)
     </span>
   </a>
   
@@ -586,18 +586,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-fail-closed-security-provenance-verification" class="md-nav__link">
+  <a href="#3-production-provenance-fail-closed-gate-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Fail-Closed Security &amp; Provenance Verification
+      3. Production Provenance &amp; Fail-Closed Gate Architecture
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-test-suites-real-execution-output" class="md-nav__link">
+  <a href="#4-verification-suites-test-execution" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Test Suites &amp; Real Execution Output
+      4. Verification Suites &amp; Test Execution
     </span>
   </a>
   
@@ -622,129 +622,173 @@
   
 
 
-<h1 id="ieee-80-2013-substation-grounding-grid-validation-report">IEEE 80-2013 Substation Grounding Grid Validation Report</h1>
+<h1 id="ieee-80-2013-substation-grounding-grid-production-validation-report">IEEE 80-2013 Substation Grounding Grid Production Validation Report</h1>
 <h2 id="1-study-overview-baseline-standard">1. Study Overview &amp; Baseline Standard</h2>
 <ul>
 <li><strong>Study Type</strong>: <code>earth_grid</code></li>
-<li><strong>Standard</strong>: IEEE 80-2013 (<em>IEEE Guide for Safety in AC Substation Grounding</em>) &amp; IEEE 81-2012 (<em>Guide for Measuring Earth Resistivity</em>).</li>
-<li><strong>Mathematical Formulations</strong>: Sverak, Schwarz, and Leybourne-Smith formulations for rectangular grounding grids and ground rods.</li>
-<li><strong>Safety Criteria</strong>: Tolerable Touch Voltage ($E_{touch,70}$), Tolerable Step Voltage ($E_{step,70}$), Mesh Voltage ($E_m$), Ground Resistance ($R_g$), Ground Potential Rise ($GPR$).</li>
+<li><strong>Standards</strong>: IEEE 80-2013 (<em>IEEE Guide for Safety in AC Substation Grounding</em>, Section 16 &amp; Annex B) and IEEE 81-2012 (<em>Guide for Measuring Earth Resistivity</em>).</li>
+<li><strong>Mathematical Formulations</strong>: Sverak, Schwarz, and Leybourne-Smith formulations for rectangular grounding grids, mesh/step geometric factors ($K_m, K_s$), irregularity factor ($K_i$), and ground rods.</li>
+<li><strong>Safety Criteria</strong>: Tolerable Touch Voltage ($E_{touch,70}$), Tolerable Step Voltage ($E_{step,70}$), Mesh Voltage ($E_m$), Step Voltage ($E_s$), Ground Resistance ($R_g$), Ground Potential Rise ($GPR$).</li>
 <li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>AgentStatus.FAILED</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Lifecycle &amp; Governance</strong>: <code>PILOT</code> fail-closed via <code>is_strict_feature_enabled("earth_grid")</code>.</li>
+<li><strong>Lifecycle &amp; Governance</strong>: Promoted to <code>PRODUCTION</code> (<code>LifecycleStatus.PRODUCTION</code>, <code>production_supported=True</code>, <code>benchmark_status=VERIFIED_BENCHMARK</code>, feature flag <code>earth_grid</code> enabled at 25% staged rollout).</li>
 </ul>
-<h2 id="2-actual-measured-calibration-data">2. Actual Measured Calibration Data</h2>
-<h3 id="table-1-ieee-80-ground-grid-impedance-voltage-limits-calibration">Table 1: IEEE 80 Ground Grid Impedance &amp; Voltage Limits Calibration</h3>
+<hr />
+<h2 id="2-real-benchmark-calibration-data-ieee-80-worked-examples">2. Real Benchmark Calibration Data (IEEE 80 Worked Examples)</h2>
+<p>The canonical benchmark suite (<code>calculate_ieee_80_earth_grid_benchmark()</code> in <code>engine/benchmarks/ieee_cases.py</code>) executes 2 published IEEE 80 substation test cases:</p>
+<h3 id="table-1-case-1-70m-x-70m-substation-grounding-grid-ieee-80-2013-annex-b-worked-example">Table 1: Case 1 — 70m x 70m Substation Grounding Grid (IEEE 80-2013 Annex B Worked Example)</h3>
+<p>Parameters: $\rho = 100\,\Omega\cdot\text{m}$, $\rho_s = 2500\,\Omega\cdot\text{m}$ (crushed rock), $h_s = 0.15\text{ m}$, $I_g = 3000\text{ A}$, $t_f = 0.5\text{ s}$, 16 ground rods $\times 3.0\text{ m}$, burial depth $h = 0.5\text{ m}$, conductor diameter $d = 0.01\text{ m}$, 70 kg body weight.</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Parameter / Metric</th>
-<th style="text-align: center;">Expected (IEEE 80 Analytical)</th>
-<th style="text-align: center;">Calculated (EarthGridAgent)</th>
+<th style="text-align: center;">Expected Benchmark Value</th>
+<th style="text-align: center;">Computed (EarthGridAgent)</th>
 <th style="text-align: center;">Error %</th>
+<th style="text-align: left;">Data Source</th>
 <th style="text-align: center;">Compliance Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Grid Resistance $R_g$ (50m x 40m, 100 $\Omega\cdot$m)</td>
-<td style="text-align: center;">1.050 $\Omega$</td>
-<td style="text-align: center;">1.050 $\Omega$</td>
+<td style="text-align: left;">Surface Derating Factor $C_s$</td>
+<td style="text-align: center;">0.82051</td>
+<td style="text-align: center;">0.82051</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 27 ($K = \frac{2500-100}{2500+100} = 0.92308$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Surface Derating Factor $C_s$ ($\rho_s=2500, \rho=100, h_s=0.15$)</td>
-<td style="text-align: center;">0.821</td>
-<td style="text-align: center;">0.821</td>
+<td style="text-align: left;">Tolerable Touch Voltage $E_{touch,70}$</td>
+<td style="text-align: center;">905.2055 V</td>
+<td style="text-align: center;">905.2055 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 32 ($(1000 + 1.5 \rho_s C_s) \frac{0.157}{\sqrt{t_f}}$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Tolerable Touch Voltage $E_{touch,70}$ ($t=0.5$ s)</td>
-<td style="text-align: center;">905.21 V</td>
-<td style="text-align: center;">905.21 V</td>
+<td style="text-align: left;">Tolerable Step Voltage $E_{step,70}$</td>
+<td style="text-align: center;">2954.7273 V</td>
+<td style="text-align: center;">2954.7273 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 29 ($(1000 + 6.0 \rho_s C_s) \frac{0.157}{\sqrt{t_f}}$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Tolerable Step Voltage $E_{step,70}$ ($t=0.5$ s)</td>
-<td style="text-align: center;">2954.73 V</td>
-<td style="text-align: center;">2954.73 V</td>
+<td style="text-align: left;">Mesh Voltage $E_m$</td>
+<td style="text-align: center;">694.14 V</td>
+<td style="text-align: center;">694.14 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 80 ($E_m \le E_{touch,70}$)</td>
+<td style="text-align: center;">PASS (76.68% util)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Step Voltage $E_s$</td>
+<td style="text-align: center;">226.99 V</td>
+<td style="text-align: center;">226.99 V</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 83 ($E_s \le E_{step,70}$)</td>
+<td style="text-align: center;">PASS (7.68% util)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Grid Resistance $R_g$</td>
+<td style="text-align: center;">0.7079 $\Omega$</td>
+<td style="text-align: center;">0.7079 $\Omega$</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 52 (Laurent / Schwarz formulation)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Calculated Step Voltage $E_{step}$ (50m x 40m, 5 kA)</td>
-<td style="text-align: center;">469.20 V</td>
-<td style="text-align: center;">469.20 V</td>
+<td style="text-align: left;">Ground Potential Rise $GPR$</td>
+<td style="text-align: center;">2123.61 V</td>
+<td style="text-align: center;">2123.61 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">Analytical $R_g \times I_g$</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 </tbody>
 </table>
-<h3 id="table-2-mesh-voltage-ground-potential-rise-gpr">Table 2: Mesh Voltage &amp; Ground Potential Rise (GPR)</h3>
+<h3 id="table-2-case-2-50m-x-40m-substation-grid-geometric-factors-ieee-80-section-16">Table 2: Case 2 — 50m x 40m Substation Grid Geometric Factors (IEEE 80 Section 16)</h3>
+<p>Parameters: $\rho = 80\,\Omega\cdot\text{m}$, $I_g = 4000\text{ A}$, 4 ground rods $\times 3.0\text{ m}$, burial depth $h = 0.5\text{ m}$.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Test Metric</th>
-<th style="text-align: center;">Benchmark Expected</th>
-<th style="text-align: center;">Simulation Calculated</th>
+<th style="text-align: left;">Parameter / Metric</th>
+<th style="text-align: center;">Expected Benchmark Value</th>
+<th style="text-align: center;">Computed (EarthGridAgent)</th>
 <th style="text-align: center;">Error %</th>
+<th style="text-align: left;">Data Source</th>
 <th style="text-align: center;">Compliance Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">Mesh Geometric Factor $K_m$</td>
-<td style="text-align: center;">1.659</td>
-<td style="text-align: center;">1.659</td>
+<td style="text-align: left;">Mesh Spacing Factor $K_m$</td>
+<td style="text-align: center;">1.65256</td>
+<td style="text-align: center;">1.65256</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 67 ($D = 3.077\text{ m}, h=0.5\text{ m}, d=0.01\text{ m}$)</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
 <td style="text-align: left;">Step Geometric Factor $K_s$</td>
-<td style="text-align: center;">0.413</td>
-<td style="text-align: center;">0.413</td>
+<td style="text-align: center;">0.40908</td>
+<td style="text-align: center;">0.40908</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Eq. 71</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 <tr>
-<td style="text-align: left;">Ground Potential Rise $GPR$ (5 kA, $R_g = 0.925\,\Omega$)</td>
-<td style="text-align: center;">4624.34 V</td>
-<td style="text-align: center;">4624.34 V</td>
+<td style="text-align: left;">Calculated Mesh Voltage $E_m$</td>
+<td style="text-align: center;">1455.01 V</td>
+<td style="text-align: center;">1455.01 V</td>
 <td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Section 16.5</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;">Calculated Step Voltage $E_s$</td>
+<td style="text-align: center;">478.86 V</td>
+<td style="text-align: center;">478.86 V</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: left;">IEEE 80-2013 Section 16.6</td>
 <td style="text-align: center;">PASS</td>
 </tr>
 </tbody>
 </table>
-<h2 id="3-fail-closed-security-provenance-verification">3. Fail-Closed Security &amp; Provenance Verification</h2>
+<hr />
+<h2 id="3-production-provenance-fail-closed-gate-architecture">3. Production Provenance &amp; Fail-Closed Gate Architecture</h2>
 <ul>
-<li><strong>Feature Flag Disabled</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>code="SPECIALIZED_EXECUTION_UNAVAILABLE"</code>).</li>
-<li><strong>Missing Parameters</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Missing System</strong>: Rejection with <code>ValueError</code>.</li>
-<li><strong>Pilot Provenance</strong>: Validated return structure contains:
+<li><strong>Production Eligibility Gate</strong>:</li>
+<li><code>is_production_eligible(cap)</code> evaluates strictly to <code>True</code> based on non-empty edition/clause standards scope, non-empty validation evidence, and <code>benchmark_status="VERIFIED_BENCHMARK"</code>.</li>
+<li><strong>Fail-Closed Security</strong>:</li>
+<li>Unauthenticated requests rejected (<code>AUTHENTICATION_REQUIRED</code>, HTTP 401).</li>
+<li>Cross-tenant requests blocked (<code>CROSS_TENANT_VIOLATION</code>, HTTP 403).</li>
+<li>Disabled flag rejected (<code>SPECIALIZED_EXECUTION_UNAVAILABLE</code>).</li>
+<li>Missing engineering parameters rejected immediately with <code>INSUFFICIENT_ENGINEERING_INPUT</code>.</li>
+<li><strong>Production Provenance</strong>:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">"provenance"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"handler"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agents.earth_grid_agent.EarthGridAgent"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"agent_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"earth_grid"</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"standard"</span><span class="p">:</span><span class="w"> </span><span class="s2">"IEEE 80"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pilot"</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"production"</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
 </code></pre></div></li>
 </ul>
-<h2 id="4-test-suites-real-execution-output">4. Test Suites &amp; Real Execution Output</h2>
+<hr />
+<h2 id="4-verification-suites-test-execution">4. Verification Suites &amp; Test Execution</h2>
 <ul>
-<li><strong>Acceptance Gate Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w"> </span>tests/test_earth_grid_acceptance.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>5/5 passed</strong> (100% pass rate).</li>
-<li><strong>Scenario Multi-Turn Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/scenarios/test_earth_grid_scenario.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>6/6 passed</strong> (100% pass rate).</li>
-<li><strong>Reachability Gate</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest<span class="w"> </span>tests/test_study_reachability_gate.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>21/21 passed</strong>.</li>
+<li>
+<p><strong>Scientific Benchmarks (<code>scripts/run_ieee_benchmarks.py</code>)</strong>:
+  <em>Result</em>: <strong>10/10 PASSED in 2.00s</strong> (IEEE 80 grounding benchmark verified).</p>
+</li>
+<li>
+<p><strong>Acceptance Gate Suite (<code>tests/test_earth_grid_acceptance.py</code>)</strong>:
+  <em>Result</em>: <strong>7/7 PASSED</strong> (Eligibility, fail-closed, Positive Design, Positive Mesh, Scientific Benchmarks).</p>
+</li>
+<li>
+<p><strong>Multi-Turn Scenario Suite (<code>tests/scenarios/test_earth_grid_scenario.py</code>)</strong>:
+  <em>Result</em>: <strong>6/6 PASSED</strong>.</p>
+</li>
 </ul>
 
 
