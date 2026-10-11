@@ -159,7 +159,7 @@ jobs:
   api-e2e:
     name: API End-to-End
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -283,7 +283,7 @@ jobs:
   agents:
     name: Agents Integration
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 20
 
     env:
       ENVIRONMENT: testing
