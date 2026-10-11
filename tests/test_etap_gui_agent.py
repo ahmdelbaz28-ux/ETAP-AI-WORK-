@@ -469,6 +469,7 @@ def test_study_endpoint_returns_response(fastapi_client):
         json={
             "study_type": "etap_gui",
             "parameters": {"question": "Monitor the running study"},
+            "metadata": {"pilot_opt_in": True},
             "use_etap": False,
         },
     )

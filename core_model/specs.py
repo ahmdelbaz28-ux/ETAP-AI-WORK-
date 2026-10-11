@@ -397,6 +397,10 @@ class StudyRequest(_BaseSpecModel):
         default=None,
         description="Professional Engineer (PE) stamp for regulated studies",
     )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Execution and lifecycle metadata (e.g., pilot_opt_in, execution_policy)",
+    )
 
     @model_validator(mode="before")
     @classmethod

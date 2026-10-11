@@ -184,7 +184,10 @@ class ExecutionRequest(BaseModel):
         if pe_stamp:
             approval = {"pe_stamp": pe_stamp, "approved": True}
 
-        exec_metadata = dict(metadata or {})
+        req_meta = getattr(study_request, "metadata", None)
+        exec_metadata = dict(req_meta or {}) if isinstance(req_meta, dict) else {}
+        if metadata:
+            exec_metadata.update(metadata)
         if dry_run:
             exec_metadata["dry_run"] = True
 
