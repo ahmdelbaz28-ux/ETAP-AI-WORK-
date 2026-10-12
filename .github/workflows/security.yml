@@ -28,7 +28,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
 permissions:
   contents: read  # Least privilege — only read repo contents
 

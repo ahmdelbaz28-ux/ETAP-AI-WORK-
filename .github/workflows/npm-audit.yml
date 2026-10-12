@@ -36,8 +36,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-
 jobs:
   npm-audit:
     name: npm audit (high)

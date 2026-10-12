@@ -19,8 +19,6 @@ permissions:
   contents: read
   security-events: write
 
-env:
-
 jobs:
   pre-commit:
     name: Lint, Syntax, Validation

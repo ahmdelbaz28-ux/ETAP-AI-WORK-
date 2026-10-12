@@ -18,7 +18,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
 jobs:
   # ── Gate 1: Lint ──────────────────────────────────────────────────────────
   lint:
