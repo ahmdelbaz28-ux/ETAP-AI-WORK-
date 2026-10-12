@@ -130,3 +130,154 @@ def test_scada_positive_execution_iec61850_model(scada_system, monkeypatch):
     provenance = raw.get("provenance", {})
     assert provenance.get("standard") == "IEC 61850"
     assert provenance.get("lifecycle") == "pilot"
+
+
+@pytest.mark.asyncio
+async def test_scada_live_modbus_adapter_execution():
+    """Live Adapter Test 1: Connect and read against local Modbus TCP server returning live_connection: True."""
+    import time
+
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import LiveModbusAdapter, SCADAAgent
+    from scada_protocols.common.config import ModbusConfig
+    from scada_protocols.modbus.register_map import RegisterEntry
+    from scada_protocols.modbus.server import ModbusServerAdapter
+
+    reg_map = [
+        RegisterEntry(name="BUS1_V", element_id="BUS-1", measurement_type="voltage_magnitude", address=0, function_code=3, data_type="float32", scale=1.0, offset=0.0, unit="p.u."),
+        RegisterEntry(name="BUS1_P", element_id="BUS-1", measurement_type="active_power", address=2, function_code=3, data_type="float32", scale=1.0, offset=0.0, unit="MW"),
+    ]
+    cfg = ModbusConfig(enabled=True, role="server", server_host="127.0.0.1", server_port=5021, server_unit_id=1, register_map=[r.__dict__ for r in reg_map])
+    server = ModbusServerAdapter(cfg)
+    server.set_provider(lambda: {"BUS1_V": 1.025, "BUS1_P": 45.2})
+    server.start_server()
+    time.sleep(1.0)
+
+    try:
+        adapter = LiveModbusAdapter(host="127.0.0.1", port=5021, unit_id=1, register_map=[r.__dict__ for r in reg_map])
+        agent = SCADAAgent(adapter=adapter)
+        task = EngineeringTask(
+            task_id="task_live_modbus",
+            description="Live Modbus telemetry acquisition",
+            study_types=[StudyType.LOAD_FLOW],
+            parameters={
+                "analysis_type": "full",
+                "scada_server": "127.0.0.1",
+                "scada_port": 5021,
+                "scada_protocol": "modbus",
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.COMPLETED
+        assert res.data["live_connection"] is True
+        assert res.data["authoritative"] is True
+        assert res.data["simulated"] is False
+        assert res.data["provenance"]["source"] == "modbus"
+        assert res.data["measurements"]["measurement_count"] == 2
+        meas = res.data["measurements"]["measurements"]
+        assert any(m["tag"] == "BUS1_V" and abs(m["value"] - 1.025) < 0.01 for m in meas)
+    finally:
+        adapter.close()
+        server.stop_server()
+
+
+@pytest.mark.asyncio
+async def test_scada_live_modbus_server_down_fail_closed():
+    """Live Adapter Test 2: Server-down scenario must return REAL_INTEGRATION_UNAVAILABLE failure."""
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import LiveModbusAdapter, SCADAAgent
+
+    adapter = LiveModbusAdapter(host="127.0.0.1", port=5029)
+    agent = SCADAAgent(adapter=adapter)
+    task = EngineeringTask(
+        task_id="task_modbus_down",
+        description="Live Modbus server down test",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "analysis_type": "connect",
+            "scada_server": "127.0.0.1",
+            "scada_port": 5029,
+            "scada_protocol": "modbus",
+        },
+    )
+    res = await agent.execute(task)
+    assert res.status == AgentStatus.FAILED
+    assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"
+
+
+@pytest.mark.asyncio
+async def test_scada_live_opcua_adapter_execution():
+    """Live Adapter Test 3: Connect and read against local OPC UA server returning live_connection: True."""
+    import time
+
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import LiveOpcUaAdapter, SCADAAgent
+    from scada_protocols.common.config import OpcUaConfig
+    from scada_protocols.opcua.server import OpcUaServerAdapter
+
+    cfg = OpcUaConfig(
+        enabled=True,
+        role="server",
+        server_endpoint="opc.tcp://127.0.0.1:4841/etap/server",
+        node_map=[
+            {"node_id": "ns=2;i=2", "browse_name": "BUS1.Voltage", "element_id": "BUS-1", "measurement_type": "voltage_magnitude", "unit": "p.u."}
+        ],
+    )
+    server = OpcUaServerAdapter(cfg)
+    server.set_provider(lambda: {"BUS1.Voltage": 1.025})
+    server.start_server()
+    time.sleep(1.5)
+
+    try:
+        adapter = LiveOpcUaAdapter(
+            endpoint="opc.tcp://127.0.0.1:4841/etap/server",
+            node_map=[
+                {"node_id": "ns=2;i=2", "tag": "BUS1.Voltage", "element_id": "BUS-1", "measurement_type": "voltage_magnitude", "unit": "p.u."}
+            ],
+        )
+        agent = SCADAAgent(adapter=adapter)
+        task = EngineeringTask(
+            task_id="task_live_opcua",
+            description="Live OPC UA telemetry acquisition",
+            study_types=[StudyType.LOAD_FLOW],
+            parameters={
+                "analysis_type": "full",
+                "scada_server": "127.0.0.1",
+                "scada_port": 4841,
+                "scada_protocol": "opcua",
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.COMPLETED
+        assert res.data["live_connection"] is True
+        assert res.data["authoritative"] is True
+        assert res.data["simulated"] is False
+        assert res.data["provenance"]["source"] == "opcua"
+        assert res.data["measurements"]["measurement_count"] == 1
+    finally:
+        await adapter.close()
+        server.stop_server()
+
+
+@pytest.mark.asyncio
+async def test_scada_live_opcua_server_down_fail_closed():
+    """Live Adapter Test 4: OPC UA server-down scenario must return REAL_INTEGRATION_UNAVAILABLE failure."""
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import LiveOpcUaAdapter, SCADAAgent
+
+    adapter = LiveOpcUaAdapter(endpoint="opc.tcp://127.0.0.1:4849/etap/server", timeout=1.0)
+    agent = SCADAAgent(adapter=adapter)
+    task = EngineeringTask(
+        task_id="task_opcua_down",
+        description="Live OPC UA server down test",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "analysis_type": "connect",
+            "scada_server": "127.0.0.1",
+            "scada_port": 4849,
+            "scada_protocol": "opcua",
+        },
+    )
+    res = await agent.execute(task)
+    assert res.status == AgentStatus.FAILED
+    assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"

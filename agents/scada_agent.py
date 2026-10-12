@@ -19,6 +19,7 @@ Standards:
 
 from __future__ import annotations
 
+import inspect
 import logging
 from datetime import datetime, timezone
 
@@ -202,6 +203,219 @@ class SCADAConnection:
         self.connected = False
 
 
+class LiveModbusAdapter:
+    """Live Modbus TCP client adapter connecting to local or remote Modbus server."""
+
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 5020,
+        unit_id: int = 1,
+        register_map: list[dict[str, Any]] | None = None,
+        timeout: float = 3.0,
+    ) -> None:
+        self.host = host
+        self.port = port
+        self.unit_id = unit_id
+        self.timeout = timeout
+        self.protocol = "modbus"
+        self._client: Any = None
+        self._register_map_raw = register_map or [
+            {
+                "name": "BUS1_V",
+                "element_id": "BUS-1",
+                "measurement_type": "voltage_magnitude",
+                "address": 0,
+                "function_code": 3,
+                "data_type": "float32",
+                "scale": 1.0,
+                "offset": 0.0,
+                "unit": "p.u.",
+            },
+            {
+                "name": "BUS1_P",
+                "element_id": "BUS-1",
+                "measurement_type": "active_power",
+                "address": 2,
+                "function_code": 3,
+                "data_type": "float32",
+                "scale": 1.0,
+                "offset": 0.0,
+                "unit": "MW",
+            },
+        ]
+
+    def connect(self, host: str | None = None, port: int | None = None) -> bool:
+        from pymodbus.client import ModbusTcpClient
+
+        h = host or self.host
+        p = port or self.port
+        self._client = ModbusTcpClient(h, port=p, timeout=self.timeout)
+        connected = self._client.connect()
+        if not connected:
+            self._client = None
+            raise ConnectionError(f"Failed to connect to Modbus TCP server at {h}:{p}")
+        return True
+
+    def read_measurements(
+        self,
+        connection_id: str | None = None,
+        measurement_tags: list[str] | None = None,
+        iec61850_refs: list[str] | None = None,
+    ) -> dict[str, Any]:
+        if self._client is None:
+            self.connect()
+
+        from scada_protocols.modbus.register_map import RegisterMap
+
+        entries = [
+            e if isinstance(e, dict) else (e.to_dict() if hasattr(e, "to_dict") else e.__dict__)
+            for e in self._register_map_raw
+        ]
+        reg_map = RegisterMap(entries)
+
+        measurements = []
+        now_str = datetime.now(UTC).isoformat()
+        for entry in reg_map.entries:
+            if measurement_tags and entry.name not in measurement_tags:
+                continue
+            fc = entry.function_code
+            if fc == 3:
+                rr = self._client.read_holding_registers(
+                    entry.address, count=entry.register_count, slave=self.unit_id
+                )
+            elif fc == 4:
+                rr = self._client.read_input_registers(
+                    entry.address, count=entry.register_count, slave=self.unit_id
+                )
+            else:
+                continue
+
+            if rr is None or getattr(rr, "isError", lambda: True)():
+                raise ConnectionError(f"Modbus read error on address {entry.address}: {rr}")
+
+            words = list(rr.registers)
+            reg_map.write_registers(entry.address, words)
+            val = reg_map.decode_value(entry)
+            if val is not None:
+                measurements.append(
+                    {
+                        "tag": entry.name,
+                        "element_id": entry.element_id,
+                        "value": float(val),
+                        "quality": "good",
+                        "unit": entry.unit,
+                        "source": "modbus",
+                        "timestamp": now_str,
+                    }
+                )
+
+        return {
+            "success": True,
+            "source": "modbus",
+            "protocol": "MODBUS",
+            "measurement_count": len(measurements),
+            "measurements": measurements,
+        }
+
+    def close(self) -> None:
+        if self._client is not None:
+            try:
+                self._client.close()
+            except Exception:
+                pass
+            self._client = None
+
+
+class LiveOpcUaAdapter:
+    """Live OPC UA client adapter connecting to local or remote OPC UA server."""
+
+    def __init__(
+        self,
+        endpoint: str = "opc.tcp://127.0.0.1:4840/etap/server",
+        node_map: list[dict[str, Any]] | None = None,
+        timeout: float = 3.0,
+    ) -> None:
+        self.endpoint = endpoint
+        self.timeout = timeout
+        self.protocol = "opcua"
+        self._client: Any = None
+        self._node_map = node_map or [
+            {
+                "node_id": "ns=2;i=2",
+                "tag": "BUS1.Voltage",
+                "element_id": "BUS-1",
+                "measurement_type": "voltage_magnitude",
+                "unit": "p.u.",
+            }
+        ]
+
+    async def connect(self, endpoint: str | None = None, port: int | None = None) -> bool:
+        from asyncua import Client
+
+        if endpoint:
+            if not endpoint.startswith("opc.tcp://"):
+                ep = f"opc.tcp://{endpoint}:{port or 4840}/etap/server"
+            else:
+                ep = endpoint
+        else:
+            ep = self.endpoint
+
+        self._client = Client(url=ep, timeout=self.timeout)
+        try:
+            await self._client.connect()
+            return True
+        except Exception as exc:
+            self._client = None
+            raise ConnectionError(f"Failed to connect to OPC UA server at {ep}: {exc}") from exc
+
+    async def read_measurements(
+        self,
+        connection_id: str | None = None,
+        measurement_tags: list[str] | None = None,
+        iec61850_refs: list[str] | None = None,
+    ) -> dict[str, Any]:
+        if self._client is None:
+            await self.connect()
+
+        measurements = []
+        now_str = datetime.now(UTC).isoformat()
+        for item in self._node_map:
+            tag = item.get("tag", item.get("browse_name", item.get("node_id")))
+            if measurement_tags and tag not in measurement_tags:
+                continue
+            node_id = item.get("node_id")
+            node = self._client.get_node(node_id)
+            val = await node.read_value()
+            measurements.append(
+                {
+                    "tag": tag,
+                    "element_id": item.get("element_id", "BUS-1"),
+                    "value": float(val),
+                    "quality": "good",
+                    "unit": item.get("unit", "p.u."),
+                    "source": "opcua",
+                    "timestamp": now_str,
+                }
+            )
+
+        return {
+            "success": True,
+            "source": "opcua",
+            "protocol": "OPCUA",
+            "measurement_count": len(measurements),
+            "measurements": measurements,
+        }
+
+    async def close(self) -> None:
+        if self._client is not None:
+            try:
+                await self._client.disconnect()
+            except Exception:
+                pass
+            self._client = None
+
+
 class SCADAAgent(BaseAgent):
     """
     SCADA Integration Agent.
@@ -223,11 +437,12 @@ class SCADAAgent(BaseAgent):
 
     prompt_handle = "scada_agent"
 
-    def __init__(self) -> None:
+    def __init__(self, adapter: Any = None) -> None:
         super().__init__("SCADAAgent")
         self.standards = ["IEC 61850", "IEC 60870-5-104"]
         self.connections: dict[str, SCADAConnection] = {}
         self.measurement_cache: dict[str, list[SCADAMeasurement]] = {}
+        self.adapter = adapter
 
     # ------------------------------------------------------------------
     # Connection management
@@ -883,22 +1098,45 @@ class SCADAAgent(BaseAgent):
             p = task.parameters
             missing_inputs: list[str] = []
 
+            adapter = p.get("adapter", self.adapter)
+            server_name = p.get("scada_server", p.get("server", "scada.simulated.local"))
+            port_val = int(p.get("scada_port", p.get("port", 102)))
+            protocol_param = str(p.get("scada_protocol", "IEC61850"))
+
             # ── Check if caller demanded live physical integration ──
             if p.get("require_live") or p.get("live_required") or p.get("mode") == "live":
-                self.status = AgentStatus.FAILED
-                err_msg = (
-                    "REAL_INTEGRATION_UNAVAILABLE: Physical IEC 61850 substation MMS connection "
-                    "is unavailable in the current runtime environment. Live success cannot be reported."
-                )
-                self.log_execution(err_msg, level="ERROR")
-                return AgentResult(
-                    agent_name=self.agent_name,
-                    study_type=StudyType.LOAD_FLOW,
-                    status=AgentStatus.FAILED,
-                    data={"error_code": "REAL_INTEGRATION_UNAVAILABLE", "message": err_msg},
-                    validation_errors=[err_msg],
-                    execution_time=(datetime.now(UTC) - start_time).total_seconds(),
-                )
+                if adapter is None:
+                    proto_lower = protocol_param.lower()
+                    if "modbus" in proto_lower:
+                        adapter = LiveModbusAdapter(
+                            host=server_name,
+                            port=port_val,
+                            unit_id=int(p.get("unit_id", 1)),
+                            register_map=p.get("register_map"),
+                            timeout=float(p.get("timeout_sec", 3.0)),
+                        )
+                    elif "opc" in proto_lower:
+                        endpoint = p.get("endpoint", f"opc.tcp://{server_name}:{port_val}/etap/server")
+                        adapter = LiveOpcUaAdapter(
+                            endpoint=endpoint,
+                            node_map=p.get("node_map"),
+                            timeout=float(p.get("timeout_sec", 3.0)),
+                        )
+                    else:
+                        self.status = AgentStatus.FAILED
+                        err_msg = (
+                            f"REAL_INTEGRATION_UNAVAILABLE: Physical {protocol_param} substation connection "
+                            "is unavailable in the current runtime environment. Live success cannot be reported."
+                        )
+                        self.log_execution(err_msg, level="ERROR")
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.LOAD_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={"error_code": "REAL_INTEGRATION_UNAVAILABLE", "message": err_msg},
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                        )
 
             # ── Preloaded measurements detection ──
             preloaded_meas = p.get("measurements") or p.get("raw_measurements")
@@ -940,16 +1178,84 @@ class SCADAAgent(BaseAgent):
                     execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                 )
 
-            server_name = p.get("scada_server", p.get("server", "scada.simulated.local"))
-            port_val = int(p.get("scada_port", p.get("port", 102)))
-
             if analysis_type in ("connect", "full"):
-                if has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
+                if adapter is not None:
+                    try:
+                        conn_meta: dict[str, Any] = {}
+                        if hasattr(adapter, "connect"):
+                            sig = inspect.signature(adapter.connect)
+                            if len(sig.parameters) >= 2:
+                                res = adapter.connect(server_name, port_val)
+                            else:
+                                res = adapter.connect()
+                            if inspect.iscoroutine(res):
+                                res = await res
+                            if isinstance(res, dict):
+                                conn_ok = bool(res.get("status") in ("connected", "already_connected") or res.get("connected", True))
+                                conn_meta = res
+                            elif isinstance(res, bool):
+                                conn_ok = res
+                            else:
+                                conn_ok = True
+                        elif hasattr(adapter, "is_running") or hasattr(adapter, "start"):
+                            if hasattr(adapter, "is_running") and not adapter.is_running():
+                                if hasattr(adapter, "start"):
+                                    res = adapter.start()
+                                    if inspect.iscoroutine(res):
+                                        await res
+                            health = adapter.health_check() if hasattr(adapter, "health_check") else True
+                            if inspect.iscoroutine(health):
+                                health = await health
+                            conn_ok = bool(health is True or (isinstance(health, dict) and health.get("status") in ("ok", "running")))
+                        else:
+                            conn_ok = True
+
+                        if not conn_ok:
+                            raise ConnectionError(f"Connection to {server_name}:{port_val} failed via adapter")
+
+                        adapter_proto = getattr(adapter, "protocol", None)
+                        if hasattr(adapter_proto, "value"):
+                            adapter_proto = adapter_proto.value
+                        proto_str = str(adapter_proto or protocol_param).lower()
+                        clean_source = "modbus" if "modbus" in proto_str else ("opcua" if "opc" in proto_str else ("iec61850" if "61850" in proto_str else proto_str))
+
+                        results["connection"] = {
+                            "status": "connected",
+                            "server": server_name,
+                            "port": port_val,
+                            "protocol": protocol_param,
+                            "connected": True,
+                            "live_connection": True,
+                            "source": clean_source,
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            **conn_meta,
+                        }
+                    except Exception as exc:
+                        self.status = AgentStatus.FAILED
+                        err_msg = (
+                            f"REAL_INTEGRATION_UNAVAILABLE: Connection to SCADA endpoint {server_name}:{port_val} "
+                            f"failed via protocol adapter: {exc}"
+                        )
+                        self.log_execution(err_msg, level="ERROR")
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.LOAD_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={
+                                "error_code": "REAL_INTEGRATION_UNAVAILABLE",
+                                "message": err_msg,
+                                "server": server_name,
+                                "port": port_val,
+                            },
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                        )
+                elif has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
                     results["connection"] = {
                         "status": "connected",
                         "server": "preloaded_dataset",
                         "port": port_val,
-                        "protocol": p.get("scada_protocol", "IEC61850"),
+                        "protocol": protocol_param,
                         "connected": True,
                         "timestamp": datetime.now(UTC).isoformat(),
                     }
@@ -957,17 +1263,93 @@ class SCADAAgent(BaseAgent):
                     results["connection"] = self.connect_scada(
                         server=server_name,
                         port=port_val,
-                        protocol=p.get("scada_protocol", "IEC61850"),
+                        protocol=protocol_param,
                         timeout_ms=int(p.get("timeout_ms", 5000)),
                     )
 
             if analysis_type in ("read", "full"):
-                if has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
+                if adapter is not None:
+                    try:
+                        meas_list: list[dict[str, Any]] = []
+                        adapter_proto = getattr(adapter, "protocol", None)
+                        if hasattr(adapter_proto, "value"):
+                            adapter_proto = adapter_proto.value
+                        proto_str = str(adapter_proto or protocol_param).lower()
+                        clean_source = "modbus" if "modbus" in proto_str else ("opcua" if "opc" in proto_str else ("iec61850" if "61850" in proto_str else proto_str))
+
+                        if hasattr(adapter, "read_measurements"):
+                            res = adapter.read_measurements(
+                                connection_id=p.get("connection_id", f"{server_name}:{port_val}"),
+                                measurement_tags=p.get("measurement_tags"),
+                                iec61850_refs=p.get("iec61850_refs"),
+                            )
+                            if inspect.iscoroutine(res):
+                                res = await res
+                            if isinstance(res, dict):
+                                meas_list = res.get("measurements", [])
+                            elif isinstance(res, list):
+                                meas_list = res
+                        elif hasattr(adapter, "read"):
+                            res = adapter.read()
+                            if inspect.iscoroutine(res):
+                                res = await res
+                            if isinstance(res, dict):
+                                meas_list = res.get("measurements", [])
+                            elif isinstance(res, list):
+                                meas_list = res
+                        elif hasattr(adapter, "get_measurements"):
+                            res = adapter.get_measurements()
+                            if inspect.iscoroutine(res):
+                                res = await res
+                            if isinstance(res, dict):
+                                meas_list = res.get("measurements", [])
+                            elif isinstance(res, list):
+                                meas_list = res
+                        elif hasattr(adapter, "bridge"):
+                            for k, v in getattr(adapter.bridge, "_last_values", {}).items():
+                                meas_list.append({
+                                    "tag": k,
+                                    "value": float(v),
+                                    "timestamp": datetime.now(UTC).isoformat(),
+                                    "quality": "good",
+                                    "source": clean_source,
+                                })
+
+                        if not meas_list:
+                            raise ConnectionError("Zero telemetry points received from SCADA adapter (server down or empty point map)")
+
+                        for m in meas_list:
+                            if isinstance(m, dict):
+                                m.setdefault("source", clean_source)
+                                m.setdefault("quality", "good")
+
+                        results["measurements"] = {
+                            "success": True,
+                            "measurement_count": len(meas_list),
+                            "measurements": meas_list,
+                            "protocol": protocol_param,
+                            "source": clean_source,
+                            "live_connection": True,
+                            "timestamp": datetime.now(UTC).isoformat(),
+                        }
+                    except Exception as exc:
+                        self.status = AgentStatus.FAILED
+                        err_msg = f"REAL_INTEGRATION_UNAVAILABLE: Failed to read telemetry from SCADA adapter: {exc}"
+                        self.log_execution(err_msg, level="ERROR")
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.LOAD_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={"error_code": "REAL_INTEGRATION_UNAVAILABLE", "message": err_msg},
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
+                        )
+                elif has_preloaded_measurements and not p.get("scada_server") and not p.get("server"):
                     results["measurements"] = {
                         "success": True,
                         "measurement_count": len(preloaded_meas),
                         "measurements": preloaded_meas,
-                        "protocol": p.get("scada_protocol", "IEC61850"),
+                        "protocol": protocol_param,
                         "timestamp": datetime.now(UTC).isoformat(),
                     }
                 else:
@@ -1038,15 +1420,22 @@ class SCADAAgent(BaseAgent):
                     logical_device=p.get("logical_device", "LD0"),
                 )
 
+            is_live = bool(adapter is not None and results.get("connection", {}).get("live_connection"))
+            real_source = (
+                results.get("measurements", {}).get("source")
+                or results.get("connection", {}).get("source")
+                or ("simulation" if not is_live else "live")
+            )
+
             result = AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,  # closest available
                 status=AgentStatus.COMPLETED,
                 data={
                     **results,
-                    "authoritative": False,
-                    "simulated": True,
-                    "live_connection": False,
+                    "authoritative": is_live,
+                    "simulated": not is_live,
+                    "live_connection": is_live,
                     "standards": self.standards,
                     "analysis_type": analysis_type,
                     "provenance": {
@@ -1054,8 +1443,9 @@ class SCADAAgent(BaseAgent):
                         "agent_key": "scada",
                         "standard": "IEC 61850",
                         "lifecycle": "pilot",
-                        "authoritative": False,
-                        "simulated": True,
+                        "authoritative": is_live,
+                        "simulated": not is_live,
+                        **({"source": real_source} if is_live else {}),
                     },
                 },
             )

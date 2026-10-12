@@ -27,13 +27,19 @@ modbus:
 
   # Local slave (server) — exposes AhmedETAP measurements to external Modbus
   # masters (HMIs, BMS, SCADA front-ends that only speak Modbus).
-  server_host: "0.0.0.0"
+  server_host: "127.0.0.1"
   server_port: 5020       # 502 needs root; 5020 is unprivileged.
   server_unit_id: 1
   scan_rate_ms: 1000      # Provider refresh rate.
 
-  # Remote masters (clients) — poll external Modbus slaves.
+  # Remote masters (clients) — poll local test server or external Modbus slaves.
   clients:
+    - name: "local-modbus-peer"
+      host: "127.0.0.1"
+      port: 5020
+      unit_id: 1
+      scan_rate_ms: 1000
+      timeout_sec: 3.0
     - name: "feeder-rtu-1"
       host: "192.168.10.5"
       port: 502
@@ -99,7 +105,7 @@ opcua:
   role: both
 
   # Local OPC UA server (slave) — exposes AhmedETAP measurements.
-  server_endpoint: "opc.tcp://0.0.0.0:4840/etap/server"
+  server_endpoint: "opc.tcp://127.0.0.1:4840/etap/server"
   server_name: "AhmedETAP.OPCUA.Server"
   server_namespace: 3
   publish_interval_ms: 1000
@@ -110,8 +116,11 @@ opcua:
   security_mode: "None"
   security_policy: "None"
 
-  # Remote OPC UA servers (clients) — subscribe to external sources.
+  # Remote OPC UA servers (clients) — subscribe to local test server or external sources.
   clients:
+    - name: "local-opcua-peer"
+      endpoint: "opc.tcp://127.0.0.1:4840/etap/server"
+      publish_interval_ms: 1000
     - name: "substation-gateway-1"
       endpoint: "opc.tcp://192.168.20.5:4840"
       publish_interval_ms: 1000
@@ -156,7 +165,7 @@ iec104:
   role: both
 
   # Local IEC 104 server (RTU) — exposes AhmedETAP measurements to masters.
-  server_bind_ip: "0.0.0.0"
+  server_bind_ip: "127.0.0.1"
   server_port: 2404         # IANA-assigned IEC 104 port.
   common_address: 1
 
@@ -167,8 +176,12 @@ iec104:
   k_frames: 12
   w_frames: 8
 
-  # Remote RTUs (clients) — ingest measurements from upstream substations.
+  # Remote RTUs (clients) — ingest measurements from local test server or upstream substations.
   clients:
+    - name: "local-iec104-peer"
+      host: "127.0.0.1"
+      port: 2404
+      common_address: 1
     - name: "substation-A"
       host: "192.168.30.5"
       port: 2404
