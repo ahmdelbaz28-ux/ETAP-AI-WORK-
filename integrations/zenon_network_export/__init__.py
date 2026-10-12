@@ -4,6 +4,7 @@ Provides contract models, field mappers, and parsers for importing
 ABB / COPA-DATA zenon SCADA topology into AhmedETAP.
 """
 
+from integrations.zenon_network_export.classifier import ClassifyResult, ZenonClassifier
 from integrations.zenon_network_export.contract import (
     ZenonBreaker,
     ZenonBus,
@@ -22,19 +23,33 @@ from integrations.zenon_network_export.contract import (
     ZenonTransformer,
 )
 from integrations.zenon_network_export.mapping import ZenonFieldMapper
+from integrations.zenon_network_export.raw_dump import (
+    ZenonRawDump,
+    ZenonRawProject,
+    ZenonRawScreen,
+    ZenonRawScreenElement,
+    ZenonRawVariable,
+)
 from integrations.zenon_network_export.reader import ZenonImportResult, parse_zenon_export
 
 __all__ = [
+    "ClassifyResult",
     "ZenonBus",
     "ZenonBreaker",
     "ZenonCable",
     "ZenonCapacitor",
+    "ZenonClassifier",
     "ZenonGenerator",
     "ZenonLine",
     "ZenonLoad",
     "ZenonMotor",
     "ZenonNetworkExport",
     "ZenonProjectMetadata",
+    "ZenonRawDump",
+    "ZenonRawProject",
+    "ZenonRawScreen",
+    "ZenonRawScreenElement",
+    "ZenonRawVariable",
     "ZenonReactor",
     "ZenonRelay",
     "ZenonSource",

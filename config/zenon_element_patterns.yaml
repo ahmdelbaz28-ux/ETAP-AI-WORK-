@@ -1,0 +1,125 @@
+# zenon Element Classification Patterns Configuration (v1)
+# Ordered rules to classify raw zenon variables and screen elements into canonical electrical objects.
+# Specific branch and equipment types are matched first so that branches containing bus names
+# (e.g., LINE_BB01_BB02 or TR_BB01_BB02) are correctly classified.
+
+version: "1.0.0"
+
+# Ordered classification rules: evaluated in order, first match wins
+classification_rules:
+  - type: "transformer"
+    patterns:
+      - "(?i)^TR[_\\-.]?\\w+"
+      - "(?i)^XF[_\\-.]?\\w+"
+      - "(?i).*_XFMR[_\\-.]?\\w*"
+      - "(?i).*_TRANSFORMER[_\\-.]?\\w*"
+
+  - type: "line"
+    patterns:
+      - "(?i)^LINE[_\\-.]?\\w+"
+      - "(?i).*_LINE[_\\-.]?\\w*"
+      - "(?i)^LN[_\\-.]?\\w+"
+
+  - type: "cable"
+    patterns:
+      - "(?i)^CBL[_\\-.]?\\w+"
+      - "(?i)^CABLE[_\\-.]?\\w+"
+      - "(?i).*_CABLE[_\\-.]?\\w*"
+
+  - type: "breaker"
+    patterns:
+      - "(?i).*XCBR.*"
+      - "(?i)^CB[_\\-.]?\\w+"
+      - "(?i).*_CB[_\\-.]?\\w*"
+      - "(?i).*BREAKER[_\\-.]?\\w*"
+
+  - type: "switch"
+    patterns:
+      - "(?i).*XSWI.*"
+      - "(?i)^SW[_\\-.]?\\w+"
+      - "(?i).*_SW[_\\-.]?\\w*"
+      - "(?i).*DISC[_\\-.]?\\w*"
+      - "(?i).*DISCONNECTOR[_\\-.]?\\w*"
+
+  - type: "load"
+    patterns:
+      - "(?i)^LOAD[_\\-.]?\\w+"
+      - "(?i)^LD[_\\-.]?\\w+"
+      - "(?i).*_LOAD[_\\-.]?\\w*"
+
+  - type: "generator"
+    patterns:
+      - "(?i)^GEN[_\\-.]?\\w+"
+      - "(?i).*_GENERATOR[_\\-.]?\\w*"
+      - "(?i)^PV[_\\-.]?\\w+"
+      - "(?i)^DG[_\\-.]?\\w+"
+
+  - type: "source"
+    patterns:
+      - "(?i)^GRID[_\\-.]?\\w*"
+      - "(?i)^SOURCE[_\\-.]?\\w*"
+      - "(?i)^INCOMER[_\\-.]?\\w*"
+      - "(?i).*_SOURCE[_\\-.]?\\w*"
+      - "(?i).*_GRID[_\\-.]?\\w*"
+
+  - type: "motor"
+    patterns:
+      - "(?i)^MTR[_\\-.]?\\w+"
+      - "(?i)^MOTOR[_\\-.]?\\w+"
+      - "(?i).*_MOTOR[_\\-.]?\\w*"
+
+  - type: "relay"
+    patterns:
+      - "(?i).*PTOC.*"
+      - "(?i).*PDIS.*"
+      - "(?i)^RELAY[_\\-.]?\\w+"
+      - "(?i)^RLY[_\\-.]?\\w+"
+      - "(?i).*_RELAY[_\\-.]?\\w*"
+
+  - type: "capacitor"
+    patterns:
+      - "(?i)^CAP[_\\-.]?\\w+"
+      - "(?i).*_CAPACITOR[_\\-.]?\\w*"
+
+  - type: "reactor"
+    patterns:
+      - "(?i)^REACT[_\\-.]?\\w+"
+      - "(?i).*_REACTOR[_\\-.]?\\w*"
+
+  - type: "bus"
+    patterns:
+      - "(?i)^BB\\d+"
+      - "(?i)^BUS[_\\-.]?\\w+"
+      - "(?i).*_BUSBAR[_\\-.]?\\w*"
+      - "(?i)^BUSBAR[_\\-.]?\\w*"
+      - "(?i).*_BB\\d+.*"
+
+# Two-terminal topology regex pattern: matches names like LINE_BUS1_BUS2 or TR_BUS1_BUS2
+branch_topology_pattern: "(?i)^(?:LINE|CBL|CABLE|XF|TR|CB|SW|REACT)_(?P<from_bus>[A-Za-z0-9_]+)_(?P<to_bus>[A-Za-z0-9_]+)$"
+
+# Attribute identification patterns (extracted from variable names or descriptions)
+attribute_patterns:
+  base_kv:
+    - "(?i)[_.:](?:U_NOM|UN|VNOM|KV|VOLTAGE)$"
+  v_mag:
+    - "(?i)[_.:](?:V_MAG|VM|VOLT|V)$"
+  v_ang:
+    - "(?i)[_.:](?:V_ANG|VA|ANG)$"
+  r_pu:
+    - "(?i)[_.:](?:R|R_PU|R1)$"
+  x_pu:
+    - "(?i)[_.:](?:X|X_PU|X1|UK)$"
+  b_pu:
+    - "(?i)[_.:](?:B|B_PU|B1)$"
+  p_mw:
+    - "(?i)[_.:](?:P|P_MW|PL|PG|MW|ACTIVE_POWER)$"
+  q_mvar:
+    - "(?i)[_.:](?:Q|Q_MVAR|QL|QG|MVAR|REACTIVE_POWER)$"
+  rating_mva:
+    - "(?i)[_.:](?:SR|SN|S_MAX|SNOM|MVA|RATING_MVA)$"
+  rating_a:
+    - "(?i)[_.:](?:IR|INOM|I_MAX|RATED_A|AMP)$"
+  status:
+    - "(?i)[_.:](?:POS|STATE|STATUS)$"
+  tap_ratio:
+    - "(?i)[_.:](?:TAP|TAP_RATIO)$"

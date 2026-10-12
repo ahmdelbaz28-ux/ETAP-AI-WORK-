@@ -53,11 +53,13 @@ breaker_mapping:
   IR: "rated_a"
   INOM: "rated_a"
   IK: "breaking_capacity_ka"
+  BUS: "bus"
 
 switch_mapping:
   POS: "status"
   STATE: "status"
   IR: "rated_a"
+  BUS: "bus"
 
 load_mapping:
   P: "p_mw"
@@ -66,6 +68,7 @@ load_mapping:
   QL: "q_mvar"
   ACTIVE_POWER: "p_mw"
   REACTIVE_POWER: "q_mvar"
+  BUS: "bus"
 
 generator_mapping:
   PG: "p_mw"
@@ -74,14 +77,25 @@ generator_mapping:
   V_SET: "v_setpoint"
   Q_MIN: "q_min"
   Q_MAX: "q_max"
+  BUS: "bus"
 
 motor_mapping:
   KW: "rated_kw"
   KV: "rated_kv"
   PF: "pf"
   EFF: "efficiency"
+  BUS: "bus"
 
 relay_mapping:
   PICKUP: "pickup_a"
   TIME_DIAL: "time_dial"
   CURVE: "curve_type"
+  BUS: "bus"
+
+source_mapping:
+  U_NOM: "base_kv"
+  UN: "base_kv"
+  S_SC: "s_sc_mva"
+  RX: "rx_ratio"
+  BUS: "bus"
+

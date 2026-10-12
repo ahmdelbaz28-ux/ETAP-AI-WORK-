@@ -1,0 +1,320 @@
+{
+  "dump_version": "1.0.0",
+  "project": {
+    "name": "Substation Alpha 132/33kV Zenon",
+    "version": "8.20 SP0",
+    "path": "C:\\ProgramData\\COPA-DATA\\SQL2019\\SubstationAlpha",
+    "substation_name": "Alpha-Substation",
+    "base_mva": 100.0,
+    "system_frequency_hz": 50.0
+  },
+  "variables": [
+    {
+      "name": "BB01.U_NOM",
+      "identification": "Busbar 132kV Nominal Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 132.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "BB01.V_MAG",
+      "identification": "Busbar 132kV Operating Voltage Magnitude",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 1.02,
+      "driver": "IEC850"
+    },
+    {
+      "name": "BB02.U_NOM",
+      "identification": "Busbar 33kV Bay A Nominal Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 33.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "BB02.V_MAG",
+      "identification": "Busbar 33kV Bay A Operating Voltage Magnitude",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 1.00,
+      "driver": "IEC850"
+    },
+    {
+      "name": "BB03.U_NOM",
+      "identification": "Busbar 33kV Bay B Nominal Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 33.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "BB03.V_MAG",
+      "identification": "Busbar 33kV Bay B Operating Voltage Magnitude",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.99,
+      "driver": "IEC850"
+    },
+    {
+      "name": "TR_BB01_BB02.SR",
+      "identification": "Transformer 1 Rated Power",
+      "data_type": "REAL",
+      "unit": "MVA",
+      "value": 45.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "TR_BB01_BB02.UR1",
+      "identification": "Transformer 1 Primary Rated Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 132.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "TR_BB01_BB02.UR2",
+      "identification": "Transformer 1 Secondary Rated Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 33.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "TR_BB01_BB02.URR",
+      "identification": "Transformer 1 Resistance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.005,
+      "driver": "IEC850"
+    },
+    {
+      "name": "TR_BB01_BB02.UK",
+      "identification": "Transformer 1 Reactance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.10,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB02_BB03.R",
+      "identification": "Tie Line BB02-BB03 Resistance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.015,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB02_BB03.X",
+      "identification": "Tie Line BB02-BB03 Reactance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.05,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB02_BB03.S_MAX",
+      "identification": "Tie Line BB02-BB03 Rating",
+      "data_type": "REAL",
+      "unit": "MVA",
+      "value": 25.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB01_BB03.R",
+      "identification": "Overhead Line BB01-BB03 Resistance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.02,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB01_BB03.X",
+      "identification": "Overhead Line BB01-BB03 Reactance",
+      "data_type": "REAL",
+      "unit": "pu",
+      "value": 0.08,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LINE_BB01_BB03.S_MAX",
+      "identification": "Overhead Line BB01-BB03 Rating",
+      "data_type": "REAL",
+      "unit": "MVA",
+      "value": 50.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "XCBR_01.POS",
+      "identification": "Transformer Primary Circuit Breaker Position",
+      "data_type": "BOOL",
+      "unit": "",
+      "value": "closed",
+      "driver": "IEC850"
+    },
+    {
+      "name": "XCBR_01.IR",
+      "identification": "Transformer Primary Circuit Breaker Rated Current",
+      "data_type": "REAL",
+      "unit": "A",
+      "value": 1600.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "XCBR_02.POS",
+      "identification": "Feeder 1 Circuit Breaker Position",
+      "data_type": "BOOL",
+      "unit": "",
+      "value": "closed",
+      "driver": "IEC850"
+    },
+    {
+      "name": "XCBR_03.POS",
+      "identification": "Feeder 2 Circuit Breaker Position",
+      "data_type": "BOOL",
+      "unit": "",
+      "value": "closed",
+      "driver": "IEC850"
+    },
+    {
+      "name": "LOAD_FDR1.P",
+      "identification": "Feeder 1 Active Power Load",
+      "data_type": "REAL",
+      "unit": "MW",
+      "value": 10.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LOAD_FDR1.Q",
+      "identification": "Feeder 1 Reactive Power Load",
+      "data_type": "REAL",
+      "unit": "Mvar",
+      "value": 3.2,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LOAD_FDR2.P",
+      "identification": "Feeder 2 Active Power Load",
+      "data_type": "REAL",
+      "unit": "MW",
+      "value": 8.5,
+      "driver": "IEC850"
+    },
+    {
+      "name": "LOAD_FDR2.Q",
+      "identification": "Feeder 2 Reactive Power Load",
+      "data_type": "REAL",
+      "unit": "Mvar",
+      "value": 2.1,
+      "driver": "IEC850"
+    },
+    {
+      "name": "GEN_SOLAR1.PG",
+      "identification": "Solar PV Generator Active Power",
+      "data_type": "REAL",
+      "unit": "MW",
+      "value": 5.0,
+      "driver": "MODBUS"
+    },
+    {
+      "name": "GEN_SOLAR1.QG",
+      "identification": "Solar PV Generator Reactive Power",
+      "data_type": "REAL",
+      "unit": "Mvar",
+      "value": 0.8,
+      "driver": "MODBUS"
+    },
+    {
+      "name": "GEN_SOLAR1.SN",
+      "identification": "Solar PV Generator Rated Capacity",
+      "data_type": "REAL",
+      "unit": "MVA",
+      "value": 6.0,
+      "driver": "MODBUS"
+    },
+    {
+      "name": "GRID_SOURCE.U_NOM",
+      "identification": "Utility Grid Equivalent Voltage",
+      "data_type": "REAL",
+      "unit": "kV",
+      "value": 132.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "GRID_SOURCE.S_SC",
+      "identification": "Utility Grid Short-Circuit Capacity",
+      "data_type": "REAL",
+      "unit": "MVA",
+      "value": 2000.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "GRID_SOURCE.RX",
+      "identification": "Utility Grid R/X Ratio",
+      "data_type": "REAL",
+      "unit": "",
+      "value": 10.0,
+      "driver": "IEC850"
+    },
+    {
+      "name": "WEATHER_STATION_TEMP_AMBIENT",
+      "identification": "Substation Ambient Temperature Sensor",
+      "data_type": "REAL",
+      "unit": "degC",
+      "value": 32.5,
+      "driver": "INTERNAL"
+    }
+  ],
+  "screens": [
+    {
+      "name": "SingleLineDiagram_Main",
+      "elements": [
+        {
+          "name": "BB01",
+          "linked_variables": ["BB01.U_NOM", "BB01.V_MAG"]
+        },
+        {
+          "name": "BB02",
+          "linked_variables": ["BB02.U_NOM", "BB02.V_MAG"]
+        },
+        {
+          "name": "BB03",
+          "linked_variables": ["BB03.U_NOM", "BB03.V_MAG"]
+        },
+        {
+          "name": "LOAD_FDR1",
+          "linked_variables": ["LOAD_FDR1.P", "LOAD_FDR1.Q", "BB02"]
+        },
+        {
+          "name": "LOAD_FDR2",
+          "linked_variables": ["LOAD_FDR2.P", "LOAD_FDR2.Q", "BB03"]
+        },
+        {
+          "name": "GEN_SOLAR1",
+          "linked_variables": ["GEN_SOLAR1.PG", "GEN_SOLAR1.QG", "GEN_SOLAR1.SN", "BB02"]
+        },
+        {
+          "name": "GRID_SOURCE",
+          "linked_variables": ["GRID_SOURCE.U_NOM", "BB01"]
+        },
+        {
+          "name": "XCBR_01",
+          "linked_variables": ["XCBR_01.POS", "XCBR_01.IR", "BB01"]
+        },
+        {
+          "name": "XCBR_02",
+          "linked_variables": ["XCBR_02.POS", "BB02"]
+        },
+        {
+          "name": "XCBR_03",
+          "linked_variables": ["XCBR_03.POS", "BB03"]
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    "zenOn Runtime 8.20 connected via COM Automation",
+    "30 variables exported successfully"
+  ]
+}

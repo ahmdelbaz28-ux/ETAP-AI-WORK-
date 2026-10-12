@@ -1,0 +1,162 @@
+{
+  "contract_version": "1.0.0",
+  "project": {
+    "name": "Substation Delta 132/33kV",
+    "version": "1.0.0",
+    "export_timestamp": "2026-10-12T12:00:00Z",
+    "substation_name": "Delta-Substation",
+    "system_frequency_hz": 50.0,
+    "base_mva": 100.0,
+    "source_system": "zenon_energy_edition"
+  },
+  "buses": [
+    {
+      "id": "BUS_132_HV",
+      "name": "132kV HV Bus",
+      "base_kv": 132.0,
+      "v_mag": 1.02,
+      "v_ang": 0.0,
+      "bus_type": "slack",
+      "source_ref": "Tags.Delta.BB132.V"
+    },
+    {
+      "id": "BUS_33_MV1",
+      "name": "33kV MV Bus Section 1",
+      "base_kv": 33.0,
+      "v_mag": 1.00,
+      "v_ang": -1.8,
+      "bus_type": "pq",
+      "source_ref": "Tags.Delta.BB33_1.V"
+    },
+    {
+      "id": "BUS_33_MV2",
+      "name": "33kV MV Bus Section 2",
+      "base_kv": 33.0,
+      "v_mag": 0.99,
+      "v_ang": -2.2,
+      "bus_type": "pq",
+      "source_ref": "Tags.Delta.BB33_2.V"
+    }
+  ],
+  "lines": [
+    {
+      "id": "LINE_TIE_1_2",
+      "name": "Bus Tie Line MV1 to MV2",
+      "from_bus": "BUS_33_MV1",
+      "to_bus": "BUS_33_MV2",
+      "r_pu": 0.015,
+      "x_pu": 0.060,
+      "b_pu": 0.002,
+      "length_km": 0.25,
+      "rating_mva": 30.0,
+      "rating_a": 525.0
+    }
+  ],
+  "cables": [],
+  "transformers": [
+    {
+      "id": "TR_132_33",
+      "name": "Power Transformer 1",
+      "from_bus": "BUS_132_HV",
+      "to_bus": "BUS_33_MV1",
+      "rating_mva": 45.0,
+      "prim_kv": 132.0,
+      "sec_kv": 33.0,
+      "r_pu": 0.0045,
+      "x_pu": 0.095,
+      "tap_ratio": 1.0,
+      "vector_group": "YNd11"
+    }
+  ],
+  "breakers": [
+    {
+      "id": "CB_HV_TR1",
+      "name": "132kV Transformer Breaker",
+      "from_bus": "BUS_132_HV",
+      "to_bus": "BUS_132_HV",
+      "status": "closed",
+      "rated_a": 1250.0,
+      "breaking_capacity_ka": 31.5
+    },
+    {
+      "id": "CB_MV_SEC",
+      "name": "33kV Section Breaker",
+      "from_bus": "BUS_33_MV1",
+      "to_bus": "BUS_33_MV2",
+      "status": "closed",
+      "rated_a": 1600.0,
+      "breaking_capacity_ka": 25.0
+    }
+  ],
+  "switches": [
+    {
+      "id": "SW_MV_SEC",
+      "name": "33kV Section Isolator",
+      "from_bus": "BUS_33_MV1",
+      "to_bus": "BUS_33_MV2",
+      "status": "closed",
+      "rated_a": 1600.0
+    }
+  ],
+  "loads": [
+    {
+      "id": "LOAD_FDR_1",
+      "name": "Industrial Feeder 1",
+      "bus": "BUS_33_MV1",
+      "p_mw": 14.0,
+      "q_mvar": 4.5,
+      "model": "constant_power",
+      "status": "connected"
+    },
+    {
+      "id": "LOAD_FDR_2",
+      "name": "Commercial Feeder 2",
+      "bus": "BUS_33_MV2",
+      "p_mw": 9.5,
+      "q_mvar": 3.0,
+      "model": "constant_power",
+      "status": "connected"
+    }
+  ],
+  "generators": [
+    {
+      "id": "GEN_PV_FARM",
+      "name": "Solar PV Farm",
+      "bus": "BUS_33_MV2",
+      "p_mw": 6.0,
+      "q_mvar": 1.2,
+      "rating_mva": 7.5,
+      "v_setpoint": 1.00,
+      "status": "connected"
+    }
+  ],
+  "motors": [],
+  "relays": [
+    {
+      "id": "RLY_TR1_OC",
+      "name": "Transformer 1 Overcurrent Relay",
+      "bus": "BUS_132_HV",
+      "protected_element": "TR_132_33",
+      "curve_type": "IEC Standard Inverse",
+      "time_dial": 0.20,
+      "pickup_a": 350.0
+    }
+  ],
+  "capacitors": [],
+  "reactors": [],
+  "sources": [
+    {
+      "id": "SRC_GRID",
+      "name": "132kV National Grid Infeed",
+      "bus": "BUS_132_HV",
+      "base_kv": 132.0,
+      "s_sc_mva": 2500.0,
+      "rx_ratio": 10.0,
+      "status": "connected"
+    }
+  ],
+  "metadata": {
+    "scada_source": "zenon_export_sample",
+    "station_id": "DELTA-SS"
+  }
+}
