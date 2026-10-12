@@ -6,7 +6,10 @@
 - **Mathematical Formulations**: Continuous current carrying capacity with thermal and installation derating factors ($I_z = I_{base} \cdot C_a \cdot C_g \cdot C_s \ge I_b$), thermal short-circuit withstand via adiabatic equation ($S_{min} \ge \frac{I_k \sqrt{t}}{k}$ with $I^2 t \le I^2 t_{perm} = (k \cdot S)^2$), and balanced three-phase AC voltage drop ($\Delta V = \sqrt{3} \cdot I_b \cdot L \cdot (R \cos\phi + X \sin\phi)$ and $\Delta V\% = \frac{\Delta V}{V_{sys}} \times 100\%$).
 - **Target Criteria**: Continuous thermal rating compliance ($I_z \ge I_b$), permissible thermal let-through energy under fault conditions ($I^2 t \le I^2 t_{perm}$), and maximum steady-state voltage drop ($\Delta V \le 3.0\%$ for lighting/branch circuits, $\le 5.0\%$ for general distribution feeders per IEC 60364-5-52).
 - **Zero-Guessing Constraint**: Omission of engineering inputs triggers immediate fail-closed termination (`AgentStatus.FAILED` with error code `INSUFFICIENT_ENGINEERING_INPUT`). Synthetic substitution strictly forbidden in production.
-- **Lifecycle & Governance**: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (`LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
+- **Lifecycle & Governance**: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -131,7 +134,7 @@ The certifying benchmark suite tests `CableSizingAgent` against published manufa
 | 12 | Main LV Feeder Thermal Stress $I^2 t$ Withstand Compliance | IEC 60949 Clause 3 ($I^2 t = 4.9\times 10^8 < 7.0068\times 10^8\text{ A}^2\text{s}$) | **PASS** |
 | 13 | Chiller Feeder Direct Buried Base Ampacity (50 mm² Al) | Nexans Guide NEX-LV-AL-2022-V3 Table 2.4 | **PASS** |
 | 14 | Chiller Feeder Soil Derating $C_s$ ($\rho=1.2\text{ K}\cdot\text{m/W}$) & Burial 0.85 | IEC 60364-5-52 Table B.52.15 | **PASS** |
-| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=False, rollout=0) | **PASS** |
+| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 16 | Zero-Guessing / Fail-Closed Enforcement Verification | `tests/test_mandatory_engineering_inputs.py` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -146,7 +149,7 @@ The certifying benchmark suite tests `CableSizingAgent` against published manufa
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'cable_sizing' remains enabled=False,      |
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'cable_sizing' in beta rollout 100%        |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```
