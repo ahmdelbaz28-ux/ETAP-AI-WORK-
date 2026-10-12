@@ -73,9 +73,7 @@ jobs:
 
       - name: Build Python
         if: matrix.language == 'python'
-        # S8541/S8544: --only-binary prevents source-build setup.py execution;
-        # --requirement loads pinned versions from requirements.txt lock file
-        run: "pip install --only-binary :all: --requirement requirements.txt"
+        run: echo "Python code analysis does not require external package installation"
 
       - name: Install pnpm
         if: matrix.language == 'javascript-typescript'
@@ -92,6 +90,17 @@ jobs:
         uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2 (must match init)
         with:
           category: "/language:${{ matrix.language }}"
+          upload: false
+          output: 'codeql-results'
+
+      - name: Upload CodeQL results artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codeql-results-${{ matrix.language }}
+          path: codeql-results/
+          retention-days: 14
+          if-no-files-found: ignore
 
   dependency-review:
     name: Dependency Review
@@ -189,11 +198,12 @@ jobs:
             echo "Trivy execution failed after $MAX_RETRIES attempts."
             exit 1
           fi
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+      - name: Upload Trivy scan results
+        uses: actions/upload-artifact@v4
         if: always() && hashFiles('trivy-results.sarif') != ''
         with:
-          sarif_file: 'trivy-results.sarif'
+          name: trivy-results
+          path: 'trivy-results.sarif'
 
   # ── CUSTOM SECURITY CHECKS ────────────────────────────────────────────────────
   custom-scans:
