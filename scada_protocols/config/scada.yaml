@@ -296,3 +296,23 @@ iec61850:
       measurement_type: "breaker_status"
       logical_node: "<PLACEHOLDER_XCBR_STATUS_LN>" # e.g. "XCBR1" (to be confirmed against field ICD/CID)
       data_attribute: "Pos.stVal"
+
+# -----------------------------------------------------------------------------
+# Zenon SCADA Live Integration — COPA-DATA zenon Process Gateway (OPC UA / Logic)
+# -----------------------------------------------------------------------------
+zenon:
+  enabled: false # Gated behind FEATURE_FLAG_ZENON_LIVE_VALUES
+  role: client
+  host: "127.0.0.1"
+  port: 4840 # Process Gateway OPC UA or zenon Logic port
+  protocol: "opcua"
+  endpoint: "opc.tcp://127.0.0.1:4840/zenon/gateway"
+  poll_interval_sec: 1.0
+  timeout_sec: 3.0
+  clients:
+    - name: "zenon-process-gateway"
+      endpoint: "opc.tcp://127.0.0.1:4840/zenon/gateway"
+      protocol: "opcua"
+      poll_interval_sec: 1.0
+      timeout_sec: 3.0
+

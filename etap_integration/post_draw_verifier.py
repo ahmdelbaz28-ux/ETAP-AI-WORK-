@@ -43,7 +43,9 @@ class NetworkVerificationResult(BaseModel):
     """Outcome of post-draw load flow verification."""
 
     passed: bool
-    status: str = Field(description="'verified', 'tolerance_exceeded', 'execution_failed', 'blocked'")
+    status: str = Field(
+        description="'verified', 'tolerance_exceeded', 'execution_failed', 'blocked'"
+    )
     max_voltage_diff_pct: float = 0.0
     bus_comparisons: dict[str, BusVerificationDetail] = Field(default_factory=dict)
     reason: Optional[str] = None
@@ -51,25 +53,29 @@ class NetworkVerificationResult(BaseModel):
 
 
 def verify_bus_results(
-    expected_buses: dict[str, float],
+    expected_buses: dict[str, float | None],
     calculated_buses: dict[str, float],
     tolerance_pct: float = DEFAULT_VOLTAGE_TOLERANCE_PCT,
+    require_baseline: bool = True,
 ) -> NetworkVerificationResult:
     """Compares simulated bus voltages against baseline source values.
 
     Parameters
     ----------
-    expected_buses : dict[str, float]
+    expected_buses : dict[str, float | None]
         Mapping of bus_id -> expected voltage magnitude (pu).
     calculated_buses : dict[str, float]
         Mapping of bus_id -> calculated voltage magnitude (pu) from Load Flow.
     tolerance_pct : float
         Maximum acceptable difference percentage (default 2.0%).
+    require_baseline : bool
+        If True, missing or zero baseline voltage fails validation with 'baseline_missing'.
     """
     comparisons: dict[str, BusVerificationDetail] = {}
     max_diff = 0.0
     all_passed = True
     failure_reasons: list[str] = []
+    baseline_missing = False
 
     for bus_id, expected_v in expected_buses.items():
         if bus_id not in calculated_buses:
@@ -88,15 +94,28 @@ def verify_bus_results(
 
         calc_v = float(calculated_buses[bus_id])
         if expected_v is None or expected_v <= 0:
-            # Baseline omitted voltage in source; record without failing tolerance
-            comparisons[bus_id] = BusVerificationDetail(
-                bus_id=bus_id,
-                expected_v_pu=None,
-                calculated_v_pu=calc_v,
-                diff_pct=0.0,
-                passed=True,
-                message="Source omitted voltage; verified by solver convergence.",
-            )
+            if require_baseline:
+                all_passed = False
+                baseline_missing = True
+                msg = f"Bus '{bus_id}' baseline voltage missing in source data; not guessed."
+                comparisons[bus_id] = BusVerificationDetail(
+                    bus_id=bus_id,
+                    expected_v_pu=None,
+                    calculated_v_pu=calc_v,
+                    diff_pct=None,
+                    passed=False,
+                    message=msg,
+                )
+                failure_reasons.append(msg)
+            else:
+                comparisons[bus_id] = BusVerificationDetail(
+                    bus_id=bus_id,
+                    expected_v_pu=None,
+                    calculated_v_pu=calc_v,
+                    diff_pct=0.0,
+                    passed=True,
+                    message="Source omitted voltage; verified by solver convergence.",
+                )
             continue
 
         diff_pct = abs(calc_v - expected_v) / expected_v * 100.0
@@ -120,7 +139,13 @@ def verify_bus_results(
             message=msg,
         )
 
-    status_str = "verified" if all_passed else "tolerance_exceeded"
+    if all_passed:
+        status_str = "verified"
+    elif baseline_missing:
+        status_str = "baseline_missing"
+    else:
+        status_str = "tolerance_exceeded"
+
     reason_str = "; ".join(failure_reasons) if failure_reasons else None
 
     return NetworkVerificationResult(
@@ -139,13 +164,14 @@ async def dispatch_load_flow_verification(
     worker_url: str = DEFAULT_WORKER_URL,
     auth_token: Optional[str] = None,
     tolerance_pct: float = DEFAULT_VOLTAGE_TOLERANCE_PCT,
+    require_baseline: bool = True,
 ) -> NetworkVerificationResult:
     """Dispatches a Load Flow study to the ETAP worker service and verifies results."""
     # 1. Extract baseline expected bus voltages
-    expected_voltages: dict[str, float] = {}
+    expected_voltages: dict[str, float | None] = {}
     if isinstance(baseline_model, System):
         for bid, bus in baseline_model.buses.items():
-            expected_voltages[str(bid)] = getattr(bus, "voltage_magnitude", 1.0)
+            expected_voltages[str(bid)] = getattr(bus, "voltage_magnitude", None)
     elif isinstance(baseline_model, dict):
         buses = baseline_model.get("buses") or baseline_model.get("objects", {}).get("buses", [])
         for b in buses:
@@ -207,7 +233,12 @@ async def dispatch_load_flow_verification(
                 calc_voltages[str(bid)] = float(bdata)
 
         # 4. MathGuard verification check
-        return verify_bus_results(expected_voltages, calc_voltages, tolerance_pct)
+        return verify_bus_results(
+            expected_voltages,
+            calc_voltages,
+            tolerance_pct,
+            require_baseline=require_baseline,
+        )
 
     except httpx.ConnectError:
         logger.warning("ETAP worker service unavailable at %s", worker_url)

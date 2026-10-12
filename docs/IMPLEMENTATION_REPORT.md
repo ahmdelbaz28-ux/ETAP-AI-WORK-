@@ -299,8 +299,8 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 | 3 | HarmonicAnalysisAgent | IEEE 519-2022 | Phase 2 | `agents/orchestrator.py` |
 | 4 | OptimalPowerFlowAgent | IEEE 3002.2 | Phase 2 | `agents/orchestrator.py` |
 | 5 | ProtectionCoordinationAgent | IEC 60255 | Phase 2 | `agents/orchestrator.py` |
-| 6 | ETAPExecutionAgent | — | Phase 2 | `agents/orchestrator.py` |
-| 7 | ValidationAgent | — | Phase 2 | `agents/orchestrator.py` |
+| 6 | ETAPExecutionAgent | Windows COM Automation | Phase 2 | `agents/orchestrator.py` |
+| 7 | ValidationAgent | Multi-standard validation | Phase 2 | `agents/orchestrator.py` |
 | 8 | ReportGenerationAgent | IEEE 3002.7 | Phase 2 | `agents/orchestrator.py` |
 | 9 | StabilityAgent | IEEE 399 | Phase 4 | `agents/stability_agent.py` |
 | 10 | CableSizingAgent | IEC 60364, IEC 60287 | Phase 4 | `agents/cable_sizing_agent.py` |
@@ -308,7 +308,19 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 | 12 | RenewableAgent | IEEE 1547-2018 | Phase 5 | `agents/renewable_agent.py` |
 | 13 | BatteryStorageAgent | IEC 62933 | Phase 5 | `agents/battery_storage_agent.py` |
 | 14 | SCADAAgent | IEC 61850 | Phase 5 | `agents/scada_agent.py` |
-| 15 | ChiefEngineeringOrchestrator | — | Phase 2 | `agents/orchestrator.py` |
+| 15 | DigitalTwinAgent | ISO 23247, IEC 63278 | Phase 6 | `agents/digital_twin_agent.py` |
+| 16 | ETAPExpertAgent | IEEE 80/141/242/399, IEC 60909 | Phase 6 | `agents/etap_expert_agent.py` |
+| 17 | DesignAgent | IEEE 141, IEC 62271 | Phase 6 | `agents/design_agent.py` |
+| 18 | ETAPGUIAgent | CUA Automation | Phase 6 | `agents/etap_gui_agent.py` |
+| 19 | AhmedETAPOrchestrationAgent | Multi-agent autonomous study | Phase 6 | `agents/ahmed_etap_orchestrator.py` |
+| 20 | CodeGuardAgent | Code safety validation | Phase 6 | `src/mastra/agents/code-guard-agent.ts` |
+| 21 | AnomalyAgent | Real-time stream anomaly detection | Phase 6 | `engine/anomaly_detector.py` |
+| 22 | PredictiveAgent | Load & fault ML forecasting | Phase 6 | `engine/predictive_engine.py` |
+| 23 | QGISAgent | Geospatial CIM mapping | Phase 6 | `gis_integration/qgis_provider.py` |
+| 24 | FallbackAgent | Safety-net fail-closed fallback | Phase 6 | `prompts/fallback_agent.prompt.yaml` |
+| 25 | WeatherAgent | Renewable irradiance & wind data | Phase 6 | `src/mastra/agents/weather-agent.ts` |
+| 26 | GoalPlannerAgent | Autonomous task planning | Phase 6 | `src/mastra/agents/goal-planner-agent.ts` |
+| 27 | ChiefEngineeringOrchestrator | Central task decomposition | Phase 2 | `agents/orchestrator.py` |
 
 ### Phase Completion Timeline
 
@@ -319,7 +331,8 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 | Phase 3 | 2026-02-20 | 2026-03-01 | ETAP integration and enterprise security |
 | Phase 4 | 2026-03-01 | 2026-03-10 | Stability, cable, earthing agents |
 | Phase 5 | 2026-03-10 | 2026-03-20 | Renewable, battery, SCADA agents |
-| Phase 6 | 2026-03-20 | 2026-03-04 | Predictive analytics, digital twin, GIS |
+| Phase 6 | 2026-03-20 | 2026-04-05 | Predictive analytics, digital twin, GIS, and CUA |
+| Phase 7 | 2026-09-20 | 2026-10-12 | Live ETAP Network Auto-Draw & SCADA/ADMS integrations |
 
 ---
 
@@ -336,7 +349,9 @@ The GIS integration layer connects to ArcGIS and QGIS data sources through a pro
 | Integration Tests | 15 | 100% |
 | ACP Runtime Tests | 12 | 100% |
 | UI Component Tests | 3 | 100% |
-| **Total** | **548** | **100%** |
+| Stress Tests | 20 | 100% |
+| Full Network Draw & SCADA | 110 | 100% |
+| **Total** | **678** | **100%** |
 
 ### CI/CD Pipeline
 
@@ -359,24 +374,30 @@ Complete the "missing link" for live ETAP network drawing from existing project 
 
 | Deliverable | Description | File(s) | Status |
 |-------------|-------------|---------|--------|
-| **Zenon Contract & Reader** | Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, VBA export script, data_import format handler | `integrations/zenon_network_export/contract.py`, `reader.py`, `mapping.py`, `config/zenon_field_mapping.yaml`, `scripts/zenon_export_collector.vba`, `api/data_import.py` | ✅ Complete |
+| **Zenon Raw Dump & Classifier** | Strict Pydantic models for raw dumps, regex pattern element classification, authentic VBA COM collector | `integrations/zenon_network_export/raw_dump.py`, `classifier.py`, `config/zenon_element_patterns.yaml`, `scripts/zenon_export_collector.vba` | ✅ Complete |
+| **Zenon Contract & Reader** | Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, zero-guessing validation, data_import format handler | `integrations/zenon_network_export/contract.py`, `reader.py`, `mapping.py`, `config/zenon_field_mapping.yaml`, `api/data_import.py` | ✅ Complete |
+| **Zenon Live SCADA Values Integration** | Real-time telemetry enrichment (V/A/P/Q/status) via zenon Process Gateway behind `FEATURE_FLAG_ZENON_LIVE_VALUES`; fail-closed unreachable handling | `integrations/zenon_network_export/live_values.py`, `scada_protocols/config/scada.yaml` | ✅ Complete |
 | **ETAP REST Draw Expansion** | Expanded `ElementKind` & `_REQUIRED_PROPS` to cover full substation topology (13 element kinds) | `etap_integration/etap_rest.py` | ✅ Complete |
-| **Draw Plan Builder** | Deterministic dependency ordering (`buses -> transformers -> switchgear -> branches/loads`), chunking (`<=50`), pre-flight connectivity validation, and atomic multi-chunk rollback | `etap_integration/draw_plan_builder.py` | ✅ Complete |
-| **Dual-Control Endpoint** | Maker-Checker endpoint proposing bounded `PendingAction` chunks from `project.system_config`, requiring admin approval | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | ✅ Complete |
+| **Atomic Draw Plan Builder** | Deterministic dependency ordering (`buses -> transformers -> switchgear -> branches/loads`), chunking (`<=50`), pre-flight connectivity validation, and atomic multi-chunk rollback | `etap_integration/draw_plan_builder.py` | ✅ Complete |
+| **Dual-Control Endpoint** | Maker-Checker endpoint proposing single bounded `PendingAction` (`plan_kind="full_network"`), requiring admin approval; excluded from self-confirmation | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | ✅ Complete |
 | **Operational Verifier** | Post-draw Load Flow validation comparing bus voltages against baseline within declared tolerance | `etap_integration/post_draw_verifier.py` | ✅ Complete |
 | **CIM & Asset Expansion** | Extend-only support for `LOAD` and `GENERATOR` assets in CIM mapping; abstract fail-closed ArcFM and EcoStruxure ADMS connectors | `gis_integration/models.py`, `gis_validation_electrical/cim_mapper.py`, `integrations/external_adms_connectors.py` | ✅ Complete |
 
 ### Test Evidence
 
 - `tests/test_zenon_network_import.py` — 14 tests covering contract validation, zero-guessing warnings, topological checks, and feature flag gating
-- `tests/test_etap_full_network_draw.py` — 13 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, and dual-control endpoint
+- `tests/test_zenon_raw_dump_classifier.py` — 7 tests covering raw dump parsing, pattern classification, screen element binding, and unmapped variable auditing
+- `tests/test_etap_full_network_draw.py` — 17 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, dual-control proposal, atomic resolve, and anti-self-approval
+- `tests/test_zenon_live_values.py` — 4 tests verifying feature flag gating, unreachable BLOCKED status, and live measurement enrichment
 - `tests/test_export_cim.py` — 11 tests verifying backward compatibility of CIM export
 - `tests/test_etap_rest_draw.py` — 15 tests verifying base ETAP REST draw flow
 - `tests/test_data_import_parsing.py` — 20 tests verifying import parsing
+- `tests/test_approvals.py` — 22 tests verifying dual-control approvals, TTL, idempotency, and tenant isolation
 
 ---
 
 ## Conclusion
 
 All implementation phases and the Live ETAP Network Auto-Draw extension have been completed successfully. The platform provides a verified, fail-closed, dual-control network drawing pipeline from live SCADA/ADMS exports into ETAP DataHub etapAPI with zero mocking in production and zero synthetic guessing.
+
 

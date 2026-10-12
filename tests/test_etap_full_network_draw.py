@@ -249,11 +249,27 @@ class TestProjectNetworkExtraction:
                 },
             ]
         }
-        extracted = _extract_network_from_project_config(config)
+        # Unpack tuple (network_dict, problems_list) returned by _extract_network_from_project_config
+        extracted, problems = _extract_network_from_project_config(config)
         assert len(extracted["buses"]) == 1
         assert extracted["buses"][0]["id"] == "SS_1"
         assert len(extracted["transformers"]) == 1
         assert extracted["transformers"][0]["rating_mva"] == 25.0
+
+    def test_extract_adms_assets_zero_guessing_rejects_missing_voltage(self):
+        """Zero-guessing audit: missing voltage must NOT default to 11.0 kV."""
+        config = {
+            "assets": [
+                {
+                    "asset_id": "SS_MISSING_V",
+                    "asset_type": "SUBSTATION",
+                    "metadata": {"name": "Substation Without Voltage"},
+                }
+            ]
+        }
+        extracted, problems = _extract_network_from_project_config(config)
+        assert len(extracted["buses"]) == 0
+        assert any(p.get("reason") == "missing_voltage" for p in problems)
 
 
 # ---------------------------------------------------------------------------
@@ -356,9 +372,7 @@ class TestEtapDrawFromProjectEndpoint:
         assert resp.status_code == 403
         assert resp.json()["detail"]["code"] == "TENANT_NOT_ALLOWLISTED"
 
-    def test_propose_from_project_creates_pending_chunks(
-        self, draw_test_client: TestClient
-    ):
+    def test_propose_from_project_creates_pending_chunks(self, draw_test_client: TestClient):
         resp = draw_test_client.post(
             "/api/v1/etap/draw/from-project",
             json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
@@ -370,4 +384,109 @@ class TestEtapDrawFromProjectEndpoint:
         assert body["total_elements"] == 3  # 2 buses + 1 transformer
         assert len(body["action_ids"]) == body["total_chunks"]
         assert body["status"] == "pending_approval"
+        assert "action_id" in body
 
+    def test_propose_zenon_parse_failed_returns_422(
+        self, draw_test_client: TestClient, full_draw_db: AsyncSession
+    ):
+        """Malformed zenon_network payload fails fast with 422 ZENON_PARSE_FAILED."""
+        import pytest_asyncio
+
+        from api.projects import Project
+
+        # Add project with invalid zenon_network payload
+        async def _seed():
+            bad_proj = Project(
+                id="PROJ_BAD_ZENON",
+                tenant_id=TENANT_ID,
+                name="Bad Zenon Project",
+                created_by="user_eng_1",
+                system_config={"zenon_network": "NOT_A_VALID_JSON_OR_CONTRACT"},
+            )
+            full_draw_db.add(bad_proj)
+            await full_draw_db.commit()
+
+        import asyncio
+
+        asyncio.get_event_loop().run_until_complete(_seed())
+
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_BAD_ZENON", "reason": "Deploy malformed zenon"},
+        )
+        assert resp.status_code == 422
+        body = resp.json()
+        assert body["detail"]["code"] == "ZENON_PARSE_FAILED"
+
+    def test_resolve_full_network_maker_checker_violation(self, draw_test_client: TestClient):
+        """Proposer cannot self-approve their full network drawing."""
+        # 1. Propose as user_eng_1
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        assert resp.status_code == 202
+        action_id = resp.json()["action_id"]
+
+        # 2. Try to self-approve as user_eng_1 even with admin role
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_eng_1",
+                username="engineer1",
+                email="eng@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Self-approval attempt"},
+        )
+        assert res.status_code == 403
+        assert res.json()["detail"]["code"] == "MAKER_CHECKER_VIOLATION"
+
+    def test_resolve_full_network_admin_approves_atomic_and_verifies(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Second admin approves: multi-chunk atomic execution and post-draw verification run."""
+        # 1. Propose as engineer
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        assert resp.status_code == 202
+        action_id = resp.json()["action_id"]
+
+        # 2. Mock ETAP REST client for atomic execution
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["elem_1", "elem_2", "elem_3"],
+            drawing_id="DRW_FULL_TEST",
+            readback_verified=True,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        # 3. Approve as admin_2 (different user)
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approved by Senior Engineer / Admin"},
+        )
+        assert res.status_code == 200, res.text
+        data = res.json()
+        assert data["success"] is True
+        assert data["status"] == "completed"
+        assert data["plan_kind"] == "full_network"
+        assert data["total_chunks"] >= 1
+        assert data["executed_chunks"] >= 1
+        assert "verification" in data

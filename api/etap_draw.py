@@ -393,6 +393,101 @@ async def resolve_draw(
     )
     await db.flush()
 
+    plan_kind = (action.args or {}).get("plan_kind")
+    if plan_kind == "full_network":
+        raw_chunks = (action.args or {}).get("chunks") or []
+        if not raw_chunks:
+            action.status = "failed"
+            await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"code": "INVALID_PLAN", "message": "No chunks found in full_network plan"},
+            )
+
+        try:
+            plans = [EtapDrawPlan(**c) for c in raw_chunks]
+        except Exception as exc:
+            action.status = "failed"
+            await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"code": "INVALID_PLAN", "message": f"Stored chunk plan is invalid: {exc}"},
+            )
+
+        client = get_rest_client_from_env()
+
+        async def _on_chunk(chunk_idx: int, res: Any, created_ids: list[str]) -> None:
+            curr = dict(action.args or {})
+            curr["completed_chunks"] = chunk_idx + 1
+            curr["total_chunks"] = len(plans)
+            curr["created_element_ids"] = created_ids
+            action.args = curr
+
+        try:
+            from etap_integration.draw_plan_builder import execute_draw_plans_atomic
+
+            executed = await execute_draw_plans_atomic(
+                client,
+                plans,
+                on_chunk_completed=_on_chunk,
+            )
+        except ETAPRestError as exc:
+            action.status = "failed"
+            curr = dict(action.args or {})
+            curr["error"] = {"code": exc.code, "message": exc.message, "details": exc.details}
+            action.args = curr
+            record_approval_event(
+                "EXECUTION_FAILED",
+                action.id,
+                user.user_id,
+                {"error": exc.code, "message": exc.message},
+            )
+            await db.commit()
+            code = 503 if exc.code in ("MISSING_CONFIG", "UNAVAILABLE", "AUTH_FAILED") else 502
+            raise HTTPException(
+                status_code=code,
+                detail={"code": exc.code, "message": exc.message, "details": exc.details},
+            )
+
+        # Post-draw Load Flow verification
+        from api.projects import Project
+        from etap_integration.post_draw_verifier import dispatch_load_flow_verification
+
+        project_id = str((action.args or {}).get("project_id") or "")
+        proj_res = await db.execute(select(Project).where(Project.id == project_id))
+        proj = proj_res.scalar_one_or_none()
+        baseline_model = (proj.system_config or {}) if proj else {}
+
+        verification_result = await dispatch_load_flow_verification(
+            project_path=project_id,
+            baseline_model=baseline_model,
+        )
+
+        curr = dict(action.args or {})
+        curr["verification"] = verification_result.model_dump()
+        action.args = curr
+        action.status = "completed"
+
+        response_data = {
+            "success": True,
+            "action_id": action.id,
+            "status": action.status,
+            "plan_kind": "full_network",
+            "project_id": project_id,
+            "total_chunks": len(plans),
+            "executed_chunks": len(executed),
+            "verification": verification_result.model_dump(),
+        }
+
+        await _store_idempotent(
+            db, idempotency_key, resolve_endpoint, user.tenant_id, response_data
+        )
+        await db.commit()
+        logger.info(
+            "ETAP full network draw completed: action_id=%s project=%s", action.id, project_id
+        )
+        return response_data
+
     try:
         plan = EtapDrawPlan(**(action.args or {}))
     except Exception as exc:
@@ -512,10 +607,16 @@ class EtapDrawFromProjectRequest(BaseModel):
 
 def _extract_network_from_project_config(
     system_config: dict[str, Any],
-) -> dict[str, list[dict[str, Any]]]:
-    """Extracts normalized network elements from project.system_config."""
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    """Extracts normalized network elements from project.system_config.
+
+    Returns:
+        (network_dict, problems_list)
+        where problems_list tracks incomplete, unmapped, or missing items.
+    """
+    problems: list[dict[str, Any]] = []
     if not isinstance(system_config, dict):
-        return {"buses": []}
+        return {"buses": []}, [{"error": "system_config_not_dict"}]
 
     # 1. Zenon network export format
     if "zenon_network" in system_config:
@@ -523,27 +624,36 @@ def _extract_network_from_project_config(
 
         raw_zn = system_config["zenon_network"]
         res = parse_zenon_export(raw_zn)
-        if res.is_valid:
-            return {
-                "buses": [b.model_dump() for b in res.contract.buses],
-                "transformers": [xf.model_dump() for xf in res.contract.transformers],
-                "lines": [l.model_dump() for l in res.contract.lines],
-                "cables": [c.model_dump() for c in res.contract.cables],
-                "breakers": [brk.model_dump() for brk in res.contract.breakers],
-                "switches": [sw.model_dump() for sw in res.contract.switches],
-                "loads": [ld.model_dump() for ld in res.contract.loads],
-                "generators": [g.model_dump() for g in res.contract.generators],
-                "motors": [m.model_dump() for m in res.contract.motors],
-                "relays": [r.model_dump() for r in res.contract.relays],
-                "capacitors": [cp.model_dump() for cp in res.contract.capacitors],
-                "reactors": [rc.model_dump() for rc in res.contract.reactors],
-            }
+        if not res.is_valid:
+            problems.append({"error": "zenon_parse_failed", "details": res.errors})
+            return {"buses": []}, problems
+
+        for inc in res.incomplete:
+            problems.append(inc)
+        for warn in res.warnings:
+            problems.append({"warning": warn})
+
+        network = {
+            "buses": [b.model_dump() for b in res.contract.buses],
+            "transformers": [xf.model_dump() for xf in res.contract.transformers],
+            "lines": [l.model_dump() for l in res.contract.lines],
+            "cables": [c.model_dump() for c in res.contract.cables],
+            "breakers": [brk.model_dump() for brk in res.contract.breakers],
+            "switches": [sw.model_dump() for sw in res.contract.switches],
+            "loads": [ld.model_dump() for ld in res.contract.loads],
+            "generators": [g.model_dump() for g in res.contract.generators],
+            "motors": [m.model_dump() for m in res.contract.motors],
+            "relays": [r.model_dump() for r in res.contract.relays],
+            "capacitors": [cp.model_dump() for cp in res.contract.capacitors],
+            "reactors": [rc.model_dump() for rc in res.contract.reactors],
+        }
+        return network, problems
 
     # 2. Direct objects / components dict
     if "objects" in system_config and isinstance(system_config["objects"], dict):
-        return system_config["objects"]
+        return system_config["objects"], problems
     if "buses" in system_config and isinstance(system_config["buses"], list):
-        return system_config
+        return system_config, problems
 
     # 3. ADMS assets format (adms_assets or assets)
     raw_assets = system_config.get("adms_assets") or system_config.get("assets")
@@ -567,64 +677,146 @@ def _extract_network_from_project_config(
             name = str(meta.get("name") or aid)
 
             if atype in ("BUSBAR", "SUBSTATION", "BUS"):
-                kv = meta.get("nominal_voltage_kv") or meta.get("voltage_kv") or 11.0
-                parsed["buses"].append({"id": aid, "name": name, "base_kv": float(kv)})
+                raw_kv = (
+                    meta.get("nominal_voltage_kv")
+                    if meta.get("nominal_voltage_kv") is not None
+                    else meta.get("voltage_kv")
+                )
+                if raw_kv is None:
+                    problems.append(
+                        {
+                            "element": aid,
+                            "missing": "nominal_voltage_kv",
+                            "reason": "missing_voltage",
+                        }
+                    )
+                    continue
+                try:
+                    kv = float(raw_kv)
+                except (ValueError, TypeError):
+                    problems.append(
+                        {"element": aid, "invalid": "nominal_voltage_kv", "value": raw_kv}
+                    )
+                    continue
+                parsed["buses"].append({"id": aid, "name": name, "base_kv": kv})
             elif atype == "TRANSFORMER":
-                parsed["transformers"].append({
+                fb = meta.get("from_bus")
+                tb = meta.get("to_bus")
+                if not fb or not tb:
+                    problems.append(
+                        {"element": aid, "missing": "terminals", "from_bus": fb, "to_bus": tb}
+                    )
+                entry: dict[str, Any] = {
                     "id": aid,
                     "name": name,
-                    "from_bus": meta.get("from_bus"),
-                    "to_bus": meta.get("to_bus"),
-                    "rating_mva": meta.get("rating_mva"),
-                })
+                    "from_bus": fb,
+                    "to_bus": tb,
+                }
+                if meta.get("rating_mva") is not None:
+                    try:
+                        entry["rating_mva"] = float(meta["rating_mva"])
+                    except (ValueError, TypeError):
+                        pass
+                parsed["transformers"].append(entry)
             elif atype == "LINE":
-                parsed["lines"].append({
+                fb = meta.get("from_bus")
+                tb = meta.get("to_bus")
+                if not fb or not tb:
+                    problems.append(
+                        {"element": aid, "missing": "terminals", "from_bus": fb, "to_bus": tb}
+                    )
+                entry = {
                     "id": aid,
                     "name": name,
-                    "from_bus": meta.get("from_bus"),
-                    "to_bus": meta.get("to_bus"),
-                    "r_pu": meta.get("r_pu"),
-                    "x_pu": meta.get("x_pu"),
-                    "rating_mva": meta.get("rating_mva"),
-                })
+                    "from_bus": fb,
+                    "to_bus": tb,
+                }
+                for f in ("r_pu", "x_pu", "rating_mva"):
+                    if meta.get(f) is not None:
+                        try:
+                            entry[f] = float(meta[f])
+                        except (ValueError, TypeError):
+                            pass
+                parsed["lines"].append(entry)
             elif atype == "CABLE":
-                parsed["cables"].append({
-                    "id": aid,
-                    "name": name,
-                    "from_bus": meta.get("from_bus"),
-                    "to_bus": meta.get("to_bus"),
-                })
+                fb = meta.get("from_bus")
+                tb = meta.get("to_bus")
+                if not fb or not tb:
+                    problems.append(
+                        {"element": aid, "missing": "terminals", "from_bus": fb, "to_bus": tb}
+                    )
+                parsed["cables"].append(
+                    {
+                        "id": aid,
+                        "name": name,
+                        "from_bus": fb,
+                        "to_bus": tb,
+                    }
+                )
             elif atype == "BREAKER":
-                parsed["breakers"].append({
-                    "id": aid,
-                    "name": name,
-                    "from_bus": meta.get("from_bus") or meta.get("bus"),
-                    "to_bus": meta.get("to_bus") or meta.get("bus"),
-                })
+                fb = meta.get("from_bus")
+                tb = meta.get("to_bus")
+                if not fb or not tb:
+                    problems.append(
+                        {"element": aid, "missing": "terminals", "from_bus": fb, "to_bus": tb}
+                    )
+                parsed["breakers"].append(
+                    {
+                        "id": aid,
+                        "name": name,
+                        "from_bus": fb,
+                        "to_bus": tb,
+                    }
+                )
             elif atype in ("DISCONNECTOR", "SWITCH"):
-                parsed["switches"].append({
-                    "id": aid,
-                    "name": name,
-                    "from_bus": meta.get("from_bus") or meta.get("bus"),
-                    "to_bus": meta.get("to_bus") or meta.get("bus"),
-                })
+                fb = meta.get("from_bus")
+                tb = meta.get("to_bus")
+                if not fb or not tb:
+                    problems.append(
+                        {"element": aid, "missing": "terminals", "from_bus": fb, "to_bus": tb}
+                    )
+                parsed["switches"].append(
+                    {
+                        "id": aid,
+                        "name": name,
+                        "from_bus": fb,
+                        "to_bus": tb,
+                    }
+                )
             elif atype == "LOAD":
-                parsed["loads"].append({
+                bus = meta.get("bus") or meta.get("from_bus")
+                if not bus:
+                    problems.append({"element": aid, "missing": "bus"})
+                entry = {
                     "id": aid,
                     "name": name,
-                    "bus": meta.get("bus") or meta.get("from_bus"),
-                    "p_mw": meta.get("active_power_mw"),
-                    "q_mvar": meta.get("reactive_power_mvar"),
-                })
+                    "bus": bus,
+                }
+                if meta.get("active_power_mw") is not None:
+                    try:
+                        entry["p_mw"] = float(meta["active_power_mw"])
+                    except (ValueError, TypeError):
+                        pass
+                if meta.get("reactive_power_mvar") is not None:
+                    try:
+                        entry["q_mvar"] = float(meta["reactive_power_mvar"])
+                    except (ValueError, TypeError):
+                        pass
+                parsed["loads"].append(entry)
             elif atype == "GENERATOR":
-                parsed["generators"].append({
-                    "id": aid,
-                    "name": name,
-                    "bus": meta.get("bus") or meta.get("from_bus"),
-                })
-        return parsed
+                bus = meta.get("bus") or meta.get("from_bus")
+                if not bus:
+                    problems.append({"element": aid, "missing": "bus"})
+                parsed["generators"].append(
+                    {
+                        "id": aid,
+                        "name": name,
+                        "bus": bus,
+                    }
+                )
+        return parsed, problems
 
-    return {"buses": []}
+    return {"buses": []}, problems
 
 
 @router.post(
@@ -695,13 +887,24 @@ async def propose_draw_from_project(
         )
 
     # 4. Extract network data from project system_config
-    network_data = _extract_network_from_project_config(project.system_config or {})
+    network_data, problems = _extract_network_from_project_config(project.system_config or {})
+    if any(p.get("error") == "zenon_parse_failed" for p in problems):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "ZENON_PARSE_FAILED",
+                "message": "Zenon network export failed parsing or validation.",
+                "details": [p for p in problems if p.get("error") == "zenon_parse_failed"],
+            },
+        )
+
     if not network_data.get("buses"):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
                 "code": "NO_NETWORK_DATA",
                 "message": "Project system_config does not contain valid network topology (assets or zenon_network).",
+                "problems": problems,
             },
         )
 
@@ -726,50 +929,56 @@ async def propose_draw_from_project(
             detail={"code": "EMPTY_PLAN", "message": "No drawable items generated."},
         )
 
-    # 6. Create PendingAction per chunk
+    # 6. Create single parent PendingAction with plan_kind="full_network"
     now = datetime.now(UTC)
     expires_at = now + timedelta(seconds=APPROVAL_TTL_SECONDS)
-    action_ids: list[str] = []
-
-    for idx, plan in enumerate(plans):
-        plan_dict = plan.model_dump()
-        action = PendingAction(
-            tenant_id=user.tenant_id,
-            session_id=f"etap_draw_{body.project_id}",
-            tool=TOOL_NAME,
-            args_hash=compute_args_hash(plan_dict),
-            risk_class=RISK_CLASS,
-            status="pending",
-            expires_at=expires_at,
-            created_at=now,
-            requested_by_user_id=user.user_id,
-            requested_by_role=user.role,
-            args=plan_dict,
-        )
-        db.add(action)
-        await db.flush()
-        action_ids.append(action.id)
-
-        record_approval_event(
-            APPROVAL_EVENT_PROPOSED,
-            action.id,
-            user.user_id,
-            {
-                "project_id": body.project_id,
-                "chunk_index": idx + 1,
-                "total_chunks": len(plans),
-                "elements": len(plan.items),
-                "reason": plan.reason,
-            },
-        )
-
     total_elements = sum(len(p.items) for p in plans)
+
+    parent_args = {
+        "plan_kind": "full_network",
+        "project_id": body.project_id,
+        "reason": body.reason,
+        "total_chunks": len(plans),
+        "total_elements": total_elements,
+        "chunks": [p.model_dump() for p in plans],
+    }
+
+    action = PendingAction(
+        tenant_id=user.tenant_id,
+        session_id=f"etap_draw_{body.project_id}",
+        tool=TOOL_NAME,
+        args_hash=compute_args_hash(parent_args),
+        risk_class=RISK_CLASS,
+        status="pending",
+        expires_at=expires_at,
+        created_at=now,
+        requested_by_user_id=user.user_id,
+        requested_by_role=user.role,
+        args=parent_args,
+    )
+    db.add(action)
+    await db.flush()
+
+    record_approval_event(
+        APPROVAL_EVENT_PROPOSED,
+        action.id,
+        user.user_id,
+        {
+            "project_id": body.project_id,
+            "plan_kind": "full_network",
+            "total_chunks": len(plans),
+            "elements": total_elements,
+            "reason": body.reason,
+        },
+    )
+
     response_data = {
         "success": True,
         "project_id": body.project_id,
+        "action_id": action.id,
+        "action_ids": [action.id],
         "total_chunks": len(plans),
         "total_elements": total_elements,
-        "action_ids": action_ids,
         "status": "pending_approval",
         "expires_at": expires_at.isoformat(),
         "message": f"Proposed full network draw with {len(plans)} chunk(s) held for dual-control approval.",
@@ -779,4 +988,3 @@ async def propose_draw_from_project(
     await db.commit()
 
     return response_data
-

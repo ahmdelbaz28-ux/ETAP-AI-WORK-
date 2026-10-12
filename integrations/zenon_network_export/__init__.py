@@ -22,6 +22,10 @@ from integrations.zenon_network_export.contract import (
     ZenonSwitch,
     ZenonTransformer,
 )
+from integrations.zenon_network_export.live_values import (
+    enrich_zenon_live_values,
+    is_zenon_live_values_enabled,
+)
 from integrations.zenon_network_export.mapping import ZenonFieldMapper
 from integrations.zenon_network_export.raw_dump import (
     ZenonRawDump,
@@ -57,5 +61,7 @@ __all__ = [
     "ZenonTransformer",
     "ZenonFieldMapper",
     "ZenonImportResult",
+    "enrich_zenon_live_values",
+    "is_zenon_live_values_enabled",
     "parse_zenon_export",
 ]
