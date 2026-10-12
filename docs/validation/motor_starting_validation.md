@@ -23,9 +23,10 @@
   - Omission of parameters raises `SpecializedExecutionUnavailableError` (`INSUFFICIENT_ENGINEERING_INPUT`).
   - Synthetic parameter guessing, assumed inertia constants, or fabricated network impedances are strictly forbidden in production.
 - **Lifecycle & Governance Posture**:
-  - `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
-  - Registered in `engine/capability_registry.py` (`lifecycle_status=LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
-  - Feature flag in `api/feature_flags.py` remains strictly `enabled=False` with zero production traffic until formal commissioning sign-off.
+  - `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -124,16 +125,17 @@ The certifying benchmark suite validates `MotorStartingEngine` against published
    - `is_production_eligible()` evaluates strictly to **True**.
 
 2. **Feature Flag & Rollout Truth (`api/feature_flags.py:75-79`)**:
-   - **Rollout Status**: `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
+   - **Rollout Status**: `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
    - **Configuration in `api/feature_flags.py`**:
      ```python
      "motor_starting": {
-         "enabled": False,
+         "enabled": True,
          "status": "beta",
-         "description": "Motor starting analysis (IEEE 399) - in development",
+         "description": "Motor starting analysis (IEEE 399) - Beta 100% rollout",
+         "rollout_percentage": 100,
      }
      ```
-   - **Strict Fail-Closed Governance**: Flag stays `enabled=False` with zero production traffic until explicit site commissioning sign-off. Opening traffic without formal human sign-off is strictly prohibited.
+   - **Governance**: Flag enabled=True, rollout 100 for engineer-tester program per owner authorization.
    - Circuit breaker: `export FEATURE_FLAG_MOTOR_STARTING="false"` documented in `DEPLOYMENT_ROLLBACK.md`.
 
 3. **Input Anti-Fabrication & Strict Fail-Closed Execution**:
@@ -206,7 +208,7 @@ All test suites executed and verified on the final revision:
 | 6 | IEEE 399 Star-Delta Minimum Voltage Dip ($V_{min} = 0.8944\text{ pu}$) | IEEE Std 399-1997 Ch 10 Table 10-1 | **PASS** |
 | 7 | IEEE 399 Star-Delta Peak Current Inrush Mitigation ($3.06\text{ pu}$) | IEEE Std 399-1997 Ch 10 Table 10-1 | **PASS** |
 | 8 | NEMA Design B Code Letter F Inrush Ratio ($5.80\times$) | NEMA MG 1-2016 Part 12 Sec 12.35 | **PASS** |
-| 9 | Doc-Code Rollout Truth Consistency (`enabled=False, rollout=0`) | `api/feature_flags.py:75-79` | **PASS** |
+| 9 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py:75-79` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 10 | Zero-Guessing / Input Requirement Validation | `tests/test_mandatory_engineering_inputs.py` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -221,7 +223,7 @@ All test suites executed and verified on the final revision:
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'motor_starting' remains enabled=False,    |
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'motor_starting' in beta rollout 100%      |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```

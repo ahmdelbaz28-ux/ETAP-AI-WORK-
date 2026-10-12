@@ -74,9 +74,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 100,
     },
     "motor_starting": {
-        "enabled": False,
+        "enabled": True,
         "status": "beta",
-        "description": "Motor starting analysis (IEEE 399) - in development",
+        "description": "Motor starting analysis (IEEE 399) - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "transient_stability": {
         "enabled": False,
