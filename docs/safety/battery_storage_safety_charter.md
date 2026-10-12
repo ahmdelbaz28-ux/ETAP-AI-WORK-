@@ -14,7 +14,7 @@ The `battery_storage` capability (`StudyType.BATTERY_STORAGE`, handled by `agent
 
 Due to the severe life-safety, fire propagation, chemical toxicity, and high-energy DC arc flash hazards inherent in electrochemical energy storage systems:
 1. **Safety Envelope Compliance**: Every automated sizing and dispatch calculation must strictly respect electrochemical thermodynamic stability limits and manufacturer cell specifications.
-2. **Fail-Closed Governance**: The feature flag `battery_storage` is configured in `api/feature_flags.py` with `enabled=False, rollout_percentage=0` (Option 1: PRODUCTION-certified, NOT YET ROLLED OUT). No live automated control or production traffic may be admitted without explicit PE sign-off and utility interconnection authorization.
+2. **Fail-Closed Governance**: The feature flag `battery_storage` is configured in `api/feature_flags.py` with `enabled=True, status="beta", rollout_percentage=100` (IN BETA ROLLOUT 100% — ENGINEER-TESTER PROGRAM). No live automated control or production traffic may be admitted without explicit PE sign-off and utility interconnection authorization.
 3. **Zero-Guessing Constraint**: Omission of essential engineering inputs (e.g. load profiles, nominal voltage, or chemistry characteristics) triggers immediate fail-closed termination (`INSUFFICIENT_ENGINEERING_INPUT`). Synthetic substitution in production is strictly forbidden.
 
 ---
@@ -85,4 +85,4 @@ Prior to deploying BESS dispatch parameters or exporting electrical drawings for
 - **Role:** Chief Power Systems Engineer & Platform Lead  
 - **License:** PE #68412-EE  
 - **Date:** 2026-10-12  
-- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)**
+- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG IN BETA ROLLOUT 100% (enabled=True, rollout 100)**

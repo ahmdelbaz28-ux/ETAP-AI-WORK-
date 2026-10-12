@@ -14,7 +14,7 @@ The `earth_grid` capability (`StudyType.EARTH_GRID`, handled by `agents.earth_gr
 
 Because substation ground faults discharge hazardous single-phase-to-ground fault currents ($I_g \ge 1\text{ to }50\text{ kA}$) capable of causing lethal ventricular fibrillation, step/touch electrocution, and transfer-voltage equipment destruction:
 1. **Zero-Tolerance Safety Envelope**: Every automated design calculation must strictly adhere to IEEE 80-2013 allowable touch and step voltage criteria using certified body weight limits (50 kg or 70 kg) and Dalziel ventricular fibrillation equations.
-2. **Fail-Closed Governance**: The feature flag `earth_grid` is configured in `api/feature_flags.py` with `enabled=False, rollout_percentage=0` (PRODUCTION-certified, NOT YET ROLLED OUT). No automated actuation, fabrication export, or production traffic may be admitted without site-specific field validation and Professional Engineer sign-off.
+2. **Fail-Closed Governance**: The feature flag `earth_grid` is configured in `api/feature_flags.py` with `enabled=True, status="beta", rollout_percentage=100` (IN BETA ROLLOUT 100% — ENGINEER-TESTER PROGRAM). No automated actuation, fabrication export, or production traffic may be admitted without site-specific field validation and Professional Engineer sign-off.
 3. **Zero-Guessing Constraint**: Omission of essential engineering inputs (e.g. soil resistivity $\rho$, fault current $I_g$, clearing time $t_f$, or surface layer parameters) triggers immediate fail-closed termination (`INSUFFICIENT_ENGINEERING_INPUT`). Synthetic parameter substitution in production is strictly forbidden.
 
 ---
@@ -93,4 +93,4 @@ Prior to deploying grounding grid installation schedules, trenching blueprints, 
 - **Role:** Chief Power Systems Engineer & Platform Lead  
 - **License:** PE #68412-EE  
 - **Date:** 2026-10-12  
-- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)**
+- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG IN BETA ROLLOUT 100% (enabled=True, rollout 100)**

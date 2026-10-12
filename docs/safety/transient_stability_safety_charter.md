@@ -14,7 +14,7 @@ The `transient_stability` capability (`StudyType.TRANSIENT_STABILITY`, handled b
 
 Because rotor angle instability triggers catastrophic synchronous generator pole-slipping, widespread out-of-step tripping, uncontrollable cascading blackouts, and mechanical shaft torque destruction:
 1. **Zero-Tolerance Dynamic Safety Envelope**: Every automated transient stability assessment must verify that primary fault clearing times ($t_{clear}$) maintain an authoritative safety margin below the critical clearing threshold ($T_{cr}$), with post-fault rotor angle trajectories bounded strictly below $180^\circ$ and oscillatory modes damped with $\zeta \ge 0.05$.
-2. **Fail-Closed Governance**: The feature flag `transient_stability` in `api/feature_flags.py` is configured with `enabled=False, status="pilot", rollout_percentage=0` (PRODUCTION-certified, NOT YET ROLLED OUT). No live grid control, automatic generation control (AGC) adjustment, or breaker trip actuation is permitted without explicit utility commissioning sign-off.
+2. **Fail-Closed Governance**: The feature flag `transient_stability` in `api/feature_flags.py` is configured with `enabled=True, status="beta", rollout_percentage=100` (IN BETA ROLLOUT 100% — ENGINEER-TESTER PROGRAM). No live grid control, automatic generation control (AGC) adjustment, or breaker trip actuation is permitted without explicit utility commissioning sign-off.
 3. **Zero-Guessing Constraint**: Omission of generator inertia ($H$), mechanical power input ($P_m$), internal transient reactance ($X_d'$), exciter constants, or network admittance matrices immediately halts execution (`INSUFFICIENT_ENGINEERING_INPUT`). Synthetic parameter fabrication is strictly forbidden.
 
 ---
@@ -83,4 +83,4 @@ Prior to deploying protective relay trip curves, critical clearing setting sched
 - **Role:** Chief Power Systems Engineer & Platform Lead  
 - **License:** PE #68412-EE  
 - **Date:** 2026-10-12  
-- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)**
+- **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG IN BETA ROLLOUT 100% (enabled=True, rollout 100)**
