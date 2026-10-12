@@ -13,7 +13,7 @@
 - **Data Quality & Telemetry**: Three-state quality attributes (`GOOD`, `UNCERTAIN`, `BAD`), timestamp synchronization ($\pm 1.0\text{ ms}$ SNTP/PTP), Select-Before-Operate (SBO) arm-fire discipline, and deadband limit evaluation.
 - **Zero-Guessing Constraint**: Omission of mandatory engineering inputs triggers immediate fail-closed termination (`SpecializedExecutionUnavailableError` with error code `INSUFFICIENT_ENGINEERING_INPUT`). Unreachable servers or missing protocol libraries fail closed with `REAL_INTEGRATION_UNAVAILABLE`. Parameter fabrication is strictly forbidden.
 - **Rollout Truth & Feature Flag Governance**:
-  - **Rollout Status**: **PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic**.
+  - **Rollout Status**: **PILOT-live-proven, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic**.
   - **Feature Flag Reality**: Configured in `api/feature_flags.py` under key `scada` with `enabled=False, status="pilot", rollout_percentage=0`.
   - **Operational State**: Fails closed (`AgentStatus.FAILED`, `SPECIALIZED_EXECUTION_UNAVAILABLE`, HTTP 403) for all production client calls until formal substation commissioning sign-off is completed.
 
@@ -147,7 +147,7 @@ Captured during real protocol packet exchange against live local loopback server
 | **Gap A: Live Protocol Telemetry** | Modbus TCP (5020) & OPC UA (4840) Live Exchange | Live server loops executed without mock objects. Packets decoded over TCP loopback, returning `live_connection: True, authoritative: True, simulated: False`. Voltage, power, and current points recorded in Table 3. | **PASS** |
 | **Gap B: Local Test Peers Configuration** | `scada_protocols/config/scada.yaml` | Local test peers verified for Modbus (`local-modbus-peer` at `127.0.0.1:5020`), OPC UA (`local-opcua-peer` at `opc.tcp://127.0.0.1:4840/etap/server`), and IEC 104 (`local-iec104-peer` at `127.0.0.1:2404`). | **PASS** |
 | **Gap C: Safety Charter Compliance** | `docs/safety/scada_safety_charter.md` | Select-Before-Operate (SBO) discipline, breaker/disconnector/grounding interlocks, Maker-Checker dual control, and Professional Engineer stamping block enforced. | **PASS** |
-| **Gap D: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`. Flag strictly disabled in runtime. | **PASS** |
+| **Gap D: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: `PILOT-live-proven, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`. Flag strictly disabled in runtime. | **PASS** |
 | **Gap E: Zero Guessing & Security Gates** | Fail-Closed Architecture & Server-Down Handling | Missing parameters trigger `INSUFFICIENT_ENGINEERING_INPUT`. Server-down scenarios return `REAL_INTEGRATION_UNAVAILABLE` fail-closed (no synthetic guessing). | **PASS** |
 
 ### Authorization & Sign-Off
@@ -169,7 +169,7 @@ Captured during real protocol packet exchange against live local loopback server
 ```
 
 ```
-CERTIFICATION STATUS: PRODUCTION-CERTIFIED, NOT YET ROLLED OUT
+CERTIFICATION STATUS: PILOT-live-proven, NOT YET ROLLED OUT
 INDEPENDENT VERDICT:  GO-CLOSED
 RECOMMENDATION:       The SCADA integration and live protocol adapters (Modbus TCP, OPC UA)
                       satisfy all standards compliance, telemetry fidelity, and fail-closed
