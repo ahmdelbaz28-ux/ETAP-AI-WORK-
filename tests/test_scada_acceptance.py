@@ -286,3 +286,137 @@ async def test_scada_live_opcua_server_down_fail_closed():
     res = await agent.execute(task)
     assert res.status == AgentStatus.FAILED
     assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"
+
+
+@pytest.mark.asyncio
+async def test_scada_live_iec61850_adapter_absent_fail_closed():
+    """Live IEC 61850 Test 1: Adapter absent scenario must return REAL_INTEGRATION_UNAVAILABLE failure."""
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import SCADAAgent
+
+    agent = SCADAAgent(adapter=None)
+    task = EngineeringTask(
+        task_id="task_iec61850_absent",
+        description="Live IEC 61850 adapter absent fail-closed test",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "analysis_type": "connect",
+            "scada_server": "192.168.30.10",
+            "scada_port": 102,
+            "scada_protocol": "iec61850",
+            "require_live": True,
+        },
+    )
+    res = await agent.execute(task)
+    assert res.status == AgentStatus.FAILED
+    assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"
+
+
+@pytest.mark.asyncio
+async def test_scada_live_iec61850_placeholder_config_fail_closed():
+    """Live IEC 61850 Test 2: Placeholder config must fail closed without connection attempt."""
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import IEC61850ClientAdapter, SCADAAgent
+    from scada_protocols.common.config import Iec61850Config
+
+    placeholder_cfg = Iec61850Config(
+        enabled=False,
+        clients=[{"name": "field-ied-placeholder", "host": "<PLACEHOLDER_IED_IP>", "port": 102}],
+        point_map=[{
+            "element_id": "BUS-1",
+            "measurement_type": "voltage_magnitude",
+            "logical_node": "<PLACEHOLDER_MMXU_VOLTAGE_LN>",
+        }],
+    )
+    adapter = IEC61850ClientAdapter(config=placeholder_cfg)
+    agent = SCADAAgent(adapter=adapter)
+    task = EngineeringTask(
+        task_id="task_iec61850_placeholder",
+        description="Live IEC 61850 placeholder config fail-closed test",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "analysis_type": "connect",
+            "scada_server": "192.168.30.10",
+            "scada_port": 102,
+            "scada_protocol": "iec61850",
+        },
+    )
+    res = await agent.execute(task)
+    assert res.status == AgentStatus.FAILED
+    assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"
+    # Verify no connection attempt was made (thread never created)
+    assert adapter._thread is None
+
+
+@pytest.mark.asyncio
+async def test_scada_live_iec61850_library_missing_and_mocked_states(monkeypatch):
+    """Live IEC 61850 Test 3: Documented ImportError path testing BOTH states (missing vs mocked library)."""
+    import sys
+    from unittest.mock import MagicMock
+
+    import pytest
+
+    from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
+    from agents.scada_agent import IEC61850ClientAdapter, SCADAAgent
+    from scada_protocols.common.config import Iec61850Config
+
+    valid_cfg = Iec61850Config(
+        enabled=True,
+        clients=[{"name": "substation-ied-1", "host": "192.168.30.10", "port": 102, "ied_name": "BAY01_IED"}],
+        point_map=[{
+            "element_id": "BUS-1",
+            "measurement_type": "voltage_magnitude",
+            "logical_node": "MMXU1",
+            "data_attribute": "Vol.mag.f",
+            "unit": "p.u.",
+        }],
+    )
+
+    # State A: Libraries absent (unmocked in this environment) -> start_client raises documented ImportError
+    adapter_absent = IEC61850ClientAdapter(config=valid_cfg)
+    # Ensure neither iec61850datamodel nor py61850 is in sys.modules
+    for mod in ["iec61850datamodel", "py61850"]:
+        monkeypatch.delitem(sys.modules, mod, raising=False)
+
+    with pytest.raises(ImportError) as exc_info:
+        adapter_absent.start_client()
+    assert "Neither 'iec61850datamodel' nor 'py61850' is installed" in str(exc_info.value)
+
+    # Executing through agent must return REAL_INTEGRATION_UNAVAILABLE
+    agent = SCADAAgent(adapter=adapter_absent)
+    task = EngineeringTask(
+        task_id="task_iec61850_missing_lib",
+        description="Missing library fail-closed",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "analysis_type": "connect",
+            "scada_server": "192.168.30.10",
+            "scada_port": 102,
+            "scada_protocol": "iec61850",
+        },
+    )
+    res = await agent.execute(task)
+    assert res.status == AgentStatus.FAILED
+    assert res.data["error_code"] == "REAL_INTEGRATION_UNAVAILABLE"
+
+    # State B: Library present (mocked) -> start_client succeeds in library probing
+    mock_py61850 = MagicMock()
+    monkeypatch.setitem(sys.modules, "py61850", mock_py61850)
+    adapter_present = IEC61850ClientAdapter(config=valid_cfg)
+    try:
+        adapter_present.start_client()
+        assert adapter_present._thread is not None
+    finally:
+        adapter_present.stop_client()
+
+
+@pytest.mark.skip(reason="requires field IED (owner step)")
+def test_scada_live_iec61850_field_ied():
+    """Live IEC 61850 field test against physical substation IED.
+
+    Safety Gated: Requires physical substation IED connection.
+    To be executed exclusively by the Owner during the physical field commissioning step.
+    Never faked in CI or local loopback.
+    """
+    pass
+

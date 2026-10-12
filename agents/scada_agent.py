@@ -29,6 +29,16 @@ from typing import Any
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from scada_protocols.iec61850.client import IEC61850ClientAdapter
+
+__all__ = [
+    "IEC61850ClientAdapter",
+    "LiveModbusAdapter",
+    "LiveOpcUaAdapter",
+    "SCADAAgent",
+    "SCADAConnection",
+    "SCADAMeasurement",
+]
 
 # Module-level numpy Generator for reproducible non-crypto sampling.
 # NOSONAR
@@ -1121,6 +1131,22 @@ class SCADAAgent(BaseAgent):
                             endpoint=endpoint,
                             node_map=p.get("node_map"),
                             timeout=float(p.get("timeout_sec", 3.0)),
+                        )
+                    elif "61850" in proto_lower or "iec61850" in proto_lower:
+                        self.status = AgentStatus.FAILED
+                        err_msg = (
+                            f"REAL_INTEGRATION_UNAVAILABLE: Physical {protocol_param} substation connection "
+                            "is unavailable (no active IEC 61850 adapter injected or configured). "
+                            "Live success cannot be reported."
+                        )
+                        self.log_execution(err_msg, level="ERROR")
+                        return AgentResult(
+                            agent_name=self.agent_name,
+                            study_type=StudyType.LOAD_FLOW,
+                            status=AgentStatus.FAILED,
+                            data={"error_code": "REAL_INTEGRATION_UNAVAILABLE", "message": err_msg},
+                            validation_errors=[err_msg],
+                            execution_time=(datetime.now(UTC) - start_time).total_seconds(),
                         )
                     else:
                         self.status = AgentStatus.FAILED
