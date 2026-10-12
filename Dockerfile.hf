@@ -1,102 +1,132 @@
 # =============================================================================
-# ETAP AI — Hugging Face Spaces Production Dockerfile
+# ETAP AI — Hugging Face Spaces Production Dockerfile (lightweight)
 # =============================================================================
+# Uses hf-space/app.py as the single entry point — NOT engineering_service.py.
+# engineering_service.py requires Redis, Celery, opentelemetry, etc. which
+# are too heavy for HF Spaces cpu-basic hardware.
+#
 # HF Spaces requirements:
 #   - Port 7860 exposed
-#   - Non-root user support
-#   - /tmp is the ONLY writable directory
-#   - Must handle HEAD / requests
+#   - Non-root user (UID 1000)
+#   - /tmp is the only writable directory
+#   - HEAD / must return 200
 # =============================================================================
 
-FROM python:3.13-slim AS builder
+FROM python:3.13-slim
 
-WORKDIR /build
-
-# Install build deps
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ gcc libgomp1 libopenblas-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy deps and install
-COPY requirements*.txt ./
-RUN grep -v "^#" requirements.txt | grep -v "^$" | grep -v "pywin32" > req.txt \
-    && pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir --user -r req.txt
-
-# Copy source
-COPY . .
-RUN pip install --no-cache-dir --user -e . 2>&1 || true
-
-# ─── Runtime Stage ───
-FROM python:3.13-slim AS runtime
+LABEL maintainer="Eng. Ahmed Elbaz <ahmdelbaz28@gmail.com>"
+LABEL description="AhmedETAP — Enterprise Engineering Intelligence Platform (HF Space)"
+LABEL version="2.1.0"
+LABEL build.rebuild="full"
 
 WORKDIR /app
 
-# Install runtime deps only
+# System dependencies + create non-root user in a single RUN
+# SonarCloud docker:S7031: merged consecutive RUN instructions to reduce layers
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl nginx supervisor \
-    && rm -rf /var/lib/apt/lists/*
+    curl g++ gcc \
+    libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+    libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
+    libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
+    libxkbcommon0 libxrandr2 \
+    tesseract-ocr tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 user \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
+    && chown -R user:user /app /tmp
 
-# V-57 FIX: Copy Python packages to hfuser's home instead of /root/.local.
-# The runtime runs as hfuser (line 86), but /root/ has 700 permissions
-# (owner-only access), so hfuser cannot access /root/.local Python packages.
-# Copying to /home/hfuser/.local ensures the non-root user can import them.
-COPY --from=builder /root/.local /home/hfuser/.local
-ENV PYTHONUSERBASE=/home/hfuser/.local
-ENV PATH=/home/hfuser/.local/bin:$PATH
-ENV PYTHONPATH=/app:/home/hfuser/.local/lib/python3.13/site-packages
+# Python dependencies — lightweight subset (no ML, no Celery, no Redis).
+# requirements.hf.txt is version-locked (~=) so this install can stay
+# binary-only (SonarCloud docker:S8544).
+# NOTE: pre-commit hooks are NOT installed in the Docker image.
+COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
+RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
+    pip install --no-cache-dir --only-binary :all: \
+        --default-timeout 100 --retries 5 \
+        --requirement /tmp/requirements.hf.txt
 
-# Copy app code
-COPY --from=builder /build /app
+# Install Chromium for Playwright (BrowserCUAExecutor — headless CUA on HF Space).
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install chromium && \
+    chmod -R 755 /ms-playwright && \
+    chown -R user:user /ms-playwright
 
-# V-54: Create non-root user for HF Spaces runtime and set up directories
-RUN groupadd -r hfuser && \
-    useradd -r -u 1000 -g hfuser -d /app -s /sbin/nologin hfuser && \
-    mkdir -p /tmp/cache /tmp/logs /tmp/data /tmp/numba_cache /tmp/matplotlib_cache /tmp/hf_cache /etc/supervisor/conf.d && \
-    chmod -R 775 /tmp && \
-    chown -R hfuser:hfuser /app /tmp /home/hfuser
+# Application code — copy only what hf-space/app.py needs
+# Source files owned by root (read-only) for security.
+COPY --chown=root:root --chmod=go-w hf-space/app.py /app/app.py
+COPY --chown=root:root --chmod=go-w compat.py /app/compat.py
+COPY --chown=root:root --chmod=go-w agents/ /app/agents/
+# NOTE: skills/ is NOT copied to the HF Space Docker image.
+COPY --chown=user:user prompts/ /app/prompts/
+COPY --chown=user:user prompts.json /app/prompts.json
+COPY --chown=user:user core_model/ /app/core_model/
+COPY --chown=user:user core/ /app/core/
+COPY --chown=user:user engine/ /app/engine/
+COPY --chown=user:user load_flow/ /app/load_flow/
+COPY --chown=user:user fault_analysis/ /app/fault_analysis/
+COPY --chown=user:user coordination/ /app/coordination/
+COPY --chown=user:user contingency/ /app/contingency/
+COPY --chown=user:user motor_starting/ /app/motor_starting/
+COPY --chown=user:user curves/ /app/curves/
+COPY --chown=user:user relays/ /app/relays/
+COPY --chown=user:user network_solver/ /app/network_solver/
+COPY --chown=user:user contracts/ /app/contracts/
+COPY --chown=user:user etap_integration/ /app/etap_integration/
+COPY --chown=user:user scripts/ /app/scripts/
+COPY --chown=user:user scada_model/ /app/scada_model/
+COPY --chown=user:user scada_protocols/ /app/scada_protocols/
+COPY --chown=user:user services/ /app/services/
+COPY --chown=user:user api/ /app/api/
+COPY --chown=user:user utils/ /app/utils/
+COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
+COPY --chown=user:user integrations/ /app/integrations/
+COPY --chown=user:user visualization/ /app/visualization/
+COPY --chown=user:user reporting/ /app/reporting/
+COPY --chown=user:user digital_twin/ /app/digital_twin/
+COPY --chown=user:user security/ /app/security/
+COPY --chown=user:user gis_integration/ /app/gis_integration/
+COPY --chown=user:user adms_control/ /app/adms_control/
+COPY --chown=user:user ml/ /app/ml/
+COPY --chown=user:user copilot/ /app/copilot/
+COPY --chown=user:user data/ /app/data/
+COPY --chown=user:user VERSION DEPLOY_SHA* /app/
+COPY --chown=user:user alembic.ini /app/alembic.ini
+COPY --chown=user:user migrations/ /app/migrations/
 
-# Environment for HF Spaces
+# UI static files (Vite-built React app, served at root / by app.py)
+# Build the UI first: cd ui && npm run build && cp -r dist ../ui-dist/
+# If ui-dist/ is not available, create empty placeholder (UI served from HF Space URL instead)
+RUN mkdir -p /app/ui-dist
+COPY --chown=user:user ui-dist/ /app/ui-dist/
+
+# Environment — runtime configuration (NOT secrets).
 ENV PORT=7860
 ENV HOST=0.0.0.0
-ENV ENGINEERING_SERVICE_HOST=0.0.0.0
-ENV ENGINEERING_SERVICE_PORT=8000
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV NUMBA_CACHE_DIR=/tmp/cache
+ENV PYTHONPATH=/app
 ENV MPLCONFIGDIR=/tmp/cache
 ENV XDG_CACHE_HOME=/tmp/cache
 ENV HF_HOME=/tmp/cache
-ENV TRANSFORMERS_CACHE=/tmp/cache
-ENV TORCH_HOME=/tmp/cache
-# V-59 FIX: Do NOT bake secrets into image layers. The ${VAR:?} syntax
-# requires the variable at BUILD time, which bakes the value into the
-# image layer (visible via `docker history`). Instead, require them at
-# RUNTIME via the application's startup check.
-# ENV JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
-# ENV ENGINEERING_SERVICE_API_KEY=${ENGINEERING_SERVICE_API_KEY:?ENGINEERING_SERVICE_API_KEY is required}
+ENV NUMBA_CACHE_DIR=/tmp/cache
 
-# Force production mode — enables all security guards (no test-mode bypass,
-# no weak JWT fallback, no AUTH_RETURN_RESET_TOKEN leak).
-# See api/dependencies.py:35, api/routes.py:101/114/131.
+# Database configuration — in production, DATABASE_URL must be provided via environment secrets (PostgreSQL)
+ENV DATABASE_URL=""
+
+# Environment mode (not a secret)
 ENV ENVIRONMENT=production
-ENV AUTH_RETURN_RESET_TOKEN=false
 
-# Nginx config for HF Spaces (kept as a file to avoid Dockerfile linter false-positives)
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+# Redis URL — empty default means in-memory fallback (development mode).
+ENV REDIS_URL=
 
-# Supervisord config (kept as a file to avoid Dockerfile linter false-positives)
-COPY docker/supervisord_app.conf /etc/supervisor/conf.d/app.conf
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD ["curl", "-f", "http://localhost:7860/healthz"]
 
 EXPOSE 7860
 
-# V-54: Health check for HF Spaces
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD ["curl", "-fsS", "http://localhost:7860/healthz"]
-
-# V-54: Run as non-root user (security best practice)
+# Use numeric UID (1000) per HF Spaces recommendation
 USER 1000
 
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/app.conf"]
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:7860", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]

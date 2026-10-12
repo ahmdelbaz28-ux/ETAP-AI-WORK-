@@ -1182,7 +1182,7 @@ def main():
         "meta": {
             "project": "AhmedETAP — Power Systems Engineering AI Platform",
             "version": _version_str,
-            "generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "generated_at": datetime.datetime.now(getattr(datetime, "UTC", datetime.timezone.utc)).isoformat(),
             "indexer_version": "2.0.0",
             "total_api_routes": len(all_routes),
             "total_help_topics": help_topics["total"],

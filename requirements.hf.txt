@@ -1,80 +1,113 @@
-# HF Spaces minimal requirements - excludes ML/GUI packages
-# Core Web Framework
-fastapi>=0.135.0
-uvicorn[standard]>=0.24.0
-pydantic[email]>=2.0.0
-python-multipart>=0.0.31
+# AhmedETAP HF Space — Core Dependencies
+# Python 3.13 compatible, no Windows-only packages
+#
+# NOTE: Versions are locked with ~= (compatible-release) at the versions a
+# fresh build resolves today. This lets the Docker images install with
+# `pip install --only-binary :all:` from verified releases (SonarCloud
+# docker:S8544). All pins have CPython 3.13 wheels (or are pure-Python).
 
-# HTTP client
-httpx>=0.25.0
-requests>=2.33.0
-aiohttp>=3.14.3
+# ─── Web Framework ────────────────────────────────────────────────────────────
+fastapi~=0.141.1
+uvicorn[standard]~=0.52.0
+gunicorn>=23.0,<26.3
+pydantic[email]~=2.13.4
+python-multipart~=0.0.32
 
-# Core numerical
-numpy>=1.26.0,<2.6
-scipy>=1.12.0,<1.19
-pandas>=1.3.0
+# ─── HTTP & Async ─────────────────────────────────────────────────────────────
+httpx~=0.28.1
+requests~=2.34.2
+aiohttp~=3.14.3
+aiofiles~=24.1.0
 
-# Config
-pyyaml>=6.0
-python-dotenv>=1.2.2
+# ─── Engineering & Scientific ─────────────────────────────────────────────────
+numpy~=2.5.1
+scipy~=1.18.0
+pandas~=3.0.5
 
-# Database
-sqlalchemy[asyncio]>=2.0.0
-aiosqlite>=0.19.0
+# ─── Config & Utils ───────────────────────────────────────────────────────────
+pyyaml~=6.0.3
+python-dotenv~=1.2.3
 
-# Security
-bcrypt>=4.0.0
-PyJWT>=2.15.1
-cryptography>=50.0.0
-slowapi>=0.1.9
-defusedxml>=0.7.1
+# ─── Database ─────────────────────────────────────────────────────────────────
+sqlalchemy[asyncio]~=2.0.51
+aiosqlite~=0.22.1
+alembic~=1.18.5
+# asyncpg: required when DATABASE_URL points to PostgreSQL (e.g. Supabase
+# Postgres set as HF Secret). Without it, api/database.py raises
+# ModuleNotFoundError on import → cascades to api.dependencies, api.settings,
+# api.auth, api.projects — and breaks every endpoint that imports any of
+# those modules. SQLite path (aiosqlite) doesn't need this.
+asyncpg~=0.31.0
 
-# Logging
-structlog>=21.0.0
+# ─── Security ─────────────────────────────────────────────────────────────────
+bcrypt~=5.0.0
+PyJWT>=2.15.1,<2.16
+cryptography>=50.0.0,<50.1
+pyotp~=2.10.0
+email-validator~=2.3.0
+slowapi~=0.1.9
+defusedxml~=0.7.1
 
-# Observability
-prometheus-client>=0.19.0
-opentelemetry-api>=1.20.0
-opentelemetry-sdk>=1.20.0
-opentelemetry-exporter-otlp-proto-http>=1.45.0
+# ─── Logging & Observability ──────────────────────────────────────────────────
+structlog~=26.1.0
+prometheus-client~=0.26.0
+opentelemetry-api~=1.44.0
+opentelemetry-sdk~=1.44.0
 
-# LLM observability — Langfuse (free Hobby plan supports unlimited prompts)
+# ─── Resilience ───────────────────────────────────────────────────────────────
+tenacity~=9.1.4
+
+# ─── Document Processing ──────────────────────────────────────────────────────
+# SECURITY: pypdf replaces deprecated PyPDF2 (30+ CVEs fixed)
+pypdf>=6.17.0
+pdfplumber~=0.11.10
+python-docx~=1.2.0
+openpyxl~=3.1.5
+reportlab~=5.0.0
+
+# ─── Utilities ────────────────────────────────────────────────────────────────
+tqdm~=4.70.0
+beautifulsoup4~=4.15.0
+lxml>=6.1.3
+redis~=8.1.0
+# websockets: pinned to <16 because supabase's realtime dependency requires
+# websockets>=11,<16. The previous pin (websockets~=17.0.1) caused a
+# ResolutionImpossible error during Docker build, failing the HF Space build.
+websockets>=15.0.1,<17.1.0
+
+# ─── CUA Loop (Computer Use Agent) ───────────────────────────────────────────
+# These enable the BrowserCUAExecutor — a headless-browser CUA that works
+# on HF Space (no display server required).
+# The DesktopCUAExecutor (pyautogui) is NOT installable on HF Space.
+playwright~=1.62.0
+google-generativeai~=0.8.6
+Pillow~=12.3.0
+
+# OpenCV + pytesseract — local offline vision fallback
+# Used by integrations/opencv_vision.py when Gemini Vision is unreachable
+# (network down, API quota exceeded). Provides degraded but functional
+# screen analysis via contour detection + OCR.
+opencv-python-headless~=5.0.0.93
+pytesseract~=0.3.13
+
+# ─── Email Integration (Resend) ────────────────────────────────────────────
+# Added 2026-07-10 for Resend email integration v2
+# Uses stdlib HTTP client — no resend SDK needed
+
+# ─── LLM Observability (Langfuse) ──────────────────────────────────────────
 langfuse~=2.54.0
 
-# Resilience
-tenacity>=8.2.0
+# ─── Graph Database (Neo4j) ────────────────────────────────────────────────
+neo4j>=6.2,<6.4
 
-# Email validation
-email-validator>=2.0.0
+# ─── Supabase (managed Postgres + Storage) ────────────────────────────────
+supabase~=2.31.0
 
-# Document processing
-# SECURITY: pypdf replaces deprecated PyPDF2
-pypdf>=6.17.0
-pdfplumber>=0.7.0
-python-docx>=0.8.11
-openpyxl>=3.0.0
-reportlab>=4.0.0
+# ─── LLM SDKs (required by langfuse wrapper) ───────────────────────────────
+# Added 2026-07-10 — langfuse needs these to wrap LLM calls
+openai~=2.52.0
+anthropic~=1.4.0
 
-# Utilities
-tqdm>=4.66.0
-beautifulsoup4>=4.10.0
-lxml>=6.1.3
-
-# Security
-pyotp>=2.9.0
-# WebAuthn / FIDO2 — required for production MFA (HIGH #8).
-# Without this, security/mfa.py rejects all WebAuthn registrations/assertions.
-webauthn>=3.0.1
-redis>=6.2.0
-
-# WebSocket
-websockets>=12.0
-
-# Migrations
-alembic>=1.13.0
-
-# Cloudflare R2 storage (S3-compatible)
-boto3>=1.43.89
+# ─── Transitive Security Pins (Snyk) ───────────────────────────────────────
 protobuf>=5.29.6 # not directly required, pinned by Snyk to avoid a vulnerability
 urllib3>=2.8.0 # not directly required, pinned by Snyk to avoid a vulnerability

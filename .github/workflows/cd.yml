@@ -30,7 +30,7 @@ jobs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Verify Release Gate success + SHA pinning
@@ -124,13 +124,21 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Fail fast on missing deploy secrets (NO silent no-ops per FIX-19)
+      - name: Fail fast on missing deploy and runtime secrets (RC-6)
         run: |
           set -euo pipefail
           missing=0
+          # Deployment secrets
           for s in HF_TOKEN VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
             if [ -z "${!s:-}" ]; then
               echo "::error::Missing deployment secret: $s"
+              missing=1
+            fi
+          done
+          # Runtime secrets required for production operation
+          for s in JWT_SECRET_KEY DATABASE_URL LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY HF_API_KEY; do
+            if [ -z "${!s:-}" ]; then
+              echo "::error::Missing runtime secret: $s"
               missing=1
             fi
           done
@@ -138,34 +146,38 @@ jobs:
             echo "::error::NOT DEPLOYED — Required secrets are missing."
             exit 1
           fi
+          echo "All deployment and runtime secrets validated successfully."
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.SUPABASE_DB_URL || secrets.SUPABASE_URL }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          HF_API_KEY: ${{ secrets.HF_API_KEY || secrets.HF_TOKEN }}
 
   build-ui:
     needs: [guard]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/checkout@v4
         with:
           ref: "${{ needs.guard.outputs.sha }}"
       - name: Install pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        uses: pnpm/action-setup@v4
         with:
           version: 9.15.4
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        working-directory: ui
-      - name: Build UI
-        run: pnpm build
-        working-directory: ui
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Build UI (tsc -b && vite build)
+        run: pnpm --filter ui run build
+      - uses: actions/upload-artifact@v4
         with:
           name: ui-dist
           path: ui/dist
@@ -178,10 +190,10 @@ jobs:
     outputs:
       hf_sha: ${{ steps.push.outputs.hf_sha }}
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/checkout@v4
         with:
           ref: "${{ needs.guard.outputs.sha }}"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1 (node24)
+      - uses: actions/download-artifact@v4
         with:
           name: ui-dist
           path: ui-dist
@@ -295,19 +307,21 @@ jobs:
     timeout-minutes: 20
     environment: production
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/checkout@v4
         with:
           ref: "${{ needs.guard.outputs.sha }}"
       - name: Install pnpm
-        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        uses: pnpm/action-setup@v4
         with:
           version: 9.15.4
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Deploy (strict — failures must fail the run)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
           npx vercel@59.25.0 pull --yes --environment=production
@@ -322,12 +336,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v7.0.0
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Smoke the EXACT deployed revision
         env:

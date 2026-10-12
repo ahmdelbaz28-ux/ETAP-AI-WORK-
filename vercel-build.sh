@@ -96,10 +96,10 @@ fi
 # Step 2: vite build
 # -----------------------------------------------------------------------------
 echo ""
-echo "=== Step 2/3: vite build (ui/) ==="
-if ! pnpm --prefix ui run build:vercel; then
+echo "=== Step 2/3: vite build (ui/) — tsc -b && vite build ==="
+if ! pnpm --prefix ui run build; then
   echo ""
-  echo "❌ vite build failed (pnpm run build:vercel)"
+  echo "❌ UI build failed (pnpm run build: tsc -b && vite build)"
   exit 3
 fi
 echo "✓ vite build completed"

@@ -24,9 +24,11 @@ Navigate to:
   - **Mandatory Status Checks to select:**
     1. `Authoritative Release Gate` (from `.github/workflows/release-gate.yml`)
     2. `CI Success` (from `.github/workflows/ci.yml`)
-    3. `Authoritative TypeScript Quality Gate` (from `.github/workflows/ui-quality.yml`)
-    4. `Docker Validation Summary` (from `.github/workflows/docker-validation.yml`)
+    3. `gitleaks` (from `.github/workflows/secret-scan.yml`)
+    4. `npm audit (high)` (from `.github/workflows/npm-audit.yml`)
     5. `Trivy Security Scan` (from `.github/workflows/security.yml`)
+    6. `Docker Validation Summary` (from `.github/workflows/docker-validation.yml`)
+    7. `UI Quality Summary` (from `.github/workflows/ui-quality.yml`)
 
 ### 1.3 Governance & Linear History
 * [x] **Do not allow bypassing the above settings** (`enforce_admins: true`)

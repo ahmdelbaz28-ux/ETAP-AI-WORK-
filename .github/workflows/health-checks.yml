@@ -29,7 +29,6 @@ on:
     - cron: '0 5 1 * *'
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   HEALTH_CHECK_API_URL: ${{ vars.HEALTH_CHECK_API_URL || 'https://ahmdelbaz28-ahmedetap-platform.hf.space' }}
   HEALTH_CHECK_API_KEY: ${{ secrets.HEALTH_CHECK_API_KEY || '' }}
   HEALTH_CHECK_TIMEOUT_MS: ${{ vars.HEALTH_CHECK_TIMEOUT_MS || '10000' }}
@@ -129,7 +128,7 @@ jobs:
     if: needs.determine-checks.outputs.run-daily == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
@@ -137,7 +136,7 @@ jobs:
           version: 9.15.4
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           
@@ -153,7 +152,7 @@ jobs:
           HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
 
       - name: Upload health check report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: daily-health-check-report
@@ -181,7 +180,7 @@ jobs:
     if: needs.determine-checks.outputs.run-weekly == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
@@ -189,7 +188,7 @@ jobs:
           version: 9.15.4
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           
@@ -205,7 +204,7 @@ jobs:
           HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
 
       - name: Upload health check report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: weekly-health-check-report
@@ -233,7 +232,7 @@ jobs:
     if: needs.determine-checks.outputs.run-monthly == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
@@ -241,7 +240,7 @@ jobs:
           version: 9.15.4
 
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           
@@ -257,7 +256,7 @@ jobs:
           HEALTH_CHECK_TIMEOUT_MS: ${{ env.HEALTH_CHECK_TIMEOUT_MS }}
 
       - name: Upload health check report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: monthly-health-check-report
@@ -285,7 +284,7 @@ jobs:
     if: always()
     steps:
       - name: Download all reports
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1 (node24)
+        uses: actions/download-artifact@v4
         with:
           path: reports
           pattern: '*-health-check-report'

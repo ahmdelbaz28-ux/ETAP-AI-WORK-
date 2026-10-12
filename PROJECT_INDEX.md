@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-12T09:00:37.976719+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-12T15:05:50.460260+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,15 +10,15 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 394 |
-| Python | Classes | 964 |
-| Python | Functions | 858 |
+| Python | Files | 397 |
+| Python | Classes | 973 |
+| Python | Functions | 862 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 285 |
-| Total | Tests | 3992 |
+| Test | Files | 287 |
+| Total | Tests | 4022 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 454 |
+| Environment | Variables | 478 |
 | Scripts | | 168 |
 | AI | Agents | 31 |
 | Integrations | | 22 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -121,7 +121,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **454** variables
+Total: **478** variables
 
 ### General
 
@@ -284,6 +284,7 @@ Total: **454** variables
 - `ALLOW_GIS_TO_ETAP_SYNC`
 - `ALLOW_SQLITE_IN_PROD`
 - `ALLOW_TEST_TOKENS`
+- `ANDROID_BUILD_TOP`
 - `ANOMALY_CURRENT_MAX`
 - `ANOMALY_TEMP_MAX`
 - `ANOMALY_VOLTAGE_MAX`
@@ -306,9 +307,11 @@ Total: **454** variables
 - `BACKEND_URL`
 - `BASE_URL`
 - `CACHE_TTL`
+- `CC`
 - `CELERY_BROKER_USE_SSL`
 - `CELERY_MAX_WORKERS`
 - `CELERY_MIN_WORKERS`
+- `CFLAGS`
 - `CF_BLOCKED_COUNTRIES`
 - `CF_ORIGIN_RATE_LIMIT`
 - `CI`
@@ -317,12 +320,15 @@ Total: **454** variables
 - `CODE_CONTEXT_INDEX_DIR`
 - `COMMIT_SHA`
 - `CONF_THRESHOLD`
+- `CPPFLAGS`
 - `CRON_SECRET`
 - `CSRF_ALLOWED_ORIGINS`
 - `CSRF_SECRET`
 - `CUA_AUDIT_DIR`
 - `CUA_CHECKPOINT_DIR`
 - `CUA_LOOP_TIMEOUT_SEC`
+- `CXX`
+- `CXXFLAGS`
 - `DAYTONA_API_TOKEN`
 - `DAYTONA_API_URL`
 - `DAYTONA_SERVER_URL`
@@ -340,6 +346,7 @@ Total: **454** variables
 - `DUCKDBSTORE_CONSTRUCTOR_KWARGS_JSON`
 - `DUCKDBSTORE_DB_PATH`
 - `DUCKDBSTORE_IMPORT_PATH`
+- `DXSDK_DIR`
 - `E2E_USER_PASSWORD`
 - `EMAIL_APP_URL`
 - `EMAIL_BRAND_NAME`
@@ -393,6 +400,15 @@ Total: **454** variables
 - `GIS_PROVIDER`
 - `GITHUB_ACTIONS`
 - `GITHUB_PAT`
+- `GYP_CONFIG_DIR`
+- `GYP_CROSSCOMPILE`
+- `GYP_GENERATORS`
+- `GYP_GENERATOR_OUTPUT`
+- `GYP_LINK_CONCURRENCY`
+- `GYP_LINK_CONCURRENCY_MAX`
+- `GYP_MSVS_OVERRIDE_PATH`
+- `GYP_MSVS_VERSION`
+- `GYP_USE_SEPARATE_MSPDBSRV`
 - `HF_API_KEY`
 - `HF_COMMIT_SHA`
 - `HF_SPACE_API_KEY`
@@ -427,6 +443,7 @@ Total: **454** variables
 - `LANGWATCH_OVERRIDE_MODE`
 - `LANGWATCH_PROJECT_ID`
 - `LANGWATCH_TIMEOUT`
+- `LDFLAGS`
 - `LLM_MODEL`
 - `LOCUST_TEST_PASSWORD`
 - `LOCUST_TEST_USERNAME`
@@ -469,9 +486,12 @@ Total: **454** variables
 - `OTP_MAX_ATTEMPTS`
 - `OTP_TTL_SECONDS`
 - `OVERLAP_THRESHOLD`
+- `PATH`
 - `PLAYWRIGHT_BROWSERS_PATH`
 - `POSTGIS_DSN`
 - `POSTGIS_SCHEMA`
+- `PROCESSOR_ARCHITECTURE`
+- `PROCESSOR_ARCHITEW6432`
 - `PRODUCTION_URL`
 - `PROMPT_CACHE_TTL`
 - `PROMPT_CB_FAILURE_THRESHOLD`
@@ -570,15 +590,19 @@ Total: **454** variables
 - `TOKEN_BLACKLIST_PREFIX`
 - `TRUSTED_PROXY_HOPS`
 - `UPTIMEROBOT_API_KEY`
+- `USERDOMAIN`
+- `USERNAME`
 - `USE_MOCK_ETAP`
 - `USE_MOCK_GIS`
 - `USE_REDIS_RATE_LIMIT`
 - `VITE_API_URL`
 - `WAYLAND_DISPLAY`
+- `WDK_DIR`
 - `WEBHOOK_DNS_TIMEOUT`
 - `WEBHOOK_RATE_LIMIT_MAX`
 - `WEBHOOK_RATE_LIMIT_WINDOW`
 - `WEB_CONCURRENCY`
+- `WINDIR`
 - `WORKERS`
 - `X_FRAME_OPTIONS`
 - `ZAI_API_KEY`
@@ -695,7 +719,7 @@ Protection system coordination analysis per IE
 - **Class** `CoordinationAgent` (line 53)
   - Methods: `calculate_relay_operating_time()`, `verify_coordination()`, `generate_tcc_data()`, `analyze_selectivity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/cua_base_executor.py` _37.6 KB_
+#### 📄 `agents/cua_base_executor.py` _53.4 KB_
 > agents/cua_base_executor.py — Base CUA Executor (Template Method pattern)
 
 Extracts the shared CUA loop algorithm from DesktopCUAExecutor and
@@ -703,12 +727,17 @@ BrowserC
 
 - **Class** `CUAAction` (line 68)
   - Methods: `from_gemini()`, `is_destructive()`
-- **Class** `CUAStepResult` (line 130)
+- **Class** `ControlValidationResult` (line 132)
+  - Methods: `program_suggestion()`, `risk_note()`, `to_dict()`
+- **Class** `ConfirmationPayload` (line 160)
+  - Methods: `type()`, `text()`, `keys()`, `x()`, `y()`, `is_destructive()`
+- **Class** `CUAStepResult` (line 419)
   - Methods: `to_audit_dict()`
-- **Class** `CUAExecutionResult` (line 163)
+- **Class** `CUAExecutionResult` (line 456)
   - Methods: `to_dict()`
-- **Class** `BaseCUAExecutor` (line 194)
-  - Methods: `check_dependencies()`, `execute_loop()`
+- **Class** `BaseCUAExecutor` (line 487)
+  - Methods: `check_dependencies()`, `validate_control_action()`, `execute_loop()`
+- **def** `validate_control_action()` (line 236)
 
 #### 📄 `agents/cua_executor.py` _13.0 KB_
 > agents/cua_executor.py — Computer Use Agent Executor (Desktop/pyautogui)
@@ -774,7 +803,7 @@ e
 - **Class** `GoalPlannerAgent` (line 60)
   - Methods: `adaptive_scheduler()`, `extract_tasks()`, `prioritize_tasks()`, `assess_risks()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/life_safety.py` _50.1 KB_
+#### 📄 `agents/life_safety.py` _50.6 KB_
 > agents/life_safety.py — Life Safety Guard for the CUA Loop
 
 THE PROBLEM:
@@ -783,14 +812,14 @@ THE PROBLEM:
 
 - **Class** `SafetyCheckResult` (line 321)
   - Methods: `to_dict()`
-- **Class** `TamperEvidentAuditLog` (line 341)
+- **Class** `TamperEvidentAuditLog` (line 342)
   - Methods: `append()`, `verify_chain()`
-- **Class** `LifeSafetyGuard` (line 515)
+- **Class** `LifeSafetyGuard` (line 516)
   - Methods: `pre_action_check()`, `post_action_record()`, `rollback()`, `register_auto_rollback_handler()`, `verify_post_action()`, `set_verification_hook()`, `health_check()`
 - **def** `activate_kill_switch()` (line 255)
 - **def** `deactivate_kill_switch()` (line 300)
 - **def** `is_kill_switch_active()` (line 312)
-- **def** `default_production_rollback_handler()` (line 476)
+- **def** `default_production_rollback_handler()` (line 477)
 
 #### 📄 `agents/models.py` _4.5 KB_
 > Data models for the multi-agent engineering orchestration system.
@@ -918,20 +947,20 @@ Typed goal router and dependency-aware study planner for multi-agent workflo
 - **def** `determine_execution_order()` (line 256)
 - **def** `create_router()` (line 261)
 
-#### 📄 `agents/scada_agent.py` _58.4 KB_
+#### 📄 `agents/scada_agent.py` _59.6 KB_
 > AhmedETAP - SCADA Integration Agent
 =======================================================
 IEC 61850 data model mapping and real-time measurement pro
 
-- **Class** `SCADAMeasurement` (line 143)
+- **Class** `SCADAMeasurement` (line 153)
   - Methods: `to_dict()`
-- **Class** `SCADAConnection` (line 173)
+- **Class** `SCADAConnection` (line 183)
   - Methods: `connect()`, `disconnect()`
-- **Class** `LiveModbusAdapter` (line 206)
+- **Class** `LiveModbusAdapter` (line 216)
   - Methods: `connect()`, `read_measurements()`, `close()`
-- **Class** `LiveOpcUaAdapter` (line 330)
+- **Class** `LiveOpcUaAdapter` (line 340)
   - Methods: `connect()`, `read_measurements()`, `close()`
-- **Class** `SCADAAgent` (line 419)
+- **Class** `SCADAAgent` (line 429)
   - Methods: `connect_scada()`, `read_measurements()`, `map_to_bus_data()`, `process_realtime_data()`, `get_iec61850_model()`, `execute()`, `validate_result()`
 
 #### 📄 `agents/stability_agent.py` _32.4 KB_
@@ -958,36 +987,6 @@ Orchestrates autonomous study execution pipelines, parallel dispatch,
 
 - **Class** `WorkflowEngine` (line 95)
   - Methods: `build_execution_plan()`, `export_execution_trace()`, `execute_workflow()`, `execute_parallel_studies()`
-
-#### 📄 `agents/optimizers/__init__.py` _0.5 KB_
-> agents/optimizers — Learning and Optimization Agents for AhmedETAP.
-
-
-#### 📄 `agents/optimizers/adaptive_planner.py` _6.3 KB_
-> agents/optimizers/adaptive_planner.py — Adaptive Critical Path Task Scheduling Optimizer.
-
-Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
-
-- **Class** `ScheduledTask` (line 19)
-- **Class** `ScheduleResult` (line 36)
-- **Class** `AdaptiveTaskScheduler` (line 47)
-  - Methods: `schedule()`
-
-#### 📄 `agents/optimizers/bandit_router.py` _8.3 KB_
-> agents/optimizers/bandit_router.py — Adaptive Learning Contextual Bandit Goal Router.
-
-Replaces static heuristic routing with an online learning Conte
-
-- **Class** `ContextualBanditRouter` (line 25)
-  - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
-
-#### 📄 `agents/optimizers/optimization_agent.py` _8.5 KB_
-> agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
-
-Integrates Particle Swarm Optimization (PSO), multi-objective 
-
-- **Class** `OptimizationAgent` (line 29)
-  - Methods: `name()`, `execute()`
 
 #### 📄 `agents/etap_expert/__init__.py` _1.3 KB_
 > ETAP Expert Skill — sub-modules package.
@@ -1029,6 +1028,36 @@ Contains the cable-sizing simulation engine and related calculations
 - **def** `simulate_cable_sizing()` (line 71)
 - **def** `try_cable_sizing_simulation()` (line 133)
 - **def** `generic_complete_response()` (line 189)
+
+#### 📄 `agents/optimizers/__init__.py` _0.5 KB_
+> agents/optimizers — Learning and Optimization Agents for AhmedETAP.
+
+
+#### 📄 `agents/optimizers/adaptive_planner.py` _6.3 KB_
+> agents/optimizers/adaptive_planner.py — Adaptive Critical Path Task Scheduling Optimizer.
+
+Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
+
+- **Class** `ScheduledTask` (line 19)
+- **Class** `ScheduleResult` (line 36)
+- **Class** `AdaptiveTaskScheduler` (line 47)
+  - Methods: `schedule()`
+
+#### 📄 `agents/optimizers/bandit_router.py` _8.3 KB_
+> agents/optimizers/bandit_router.py — Adaptive Learning Contextual Bandit Goal Router.
+
+Replaces static heuristic routing with an online learning Conte
+
+- **Class** `ContextualBanditRouter` (line 25)
+  - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
+
+#### 📄 `agents/optimizers/optimization_agent.py` _8.5 KB_
+> agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
+
+Integrates Particle Swarm Optimization (PSO), multi-objective 
+
+- **Class** `OptimizationAgent` (line 29)
+  - Methods: `name()`, `execute()`
 
 ### 📦 `api/`
 
@@ -1184,29 +1213,29 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _26.6 KB_
+#### 📄 `api/approvals.py` _39.3 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
 pass before execution. Provides:
 
 
-- **Class** `PendingAction` (line 130)
-- **Class** `IdempotencyKey` (line 165)
-- **Class** `CreateApprovalRequest` (line 189)
-- **Class** `ResolveRequest` (line 200)
-- **Class** `AutoApproveRequest` (line 207)
-- **Class** `ApprovalResponse` (line 214)
-- **def** `compute_args_hash()` (line 109)
-- **def** `classify_tool()` (line 115)
-- **def** `set_session_auto_approve()` (line 243)
-- **def** `get_session_auto_approve()` (line 248)
-- **async def** `expire_stale_actions()` (line 337)
-- **async def** `transition_status()` (line 364)
-- **async def** `create_approval()` (line 412)
-- **async def** `list_pending()` (line 493)
-- **async def** `resolve_action()` (line 522)
-- **async def** `verify_approval()` (line 633)
+- **Class** `PendingAction` (line 144)
+- **Class** `IdempotencyKey` (line 182)
+- **Class** `CreateApprovalRequest` (line 206)
+- **Class** `ResolveRequest` (line 471)
+- **Class** `AutoApproveRequest` (line 486)
+- **Class** `ApprovalResponse` (line 493)
+- **def** `compute_args_hash()` (line 123)
+- **def** `classify_tool()` (line 129)
+- **def** `validate_server_control_action()` (line 218)
+- **def** `set_session_auto_approve()` (line 524)
+- **def** `get_session_auto_approve()` (line 529)
+- **async def** `expire_stale_actions()` (line 618)
+- **async def** `transition_status()` (line 645)
+- **async def** `create_approval()` (line 703)
+- **async def** `list_pending()` (line 784)
+- **async def** `resolve_action()` (line 813)
 
   **API Routes:**
   - `GET /pending`
@@ -1689,7 +1718,7 @@ Provides:
 - **def** `get_recovery_suggestions()` (line 840)
 - **def** `setup_structured_logging()` (line 1109)
 
-#### 📄 `api/etap_draw.py` _26.9 KB_
+#### 📄 `api/etap_draw.py` _34.6 KB_
 > ETAP Draw Endpoints API Router — /api/v1/etap/draw/*
 
 Safe automatic ETAP drawing via DataHub etapAPI REST (server-side Auto-Build).
@@ -1697,14 +1726,14 @@ Mirrors the SCADA
 
 - **Class** `EtapDrawProposeRequest` (line 114)
 - **Class** `EtapDrawResolveRequest` (line 118)
-- **Class** `EtapDrawFromProjectRequest` (line 503)
+- **Class** `EtapDrawFromProjectRequest` (line 598)
 - **def** `is_draw_enabled()` (line 79)
 - **async def** `propose_draw()` (line 143)
 - **async def** `list_pending_draws()` (line 236)
 - **async def** `resolve_draw()` (line 283)
-- **async def** `get_draw_status()` (line 440)
-- **def** `is_full_network_draw_enabled()` (line 478)
-- **async def** `propose_draw_from_project()` (line 642)
+- **async def** `get_draw_status()` (line 535)
+- **def** `is_full_network_draw_enabled()` (line 573)
+- **async def** `propose_draw_from_project()` (line 834)
 
 #### 📄 `api/export.py` _49.6 KB_
 > api/export.py — Advanced Export Service (P9).
@@ -1736,25 +1765,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _20.0 KB_
+#### 📄 `api/feature_flags.py` _20.1 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 447)
-- **Class** `FeatureFlagListOut` (line 456)
-- **Class** `FeatureFlagPatch` (line 464)
+- **Class** `FeatureFlagOut` (line 450)
+- **Class** `FeatureFlagListOut` (line 459)
+- **Class** `FeatureFlagPatch` (line 467)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 333)
-- **def** `is_feature_enabled()` (line 338)
-- **def** `is_strict_feature_enabled()` (line 358)
-- **def** `get_disabled_studies()` (line 378)
-- **def** `get_flag_metadata()` (line 395)
-- **def** `evaluate_flag_with_rollout()` (line 426)
-- **async def** `list_feature_flags()` (line 519)
-- **async def** `get_feature_flag()` (line 538)
-- **async def** `update_feature_flag()` (line 561)
+- **def** `is_enabled()` (line 336)
+- **def** `is_feature_enabled()` (line 341)
+- **def** `is_strict_feature_enabled()` (line 361)
+- **def** `get_disabled_studies()` (line 381)
+- **def** `get_flag_metadata()` (line 398)
+- **def** `evaluate_flag_with_rollout()` (line 429)
+- **async def** `list_feature_flags()` (line 522)
+- **async def** `get_feature_flag()` (line 541)
+- **async def** `update_feature_flag()` (line 564)
 
   **API Routes:**
   - `GET /{key}`
@@ -2127,20 +2156,20 @@ Handles all API endpoints, request validation, and response formatting.
   - `GET /api/v1/docs`
   - `GET /api/v1/redoc`
 
-#### 📄 `api/scada.py` _24.6 KB_
+#### 📄 `api/scada.py` _27.2 KB_
 > SCADA Endpoints API Router — /api/v1/scada/*
 
 Modular home for SCADA data and safe real-time control operations.
 Provides:
 - GET  /api/v1/scada/live  
 
-- **Class** `SCADAResolveRequest` (line 93)
-- **async def** `scada_live()` (line 148)
-- **async def** `scada_devices()` (line 273)
-- **async def** `propose_control_action()` (line 332)
-- **async def** `list_pending_control_actions()` (line 487)
-- **async def** `resolve_control_action()` (line 537)
-- **async def** `get_control_action_status()` (line 675)
+- **Class** `SCADAResolveRequest` (line 94)
+- **async def** `scada_live()` (line 156)
+- **async def** `scada_devices()` (line 281)
+- **async def** `propose_control_action()` (line 340)
+- **async def** `list_pending_control_actions()` (line 495)
+- **async def** `resolve_control_action()` (line 545)
+- **async def** `get_control_action_status()` (line 728)
 
 #### 📄 `api/security_audit.py` _54.3 KB_
 > api/security_audit.py — Runtime security audit module for the AhmedETAP.
@@ -2500,6 +2529,33 @@ Provides CRUD endpoints for:
 - **async def** `update_generator()` (line 577)
 - **async def** `delete_generator()` (line 629)
 
+#### 📄 `api/config/__init__.py` _0.2 KB_
+> Production configuration module for AhmedETAP.
+
+
+#### 📄 `api/config/production.py` _0.6 KB_
+> Production configuration for AhmedETAP Platform.
+
+Contains configuration flags and environment validation for production deployment.
+
+
+#### 📄 `api/cron/digest.py` _3.0 KB_
+> Vercel Serverless Function — Email Digest Cron Trigger
+======================================================
+Triggered by Vercel Cron daily at 08:00 
+
+- **Class** `handler` (line 16)
+  - Methods: `do_POST()`, `do_GET()`
+
+#### 📄 `api/models/__init__.py` _0.0 KB_
+> API ORM Models package.
+
+
+#### 📄 `api/models/solver_parameters.py` _1.2 KB_
+> ORM model for ProjectSolverParameters.
+
+- **Class** `ProjectSolverParameters` (line 16)
+
 #### 📄 `api/services/__init__.py` _0.0 KB_
 > API Services package.
 
@@ -2536,33 +2592,6 @@ Orchestrates:
 
 - **async def** `get_next_revision_number()` (line 32)
 - **async def** `execute_study_re_run()` (line 55)
-
-#### 📄 `api/models/__init__.py` _0.0 KB_
-> API ORM Models package.
-
-
-#### 📄 `api/models/solver_parameters.py` _1.2 KB_
-> ORM model for ProjectSolverParameters.
-
-- **Class** `ProjectSolverParameters` (line 16)
-
-#### 📄 `api/cron/digest.py` _3.0 KB_
-> Vercel Serverless Function — Email Digest Cron Trigger
-======================================================
-Triggered by Vercel Cron daily at 08:00 
-
-- **Class** `handler` (line 16)
-  - Methods: `do_POST()`, `do_GET()`
-
-#### 📄 `api/config/__init__.py` _0.2 KB_
-> Production configuration module for AhmedETAP.
-
-
-#### 📄 `api/config/production.py` _0.6 KB_
-> Production configuration for AhmedETAP Platform.
-
-Contains configuration flags and environment validation for production deployment.
-
 
 ### 📦 `core/`
 
@@ -3425,24 +3454,6 @@ Enforces:
 - **def** `get_task_ownership()` (line 100)
 - **def** `verify_task_access()` (line 123)
 
-#### 📄 `services/yolo/main.py` _7.0 KB_
-> services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
-
-Standalone FastAPI service that detects layout segments in floor plan images.
-Calle
-
-- **Class** `BoundingBox` (line 73)
-- **Class** `BoundingBoxOutput` (line 80)
-- **Class** `InstanceOutput` (line 87)
-- **Class** `FinalPrediction` (line 94)
-- **def** `download_model()` (line 42)
-- **async def** `lifespan()` (line 57)
-- **def** `map_yolo_class()` (line 115)
-- **async def** `process_image_batch()` (line 122)
-- **async def** `batch_segment()` (line 206)
-- **async def** `root()` (line 220)
-- **async def** `health()` (line 225)
-
 #### 📄 `services/doctr/main.py` _6.8 KB_
 > services/doctr/main.py — DocTR OCR Service for ETAP
 
@@ -3460,6 +3471,24 @@ Called by etap.integration.docu
 - **async def** `batch_ocr()` (line 195)
 - **async def** `root()` (line 212)
 - **async def** `health()` (line 217)
+
+#### 📄 `services/yolo/main.py` _7.0 KB_
+> services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
+
+Standalone FastAPI service that detects layout segments in floor plan images.
+Calle
+
+- **Class** `BoundingBox` (line 73)
+- **Class** `BoundingBoxOutput` (line 80)
+- **Class** `InstanceOutput` (line 87)
+- **Class** `FinalPrediction` (line 94)
+- **def** `download_model()` (line 42)
+- **async def** `lifespan()` (line 57)
+- **def** `map_yolo_class()` (line 115)
+- **async def** `process_image_batch()` (line 122)
+- **async def** `batch_segment()` (line 206)
+- **async def** `root()` (line 220)
+- **async def** `health()` (line 225)
 
 ### 📦 `security/`
 
@@ -4052,34 +4081,6 @@ Impl
 > AhmedETAP Copilot Package.
 
 
-#### 📄 `copilot/mcp/__init__.py` _0.2 KB_
-> MCP Server — Engineering Copilot tool server.
-
-
-#### 📄 `copilot/mcp/server.py` _25.2 KB_
-> Engineering Copilot — MCP Server
-=================================
-Model Context Protocol server exposing all CAD, ETAP, and engineering tools
-as MCP 
-
-- **Class** `CopilotMCPServer` (line 293)
-  - Methods: `list_tools()`, `call_tool()`, `health_check()`
-
-#### 📄 `copilot/translation/__init__.py` _0.2 KB_
-> Translation Engine — Bidirectional engineering data translation.
-
-
-#### 📄 `copilot/translation/engine.py` _23.4 KB_
-> CAD Translation Engine
-======================
-Bidirectional translation between ETAP, AutoCAD, Revit, and the Unified Engineering Model.
-
-Mapping Arch
-
-- **Class** `MappingDirection` (line 37)
-- **Class** `TranslationEngine` (line 259)
-  - Methods: `get_drawing_rule()`, `get_all_mapping_rules()`, `etap_to_unified()`, `unified_to_etap()`, `unified_to_autocad_commands()`, `etap_to_autocad()`, `revit_to_unified()`, `unified_to_revit_commands()`
-
 #### 📄 `copilot/ai/__init__.py` _0.2 KB_
 > AI Drawing Engine — Autonomous CAD generation from natural language.
 
@@ -4118,6 +4119,38 @@ Security
   - Methods: `validate_voltage_results()`, `validate_short_circuit_results()`, `validate_trip_time()`, `validate_coordination_selectivity()`, `validate_arc_flash_results()`, `validate_cable_sizing()`, `validate()`, `run_assertions()`
 - **def** `validate_fallback_output()` (line 928)
 
+#### 📄 `copilot/api/__init__.py` _0.2 KB_
+> FastAPI Backend — Engineering Copilot REST API.
+
+
+#### 📄 `copilot/api/routes.py` _15.2 KB_
+> Engineering Copilot — FastAPI Backend
+=====================================
+REST API for the Engineering Copilot that orchestrates ETAP, AutoCAD, Revi
+
+- **Class** `ProcessRequest` (line 72)
+- **Class** `TranslateRequest` (line 85)
+- **Class** `ModelUpdateRequest` (line 91)
+- **Class** `ToolCallRequest` (line 95)
+- **Class** `SyncRequest` (line 99)
+- **Class** `ValidateRequest` (line 105)
+- **Class** `CopilotAPI` (line 115)
+  - Methods: `get_router()`
+- **def** `create_app()` (line 359)
+
+#### 📄 `copilot/mcp/__init__.py` _0.2 KB_
+> MCP Server — Engineering Copilot tool server.
+
+
+#### 📄 `copilot/mcp/server.py` _25.2 KB_
+> Engineering Copilot — MCP Server
+=================================
+Model Context Protocol server exposing all CAD, ETAP, and engineering tools
+as MCP 
+
+- **Class** `CopilotMCPServer` (line 293)
+  - Methods: `list_tools()`, `call_tool()`, `health_check()`
+
 #### 📄 `copilot/tests/test_copilot_unit.py` _19.2 KB_
 > Engineering Copilot — Integration Tests
 ========================================
@@ -4137,24 +4170,20 @@ M
 - **Class** `TestETAPAdapter` (line 506)
   - Methods: `setUp()`, `test_bus_to_unified()`, `test_transformer_to_unified()`, `test_cable_to_unified()`
 
-#### 📄 `copilot/api/__init__.py` _0.2 KB_
-> FastAPI Backend — Engineering Copilot REST API.
+#### 📄 `copilot/translation/__init__.py` _0.2 KB_
+> Translation Engine — Bidirectional engineering data translation.
 
 
-#### 📄 `copilot/api/routes.py` _15.2 KB_
-> Engineering Copilot — FastAPI Backend
-=====================================
-REST API for the Engineering Copilot that orchestrates ETAP, AutoCAD, Revi
+#### 📄 `copilot/translation/engine.py` _23.4 KB_
+> CAD Translation Engine
+======================
+Bidirectional translation between ETAP, AutoCAD, Revit, and the Unified Engineering Model.
 
-- **Class** `ProcessRequest` (line 72)
-- **Class** `TranslateRequest` (line 85)
-- **Class** `ModelUpdateRequest` (line 91)
-- **Class** `ToolCallRequest` (line 95)
-- **Class** `SyncRequest` (line 99)
-- **Class** `ValidateRequest` (line 105)
-- **Class** `CopilotAPI` (line 115)
-  - Methods: `get_router()`
-- **def** `create_app()` (line 359)
+Mapping Arch
+
+- **Class** `MappingDirection` (line 37)
+- **Class** `TranslationEngine` (line 259)
+  - Methods: `get_drawing_rule()`, `get_all_mapping_rules()`, `etap_to_unified()`, `unified_to_etap()`, `unified_to_autocad_commands()`, `etap_to_autocad()`, `revit_to_unified()`, `unified_to_revit_commands()`
 
 ### 📦 `schemas/`
 
@@ -4338,14 +4367,17 @@ Provides ETAP COM automation, provider abstraction, worker service,
 error recovery, compatibility ch
 
 
-#### 📄 `etap_integration/draw_plan_builder.py` _17.8 KB_
+#### 📄 `etap_integration/draw_plan_builder.py` _28.1 KB_
 > ETAP Draw Plan Builder.
 
-Builds bounded, dependency-ordered EtapDrawPlan chunks from internal models
-(core_model.System or dictionaries from sync_engi
+Constructs dependency-ordered, chunked drawing requests for the ETAP REST API
+(ETAP DataHub etapAPI).
 
-- **def** `build_draw_plan()` (line 36)
-- **async def** `execute_draw_plans_atomic()` (line 134)
+Responsibilities:
+1. N
+
+- **def** `build_draw_plan()` (line 34)
+- **async def** `execute_draw_plans_atomic()` (line 143)
 
 #### 📄 `etap_integration/etap_adapter.py` _6.8 KB_
 > ETAP Adapter module for the Engineering Service.
@@ -4444,7 +4476,7 @@ Provides a REST API for the
 - **async def** `health_check()` (line 94)
 - **async def** `execute_study()` (line 137)
 
-#### 📄 `etap_integration/post_draw_verifier.py` _8.1 KB_
+#### 📄 `etap_integration/post_draw_verifier.py` _9.0 KB_
 > Operational Post-Draw Verification Engine.
 
 Dispatches Load Flow calculation on the generated ETAP project via the ETAP
@@ -4452,8 +4484,8 @@ worker service (or local engin
 
 - **Class** `BusVerificationDetail` (line 31)
 - **Class** `NetworkVerificationResult` (line 42)
-- **def** `verify_bus_results()` (line 53)
-- **async def** `dispatch_load_flow_verification()` (line 136)
+- **def** `verify_bus_results()` (line 55)
+- **async def** `dispatch_load_flow_verification()` (line 161)
 
 #### 📄 `etap_integration/scada_client.py` _13.0 KB_
 > AhmedETAP Platform — SCADA Client (IEC 61850)
@@ -4933,14 +4965,25 @@ This module provides:
 - **def** `list_files()` (line 503)
 - **def** `health_check()` (line 536)
 
-#### 📄 `integrations/zenon_network_export/__init__.py` _1.0 KB_
+#### 📄 `integrations/zenon_network_export/__init__.py` _1.6 KB_
 > Zenon Network Export integration module.
 
 Provides contract models, field mappers, and parsers for importing
 ABB / COPA-DATA zenon SCADA topology into
 
 
-#### 📄 `integrations/zenon_network_export/contract.py` _9.5 KB_
+#### 📄 `integrations/zenon_network_export/classifier.py` _33.5 KB_
+> Zenon Raw Dump Classifier.
+
+Translates raw variable/screen dumps from zenon SCADA into the canonical
+ZenonNetworkExport v1 contract using configurable
+
+- **Class** `ClassifyResult` (line 49)
+  - Methods: `is_valid()`
+- **Class** `ZenonClassifier` (line 63)
+  - Methods: `classify_raw_dump()`
+
+#### 📄 `integrations/zenon_network_export/contract.py` _9.6 KB_
 > Zenon Network Export v1 Contract Schema.
 
 Strict Pydantic models for importing electrical topology and parameters exported
@@ -4949,21 +4992,30 @@ from ABB/COPA-DATA zenon SC
 - **Class** `ZenonProjectMetadata` (line 17)
 - **Class** `ZenonElementBase` (line 32)
 - **Class** `ZenonBus` (line 43)
-- **Class** `ZenonLine` (line 53)
-- **Class** `ZenonCable` (line 66)
-- **Class** `ZenonTransformer` (line 79)
-- **Class** `ZenonBreaker` (line 93)
-- **Class** `ZenonSwitch` (line 104)
-- **Class** `ZenonLoad` (line 114)
-- **Class** `ZenonGenerator` (line 124)
-- **Class** `ZenonMotor` (line 137)
-- **Class** `ZenonRelay` (line 148)
-- **Class** `ZenonCapacitor` (line 158)
-- **Class** `ZenonReactor` (line 167)
-- **Class** `ZenonSource` (line 178)
-- **Class** `ZenonNetworkExport` (line 188)
+- **Class** `ZenonLine` (line 55)
+- **Class** `ZenonCable` (line 68)
+- **Class** `ZenonTransformer` (line 81)
+- **Class** `ZenonBreaker` (line 95)
+- **Class** `ZenonSwitch` (line 110)
+- **Class** `ZenonLoad` (line 122)
+- **Class** `ZenonGenerator` (line 134)
+- **Class** `ZenonMotor` (line 147)
+- **Class** `ZenonRelay` (line 160)
+- **Class** `ZenonCapacitor` (line 174)
+- **Class** `ZenonReactor` (line 183)
+- **Class** `ZenonSource` (line 194)
+- **Class** `ZenonNetworkExport` (line 204)
 
-#### 📄 `integrations/zenon_network_export/mapping.py` _3.5 KB_
+#### 📄 `integrations/zenon_network_export/live_values.py` _5.3 KB_
+> Zenon Live SCADA Values Integration.
+
+Enriches static Zenon network import models with real-time operational measurements
+(voltage magnitude, current,
+
+- **def** `is_zenon_live_values_enabled()` (line 28)
+- **async def** `enrich_zenon_live_values()` (line 42)
+
+#### 📄 `integrations/zenon_network_export/mapping.py` _3.6 KB_
 > zenon field mapping engine.
 
 Loads user-configurable mappings from YAML and applies them to normalize
@@ -4972,15 +5024,27 @@ raw zenon SCADA tags and object parameters to ca
 - **Class** `ZenonFieldMapper` (line 21)
   - Methods: `map_element_attributes()`
 
-#### 📄 `integrations/zenon_network_export/reader.py` _9.5 KB_
+#### 📄 `integrations/zenon_network_export/raw_dump.py` _2.2 KB_
+> Zenon Raw Dump v1 Schema.
+
+Strict Pydantic contract for raw telemetry and project variable dumps
+extracted from ABB / COPA-DATA zenon Runtime via COM 
+
+- **Class** `ZenonRawProject` (line 17)
+- **Class** `ZenonRawVariable` (line 30)
+- **Class** `ZenonRawScreenElement` (line 45)
+- **Class** `ZenonRawScreen` (line 54)
+- **Class** `ZenonRawDump` (line 63)
+
+#### 📄 `integrations/zenon_network_export/reader.py` _16.5 KB_
 > Zenon Network Export Reader.
 
-Parses a Zenon Network Export v1 contract (JSON/dict) and maps it into:
-1. An internal core_model.System electrical IR (
+Parses a Zenon Network Export v1 contract or raw dump (JSON/dict) and maps it into:
+1. An internal core_model.System ele
 
-- **Class** `ZenonImportResult` (line 34)
+- **Class** `ZenonImportResult` (line 38)
   - Methods: `is_valid()`
-- **def** `parse_zenon_export()` (line 57)
+- **def** `parse_zenon_export()` (line 65)
 
 ### 📦 `knowledge/`
 
@@ -5345,6 +5409,50 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
 
 ### 📦 `autodesk_connector/`
 
+#### 📄 `autodesk_connector/autocad/__init__.py` _0.6 KB_
+> AutoCAD Connector Package
+=========================
+Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
+
+Architecture:
+  Pyth
+
+
+#### 📄 `autodesk_connector/autocad/connector.py` _24.1 KB_
+> AutoCAD Connector — Python Service Layer
+=========================================
+Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
+Provides
+
+- **Class** `AutoCADEntityType` (line 37)
+- **Class** `AutoCADDrawingOperation` (line 54)
+- **Class** `AutoCADDrawingContext` (line 68)
+- **Class** `AutoCADPluginClient` (line 86)
+  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
+- **Class** `AutoCADConnector` (line 393)
+  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
+
+#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
+> Revit Connector Package
+=======================
+Provides the Revit API integration layer for the Engineering Copilot.
+
+Architecture:
+  Python service 
+
+
+#### 📄 `autodesk_connector/revit/connector.py` _16.9 KB_
+> Revit Connector — Python Service Layer
+=======================================
+Orchestrates Revit BIM operations via the C# Revit Plugin.
+Supports rea
+
+- **Class** `RevitElementType` (line 36)
+- **Class** `RevitPluginClient` (line 68)
+  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
+- **Class** `RevitConnector` (line 241)
+  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
+
 #### 📄 `autodesk_connector/shared/models.py` _18.9 KB_
 > Unified Engineering Model — Python Dataclass Implementation
 ============================================================
@@ -5390,50 +5498,6 @@ Pydantic models for the Unifi
   - Methods: `to_json()`, `from_json()`, `from_dict()`, `add_building()`, `add_panel()`, `get_all_buses()`, `get_all_cables()`, `get_all_transformers()`
 - **Class** `ETAPModelAdapter` (line 540)
   - Methods: `bus_to_unified()`, `transformer_to_unified()`, `cable_to_unified()`
-
-#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
-> Revit Connector Package
-=======================
-Provides the Revit API integration layer for the Engineering Copilot.
-
-Architecture:
-  Python service 
-
-
-#### 📄 `autodesk_connector/revit/connector.py` _16.9 KB_
-> Revit Connector — Python Service Layer
-=======================================
-Orchestrates Revit BIM operations via the C# Revit Plugin.
-Supports rea
-
-- **Class** `RevitElementType` (line 36)
-- **Class** `RevitPluginClient` (line 68)
-  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
-- **Class** `RevitConnector` (line 241)
-  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
-
-#### 📄 `autodesk_connector/autocad/__init__.py` _0.6 KB_
-> AutoCAD Connector Package
-=========================
-Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
-
-Architecture:
-  Pyth
-
-
-#### 📄 `autodesk_connector/autocad/connector.py` _24.1 KB_
-> AutoCAD Connector — Python Service Layer
-=========================================
-Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
-Provides
-
-- **Class** `AutoCADEntityType` (line 37)
-- **Class** `AutoCADDrawingOperation` (line 54)
-- **Class** `AutoCADDrawingContext` (line 68)
-- **Class** `AutoCADPluginClient` (line 86)
-  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
-- **Class** `AutoCADConnector` (line 393)
-  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
 
 ### 📦 `config/`
 
@@ -5634,22 +5698,10 @@ Provides
 - `TitleBar.tsx` → Exports: `TitleBar`
 - `ZIPLoadEditorDialog.tsx` → Exports: `ZIPLoadEditorDialog`
 - `admin-primitives.tsx` → Exports: `StatRow`, `ErrorBanner`, `LoadingRow`, `inputClass`, `labelClass`, `StatCard`, `LoadingInline`, `JsonBlock`
-- `CadSimReadyCard.tsx` → Exports: `CadSimReadyCard`
-- `MFASetup.tsx` → Exports: `QRCodeDisplay`, `MFASetup`
-- `index.ts` → Exports: _none_
-- `GridEditorViewer.tsx` → Exports: `GridEditorViewer`
-- `ResultViewer.tsx` → Exports: `ResultViewer`
-- `payload.ts` → Exports: `toRedactedJson`, `extractTableData`, `extractVoltageProfile`, `extractLoadingProfile`, `extractDiagram`
-- `AgentsSkillsPromptsPanel.tsx` → Exports: `AgentsSkillsPromptsPanel`
-- `ProviderKeysPanel.tsx` → Exports: `SERVER_KEY_STORE_PROVIDERS`, `ProviderKeysPanel`
-- `SecurityFlagsPanel.tsx` → Exports: `SecurityFlagsPanel`
-- `AgentsSkillsPromptsPanel.test.tsx` → Exports: _none_
-- `ProviderKeysPanel.test.tsx` → Exports: _none_
-- `SecurityFlagsPanel.test.tsx` → Exports: _none_
-- `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
-- `MagicHelpInspector.tsx` → Exports: `MagicHelpInspector`
-- `SmartHelpDrawer.tsx` → Exports: `SmartHelpDrawer`
-- `OnboardingTour.tsx` → Exports: `OnboardingTour`
+- `ActionCard.tsx` → Exports: `ActionCard`
+- `ApprovalCard.tsx` → Exports: `ApprovalCard`
+- `DecisionCard.tsx` → Exports: `DecisionCard`
+- `ResultCard.tsx` → Exports: `ResultCard`
 - `AISettingsModal.tsx` → Exports: `AISettingsModal`
 - `ActivityDrawer.tsx` → Exports: `ActivityDrawer`
 - `AutoApproveToggle.tsx` → Exports: `AutoApproveToggle`
@@ -5663,6 +5715,28 @@ Provides
 - `QuickActionsBar.tsx` → Exports: `QUICK_ACTIONS`, `QuickActionsBar`
 - `TokenBudgetIndicator.tsx` → Exports: `TokenBudgetIndicator`
 - `QuickActionsBar.test.tsx` → Exports: _none_
+- `CommandPalette.tsx` → Exports: `CommandPalette`
+- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
+- `ContextPanel.tsx` → Exports: `ContextPanel`
+- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
+- `CadSimReadyCard.tsx` → Exports: `CadSimReadyCard`
+- `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
+- `MagicHelpInspector.tsx` → Exports: `MagicHelpInspector`
+- `SmartHelpDrawer.tsx` → Exports: `SmartHelpDrawer`
+- `AppShell.tsx` → Exports: `AppShell`
+- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
+- `Sidebar.tsx` → Exports: `Sidebar`
+- `StatusBar.tsx` → Exports: `StatusBar`
+- `TopBar.tsx` → Exports: `TopBar`
+- `MFASetup.tsx` → Exports: `QRCodeDisplay`, `MFASetup`
+- `index.ts` → Exports: _none_
+- `OnboardingTour.tsx` → Exports: `OnboardingTour`
+- `AgentsSkillsPromptsPanel.tsx` → Exports: `AgentsSkillsPromptsPanel`
+- `ProviderKeysPanel.tsx` → Exports: `SERVER_KEY_STORE_PROVIDERS`, `ProviderKeysPanel`
+- `SecurityFlagsPanel.tsx` → Exports: `SecurityFlagsPanel`
+- `AgentsSkillsPromptsPanel.test.tsx` → Exports: _none_
+- `ProviderKeysPanel.test.tsx` → Exports: _none_
+- `SecurityFlagsPanel.test.tsx` → Exports: _none_
 - `Accordion.tsx` → Exports: `Accordion`
 - `Avatar.tsx` → Exports: `Avatar`
 - `Badge.tsx` → Exports: `Badge`
@@ -5690,19 +5764,9 @@ Provides
 - `Tooltip.tsx` → Exports: `Tooltip`
 - `Visual.tsx` → Exports: `GlassPanel`, `AnimatedBackground`, `StatusIndicator`, `PremiumEmptyState`, `PremiumLoading`, `GradientText`, `Sparkline`, `GlowCard`
 - `index.ts` → Exports: _none_
-- `ContextPanel.tsx` → Exports: `ContextPanel`
-- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
-- `ActionCard.tsx` → Exports: `ActionCard`
-- `ApprovalCard.tsx` → Exports: `ApprovalCard`
-- `DecisionCard.tsx` → Exports: `DecisionCard`
-- `ResultCard.tsx` → Exports: `ResultCard`
-- `CommandPalette.tsx` → Exports: `CommandPalette`
-- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
-- `AppShell.tsx` → Exports: `AppShell`
-- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
-- `Sidebar.tsx` → Exports: `Sidebar`
-- `StatusBar.tsx` → Exports: `StatusBar`
-- `TopBar.tsx` → Exports: `TopBar`
+- `GridEditorViewer.tsx` → Exports: `GridEditorViewer`
+- `ResultViewer.tsx` → Exports: `ResultViewer`
+- `payload.ts` → Exports: `toRedactedJson`, `extractTableData`, `extractVoltageProfile`, `extractLoadingProfile`, `extractDiagram`
 
 ### 🖥️ `components/help/`
 - `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
@@ -5824,10 +5888,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
+| python-module | 41 |
 | api-route | 92 |
 | ui-component | 280 |
 | ui-page | 61 |
-| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
@@ -5839,7 +5903,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5856,10 +5920,10 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5867,7 +5931,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5894,7 +5958,7 @@ Provides
 | `test_anti_greenwash_guard.py` | 5 | 0 | **5** |
 | `test_api_request_context.py` | 0 | 1 | **6** |
 | `test_app_startup.py` | 6 | 0 | **6** |
-| `test_approvals.py` | 0 | 7 | **21** |
+| `test_approvals.py` | 0 | 8 | **27** |
 | `test_arc_flash_agent_calculations.py` | 0 | 5 | **11** |
 | `test_arc_flash_ieee1584_deep.py` | 0 | 8 | **22** |
 | `test_arc_flash_single_engine.py` | 0 | 3 | **8** |
@@ -5973,7 +6037,7 @@ Provides
 | `test_etap_com_mocked.py` | 0 | 5 | **37** |
 | `test_etap_expert_proof.py` | 33 | 0 | **33** |
 | `test_etap_expert_skill.py` | 27 | 0 | **27** |
-| `test_etap_full_network_draw.py` | 0 | 5 | **13** |
+| `test_etap_full_network_draw.py` | 0 | 5 | **17** |
 | `test_etap_gui_agent.py` | 36 | 0 | **36** |
 | `test_etap_parameter_roundtrip.py` | 0 | 6 | **11** |
 | `test_etap_rest_draw.py` | 15 | 0 | **15** |
@@ -6017,7 +6081,7 @@ Provides
 | `test_load_flow_deep.py` | 0 | 6 | **27** |
 | `test_m4_context_boundaries.py` | 21 | 0 | **21** |
 | `test_m5_assertions_rejected.py` | 12 | 0 | **12** |
-| `test_m5_cua_approvals.py` | 11 | 0 | **11** |
+| `test_m5_cua_approvals.py` | 16 | 0 | **16** |
 | `test_m6_integration_acceptance.py` | 0 | 8 | **24** |
 | `test_mandatory_engineering_inputs.py` | 17 | 0 | **17** |
 | `test_mcp_config.py` | 1 | 0 | **1** |
@@ -6083,7 +6147,7 @@ Provides
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
 | `test_run_study_behavioral_equivalence.py` | 0 | 4 | **17** |
 | `test_run_study_registry.py` | 0 | 2 | **12** |
-| `test_scada_acceptance.py` | 9 | 0 | **9** |
+| `test_scada_acceptance.py` | 13 | 0 | **13** |
 | `test_scada_chaos_and_readback.py` | 3 | 0 | **3** |
 | `test_scada_control_gateway.py` | 0 | 1 | **7** |
 | `test_scada_interlock.py` | 0 | 2 | **11** |
@@ -6132,7 +6196,20 @@ Provides
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
 | `test_workflow_chains.py` | 4 | 0 | **4** |
+| `test_zenon_live_values.py` | 4 | 0 | **4** |
 | `test_zenon_network_import.py` | 0 | 3 | **14** |
+| `test_zenon_raw_dump_classifier.py` | 0 | 1 | **7** |
+| `test_cua_confirmation_ws.py` | 2 | 0 | **2** |
+| `test_api_response_vs_frontend_type.py` | 3 | 0 | **3** |
+| `test_file_path_vs_link_href.py` | 1 | 0 | **1** |
+| `test_snake_case_camel_case_consistency.py` | 2 | 0 | **2** |
+| `test_state_transition_completeness.py` | 1 | 0 | **1** |
+| `test_api_endpoints.py` | 12 | 0 | **12** |
+| `test_optimal_power_flow.py` | 1 | 0 | **1** |
+| `test_retry_behavior.py` | 11 | 0 | **11** |
+| `test_skill_loading.py` | 7 | 0 | **7** |
+| `test_skill_validator.py` | 12 | 0 | **12** |
+| `test_calculations_regression.py` | 6 | 0 | **6** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
 | `test_battery_storage_scenario.py` | 0 | 1 | **6** |
 | `test_cable_sizing_scenario.py` | 0 | 1 | **7** |
@@ -6149,21 +6226,10 @@ Provides
 | `test_short_circuit_scenario.py` | 0 | 1 | **6** |
 | `test_stability_scenario.py` | 0 | 1 | **9** |
 | `test_validation_scenario.py` | 0 | 1 | **6** |
-| `test_retry_behavior.py` | 11 | 0 | **11** |
-| `test_skill_loading.py` | 7 | 0 | **7** |
-| `test_skill_validator.py` | 12 | 0 | **12** |
 | `test_api_values.py` | 26 | 0 | **26** |
 | `test_security_perf.py` | 12 | 0 | **12** |
 | `test_ui_interactive.py` | 11 | 0 | **11** |
 | `test_ui_real.py` | 11 | 0 | **11** |
-| `test_api_endpoints.py` | 12 | 0 | **12** |
-| `test_api_response_vs_frontend_type.py` | 3 | 0 | **3** |
-| `test_file_path_vs_link_href.py` | 1 | 0 | **1** |
-| `test_snake_case_camel_case_consistency.py` | 2 | 0 | **2** |
-| `test_state_transition_completeness.py` | 1 | 0 | **1** |
-| `test_cua_confirmation_ws.py` | 2 | 0 | **2** |
-| `test_calculations_regression.py` | 6 | 0 | **6** |
-| `test_optimal_power_flow.py` | 1 | 0 | **1** |
 
 ---
 
@@ -6181,7 +6247,7 @@ Provides
 | `scripts/backup-mastra-db.ps1` | ps1 | 1.3 KB |  |
 | `scripts/backup-mastra-db.sh` | sh | 1.1 KB | !/bin/bash |
 | `scripts/backup/postgres_backup.sh` | sh | 8.3 KB | !/usr/bin/env bash |
-| `scripts/capture-screenshots.cjs` | cjs | 1.9 KB |  |
+| `scripts/capture-screenshots.cjs` | cjs | 2.0 KB |  |
 | `scripts/capture.mjs` | mjs | 1.6 KB |  |
 | `scripts/check_ai_fallback_guard.py` | py | 3.3 KB | scripts/check_ai_fallback_guard.py — M4.3 Denial Guard: no r |
 | `scripts/check_bundle_secrets.py` | py | 1.9 KB | scripts/check_bundle_secrets.py — Scan UI bundle for leaked  |
@@ -6276,7 +6342,7 @@ Provides
 | `scripts/run_git.py` | py | 0.0 KB |  |
 | `scripts/run_ieee_benchmarks.py` | py | 14.6 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
-| `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
+| `scripts/run_npm_audit_gate.cjs` | cjs | 3.3 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
 | `scripts/run_validation_matrix.sh` | sh | 6.0 KB | !/bin/bash |
 | `scripts/scada_etap_consumer.py` | py | 5.1 KB | SCADA ETAP Consumer |
@@ -6346,31 +6412,31 @@ Provides
 
 | File | Size (KB) | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 5.7 KB | `82973426f2c8` |
-| `Dockerfile.engineering-service` | 4.7 KB | `8dfe9fd83701` |
-| `Dockerfile.hf` | 3.7 KB | `edc59c0fec36` |
-| `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
+| `Dockerfile` | 5.8 KB | `5b847ac0488d` |
+| `Dockerfile.engineering-service` | 4.8 KB | `f2094f262cdd` |
+| `Dockerfile.hf` | 5.8 KB | `5b847ac0488d` |
+| `Dockerfile.windows-worker` | 5.2 KB | `49e59c292817` |
 | `docker-compose.yml` | 9.0 KB | `b8659d57e3be` |
 | `docker-compose.monitoring.yml` | 9.2 KB | `2b4b5ce2be15` |
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.5 KB | `4df0b9ad2eb2` |
-| `requirements.txt` | 11.2 KB | `ef8c4c9e366e` |
-| `requirements-prod.txt` | 3.2 KB | `7abc3b36253c` |
-| `requirements-dev.txt` | 0.9 KB | `f6171d453bba` |
-| `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
-| `requirements-ml.txt` | 1.5 KB | `531f66a9b434` |
-| `requirements.hf.txt` | 1.5 KB | `b946f1e4012d` |
-| `.github/workflows/security.yml` | 14.4 KB | `25b31b04915d` |
-| `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
+| `pyproject.toml` | 11.7 KB | `5ff777384404` |
+| `requirements.txt` | 11.5 KB | `23737285697a` |
+| `requirements-prod.txt` | 3.3 KB | `c50085a3704d` |
+| `requirements-dev.txt` | 0.9 KB | `2b36f06938f6` |
+| `requirements-minimal.txt` | 1.8 KB | `418272f3fb1d` |
+| `requirements-ml.txt` | 1.5 KB | `168d3d0d3697` |
+| `requirements.hf.txt` | 5.9 KB | `f8f195adef15` |
+| `.github/workflows/security.yml` | 14.2 KB | `62b4f968ed2c` |
+| `.github/workflows/release.yml` | 2.2 KB | `44f897df5e3f` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
 | `scripts/deploy-engineering-service.sh` | 10.3 KB | `0de0a3c9675b` |
-| `Makefile` | 12.8 KB | `2d50098ecf2a` |
-| `alembic.ini` | 2.5 KB | `1279127ea23b` |
+| `Makefile` | 13.2 KB | `e37262948ce3` |
+| `alembic.ini` | 2.6 KB | `b8243c02eaf4` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
-| `nginx.conf` | 12.2 KB | `e4874229fcba` |
+| `nginx.conf` | 12.5 KB | `a2665ae875ea` |
 | `hf-space/app.py` | 79.5 KB | `eae3f3240662` |
 | `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
