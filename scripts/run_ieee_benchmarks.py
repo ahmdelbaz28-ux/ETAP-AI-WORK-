@@ -207,6 +207,7 @@ def run_benchmarks() -> dict:
             "details": {
                 "dc_opf": opf_res["dc_opf"],
                 "ac_opf": opf_res["ac_opf"],
+                "case3_independent_external_reference": opf_res.get("case3_independent_external_reference"),
             },
         }
     )
