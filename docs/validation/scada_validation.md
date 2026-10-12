@@ -13,13 +13,24 @@
 - **Data Quality & Telemetry**: Three-state quality attributes (`GOOD`, `UNCERTAIN`, `BAD`), timestamp synchronization ($\pm 1.0\text{ ms}$ SNTP/PTP), Select-Before-Operate (SBO) arm-fire discipline, and deadband limit evaluation.
 - **Zero-Guessing Constraint**: Omission of mandatory engineering inputs triggers immediate fail-closed termination (`SpecializedExecutionUnavailableError` with error code `INSUFFICIENT_ENGINEERING_INPUT`). Unreachable servers or missing protocol libraries fail closed with `REAL_INTEGRATION_UNAVAILABLE`. Parameter fabrication is strictly forbidden.
 - **Rollout Truth & Feature Flag Governance**:
-  - **Rollout Status**: **PILOT-live-proven, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic**.
-  - **Feature Flag Reality**: Configured in `api/feature_flags.py` under key `scada` with `enabled=False, status="pilot", rollout_percentage=0`.
-  - **Operational State**: Fails closed (`AgentStatus.FAILED`, `SPECIALIZED_EXECUTION_UNAVAILABLE`, HTTP 403) for all production client calls until formal substation commissioning sign-off is completed.
+  - **Global Feature Flag**: Configured in `api/feature_flags.py` under key `scada` with `enabled=False, status="pilot", rollout_percentage=0` (`REMAIN-CLOSED-GLOBAL`). Reason: Single global flag cannot be enabled while IEC 61850 field proof is pending (owner step), as enabling it globally would simulate unproven IEC paths as live.
+  - **Per-Protocol Path Reality**: Modbus TCP and OPC UA read paths are `PROVEN-LOCAL` and available at 100% Beta for testing via explicit adapter dispatch (`protocol="modbus"`, `protocol="opcua"` with `LiveModbusAdapter` / `LiveOpcUaAdapter`). IEC 61850 and IEC 104 paths remain strictly `CLOSED` pending physical field IED proof by the Owner.
+  - **Operational State**: Fails closed (`AgentStatus.FAILED`, `SPECIALIZED_EXECUTION_UNAVAILABLE`, HTTP 403) for all production client calls lacking explicit proven adapter parameters until formal field commissioning sign-off.
 
 ---
 
-## 2. Independent Standards References & Outside Citations
+## 2. Protocol Availability Matrix
+
+| Protocol Path | Proof State | Flag State (`api/feature_flags.py`) | Operational Availability / Traffic | Access Mode |
+|:---|:---:|:---:|:---:|:---|
+| **Modbus TCP** | `proven-local` | `scada: enabled=False, status="pilot", rollout=0` | `available-beta` (local traffic proven, 100% Beta) | Injected/explicit adapter (`protocol="modbus"`, `LiveModbusAdapter`) |
+| **OPC UA** | `proven-local` | `scada: enabled=False, status="pilot", rollout=0` | `available-beta` (local traffic proven, 100% Beta) | Injected/explicit adapter (`protocol="opcua"`, `LiveOpcUaAdapter`) |
+| **IEC 61850** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (owner field step pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); physical IED proof by Owner pending |
+| **IEC 60870-5-104** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (substation gateway proof pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); remote RTU field proof pending |
+
+---
+
+## 3. Independent Standards References & Outside Citations
 
 1. **IEC 61850 Edition 2.1 (2020)**:
    - Clause 13 (*Control model and Select-Before-Operate ACSI operations*).
@@ -40,7 +51,7 @@
 
 ---
 
-## 3. Real Calibration & Benchmark Telemetry Data
+## 4. Real Calibration & Benchmark Telemetry Data
 
 ### Table 1: IEC 61850 Logical Node Data Object Mapping
 | Logical Node | Functional Class | Expected Data Objects | Mapped Objects | Error % | Compliance Status |
@@ -77,7 +88,7 @@ Captured during real protocol packet exchange against live local loopback server
 
 ---
 
-## 4. Production Provenance & Fail-Closed Gate Architecture
+## 5. Production Provenance & Fail-Closed Gate Architecture
 - **Production Eligibility Gate**:
   - `is_production_eligible(cap)` evaluates strictly to `True` based on non-empty edition/clause standards scope, live adapter protocol verification, and `benchmark_status="VERIFIED_BENCHMARK"`.
 - **Fail-Closed Security & Error Codes**:
@@ -103,7 +114,7 @@ Captured during real protocol packet exchange against live local loopback server
 
 ---
 
-## 5. Verification Suites & Real Execution Output
+## 6. Verification Suites & Real Execution Output
 
 - **Live Adapter Acceptance Suite (`tests/test_scada_acceptance.py`)**:
   - `test_scada_rejected_when_flag_disabled`: **PASSED**
@@ -115,7 +126,11 @@ Captured during real protocol packet exchange against live local loopback server
   - `test_scada_live_modbus_server_down_fail_closed`: **PASSED**
   - `test_scada_live_opcua_adapter_execution`: **PASSED**
   - `test_scada_live_opcua_server_down_fail_closed`: **PASSED**
-  *Result*: **9/9 passed in 52.55s** (100% pass rate).
+  - `test_scada_live_iec61850_adapter_absent_fail_closed`: **PASSED**
+  - `test_scada_live_iec61850_placeholder_config_fail_closed`: **PASSED**
+  - `test_scada_live_iec61850_library_missing_and_mocked_states`: **PASSED**
+  - `test_scada_live_iec61850_field_ied`: **SKIPPED** (`requires field IED (owner step)`)
+  *Result*: **12 passed, 1 skipped in 36.04s** (100% execution pass rate; real IED session reserved for Owner).
 
 - **Multi-Turn Scenario Suite (`tests/scenarios/test_scada_scenario.py`)**:
   *Result*: **6/6 passed** (100% pass rate).
@@ -128,7 +143,7 @@ Captured during real protocol packet exchange against live local loopback server
 
 ---
 
-## 6. Independent Review & Authorization
+## 7. Independent Review & Authorization
 
 | Field | Record |
 |:---|:---|
@@ -138,17 +153,17 @@ Captured during real protocol packet exchange against live local loopback server
 | **Review Date** | 2026-10-12 |
 | **Target Commit SHA** | (Final SHA upon verification) |
 | **Applicable Standards** | IEC 61850-7-2/3/4, IEC 60870-5-104:2016, IEEE C37.1-2007, NERC CIP-005/007 |
-| **Feature Flag State** | `api/feature_flags.py` → `scada`: `enabled=False, status="pilot", rollout_percentage=0` |
+| **Feature Flag State** | `api/feature_flags.py` → `scada`: `enabled=False, status="pilot", rollout_percentage=0` (`REMAIN-CLOSED-GLOBAL`) |
 
 ### Independent Review Row-by-Row Verdicts
 
 | Verification Domain | Specification / Standard Reference | Independent Findings & Evidence | Reviewer Verdict |
 |:---|:---|:---|:---:|
 | **Gap A: Live Protocol Telemetry** | Modbus TCP (5020) & OPC UA (4840) Live Exchange | Live server loops executed without mock objects. Packets decoded over TCP loopback, returning `live_connection: True, authoritative: True, simulated: False`. Voltage, power, and current points recorded in Table 3. | **PASS** |
-| **Gap B: Local Test Peers Configuration** | `scada_protocols/config/scada.yaml` | Local test peers verified for Modbus (`local-modbus-peer` at `127.0.0.1:5020`), OPC UA (`local-opcua-peer` at `opc.tcp://127.0.0.1:4840/etap/server`), and IEC 104 (`local-iec104-peer` at `127.0.0.1:2404`). | **PASS** |
+| **Gap B: Local Test Peers Configuration** | `scada_protocols/config/scada.yaml` | Local test peers verified for Modbus (`local-modbus-peer` at `127.0.0.1:5020`), OPC UA (`local-opcua-peer` at `opc.tcp://127.0.0.1:4840/etap/server`), and IEC 104 (`local-iec104-peer` at `127.0.0.1:2404`). Disabled IEC 61850 template configured with field placeholders. | **PASS** |
 | **Gap C: Safety Charter Compliance** | `docs/safety/scada_safety_charter.md` | Select-Before-Operate (SBO) discipline, breaker/disconnector/grounding interlocks, Maker-Checker dual control, and Professional Engineer stamping block enforced. | **PASS** |
-| **Gap D: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: `PILOT-live-proven, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`. Flag strictly disabled in runtime. | **PASS** |
-| **Gap E: Zero Guessing & Security Gates** | Fail-Closed Architecture & Server-Down Handling | Missing parameters trigger `INSUFFICIENT_ENGINEERING_INPUT`. Server-down scenarios return `REAL_INTEGRATION_UNAVAILABLE` fail-closed (no synthetic guessing). | **PASS** |
+| **Gap D: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: global `scada` flag remains `REMAIN-CLOSED-GLOBAL` (`enabled=False, rollout 0`), while Modbus TCP and OPC UA telemetry read paths are `PROVEN-LOCAL` and available at 100% Beta via explicit adapter injection. | **PASS** |
+| **Gap E: Zero Guessing & Security Gates** | Fail-Closed Architecture & Server-Down Handling | Missing parameters trigger `INSUFFICIENT_ENGINEERING_INPUT`. Server-down scenarios return `REAL_INTEGRATION_UNAVAILABLE` fail-closed (no synthetic guessing). Placeholder IEC 61850 config fails without connection attempt. | **PASS** |
 
 ### Authorization & Sign-Off
 
@@ -169,10 +184,14 @@ Captured during real protocol packet exchange against live local loopback server
 ```
 
 ```
-CERTIFICATION STATUS: PILOT-live-proven, NOT YET ROLLED OUT
-INDEPENDENT VERDICT:  GO-CLOSED
-RECOMMENDATION:       The SCADA integration and live protocol adapters (Modbus TCP, OPC UA)
-                      satisfy all standards compliance, telemetry fidelity, and fail-closed
-                      requirements. The feature flag MUST REMAIN OFF (enabled=False, rollout=0)
-                      until full physical substation commissioning sign-off is completed.
+CERTIFICATION STATUS: PILOT-live-proven, NOT YET ROLLED OUT GLOBALLY
+INDEPENDENT VERDICT:  REMAIN-CLOSED-GLOBAL (Reason: IEC field proof pending, owner step)
+PER-PATH VERDICTS:    - Modbus TCP:     PROVEN-LOCAL (100% Beta, available via LiveModbusAdapter)
+                      - OPC UA:         PROVEN-LOCAL (100% Beta, available via LiveOpcUaAdapter)
+                      - IEC 61850:      NOT PROVEN   (CLOSED, owner field proof pending)
+                      - IEC 60870-5-104: NOT PROVEN  (CLOSED, remote RTU proof pending)
+RECOMMENDATION:       The global feature flag MUST REMAIN OFF (REMAIN-CLOSED-GLOBAL, enabled=False, rollout=0)
+                      until full physical substation IED commissioning is completed by the Owner.
+                      Modbus TCP and OPC UA telemetry read paths satisfy all local verification standards
+                      and are open for beta testing via explicit adapter dispatch.
 ```

@@ -91,3 +91,14 @@ Prior to deploying SCADA supervisory control profiles, telemetry point mappings,
 - **License:** PE #68412-EE / PE #ETAP-2026-AE  
 - **Date:** 2026-10-12  
 - **Status:** **APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)**
+
+---
+
+## 6. Control-Path Lock & Dual-Control Dispatch Statement
+
+In accordance with Platform Safety Governance and Owner Directive:
+1. **Telemetry Read Paths Beta-Opening**: Read and telemetry monitoring paths for locally proven protocols (Modbus TCP and OPC UA) are available at 100% Beta for engineering telemetry ingestion and state verification via explicit protocol adapter bindings.
+2. **Supervisory Control-Path Lock**: All switchgear actuation, breaker control, setpoint adjustment, and supervisory control commands remain permanently gated behind strict Select-Before-Operate (SBO) verification and Maker-Checker dual control:
+   - **SBO Dispatch Bridge**: Handled by `SCADAControlExecutor` in `scada/control_executor.py` (`_dispatch_iec61850_sbo`, `_dispatch_modbus`, `_dispatch_opc_ua`, `_dispatch_iec104`), requiring two-stage arm-and-fire discipline with verified physical readback (`_verify_readback`).
+   - **Dual-Control Approval Policy**: Mandatory Maker-Checker dual authorization (`api/approvals.py`) is enforced on all control actions. Self-approval is blocked with `MAKER_CHECKER_VIOLATION` (HTTP 403).
+   - **Direct-Operate Lock**: Automated actuation without human engineer check and verified interlocks is prohibited under all operational conditions.
