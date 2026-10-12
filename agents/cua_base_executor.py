@@ -33,7 +33,7 @@ import contextlib
 import logging
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 
 try:
@@ -96,11 +96,13 @@ class CUAAction:
                 text=action_dict.get("text"),
                 x=action_dict.get("x"),
                 y=action_dict.get("y"),
+                target=action_dict.get("target"),
             )
         if action_type == "hotkey":
             return cls(
                 type="hotkey",
                 keys=action_dict.get("keys", []),
+                target=action_dict.get("target"),
             )
         if action_type == "wait":
             return cls(
@@ -127,6 +129,293 @@ class CUAAction:
 
 
 @dataclass
+class ControlValidationResult:
+    """Result of control action pre-validation before operator confirmation."""
+
+    valid: bool
+    reason: str = ""
+    target_exists: bool = True
+    within_envelope: bool = True
+    interlock_ok: bool = True
+    destructive_refused: bool = False
+    suggested_value: Any = None
+    advisory: str = "GO"  # "GO" or "NO-GO"
+
+    @property
+    def program_suggestion(self) -> dict[str, Any]:
+        return {
+            "recommended_value": self.suggested_value,
+            "advisory": self.advisory,
+            "validation_status": "PASSED" if self.valid else "FAILED",
+        }
+
+    @property
+    def risk_note(self) -> str:
+        return f"Single-operator validated self-confirmation (advisory: {self.advisory})"
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+class ConfirmationPayload(dict):
+    """Payload delivered to on_confirmation_request in validated self-confirmation mode."""
+
+    def __init__(
+        self,
+        action: CUAAction,
+        target: str | None,
+        value: Any,
+        validation_results: dict[str, Any],
+        program_suggestion: dict[str, Any],
+        risk_note: str,
+        override_reason: str | None = None,
+        overridden: bool = False,
+        decided_by_user_id: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            action=action,
+            target=target,
+            value=value,
+            validation_results=validation_results,
+            program_suggestion=program_suggestion,
+            risk_note=risk_note,
+            override_reason=override_reason,
+            overridden=overridden,
+            decided_by_user_id=decided_by_user_id,
+            **kwargs,
+        )
+        self.action = action
+        self.target = target
+        self.value = value
+        self.validation_results = validation_results
+        self.program_suggestion = program_suggestion
+        self.risk_note = risk_note
+        self.override_reason = override_reason
+        self.overridden = overridden
+        self.decided_by_user_id = decided_by_user_id
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(f"'ConfirmationPayload' object has no attribute '{name}'") from None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        self[name] = value
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        super().__setitem__(key, value)
+        super().__setattr__(key, value)
+
+    @property
+    def type(self) -> str:
+        return self.action.type
+
+    @property
+    def text(self) -> str | None:
+        return self.action.text
+
+    @property
+    def keys(self) -> list[str]:
+        return self.action.keys
+
+    @property
+    def x(self) -> int | None:
+        return self.action.x
+
+    @property
+    def y(self) -> int | None:
+        return self.action.y
+
+    def is_destructive(self) -> bool:
+        return self.action.is_destructive()
+
+
+def validate_control_action(
+    action: CUAAction,
+    gemini_analysis: dict[str, Any] | None = None,
+    safety_check: Any = None,
+) -> ControlValidationResult:
+    """Validate a control action before presenting it for operator self-confirmation.
+
+    Checks:
+      1. Target element exists on screen or model (non-empty, recognized target).
+      2. Value within safe envelope for the action type.
+      3. No conflicting interlock state.
+      4. Destructive-dialog class still hard-refused.
+    """
+    from agents.life_safety import LETHAL_TARGET_PATTERNS
+
+    target_raw = getattr(action, "target", None)
+    target_str = (target_raw or "").strip()
+    target_lower = target_str.lower()
+    action_text = (getattr(action, "text", "") or "").strip()
+    action_text_lower = action_text.lower()
+
+    # 1. Target existence check
+    if not target_str or target_lower in ("unknown", "none", "null", "undefined"):
+        return ControlValidationResult(
+            valid=False,
+            reason=f"Target element does not exist or is unknown: {target_raw!r}",
+            target_exists=False,
+            advisory="NO-GO",
+        )
+
+    if getattr(action, "target_exists", None) is False:
+        return ControlValidationResult(
+            valid=False,
+            reason=f"Target element does not exist on screen/model: {target_raw!r}",
+            target_exists=False,
+            advisory="NO-GO",
+        )
+
+    # 2. Destructive-dialog class hard-refusal
+    if action.is_destructive():
+        return ControlValidationResult(
+            valid=False,
+            reason=f"Destructive dialog / hotkey action class hard-refused: {action.type}",
+            destructive_refused=True,
+            advisory="NO-GO",
+        )
+
+    for pat in LETHAL_TARGET_PATTERNS:
+        if pat in target_lower or pat in action_text_lower:
+            return ControlValidationResult(
+                valid=False,
+                reason=f"Destructive operation pattern '{pat}' is hard-refused for auto-execution",
+                destructive_refused=True,
+                advisory="NO-GO",
+            )
+
+    # 3. Interlock check
+    if ("earth" in target_lower or "ground" in target_lower) and any(
+        k in target_lower or k in action_text_lower for k in ("close", "closed", "enable")
+    ):
+        if not getattr(action, "is_deenergized", False):
+            return ControlValidationResult(
+                valid=False,
+                reason="Conflicting interlock state: grounding switch cannot close while circuit is in service",
+                interlock_ok=False,
+                advisory="NO-GO",
+            )
+
+    # 4. Value envelope check
+    val_raw = getattr(action, "value", None)
+    if val_raw is None and action.text:
+        val_raw = action.text
+
+    num_val: float | None = None
+    if val_raw is not None:
+        try:
+            cleaned = (
+                str(val_raw)
+                .replace("p.u.", "")
+                .replace("pu", "")
+                .replace("kV", "")
+                .replace("V", "")
+                .replace("Hz", "")
+                .replace("MW", "")
+                .replace("A", "")
+                .strip()
+            )
+            num_val = float(cleaned)
+        except (ValueError, TypeError):
+            pass
+
+    suggested_val: Any = None
+
+    # Custom envelope override if specified on action
+    envelope = getattr(action, "envelope", None)
+    if envelope and isinstance(envelope, dict) and num_val is not None:
+        min_v = envelope.get("min")
+        max_v = envelope.get("max")
+        if (min_v is not None and num_val < min_v) or (max_v is not None and num_val > max_v):
+            return ControlValidationResult(
+                valid=False,
+                reason=f"Value {num_val} is outside safe operating envelope [{min_v}, {max_v}]",
+                within_envelope=False,
+                suggested_value=(min_v + max_v) / 2 if (min_v is not None and max_v is not None) else min_v,
+                advisory="NO-GO",
+            )
+
+    # Domain envelopes
+    # Voltage (p.u. or kV)
+    if any(k in target_lower or k in action_text_lower for k in ("voltage", "v_bus", "p.u.", "pu", "vset")):
+        suggested_val = 1.0
+        if num_val is not None:
+            if num_val > 5.0:  # kV scale
+                if num_val < 0.0 or num_val > 765.0:
+                    return ControlValidationResult(
+                        valid=False,
+                        reason=f"Voltage value {num_val} kV is outside safe physical limits [0, 765]",
+                        within_envelope=False,
+                        suggested_value=suggested_val,
+                        advisory="NO-GO",
+                    )
+            else:  # p.u. scale
+                if num_val < 0.80 or num_val > 1.20:
+                    return ControlValidationResult(
+                        valid=False,
+                        reason=f"Voltage value {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
+                        within_envelope=False,
+                        suggested_value=suggested_val,
+                        advisory="NO-GO",
+                    )
+
+    # Tap position
+    elif "tap" in target_lower or "tap" in action_text_lower:
+        suggested_val = 0
+        if num_val is not None:
+            if num_val < -16.0 or num_val > 33.0:
+                return ControlValidationResult(
+                    valid=False,
+                    reason=f"Tap position {num_val} is outside safe operating envelope [-16, 16] / [1, 33]",
+                    within_envelope=False,
+                    suggested_value=suggested_val,
+                    advisory="NO-GO",
+                )
+
+    # Frequency
+    elif any(k in target_lower or k in action_text_lower for k in ("frequency", "freq", "hz")):
+        suggested_val = 50.0
+        if num_val is not None:
+            if num_val < 45.0 or num_val > 65.0:
+                return ControlValidationResult(
+                    valid=False,
+                    reason=f"Frequency {num_val} Hz is outside safe operating envelope [45.0, 65.0]",
+                    within_envelope=False,
+                    suggested_value=suggested_val,
+                    advisory="NO-GO",
+                )
+
+    # Current
+    elif any(k in target_lower or k in action_text_lower for k in ("current", "amp")):
+        suggested_val = 100.0
+        if num_val is not None:
+            if num_val < 0.0 or num_val > 50000.0:
+                return ControlValidationResult(
+                    valid=False,
+                    reason=f"Current {num_val} A is outside safe operating envelope [0, 50000]",
+                    within_envelope=False,
+                    suggested_value=suggested_val,
+                    advisory="NO-GO",
+                )
+
+    return ControlValidationResult(
+        valid=True,
+        reason="Action passed pre-control safety envelope and interlock checks",
+        target_exists=True,
+        within_envelope=True,
+        interlock_ok=True,
+        destructive_refused=False,
+        suggested_value=suggested_val if suggested_val is not None else val_raw,
+        advisory="GO",
+    )
+
+
+@dataclass
 class CUAStepResult:
     """Result of executing one CUA loop iteration."""
 
@@ -138,9 +427,10 @@ class CUAStepResult:
     gemini_analysis: dict[str, Any] | None = None
     duration_ms: int = 0
     error: str | None = None
+    audit_fields: dict[str, Any] = field(default_factory=dict)
 
     def to_audit_dict(self) -> dict[str, Any]:
-        return {
+        base = {
             "step": self.step_number,
             "action": {
                 "type": self.action.type,
@@ -157,6 +447,9 @@ class CUAStepResult:
             "timestamp": datetime.now(UTC).isoformat(),
             "error": self.error,
         }
+        if self.audit_fields:
+            base.update(self.audit_fields)
+        return base
 
 
 @dataclass
@@ -314,6 +607,15 @@ class BaseCUAExecutor(abc.ABC):
 
     # ─── Public: execute the full CUA loop ─────────────────────────────────
 
+    def validate_control_action(
+        self,
+        action: CUAAction,
+        gemini_analysis: dict[str, Any] | None = None,
+        safety_check: Any = None,
+    ) -> ControlValidationResult:
+        """Validate a control action before presenting it for operator self-confirmation."""
+        return validate_control_action(action, gemini_analysis=gemini_analysis, safety_check=safety_check)
+
     def execute_loop(  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         self,
         objective: str,
@@ -326,6 +628,8 @@ class BaseCUAExecutor(abc.ABC):
         allowed_tools: list[str] | set[str] | None = None,
         bounds: dict[str, int] | tuple[int, int, int, int] | None = None,
         allow_unverified: bool = False,
+        single_operator_mode: bool = True,
+        user_id: str | None = None,
     ) -> CUAExecutionResult:
         """Run the CUA loop until objective is complete or max_steps reached.
 
@@ -558,51 +862,7 @@ class BaseCUAExecutor(abc.ABC):
                         vision_source=analysis.get("source"),
                     )
 
-                # STEP 7: human confirmation for CONTROL actions
-                if require_confirmation:
-                    if on_confirmation_request is None:
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            gemini_analysis=analysis,
-                            error="Action requires confirmation but no callback registered (fail-closed)",
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason="Missing confirmation callback for confirmed action (fail-closed)",
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-                    approved = on_confirmation_request(action)
-                    if not approved:
-                        step_result = CUAStepResult(
-                            step_number=step_num,
-                            action=action,
-                            success=False,
-                            screenshot_before=screenshot_before,
-                            gemini_analysis=analysis,
-                            error="User did not confirm action",
-                            duration_ms=int((time.monotonic() - step_start) * 1000),
-                        )
-                        steps.append(step_result)
-                        return CUAExecutionResult(
-                            success=False,
-                            steps=steps,
-                            aborted_reason="User declined to confirm action",
-                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
-                            execution_id=exec_id,
-                            resumed_from_step=resume_from,
-                            vision_source=analysis.get("source"),
-                        )
-
-                # STEP 8: LIFE SAFETY CHECK — non-bypassable gate before execution
+                # STEP 7: LIFE SAFETY CHECK — non-bypassable gate before execution
                 from agents.life_safety import life_safety_guard
 
                 safety_check = life_safety_guard.pre_action_check(
@@ -611,6 +871,7 @@ class BaseCUAExecutor(abc.ABC):
                     gemini_analysis=analysis,
                     vision_source=analysis.get("source", "gemini"),
                     mode=mode,
+                    single_operator_mode=single_operator_mode,
                 )
                 if safety_check.blocked:
                     # ── Attempt rollback from pre-action snapshot ────────────
@@ -657,16 +918,62 @@ class BaseCUAExecutor(abc.ABC):
                         vision_source=analysis.get("source"),
                     )
 
-                # If dual confirmation is required, the on_confirmation_request
-                # callback must implement it (two humans). The safety guard flags
-                # it; the caller enforces it.
-                if safety_check.requires_dual_confirmation:
+                # STEP 8: VALIDATED SELF-CONFIRMATION GATE (replacing dual-human gate)
+                needs_confirmation = (
+                    require_confirmation
+                    or safety_check.requires_validated_self_confirmation
+                    or safety_check.requires_dual_confirmation
+                )
+                audit_step_fields: dict[str, Any] = {}
+
+                if needs_confirmation:
+                    # (a) validate_control_action
+                    val_res = validate_control_action(
+                        action,
+                        gemini_analysis=analysis,
+                        safety_check=safety_check,
+                    )
+                    if not val_res.valid:
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason=f"validation_failed: {val_res.reason}",
+                                )
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error=f"VALIDATION FAILED: {val_res.reason}",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                            audit_fields={
+                                "validation": val_res.to_dict(),
+                                "suggestion": val_res.program_suggestion,
+                                "overridden": False,
+                                "override_reason": None,
+                                "decided_by_user_id": None,
+                            },
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason=f"Action validation failed: {val_res.reason}",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                    # Missing callback check (fail-closed)
                     if on_confirmation_request is None:
                         if safety_check.state_snapshot_id:
                             with contextlib.suppress(Exception):
                                 life_safety_guard.rollback(
                                     snapshot_id=safety_check.state_snapshot_id,
-                                    reason="dual_confirmation_handler_missing",
+                                    reason="confirmation_callback_missing",
                                 )
                         step_result = CUAStepResult(
                             step_number=step_num,
@@ -674,52 +981,145 @@ class BaseCUAExecutor(abc.ABC):
                             success=False,
                             screenshot_before=screenshot_before,
                             gemini_analysis=analysis,
-                            error="Dual confirmation required for life-safety action but no callback registered (fail-closed)",
+                            error="Action requires confirmation but no callback registered (fail-closed)",
                             duration_ms=int((time.monotonic() - step_start) * 1000),
+                            audit_fields={
+                                "validation": val_res.to_dict(),
+                                "suggestion": val_res.program_suggestion,
+                                "overridden": False,
+                                "override_reason": None,
+                                "decided_by_user_id": None,
+                            },
                         )
                         steps.append(step_result)
                         return CUAExecutionResult(
                             success=False,
                             steps=steps,
-                            aborted_reason="Dual confirmation required but no confirmation callback provided (fail-closed)",
+                            aborted_reason="Missing confirmation callback for confirmed action (fail-closed)",
                             total_duration_ms=int((time.monotonic() - start_time) * 1000),
                             execution_id=exec_id,
                             resumed_from_step=resume_from,
                             vision_source=analysis.get("source"),
                         )
 
-                    # The callback should ask TWO humans; we just pass the flag
-                    approved = on_confirmation_request(action)
+                    # (b) Build confirmation payload and invoke single confirmation callback
+                    val_raw = getattr(action, "value", None)
+                    if val_raw is None and action.text:
+                        val_raw = action.text
+
+                    decided_user = getattr(action, "user_id", None) or user_id or "operator"
+                    confirm_payload = ConfirmationPayload(
+                        action=action,
+                        target=action.target,
+                        value=val_raw,
+                        validation_results=val_res.to_dict(),
+                        program_suggestion=val_res.program_suggestion,
+                        risk_note=val_res.risk_note,
+                        override_reason=getattr(action, "override_reason", None),
+                        overridden=bool(getattr(action, "overridden", False)),
+                        decided_by_user_id=decided_user,
+                    )
+
+                    approved = on_confirmation_request(confirm_payload)
                     if not approved:
-                        # ── Rollback on dual confirmation denial ─────────────
                         if safety_check.state_snapshot_id:
                             with contextlib.suppress(Exception):
                                 life_safety_guard.rollback(
                                     snapshot_id=safety_check.state_snapshot_id,
-                                    reason="dual_confirmation_denied",
+                                    reason="confirmation_denied",
                                 )
-
                         step_result = CUAStepResult(
                             step_number=step_num,
                             action=action,
                             success=False,
                             screenshot_before=screenshot_before,
                             gemini_analysis=analysis,
-                            error="Dual confirmation not obtained for protection-setting change",
+                            error="User did not confirm action",
                             duration_ms=int((time.monotonic() - step_start) * 1000),
+                            audit_fields={
+                                "validation": val_res.to_dict(),
+                                "suggestion": val_res.program_suggestion,
+                                "overridden": False,
+                                "override_reason": None,
+                                "decided_by_user_id": confirm_payload.get("decided_by_user_id") or decided_user,
+                            },
                         )
                         steps.append(step_result)
                         return CUAExecutionResult(
                             success=False,
                             steps=steps,
-                            aborted_reason="Dual confirmation required (life-safety setting)",
+                            aborted_reason="User declined to confirm action",
                             total_duration_ms=int((time.monotonic() - start_time) * 1000),
                             execution_id=exec_id,
                             resumed_from_step=resume_from,
                             vision_source=analysis.get("source"),
                         )
 
-                # STEP 9: execute the action (passed safety check)
+                    # (c) Suggestion-override validation
+                    is_overridden = bool(
+                        confirm_payload.get("overridden")
+                        or getattr(confirm_payload, "overridden", False)
+                        or getattr(action, "overridden", False)
+                        or (
+                            confirm_payload.get("override_value") is not None
+                            and confirm_payload.get("override_value") != val_res.suggested_value
+                        )
+                        or (
+                            getattr(action, "override_value", None) is not None
+                            and getattr(action, "override_value", None) != val_res.suggested_value
+                        )
+                    )
+                    override_reason = (
+                        confirm_payload.get("override_reason")
+                        or getattr(confirm_payload, "override_reason", None)
+                        or getattr(action, "override_reason", None)
+                        or ""
+                    )
+
+                    if is_overridden and (not override_reason or not str(override_reason).strip()):
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason="override_reason_missing",
+                                )
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="OVERRIDE REASON REQUIRED: Suggestion override requires an explicit override_reason string (fail-closed)",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                            audit_fields={
+                                "validation": val_res.to_dict(),
+                                "suggestion": val_res.program_suggestion,
+                                "overridden": True,
+                                "override_reason": None,
+                                "decided_by_user_id": confirm_payload.get("decided_by_user_id") or decided_user,
+                            },
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="Suggestion override requires an explicit override_reason string (fail-closed)",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                    audit_step_fields = {
+                        "validation": val_res.to_dict(),
+                        "suggestion": val_res.program_suggestion,
+                        "overridden": bool(is_overridden),
+                        "override_reason": str(override_reason).strip() if (is_overridden and override_reason) else None,
+                        "decided_by_user_id": confirm_payload.get("decided_by_user_id") or decided_user,
+                        "self_approved": True,
+                    }
+
+                # STEP 9: execute the action (passed safety check & validation)
                 exec_error = self._execute_action_hook(action)
 
                 # STEP 10: capture after screenshot + post-action safety record
@@ -768,6 +1168,7 @@ class BaseCUAExecutor(abc.ABC):
                     gemini_analysis=analysis,
                     error=exec_error,
                     duration_ms=int((time.monotonic() - step_start) * 1000),
+                    audit_fields=audit_step_fields,
                 )
                 steps.append(step_result)
 

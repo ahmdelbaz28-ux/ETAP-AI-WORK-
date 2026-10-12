@@ -324,8 +324,9 @@ class SafetyCheckResult:
     blocked: bool
     reason: str = ""
     requires_dual_confirmation: bool = False
+    requires_validated_self_confirmation: bool = False
     matched_pattern: str | None = None
-    safety_level: str = "ok"  # Union[ok, blocked] | Union[dual_confirmation, degraded]
+    safety_level: str = "ok"  # Union[ok, blocked] | Union[dual_confirmation, validated_self_confirmation, degraded]
     annotated_screenshot: str | None = None
     state_snapshot_id: str | None = None
     audit_entry_hash: str | None = None  # tamper-evident chain
@@ -569,6 +570,7 @@ class LifeSafetyGuard:
         gemini_analysis: dict[str, Any] | None,
         vision_source: str = "gemini",
         mode: str = "analyze",
+        single_operator_mode: bool = False,
     ) -> SafetyCheckResult:
         """Run ALL safety checks before executing an action.
 
@@ -627,12 +629,16 @@ class LifeSafetyGuard:
                 logger.critical("🚨 LETHAL ACTION BLOCKED: %s", pattern)
                 return result
 
-        # ── LAYER 3: Dual confirmation for protection settings ───────────
+        # ── LAYER 3: Dual vs Validated-Self confirmation ─────────────────
         requires_dual = False
+        requires_validated_self = False
         matched_dual_pattern: str | None = None
         for pattern in DUAL_CONFIRMATION_PATTERNS:
             if pattern in target_text or pattern in action_text:
-                requires_dual = True
+                if single_operator_mode:
+                    requires_validated_self = True
+                else:
+                    requires_dual = True
                 matched_dual_pattern = pattern
                 break
 
@@ -686,10 +692,13 @@ class LifeSafetyGuard:
         safety_level = "ok"
         if requires_dual:
             safety_level = "dual_confirmation"
+        elif requires_validated_self:
+            safety_level = "validated_self_confirmation"
 
         result = SafetyCheckResult(
             blocked=False,
             requires_dual_confirmation=requires_dual,
+            requires_validated_self_confirmation=requires_validated_self,
             matched_pattern=matched_dual_pattern,
             safety_level=safety_level,
             annotated_screenshot=annotated_path,

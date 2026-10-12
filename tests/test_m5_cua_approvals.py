@@ -418,3 +418,196 @@ def test_default_production_rollback_handler_allowlist_precedence_and_word_bound
     assert guard._auto_rollback_enabled is False
     assert guard._auto_rollback_handler is None
 
+
+# ==============================================================================
+# Validated Self-Confirmation Tests (Commit 1: Owner-Authorized Single-Operator Mode)
+# ==============================================================================
+
+
+def test_cua_validation_rejects_unknown_target():
+    """Validation rejects unknown or missing target before calling confirmation callback."""
+    executor = MockCUAExecutor()
+    action_unknown_target = {
+        "source": "gemini",
+        "next_action": {
+            "type": "click",
+            "x": 200,
+            "y": 300,
+            "target": "unknown",  # explicitly unknown target
+        },
+    }
+
+    confirmation_callback = MagicMock(return_value=True)
+
+    with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_unknown_target):
+        result: CUAExecutionResult = executor.execute_loop(
+            objective="Attempt control on unknown element",
+            max_steps=1,
+            mode="control",
+            require_confirmation=True,
+            on_confirmation_request=confirmation_callback,
+            bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+        )
+
+    # Must fail closed before reaching callback
+    assert not result.success
+    assert "target" in (result.aborted_reason or "").lower() or "validation failed" in (result.aborted_reason or "").lower()
+    confirmation_callback.assert_not_called()
+    assert len(executor.executed_actions) == 0
+
+
+def test_cua_validation_rejects_out_of_envelope_value():
+    """Validation rejects value outside the safe envelope for the action type."""
+    executor = MockCUAExecutor()
+    # Out of envelope voltage: 1.50 p.u. (safe envelope is [0.80, 1.20])
+    action_out_of_envelope = {
+        "source": "gemini",
+        "next_action": {
+            "type": "type",
+            "x": 200,
+            "y": 300,
+            "target": "Bus 1 Voltage Setting",
+            "text": "1.50",
+        },
+    }
+
+    confirmation_callback = MagicMock(return_value=True)
+
+    with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_out_of_envelope):
+        result: CUAExecutionResult = executor.execute_loop(
+            objective="Set voltage dangerously high",
+            max_steps=1,
+            mode="control",
+            require_confirmation=True,
+            on_confirmation_request=confirmation_callback,
+            bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+        )
+
+    assert not result.success
+    assert "envelope" in (result.aborted_reason or "").lower() or "outside safe" in (result.aborted_reason or "").lower()
+    confirmation_callback.assert_not_called()
+    assert len(executor.executed_actions) == 0
+
+
+def test_cua_override_without_reason_rejected():
+    """When confirmation callback returns True on a suggestion-override, missing override_reason is rejected."""
+    executor = MockCUAExecutor()
+    action = {
+        "source": "gemini",
+        "next_action": {
+            "type": "click",
+            "x": 200,
+            "y": 300,
+            "target": "Modify Relay Setting",
+            "text": "1.02",
+        },
+    }
+
+    def callback_with_override_no_reason(payload):
+        # Operator overrides the suggestion but does not provide an override_reason
+        payload["overridden"] = True
+        payload["override_reason"] = ""
+        return True
+
+    with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action):
+        result: CUAExecutionResult = executor.execute_loop(
+            objective="Override suggestion without providing engineering reason",
+            max_steps=1,
+            mode="control",
+            require_confirmation=True,
+            on_confirmation_request=callback_with_override_no_reason,
+            bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+        )
+
+    assert not result.success
+    assert "override_reason" in (result.aborted_reason or "").lower() or "override" in (result.aborted_reason or "").lower()
+    assert len(executor.executed_actions) == 0
+
+
+def test_cua_self_confirm_executes_with_full_audit_fields():
+    """Self-confirmation executes cleanly and persists full validation and audit metadata."""
+    import uuid
+
+    executor = MockCUAExecutor()
+    action_1 = {
+        "source": "gemini",
+        "next_action": {
+            "type": "click",
+            "x": 200,
+            "y": 300,
+            "target": "Modify Relay Setting",
+            "text": "1.05",
+        },
+    }
+    action_done = {
+        "source": "gemini",
+        "next_action": {"type": "done"},
+    }
+
+    received_payloads = []
+
+    def valid_self_confirm_callback(payload):
+        received_payloads.append(payload)
+        payload["overridden"] = True
+        payload["override_reason"] = "Field test emergency adjustment per engineering stamping"
+        return True
+
+    with patch("integrations.resilience.hybrid_vision.analyze_screenshot", side_effect=[action_1, action_done]):
+        result: CUAExecutionResult = executor.execute_loop(
+            objective=f"Adjust relay {uuid.uuid4().hex[:8]}",
+            max_steps=2,
+            mode="control",
+            require_confirmation=True,
+            on_confirmation_request=valid_self_confirm_callback,
+            bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+            user_id="engineer_01",
+        )
+
+    assert result.success is True
+    assert len(received_payloads) == 1
+    payload = received_payloads[0]
+
+    # Verify payload shape delivered to single confirmation callback
+    assert payload["target"] == "Modify Relay Setting"
+    assert "validation_results" in payload
+    assert "program_suggestion" in payload
+    assert "risk_note" in payload
+
+    # Verify executed action and persisted audit trail
+    assert len(executor.executed_actions) == 1
+    step_0_audit = result.steps[0].to_audit_dict()
+    assert step_0_audit["validation"]["valid"] is True
+    assert step_0_audit["suggestion"]["advisory"] in ("GO", "NO-GO")
+    assert step_0_audit["overridden"] is True
+    assert step_0_audit["override_reason"] == "Field test emergency adjustment per engineering stamping"
+    assert step_0_audit["decided_by_user_id"] == "engineer_01"
+    assert step_0_audit["self_approved"] is True
+
+
+def test_cua_missing_callback_fails_closed():
+    """Missing callback in control mode fails closed with explicit fail-closed aborted_reason."""
+    executor = MockCUAExecutor()
+    action = {
+        "source": "gemini",
+        "next_action": {
+            "type": "click",
+            "x": 200,
+            "y": 300,
+            "target": "Modify Relay Setting",
+        },
+    }
+
+    with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action):
+        result: CUAExecutionResult = executor.execute_loop(
+            objective="Control with missing callback",
+            max_steps=1,
+            mode="control",
+            require_confirmation=True,
+            on_confirmation_request=None,
+            bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+        )
+
+    assert not result.success
+    assert "fail-closed" in (result.aborted_reason or "").lower() or "missing" in (result.aborted_reason or "").lower()
+    assert len(executor.executed_actions) == 0
+
