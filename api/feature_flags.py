@@ -104,10 +104,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 100,
     },
     "renewable_integration": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Renewable energy integration (PV/Wind) per IEEE 1547-2018 - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "beta",
+        "description": "Renewable energy integration (PV/Wind) per IEEE 1547-2018 - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "battery_storage": {
         "enabled": True,

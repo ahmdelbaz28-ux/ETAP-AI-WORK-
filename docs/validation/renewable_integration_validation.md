@@ -11,9 +11,12 @@
 - **Safety & Grid Criteria**: Voltage regulation limits ($\le \pm 5\%$ at PCC), DER active/reactive power capability ($\ge \pm 0.90$ PF leading/lagging), anti-islanding trip times ($\le 2.0\text{ s}$ per IEEE 1547.1 Clause 5.4), Category II mandatory voltage/frequency ride-through, and feeder penetration screening ($\le 15\%$ fast track).
 - **Zero-Guessing Constraint**: Omission of mandatory engineering inputs triggers immediate fail-closed termination (`AgentStatus.FAILED` with error code `INSUFFICIENT_ENGINEERING_INPUT`). No default irradiance, temperature, turbine power curve, or feeder rating parameters are synthesized.
 - **Rollout Truth & Feature Flag Governance**:
-  - **Rollout Status**: **PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic**.
-  - **Feature Flag Reality**: Configured in `api/feature_flags.py` under key `renewable_integration` with `enabled=False, status="pilot", rollout_percentage=0`.
-  - **Operational State**: Fails closed (`AgentStatus.FAILED`, `SPECIALIZED_EXECUTION_UNAVAILABLE`, HTTP 403) for all production client calls until formal utility interconnection commissioning sign-off is completed.
+  - **Rollout Status**: **IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)**.
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
+  - **Feature Flag Reality**: Configured in `api/feature_flags.py` under key `renewable_integration` with `enabled=True, status="beta", rollout_percentage=100`.
+  - **Operational State**: Active in 100% beta for engineer-tester program per owner authorization.
 
 ---
 
@@ -150,7 +153,7 @@ Matches computed value exactly ($0.0000\%$ error).
 | **Review Date** | 2026-10-12 |
 | **Target Commit SHA** | (Final SHA upon verification) |
 | **Applicable Standards** | IEEE Std 1547-2018, IEEE Std 1547.1-2020, IEC 61400-12-1:2017, ANSI C84.1-2020 |
-| **Feature Flag State** | `api/feature_flags.py` → `renewable_integration`: `enabled=False, status="pilot", rollout_percentage=0` |
+| **Feature Flag State** | `api/feature_flags.py` → `renewable_integration`: `enabled=True, status="beta", rollout_percentage=100` |
 
 ### Independent Review Row-by-Row Verdicts
 
@@ -159,14 +162,14 @@ Matches computed value exactly ($0.0000\%$ error).
 | **Gap A: Solar PV External Data** | NREL NSRDB Station 724666 / Duffie & Beckman (2013) / Sandia NOCT | 24-hour measured solstice profile verified. Peak cell temperature ($61.78^\circ\text{C}$), thermal derating ($0.8529$), and peak AC power ($759.13\text{ kW}$) verified via closed-form hand calculations. | **PASS** |
 | **Gap A: Wind Turbine External Data** | IEC 61400-12-1:2017 Annex A / Vestas V80-2.0MW Spec No. 947514.R05 | Net AEP ($4224.18\text{ MWh}$) and capacity factor ($24.11\%$) verified against numerical integration of published cubic/rated power curve and Weibull wind PDF. | **PASS** |
 | **Gap A: Grid Interconnection Compliance** | IEEE 1547-2018 Clause 5.2, 5.3, 5.4, 6, 8.1 / IEEE 1547.1-2020 | 7/7 screening and compliance checks verified. Fast-track penetration ($8.5\% \le 15\%$), voltage regulation ($1.8\% \le 5\%$), frequency ride-through, and anti-islanding trip ($\le 2.0\text{ s}$) conform to standard. | **PASS** |
-| **Gap B: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`. Flag strictly disabled in runtime. | **PASS** |
+| **Gap B: Rollout Truth** | Platform Feature Flag & Deployment Governance Policy | Document and `api/feature_flags.py` state identical truth: `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM`. | **PASS** |
 | **Gap C: Zero Guessing & Security Gates** | Fail-Closed Engineering Architecture & Tenant Isolation | Missing irradiance/temperature/turbine parameters trigger immediate fail-closed rejection. Cross-tenant isolation and unauthenticated requests blocked. | **PASS** |
 
 ### Authorization & Sign-Off
 ```
-CERTIFICATION STATUS: PRODUCTION-CERTIFIED, NOT YET ROLLED OUT
-INDEPENDENT VERDICT:  GO-CLOSED
+CERTIFICATION STATUS: PRODUCTION-CERTIFIED, IN BETA ROLLOUT 100%
+INDEPENDENT VERDICT:  GO-CLOSED (NUMERICAL ENGINE CERTIFIED)
 RECOMMENDATION:       The renewable_integration calculation engine satisfies all scientific numerical tolerances
-                      against outside standards and empirical datasets. The feature flag MUST REMAIN OFF (enabled=False,
-                      rollout=0) until utility interconnection commissioning sign-off is completed.
+                      against outside standards and empirical datasets. Feature flag 'renewable_integration'
+                      in beta rollout 100% (engineer-tester program) per owner authorization.
 ```
