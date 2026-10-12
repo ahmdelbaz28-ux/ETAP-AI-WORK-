@@ -36,7 +36,9 @@ class ZenonFieldMapper:
                         self.mappings[key] = {str(k).upper(): str(v) for k, v in val.items()}
                 logger.info("Loaded zenon field mapping from %s", self.mapping_path)
             except Exception as e:
-                logger.warning("Failed to load %s: %s. Using default mappings.", self.mapping_path, e)
+                logger.warning(
+                    "Failed to load %s: %s. Using default mappings.", self.mapping_path, e
+                )
                 self._apply_builtin_defaults()
         else:
             self._apply_builtin_defaults()

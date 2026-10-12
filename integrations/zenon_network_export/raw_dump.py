@@ -33,7 +33,9 @@ class ZenonRawVariable(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     name: str = Field(..., min_length=1)
-    identification: Optional[str] = Field(default=None, description="Tag description or IEC 61850 LN")
+    identification: Optional[str] = Field(
+        default=None, description="Tag description or IEC 61850 LN"
+    )
     data_type: Optional[str] = Field(default=None)
     unit: Optional[str] = Field(default=None)
     value: Optional[Any] = Field(default=None)

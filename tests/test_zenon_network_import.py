@@ -194,9 +194,7 @@ class TestZenonContractAndReader:
         valid_zenon_payload["buses"][1]["kv"] = None
 
         result = parse_zenon_export(valid_zenon_payload)
-        assert any(
-            "voltage is missing in source data; not guessed" in w for w in result.warnings
-        )
+        assert any("voltage is missing in source data; not guessed" in w for w in result.warnings)
         assert result.system.buses["BUS_33_A"].base_kv is None
 
     def test_zero_guessing_missing_line_impedance_warns(self, valid_zenon_payload: dict):
@@ -206,8 +204,7 @@ class TestZenonContractAndReader:
 
         result = parse_zenon_export(valid_zenon_payload)
         assert any(
-            "impedance r_pu/x_pu missing in source data; not guessed" in w
-            for w in result.warnings
+            "impedance r_pu/x_pu missing in source data; not guessed" in w for w in result.warnings
         )
 
     def test_topological_error_missing_bus(self, valid_zenon_payload: dict):
@@ -283,9 +280,7 @@ class TestZenonDataImportIntegration:
         with pytest.raises(Exception):
             _validate_magic_bytes("zenon-network", b"\x00\x01\x02\x03")
 
-    def test_feature_flag_zenon_import_disabled_by_default(
-        self, valid_zenon_payload: dict
-    ):
+    def test_feature_flag_zenon_import_disabled_by_default(self, valid_zenon_payload: dict):
         """When zenon_import is False, _parse_model_content must record an error."""
         fmt = _detect_format("substation.znx")
         content = json.dumps(valid_zenon_payload).encode("utf-8")
@@ -294,9 +289,7 @@ class TestZenonDataImportIntegration:
             buses, branches, meta, warnings, errors = _parse_model_content(fmt, content)
             assert any("zenon_import' is disabled" in err for err in errors)
 
-    def test_feature_flag_zenon_import_enabled_parses_content(
-        self, valid_zenon_payload: dict
-    ):
+    def test_feature_flag_zenon_import_enabled_parses_content(self, valid_zenon_payload: dict):
         """When zenon_import is True, _parse_model_content successfully parses content."""
         fmt = _detect_format("substation.znx")
         content = json.dumps(valid_zenon_payload).encode("utf-8")

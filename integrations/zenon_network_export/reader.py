@@ -110,7 +110,9 @@ def parse_zenon_export(
     # 2. Detect format: ZenonRawDump vs. ZenonNetworkExport contract
     is_raw_dump = False
     if isinstance(parsed_json, dict):
-        if ("variables" in parsed_json or parsed_json.get("dump_version")) and "buses" not in parsed_json:
+        if (
+            "variables" in parsed_json or parsed_json.get("dump_version")
+        ) and "buses" not in parsed_json:
             is_raw_dump = True
 
     if is_raw_dump:
@@ -143,11 +145,13 @@ def parse_zenon_export(
         warnings.append(
             f"Project '{contract.project.name}': base_mva is missing in source data; not guessed."
         )
-        incomplete.append({
-            "element": "project",
-            "field": "base_mva",
-            "reason": "missing_base_mva",
-        })
+        incomplete.append(
+            {
+                "element": "project",
+                "field": "base_mva",
+                "reason": "missing_base_mva",
+            }
+        )
 
     system = System(base_mva=base_mva)
 
@@ -158,11 +162,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Bus '{b.id}' ({b.name}): voltage is missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"bus:{b.id}",
-                "field": "base_kv",
-                "reason": "missing_voltage",
-            })
+            incomplete.append(
+                {
+                    "element": f"bus:{b.id}",
+                    "field": "base_kv",
+                    "reason": "missing_voltage",
+                }
+            )
         elif base_kv <= 0:
             errors.append(f"Bus '{b.id}' ({b.name}): invalid voltage {base_kv} kV <= 0")
 
@@ -177,11 +183,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Bus '{b.id}' ({b.name}): voltage angle v_ang is missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"bus:{b.id}",
-                "field": "v_ang",
-                "reason": "missing_voltage_angle",
-            })
+            incomplete.append(
+                {
+                    "element": f"bus:{b.id}",
+                    "field": "v_ang",
+                    "reason": "missing_voltage_angle",
+                }
+            )
 
         bus_obj = Bus(
             bus_id=b.id,
@@ -212,27 +220,37 @@ def parse_zenon_export(
             warnings.append(
                 f"Line '{line.id}' ({line.name}): impedance r_pu/x_pu missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"line:{line.id}",
-                "field": "impedance",
-                "reason": "missing_line_impedance",
-            })
+            incomplete.append(
+                {
+                    "element": f"line:{line.id}",
+                    "field": "impedance",
+                    "reason": "missing_line_impedance",
+                }
+            )
             continue
         elif r is None:
-            warnings.append(f"Line '{line.id}' ({line.name}): r_pu missing in source data; not guessed.")
-            incomplete.append({
-                "element": f"line:{line.id}",
-                "field": "r_pu",
-                "reason": "missing_r_pu",
-            })
+            warnings.append(
+                f"Line '{line.id}' ({line.name}): r_pu missing in source data; not guessed."
+            )
+            incomplete.append(
+                {
+                    "element": f"line:{line.id}",
+                    "field": "r_pu",
+                    "reason": "missing_r_pu",
+                }
+            )
             continue
         elif x is None:
-            warnings.append(f"Line '{line.id}' ({line.name}): x_pu missing in source data; not guessed.")
-            incomplete.append({
-                "element": f"line:{line.id}",
-                "field": "x_pu",
-                "reason": "missing_x_pu",
-            })
+            warnings.append(
+                f"Line '{line.id}' ({line.name}): x_pu missing in source data; not guessed."
+            )
+            incomplete.append(
+                {
+                    "element": f"line:{line.id}",
+                    "field": "x_pu",
+                    "reason": "missing_x_pu",
+                }
+            )
             continue
 
         b_shunt = line.b_pu if line.b_pu is not None else 0.0
@@ -263,11 +281,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Cable '{cable.id}' ({cable.name}): impedance r_pu/x_pu missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"cable:{cable.id}",
-                "field": "impedance",
-                "reason": "missing_cable_impedance",
-            })
+            incomplete.append(
+                {
+                    "element": f"cable:{cable.id}",
+                    "field": "impedance",
+                    "reason": "missing_cable_impedance",
+                }
+            )
             continue
 
         b_shunt = cable.b_pu if cable.b_pu is not None else 0.0
@@ -298,11 +318,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Transformer '{xf.id}' ({xf.name}): impedance r_pu/x_pu missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"transformer:{xf.id}",
-                "field": "impedance",
-                "reason": "missing_transformer_impedance",
-            })
+            incomplete.append(
+                {
+                    "element": f"transformer:{xf.id}",
+                    "field": "impedance",
+                    "reason": "missing_transformer_impedance",
+                }
+            )
             continue
 
         xf_obj = Transformer(
@@ -330,11 +352,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Load '{load.id}' ({load.name}): active/reactive power p_mw/q_mvar missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"load:{load.id}",
-                "field": "power",
-                "reason": "missing_load_power",
-            })
+            incomplete.append(
+                {
+                    "element": f"load:{load.id}",
+                    "field": "power",
+                    "reason": "missing_load_power",
+                }
+            )
             continue
 
         load_obj = Load(
@@ -359,11 +383,13 @@ def parse_zenon_export(
             warnings.append(
                 f"Generator '{gen.id}' ({gen.name}): power/rating missing in source data; not guessed."
             )
-            incomplete.append({
-                "element": f"generator:{gen.id}",
-                "field": "power_or_rating",
-                "reason": "missing_generator_rating",
-            })
+            incomplete.append(
+                {
+                    "element": f"generator:{gen.id}",
+                    "field": "power_or_rating",
+                    "reason": "missing_generator_rating",
+                }
+            )
             continue
 
         q_max = gen.q_max if gen.q_max is not None else 0.0
@@ -415,11 +441,13 @@ def parse_zenon_export(
                 )
                 system.add_generator(gen_source)
             else:
-                incomplete.append({
-                    "element": f"source:{src.id}",
-                    "field": "s_sc_mva",
-                    "reason": "missing_source_short_circuit_capacity",
-                })
+                incomplete.append(
+                    {
+                        "element": f"source:{src.id}",
+                        "field": "s_sc_mva",
+                        "reason": "missing_source_short_circuit_capacity",
+                    }
+                )
 
     # 11. Collect secondary components for ETAP drawing and protective telemetry
     extra_elements: dict[str, list[dict[str, Any]]] = {

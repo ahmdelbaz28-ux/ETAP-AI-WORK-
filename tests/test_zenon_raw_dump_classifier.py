@@ -113,11 +113,13 @@ class TestZenonRawDumpClassifier:
     def test_incomplete_topology_recorded(self, raw_dump_sample: dict):
         """Elements with missing topology must be isolated in incomplete[] instead of guessed."""
         # Inject an ambiguous line without from_bus / to_bus
-        raw_dump_sample["variables"].append({
-            "name": "LINE_FLOATING.R",
-            "identification": "Floating line with unknown endpoints",
-            "value": 0.02,
-        })
+        raw_dump_sample["variables"].append(
+            {
+                "name": "LINE_FLOATING.R",
+                "identification": "Floating line with unknown endpoints",
+                "value": 0.02,
+            }
+        )
         raw_model = ZenonRawDump.model_validate(raw_dump_sample)
         classifier = ZenonClassifier()
         classify_res = classifier.classify_raw_dump(raw_model)

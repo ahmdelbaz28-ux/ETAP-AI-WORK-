@@ -45,7 +45,9 @@ class ZenonBus(ZenonElementBase):
 
     base_kv: Optional[float] = Field(default=None, description="Nominal line-to-line kV")
     kv: Optional[float] = Field(default=None, description="Alternative voltage specification")
-    v_mag: Optional[float] = Field(default=None, description="Measured or operating voltage magnitude in pu")
+    v_mag: Optional[float] = Field(
+        default=None, description="Measured or operating voltage magnitude in pu"
+    )
     v_ang: Optional[float] = Field(default=None, description="Voltage angle in degrees")
     bus_type: Optional[str] = Field(default=None, description="slack, pv, or pq")
 
@@ -96,9 +98,13 @@ class ZenonBreaker(ZenonElementBase):
     bus: Optional[str] = Field(default=None)
     from_bus: Optional[str] = Field(default=None)
     to_bus: Optional[str] = Field(default=None)
-    status: Optional[Literal["normal_open", "normal_closed", "open", "closed"]] = Field(default=None)
+    status: Optional[Literal["normal_open", "normal_closed", "open", "closed"]] = Field(
+        default=None
+    )
     rated_a: Optional[float] = Field(default=None, description="Continuous rated current in A")
-    breaking_capacity_ka: Optional[float] = Field(default=None, description="Rated short-circuit breaking current kA")
+    breaking_capacity_ka: Optional[float] = Field(
+        default=None, description="Rated short-circuit breaking current kA"
+    )
 
 
 class ZenonSwitch(ZenonElementBase):
@@ -107,7 +113,9 @@ class ZenonSwitch(ZenonElementBase):
     bus: Optional[str] = Field(default=None)
     from_bus: Optional[str] = Field(default=None)
     to_bus: Optional[str] = Field(default=None)
-    status: Optional[Literal["normal_open", "normal_closed", "open", "closed"]] = Field(default=None)
+    status: Optional[Literal["normal_open", "normal_closed", "open", "closed"]] = Field(
+        default=None
+    )
     rated_a: Optional[float] = Field(default=None)
 
 
@@ -117,7 +125,9 @@ class ZenonLoad(ZenonElementBase):
     bus: str = Field(..., min_length=1)
     p_mw: Optional[float] = Field(default=None, description="Active power in MW")
     q_mvar: Optional[float] = Field(default=None, description="Reactive power in Mvar")
-    model: Optional[str] = Field(default=None, description="constant_power, constant_current, or constant_impedance")
+    model: Optional[str] = Field(
+        default=None, description="constant_power, constant_current, or constant_impedance"
+    )
     status: Optional[Literal["connected", "disconnected"]] = Field(default=None)
 
 
@@ -141,7 +151,9 @@ class ZenonMotor(ZenonElementBase):
     rated_kw: Optional[float] = Field(default=None, description="Mechanical rating in kW")
     rated_kv: Optional[float] = Field(default=None)
     pf: Optional[float] = Field(default=None, description="Power factor (0.0 to 1.0)")
-    efficiency: Optional[float] = Field(default=None, description="Efficiency percentage (0 to 100)")
+    efficiency: Optional[float] = Field(
+        default=None, description="Efficiency percentage (0 to 100)"
+    )
     status: Optional[Literal["connected", "disconnected"]] = Field(default=None)
 
 
@@ -149,8 +161,12 @@ class ZenonRelay(ZenonElementBase):
     """Protection relay parameter block (PTOC/PDIS)."""
 
     bus: str = Field(..., min_length=1)
-    protected_element: Optional[str] = Field(default=None, description="Line, XFMR, or Bus ID protected")
-    curve_type: Optional[str] = Field(default=None, description="IEC Standard Inverse, Very Inverse, IEEE Extremely Inverse")
+    protected_element: Optional[str] = Field(
+        default=None, description="Line, XFMR, or Bus ID protected"
+    )
+    curve_type: Optional[str] = Field(
+        default=None, description="IEC Standard Inverse, Very Inverse, IEEE Extremely Inverse"
+    )
     time_dial: Optional[float] = Field(default=None, description="Time dial multiplier (TMS)")
     pickup_a: Optional[float] = Field(default=None, description="Pickup current in Amperes")
 

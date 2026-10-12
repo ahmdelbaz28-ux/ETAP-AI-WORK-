@@ -99,19 +99,62 @@ class ZenonClassifier:
 
     def _apply_builtin_rules(self) -> None:
         builtins = [
-            ("transformer", [r"(?i)^TR[_\-.]?\w+", r"(?i)^XF[_\-.]?\w+", r"(?i).*_XFMR[_\-.]?\w*", r"(?i).*_TR[_\-.]?\d+.*"]),
+            (
+                "transformer",
+                [
+                    r"(?i)^TR[_\-.]?\w+",
+                    r"(?i)^XF[_\-.]?\w+",
+                    r"(?i).*_XFMR[_\-.]?\w*",
+                    r"(?i).*_TR[_\-.]?\d+.*",
+                ],
+            ),
             ("line", [r"(?i)^LINE[_\-.]?\w+", r"(?i).*_LINE[_\-.]?\w*", r"(?i)^LN[_\-.]?\w+"]),
             ("cable", [r"(?i)^CBL[_\-.]?\w+", r"(?i)^CABLE[_\-.]?\w+", r"(?i).*_CABLE[_\-.]?\w*"]),
             ("breaker", [r"(?i).*XCBR.*", r"(?i)^CB[_\-.]?\w+", r"(?i).*_CB[_\-.]?\w*"]),
-            ("switch", [r"(?i).*XSWI.*", r"(?i)^SW[_\-.]?\w+", r"(?i).*_SW[_\-.]?\w*", r"(?i).*DISC[_\-.]?\w*"]),
+            (
+                "switch",
+                [
+                    r"(?i).*XSWI.*",
+                    r"(?i)^SW[_\-.]?\w+",
+                    r"(?i).*_SW[_\-.]?\w*",
+                    r"(?i).*DISC[_\-.]?\w*",
+                ],
+            ),
             ("load", [r"(?i)^LOAD[_\-.]?\w+", r"(?i)^LD[_\-.]?\w+", r"(?i).*_LOAD[_\-.]?\w*"]),
-            ("generator", [r"(?i)^GEN[_\-.]?\w+", r"(?i).*_GENERATOR[_\-.]?\w*", r"(?i)^PV[_\-.]?\w*", r"(?i)^DG[_\-.]?\w*"]),
-            ("source", [r"(?i)^GRID[_\-.]?\w*", r"(?i)^SOURCE[_\-.]?\w*", r"(?i)^INCOMER[_\-.]?\w*", r"(?i).*_SOURCE[_\-.]?\w*"]),
+            (
+                "generator",
+                [
+                    r"(?i)^GEN[_\-.]?\w+",
+                    r"(?i).*_GENERATOR[_\-.]?\w*",
+                    r"(?i)^PV[_\-.]?\w*",
+                    r"(?i)^DG[_\-.]?\w*",
+                ],
+            ),
+            (
+                "source",
+                [
+                    r"(?i)^GRID[_\-.]?\w*",
+                    r"(?i)^SOURCE[_\-.]?\w*",
+                    r"(?i)^INCOMER[_\-.]?\w*",
+                    r"(?i).*_SOURCE[_\-.]?\w*",
+                ],
+            ),
             ("motor", [r"(?i)^MTR[_\-.]?\w+", r"(?i)^MOTOR[_\-.]?\w+", r"(?i).*_MOTOR[_\-.]?\w*"]),
-            ("relay", [r"(?i).*PTOC.*", r"(?i).*PDIS.*", r"(?i)^RELAY[_\-.]?\w+", r"(?i)^RLY[_\-.]?\w*"]),
+            (
+                "relay",
+                [r"(?i).*PTOC.*", r"(?i).*PDIS.*", r"(?i)^RELAY[_\-.]?\w+", r"(?i)^RLY[_\-.]?\w*"],
+            ),
             ("capacitor", [r"(?i)^CAP[_\-.]?\w+", r"(?i).*_CAPACITOR[_\-.]?\w*"]),
             ("reactor", [r"(?i)^REACT[_\-.]?\w+", r"(?i).*_REACTOR[_\-.]?\w*"]),
-            ("bus", [r"(?i)^BB\d+", r"(?i)^BUS[_\-.]?\w+", r"(?i).*_BUSBAR[_\-.]?\w*", r"(?i).*_BB\d+.*"]),
+            (
+                "bus",
+                [
+                    r"(?i)^BB\d+",
+                    r"(?i)^BUS[_\-.]?\w+",
+                    r"(?i).*_BUSBAR[_\-.]?\w*",
+                    r"(?i).*_BB\d+.*",
+                ],
+            ),
         ]
         self.classification_rules = [
             {"type": t, "compiled": [re.compile(p) for p in pats]} for t, pats in builtins
@@ -249,12 +292,14 @@ class ZenonClassifier:
                 # Unmapped element -> record and warn without fabricating type
                 msg = f"Element '{elem_id}' could not be classified into any known electrical type."
                 warnings.append(msg)
-                unmapped.append({
-                    "id": elem_id,
-                    "name": item["name"],
-                    "reason": "unrecognized_element_type",
-                    "variables": var_records.get(elem_id, []),
-                })
+                unmapped.append(
+                    {
+                        "id": elem_id,
+                        "name": item["name"],
+                        "reason": "unrecognized_element_type",
+                        "variables": var_records.get(elem_id, []),
+                    }
+                )
                 continue
 
             raw_attrs = item["raw_attributes"]
@@ -271,14 +316,10 @@ class ZenonClassifier:
                 or raw_attrs.get("FROM_BUS")
             )
             to_bus: Optional[str] = (
-                canonical_attrs.get("to_bus")
-                or raw_attrs.get("to_bus")
-                or raw_attrs.get("TO_BUS")
+                canonical_attrs.get("to_bus") or raw_attrs.get("to_bus") or raw_attrs.get("TO_BUS")
             )
             bus: Optional[str] = (
-                canonical_attrs.get("bus")
-                or raw_attrs.get("bus")
-                or raw_attrs.get("BUS")
+                canonical_attrs.get("bus") or raw_attrs.get("bus") or raw_attrs.get("BUS")
             )
 
             if self.branch_topology_pattern:
@@ -325,12 +366,16 @@ class ZenonClassifier:
 
             elif elem_type == "line":
                 if not from_bus or not to_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "line",
-                        "reason": "missing_terminal_buses",
-                        "missing_fields": [f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "line",
+                            "reason": "missing_terminal_buses",
+                            "missing_fields": [
+                                f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v
+                            ],
+                        }
+                    )
                     continue
                 lines.append(
                     ZenonLine(
@@ -338,12 +383,26 @@ class ZenonClassifier:
                         name=item["name"],
                         from_bus=from_bus,
                         to_bus=to_bus,
-                        r_pu=float(canonical_attrs["r_pu"]) if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None else None,
-                        x_pu=float(canonical_attrs["x_pu"]) if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None else None,
-                        b_pu=float(canonical_attrs["b_pu"]) if "b_pu" in canonical_attrs and canonical_attrs["b_pu"] is not None else None,
-                        length_km=float(canonical_attrs["length_km"]) if "length_km" in canonical_attrs and canonical_attrs["length_km"] is not None else None,
-                        rating_mva=float(canonical_attrs["rating_mva"]) if "rating_mva" in canonical_attrs and canonical_attrs["rating_mva"] is not None else None,
-                        rating_a=float(canonical_attrs["rating_a"]) if "rating_a" in canonical_attrs and canonical_attrs["rating_a"] is not None else None,
+                        r_pu=float(canonical_attrs["r_pu"])
+                        if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None
+                        else None,
+                        x_pu=float(canonical_attrs["x_pu"])
+                        if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None
+                        else None,
+                        b_pu=float(canonical_attrs["b_pu"])
+                        if "b_pu" in canonical_attrs and canonical_attrs["b_pu"] is not None
+                        else None,
+                        length_km=float(canonical_attrs["length_km"])
+                        if "length_km" in canonical_attrs
+                        and canonical_attrs["length_km"] is not None
+                        else None,
+                        rating_mva=float(canonical_attrs["rating_mva"])
+                        if "rating_mva" in canonical_attrs
+                        and canonical_attrs["rating_mva"] is not None
+                        else None,
+                        rating_a=float(canonical_attrs["rating_a"])
+                        if "rating_a" in canonical_attrs and canonical_attrs["rating_a"] is not None
+                        else None,
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
                     )
@@ -351,12 +410,16 @@ class ZenonClassifier:
 
             elif elem_type == "cable":
                 if not from_bus or not to_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "cable",
-                        "reason": "missing_terminal_buses",
-                        "missing_fields": [f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "cable",
+                            "reason": "missing_terminal_buses",
+                            "missing_fields": [
+                                f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v
+                            ],
+                        }
+                    )
                     continue
                 cables.append(
                     ZenonCable(
@@ -364,11 +427,22 @@ class ZenonClassifier:
                         name=item["name"],
                         from_bus=from_bus,
                         to_bus=to_bus,
-                        r_pu=float(canonical_attrs["r_pu"]) if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None else None,
-                        x_pu=float(canonical_attrs["x_pu"]) if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None else None,
-                        b_pu=float(canonical_attrs["b_pu"]) if "b_pu" in canonical_attrs and canonical_attrs["b_pu"] is not None else None,
-                        length_km=float(canonical_attrs["length_km"]) if "length_km" in canonical_attrs and canonical_attrs["length_km"] is not None else None,
-                        rating_a=float(canonical_attrs["rating_a"]) if "rating_a" in canonical_attrs and canonical_attrs["rating_a"] is not None else None,
+                        r_pu=float(canonical_attrs["r_pu"])
+                        if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None
+                        else None,
+                        x_pu=float(canonical_attrs["x_pu"])
+                        if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None
+                        else None,
+                        b_pu=float(canonical_attrs["b_pu"])
+                        if "b_pu" in canonical_attrs and canonical_attrs["b_pu"] is not None
+                        else None,
+                        length_km=float(canonical_attrs["length_km"])
+                        if "length_km" in canonical_attrs
+                        and canonical_attrs["length_km"] is not None
+                        else None,
+                        rating_a=float(canonical_attrs["rating_a"])
+                        if "rating_a" in canonical_attrs and canonical_attrs["rating_a"] is not None
+                        else None,
                         conductor_material=canonical_attrs.get("conductor_material"),
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -377,12 +451,16 @@ class ZenonClassifier:
 
             elif elem_type == "transformer":
                 if not from_bus or not to_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "transformer",
-                        "reason": "missing_terminal_buses",
-                        "missing_fields": [f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "transformer",
+                            "reason": "missing_terminal_buses",
+                            "missing_fields": [
+                                f for f, v in [("from_bus", from_bus), ("to_bus", to_bus)] if not v
+                            ],
+                        }
+                    )
                     continue
                 transformers.append(
                     ZenonTransformer(
@@ -390,12 +468,26 @@ class ZenonClassifier:
                         name=item["name"],
                         from_bus=from_bus,
                         to_bus=to_bus,
-                        rating_mva=float(canonical_attrs["rating_mva"]) if "rating_mva" in canonical_attrs and canonical_attrs["rating_mva"] is not None else None,
-                        prim_kv=float(canonical_attrs["prim_kv"]) if "prim_kv" in canonical_attrs and canonical_attrs["prim_kv"] is not None else None,
-                        sec_kv=float(canonical_attrs["sec_kv"]) if "sec_kv" in canonical_attrs and canonical_attrs["sec_kv"] is not None else None,
-                        r_pu=float(canonical_attrs["r_pu"]) if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None else None,
-                        x_pu=float(canonical_attrs["x_pu"]) if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None else None,
-                        tap_ratio=float(canonical_attrs["tap_ratio"]) if "tap_ratio" in canonical_attrs and canonical_attrs["tap_ratio"] is not None else None,
+                        rating_mva=float(canonical_attrs["rating_mva"])
+                        if "rating_mva" in canonical_attrs
+                        and canonical_attrs["rating_mva"] is not None
+                        else None,
+                        prim_kv=float(canonical_attrs["prim_kv"])
+                        if "prim_kv" in canonical_attrs and canonical_attrs["prim_kv"] is not None
+                        else None,
+                        sec_kv=float(canonical_attrs["sec_kv"])
+                        if "sec_kv" in canonical_attrs and canonical_attrs["sec_kv"] is not None
+                        else None,
+                        r_pu=float(canonical_attrs["r_pu"])
+                        if "r_pu" in canonical_attrs and canonical_attrs["r_pu"] is not None
+                        else None,
+                        x_pu=float(canonical_attrs["x_pu"])
+                        if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None
+                        else None,
+                        tap_ratio=float(canonical_attrs["tap_ratio"])
+                        if "tap_ratio" in canonical_attrs
+                        and canonical_attrs["tap_ratio"] is not None
+                        else None,
                         vector_group=canonical_attrs.get("vector_group"),
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -412,8 +504,13 @@ class ZenonClassifier:
                         from_bus=from_bus,
                         to_bus=to_bus,
                         status=st,  # type: ignore[arg-type]
-                        rated_a=float(canonical_attrs["rated_a"]) if "rated_a" in canonical_attrs and canonical_attrs["rated_a"] is not None else None,
-                        breaking_capacity_ka=float(canonical_attrs["breaking_capacity_ka"]) if "breaking_capacity_ka" in canonical_attrs and canonical_attrs["breaking_capacity_ka"] is not None else None,
+                        rated_a=float(canonical_attrs["rated_a"])
+                        if "rated_a" in canonical_attrs and canonical_attrs["rated_a"] is not None
+                        else None,
+                        breaking_capacity_ka=float(canonical_attrs["breaking_capacity_ka"])
+                        if "breaking_capacity_ka" in canonical_attrs
+                        and canonical_attrs["breaking_capacity_ka"] is not None
+                        else None,
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
                     )
@@ -429,7 +526,9 @@ class ZenonClassifier:
                         from_bus=from_bus,
                         to_bus=to_bus,
                         status=st,  # type: ignore[arg-type]
-                        rated_a=float(canonical_attrs["rated_a"]) if "rated_a" in canonical_attrs and canonical_attrs["rated_a"] is not None else None,
+                        rated_a=float(canonical_attrs["rated_a"])
+                        if "rated_a" in canonical_attrs and canonical_attrs["rated_a"] is not None
+                        else None,
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
                     )
@@ -438,20 +537,26 @@ class ZenonClassifier:
             elif elem_type == "load":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "load",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "load",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 loads.append(
                     ZenonLoad(
                         id=elem_id,
                         name=item["name"],
                         bus=target_bus,
-                        p_mw=float(canonical_attrs["p_mw"]) if "p_mw" in canonical_attrs and canonical_attrs["p_mw"] is not None else None,
-                        q_mvar=float(canonical_attrs["q_mvar"]) if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None else None,
+                        p_mw=float(canonical_attrs["p_mw"])
+                        if "p_mw" in canonical_attrs and canonical_attrs["p_mw"] is not None
+                        else None,
+                        q_mvar=float(canonical_attrs["q_mvar"])
+                        if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None
+                        else None,
                         model=canonical_attrs.get("model"),
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
@@ -462,24 +567,40 @@ class ZenonClassifier:
             elif elem_type == "generator":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "generator",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "generator",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 generators.append(
                     ZenonGenerator(
                         id=elem_id,
                         name=item["name"],
                         bus=target_bus,
-                        p_mw=float(canonical_attrs["p_mw"]) if "p_mw" in canonical_attrs and canonical_attrs["p_mw"] is not None else None,
-                        q_mvar=float(canonical_attrs["q_mvar"]) if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None else None,
-                        rating_mva=float(canonical_attrs["rating_mva"]) if "rating_mva" in canonical_attrs and canonical_attrs["rating_mva"] is not None else None,
-                        v_setpoint=float(canonical_attrs["v_setpoint"]) if "v_setpoint" in canonical_attrs and canonical_attrs["v_setpoint"] is not None else None,
-                        q_min=float(canonical_attrs["q_min"]) if "q_min" in canonical_attrs and canonical_attrs["q_min"] is not None else None,
-                        q_max=float(canonical_attrs["q_max"]) if "q_max" in canonical_attrs and canonical_attrs["q_max"] is not None else None,
+                        p_mw=float(canonical_attrs["p_mw"])
+                        if "p_mw" in canonical_attrs and canonical_attrs["p_mw"] is not None
+                        else None,
+                        q_mvar=float(canonical_attrs["q_mvar"])
+                        if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None
+                        else None,
+                        rating_mva=float(canonical_attrs["rating_mva"])
+                        if "rating_mva" in canonical_attrs
+                        and canonical_attrs["rating_mva"] is not None
+                        else None,
+                        v_setpoint=float(canonical_attrs["v_setpoint"])
+                        if "v_setpoint" in canonical_attrs
+                        and canonical_attrs["v_setpoint"] is not None
+                        else None,
+                        q_min=float(canonical_attrs["q_min"])
+                        if "q_min" in canonical_attrs and canonical_attrs["q_min"] is not None
+                        else None,
+                        q_max=float(canonical_attrs["q_max"])
+                        if "q_max" in canonical_attrs and canonical_attrs["q_max"] is not None
+                        else None,
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -489,21 +610,29 @@ class ZenonClassifier:
             elif elem_type == "source":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "source",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "source",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 sources.append(
                     ZenonSource(
                         id=elem_id,
                         name=item["name"],
                         bus=target_bus,
-                        base_kv=float(canonical_attrs["base_kv"]) if "base_kv" in canonical_attrs and canonical_attrs["base_kv"] is not None else None,
-                        s_sc_mva=float(canonical_attrs["s_sc_mva"]) if "s_sc_mva" in canonical_attrs and canonical_attrs["s_sc_mva"] is not None else None,
-                        rx_ratio=float(canonical_attrs["rx_ratio"]) if "rx_ratio" in canonical_attrs and canonical_attrs["rx_ratio"] is not None else None,
+                        base_kv=float(canonical_attrs["base_kv"])
+                        if "base_kv" in canonical_attrs and canonical_attrs["base_kv"] is not None
+                        else None,
+                        s_sc_mva=float(canonical_attrs["s_sc_mva"])
+                        if "s_sc_mva" in canonical_attrs and canonical_attrs["s_sc_mva"] is not None
+                        else None,
+                        rx_ratio=float(canonical_attrs["rx_ratio"])
+                        if "rx_ratio" in canonical_attrs and canonical_attrs["rx_ratio"] is not None
+                        else None,
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -513,22 +642,33 @@ class ZenonClassifier:
             elif elem_type == "motor":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "motor",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "motor",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 motors.append(
                     ZenonMotor(
                         id=elem_id,
                         name=item["name"],
                         bus=target_bus,
-                        rated_kw=float(canonical_attrs["rated_kw"]) if "rated_kw" in canonical_attrs and canonical_attrs["rated_kw"] is not None else None,
-                        rated_kv=float(canonical_attrs["rated_kv"]) if "rated_kv" in canonical_attrs and canonical_attrs["rated_kv"] is not None else None,
-                        pf=float(canonical_attrs["pf"]) if "pf" in canonical_attrs and canonical_attrs["pf"] is not None else None,
-                        efficiency=float(canonical_attrs["efficiency"]) if "efficiency" in canonical_attrs and canonical_attrs["efficiency"] is not None else None,
+                        rated_kw=float(canonical_attrs["rated_kw"])
+                        if "rated_kw" in canonical_attrs and canonical_attrs["rated_kw"] is not None
+                        else None,
+                        rated_kv=float(canonical_attrs["rated_kv"])
+                        if "rated_kv" in canonical_attrs and canonical_attrs["rated_kv"] is not None
+                        else None,
+                        pf=float(canonical_attrs["pf"])
+                        if "pf" in canonical_attrs and canonical_attrs["pf"] is not None
+                        else None,
+                        efficiency=float(canonical_attrs["efficiency"])
+                        if "efficiency" in canonical_attrs
+                        and canonical_attrs["efficiency"] is not None
+                        else None,
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -538,12 +678,14 @@ class ZenonClassifier:
             elif elem_type == "relay":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "relay",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "relay",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 relays.append(
                     ZenonRelay(
@@ -552,8 +694,13 @@ class ZenonClassifier:
                         bus=target_bus,
                         protected_element=canonical_attrs.get("protected_element"),
                         curve_type=canonical_attrs.get("curve_type"),
-                        time_dial=float(canonical_attrs["time_dial"]) if "time_dial" in canonical_attrs and canonical_attrs["time_dial"] is not None else None,
-                        pickup_a=float(canonical_attrs["pickup_a"]) if "pickup_a" in canonical_attrs and canonical_attrs["pickup_a"] is not None else None,
+                        time_dial=float(canonical_attrs["time_dial"])
+                        if "time_dial" in canonical_attrs
+                        and canonical_attrs["time_dial"] is not None
+                        else None,
+                        pickup_a=float(canonical_attrs["pickup_a"])
+                        if "pickup_a" in canonical_attrs and canonical_attrs["pickup_a"] is not None
+                        else None,
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
                     )
@@ -562,20 +709,26 @@ class ZenonClassifier:
             elif elem_type == "capacitor":
                 target_bus = bus or from_bus
                 if not target_bus:
-                    incomplete.append({
-                        "id": elem_id,
-                        "type": "capacitor",
-                        "reason": "missing_bus_connection",
-                        "missing_fields": ["bus"],
-                    })
+                    incomplete.append(
+                        {
+                            "id": elem_id,
+                            "type": "capacitor",
+                            "reason": "missing_bus_connection",
+                            "missing_fields": ["bus"],
+                        }
+                    )
                     continue
                 capacitors.append(
                     ZenonCapacitor(
                         id=elem_id,
                         name=item["name"],
                         bus=target_bus,
-                        q_mvar=float(canonical_attrs["q_mvar"]) if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None else None,
-                        rated_kv=float(canonical_attrs["rated_kv"]) if "rated_kv" in canonical_attrs and canonical_attrs["rated_kv"] is not None else None,
+                        q_mvar=float(canonical_attrs["q_mvar"])
+                        if "q_mvar" in canonical_attrs and canonical_attrs["q_mvar"] is not None
+                        else None,
+                        rated_kv=float(canonical_attrs["rated_kv"])
+                        if "rated_kv" in canonical_attrs and canonical_attrs["rated_kv"] is not None
+                        else None,
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
@@ -590,8 +743,13 @@ class ZenonClassifier:
                         bus=bus,
                         from_bus=from_bus,
                         to_bus=to_bus,
-                        x_pu=float(canonical_attrs["x_pu"]) if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None else None,
-                        rating_mva=float(canonical_attrs["rating_mva"]) if "rating_mva" in canonical_attrs and canonical_attrs["rating_mva"] is not None else None,
+                        x_pu=float(canonical_attrs["x_pu"])
+                        if "x_pu" in canonical_attrs and canonical_attrs["x_pu"] is not None
+                        else None,
+                        rating_mva=float(canonical_attrs["rating_mva"])
+                        if "rating_mva" in canonical_attrs
+                        and canonical_attrs["rating_mva"] is not None
+                        else None,
                         status=self._normalize_status(canonical_attrs.get("status")),  # type: ignore[arg-type]
                         source_ref=item.get("source_ref"),
                         metadata={"raw_attributes": raw_attrs},
