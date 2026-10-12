@@ -208,7 +208,7 @@ async def test_scada_live_modbus_server_down_fail_closed():
 @pytest.mark.asyncio
 async def test_scada_live_opcua_adapter_execution():
     """Live Adapter Test 3: Connect and read against local OPC UA server returning live_connection: True."""
-    import time
+    import asyncio
 
     from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
     from agents.scada_agent import LiveOpcUaAdapter, SCADAAgent
@@ -219,14 +219,18 @@ async def test_scada_live_opcua_adapter_execution():
         enabled=True,
         role="server",
         server_endpoint="opc.tcp://127.0.0.1:4841/etap/server",
+        publish_interval_ms=100,
         node_map=[
             {"node_id": "ns=2;i=2", "browse_name": "BUS1.Voltage", "element_id": "BUS-1", "measurement_type": "voltage_magnitude", "unit": "p.u."}
         ],
     )
     server = OpcUaServerAdapter(cfg)
-    server.set_provider(lambda: {"BUS1.Voltage": 1.025})
+    server.set_provider(lambda: {"ns=2;i=2": 1.025, "BUS1.Voltage": 1.025})
     server.start_server()
-    time.sleep(1.5)
+    for _ in range(50):
+        if server.metric.points_served > 0:
+            break
+        await asyncio.sleep(0.1)
 
     try:
         adapter = LiveOpcUaAdapter(
@@ -254,6 +258,7 @@ async def test_scada_live_opcua_adapter_execution():
         assert res.data["simulated"] is False
         assert res.data["provenance"]["source"] == "opcua"
         assert res.data["measurements"]["measurement_count"] == 1
+        assert abs(res.data["measurements"]["measurements"][0]["value"] - 1.025) < 0.01
     finally:
         await adapter.close()
         server.stop_server()
