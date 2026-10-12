@@ -320,9 +320,9 @@ def run_benchmarks() -> dict:
         overall_passed = False
     benchmarks.append(
         {
-            "name": "IEEE 1547 Renewable Integration (Measured PV, Wind Curve & Grid Compliance)",
+            "name": "IEEE 1547 Renewable Integration (Measured PV, Wind Curve & Grid Compliance inc. Certifying External Ref)",
             "standard": "IEEE 1547-2018 / IEC 61400-12-1",
-            "cases_evaluated": 3,
+            "cases_evaluated": 4,
             "max_error_pct": ren_res["max_error_pct"],
             "tolerance_limit_pct": ren_res["tolerance_limit_pct"],
             "execution_time_sec": round(t_ren, 4),
@@ -331,6 +331,7 @@ def run_benchmarks() -> dict:
                 "case1_measured_solar_pv": ren_res["case1_measured_solar_pv"],
                 "case2_wind_turbine_curve": ren_res["case2_wind_turbine_curve"],
                 "case3_ieee1547_compliance": ren_res["case3_ieee1547_compliance"],
+                "case4_independent_external_reference": ren_res.get("case4_independent_external_reference"),
             },
         }
     )
