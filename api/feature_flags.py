@@ -95,10 +95,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 100,
     },
     "earth_grid": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Substation grounding grid design and step/touch potential per IEEE 80 - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "beta",
+        "description": "Substation grounding grid design and step/touch potential per IEEE 80 - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "renewable_integration": {
         "enabled": False,

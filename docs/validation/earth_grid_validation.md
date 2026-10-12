@@ -6,7 +6,10 @@
 - **Mathematical Formulations**: Rectangular grounding grid formulations (Sverak, Schwarz, and Laurent), mesh spacing factor ($K_m$), step geometric factor ($K_s$), irregularity factor ($K_i$), surface layer derating factor ($C_s$), tolerable touch/step voltage limits ($E_{touch}, E_{step}$), and Ground Potential Rise ($GPR$).
 - **Target Safety Criteria**: Mesh potential safety ($E_m \le E_{touch,allow}$), step potential safety ($E_s \le E_{step,allow}$), perimeter touch potential ($E_{touch,perim} \le E_{touch,allow}$), and ground resistance ($R_g \le 1.0\,\Omega$).
 - **Zero-Guessing Constraint**: Omission of engineering inputs triggers immediate fail-closed termination (`AgentStatus.FAILED` with error code `INSUFFICIENT_ENGINEERING_INPUT`). Synthetic parameter substitution in production is strictly forbidden.
-- **Lifecycle & Governance**: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (`LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
+- **Lifecycle & Governance**: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -134,7 +137,7 @@ The certifying benchmark suite tests `EarthGridAgent` against published IEEE 80-
 | 12 | 60×60m Perimeter Touch Voltage $E_{touch,perim} = 957.14\text{ V}$ & Safety | IEEE 80-2013 Clause 14.3 | **PASS** |
 | 13 | 50×40m Mesh Spacing Factor $K_m = 1.65256$ | IEEE 80-2013 Eq. 67 | **PASS** |
 | 14 | 50×40m Step Geometric Factor $K_s = 0.40908$ | IEEE 80-2013 Eq. 71 | **PASS** |
-| 15 | Doc-Code Rollout Truth Consistency (`enabled=False, rollout=0`) | `api/feature_flags.py` | **PASS** |
+| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 16 | Safety Charter & PE Stamp Integration | `docs/safety/earth_grid_safety_charter.md` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -149,7 +152,7 @@ The certifying benchmark suite tests `EarthGridAgent` against published IEEE 80-
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'earth_grid' remains enabled=False,        |
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'earth_grid' in beta rollout 100%          |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```
