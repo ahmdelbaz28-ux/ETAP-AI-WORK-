@@ -232,6 +232,7 @@ def run_benchmarks() -> dict:
             "details": {
                 "dol_case": ms_res["dol_case"],
                 "star_delta_case": ms_res["star_delta_case"],
+                "case3_independent_external_reference": ms_res.get("case3_independent_external_reference"),
             },
         }
     )
