@@ -1,16 +1,4 @@
----
-title: "AhmedETAP Platform"
-version: "2.1.0"
-last_updated: "2026-10-07"
-maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
-emoji: "⚡"
-colorFrom: yellow
-colorTo: red
-sdk: docker
-pinned: false
-license: mit
-app_port: 7860
----
+
 
 <div align="center">
 
@@ -18,7 +6,7 @@ app_port: 7860
 
 <br/>
 
-<h1>⚡ AhmedETAP Platform</h1>
+<h1> AhmedETAP Platform</h1>
 <h3>Enterprise AI-Powered Power Systems Engineering Intelligence</h3>
 
 <p>
