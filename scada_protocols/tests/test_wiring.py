@@ -52,6 +52,9 @@ def test_wire_into_app_mounts_router_and_starts_manager():
     original_load = _cfg_mod.load_config
     _cfg_mod.load_config = lambda *a, **kw: cfg
     _w.load_config = _cfg_mod.load_config
+    from api.dependencies import get_api_key
+
+    app.dependency_overrides[get_api_key] = lambda: "test-api-key"
     try:
         mgr = _wire(app, autostart=True)
         # Manager should be started.
@@ -100,6 +103,9 @@ def test_libraries_endpoint_works_through_wiring():
     original_load = _cfg_mod.load_config
     _cfg_mod.load_config = lambda *a, **kw: cfg
     _w.load_config = _cfg_mod.load_config
+    from api.dependencies import get_api_key
+
+    app.dependency_overrides[get_api_key] = lambda: "test-api-key"
     try:
         wire_into_app(app, autostart=True)
         client = TestClient(app)
