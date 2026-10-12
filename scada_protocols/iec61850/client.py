@@ -99,33 +99,91 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         """Read measurements from active IEC 61850 IED."""
         if not self.health_check():
             raise ConnectionError("IEC 61850 client is not running or no active connection")
+
+        conn = (
+            self._active_connections.get(connection_id)
+            if connection_id
+            else (
+                next(iter(self._active_connections.values()))
+                if self._active_connections
+                else None
+            )
+        )
+        if conn is None or not hasattr(conn, "read_value"):
+            raise ConnectionError(
+                "REAL_INTEGRATION_UNAVAILABLE: Live MMS measurement reading is not implemented. "
+                "Awaiting owner physical IED field testing."
+            )
+
         measurements: list[dict[str, Any]] = []
         now_str = datetime.now(timezone.utc).isoformat()
         for pt in getattr(self._cfg, "point_map", []):
-            tag = pt.get("element_id", "UNKNOWN") if isinstance(pt, dict) else getattr(pt, "element_id", "UNKNOWN")
-            mtype = pt.get("measurement_type", "voltage_magnitude") if isinstance(pt, dict) else getattr(pt, "measurement_type", "voltage_magnitude")
-            ln = pt.get("logical_node", "MMXU1") if isinstance(pt, dict) else getattr(pt, "logical_node", "MMXU1")
-            attr = pt.get("data_attribute", "Vol.mag.f") if isinstance(pt, dict) else getattr(pt, "data_attribute", "Vol.mag.f")
-            unit = pt.get("unit", "p.u.") if isinstance(pt, dict) else getattr(pt, "unit", "p.u.")
+            tag = (
+                pt.get("element_id", "UNKNOWN")
+                if isinstance(pt, dict)
+                else getattr(pt, "element_id", "UNKNOWN")
+            )
+            mtype = (
+                pt.get("measurement_type", "voltage_magnitude")
+                if isinstance(pt, dict)
+                else getattr(pt, "measurement_type", "voltage_magnitude")
+            )
+            ln = (
+                pt.get("logical_node", "MMXU1")
+                if isinstance(pt, dict)
+                else getattr(pt, "logical_node", "MMXU1")
+            )
+            attr = (
+                pt.get("data_attribute", "Vol.mag.f")
+                if isinstance(pt, dict)
+                else getattr(pt, "data_attribute", "Vol.mag.f")
+            )
+            unit = (
+                pt.get("unit", "p.u.")
+                if isinstance(pt, dict)
+                else getattr(pt, "unit", "p.u.")
+            )
             ref = f"{ln}${attr}"
             if measurement_tags and tag not in measurement_tags:
                 continue
             if iec61850_refs and ref not in iec61850_refs:
                 continue
-            measurements.append({
-                "tag": f"{tag}_{ln}",
-                "element_id": tag,
-                "measurement_type": mtype,
-                "value": 1.0,
-                "quality": "good",
-                "unit": unit,
-                "logical_node": ln,
-                "data_attribute": attr,
-                "source": "iec61850",
-                "timestamp": now_str,
-            })
+
+            try:
+                read_res = conn.read_value(ln, attr)
+                if isinstance(read_res, tuple):
+                    val, q = read_res
+                elif isinstance(read_res, dict):
+                    val = read_res.get("value")
+                    q = read_res.get("quality", "good")
+                else:
+                    val = float(read_res)
+                    q = "good"
+            except Exception as exc:
+                logger.warning("Failed to read MMS point %s: %s", ref, exc)
+                continue
+
+            if val is None:
+                continue
+
+            measurements.append(
+                {
+                    "tag": f"{tag}_{ln}",
+                    "element_id": tag,
+                    "measurement_type": mtype,
+                    "value": float(val),
+                    "quality": str(q),
+                    "unit": unit,
+                    "logical_node": ln,
+                    "data_attribute": attr,
+                    "source": "iec61850",
+                    "timestamp": now_str,
+                }
+            )
+
         if not measurements:
             raise ConnectionError("Zero telemetry points received from IEC 61850 IED")
+
         return {
             "success": True,
             "source": "iec61850",
@@ -198,25 +256,49 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         """Ingest a single configured point measurement into the SCADA bridge.
 
         Extracted from _poll_loop to reduce cognitive complexity (SonarCloud S3776).
+        Only dispatches if an active MMS connection with read_value is available.
+        Never fabricates default values (0.0/1.0) or fake 'good' quality.
         """
-        element_id = pt.get("element_id", "UNKNOWN")
-        mtype = pt.get("measurement_type", "voltage_magnitude")
-        _node = pt.get("logical_node", "MMXU1")
-        _attr = pt.get("data_attribute", "Vol.mag.f")
-
-        val: float = 0.0
-        q: str = "good"
-        src_ts = time.time()
-
         if self._on_measurement is None:
             return
 
+        conn = (
+            next(iter(self._active_connections.values()))
+            if self._active_connections
+            else None
+        )
+        if conn is None or not hasattr(conn, "read_value"):
+            return
+
+        element_id = pt.get("element_id", "UNKNOWN")
+        mtype = pt.get("measurement_type", "voltage_magnitude")
+        node = pt.get("logical_node", "MMXU1")
+        attr = pt.get("data_attribute", "Vol.mag.f")
+
+        try:
+            read_res = conn.read_value(node, attr)
+            if isinstance(read_res, tuple):
+                val, q = read_res
+            elif isinstance(read_res, dict):
+                val = read_res.get("value")
+                q = read_res.get("quality", "good")
+            else:
+                val = float(read_res)
+                q = "good"
+        except Exception as exc:
+            logger.warning("Failed to read MMS point %s$%s: %s", node, attr, exc)
+            return
+
+        if val is None:
+            return
+
+        src_ts = time.time()
         try:
             self._on_measurement(
                 element_id=element_id,
                 measurement_type=mtype,
                 value=float(val),
-                quality=q,
+                quality=str(q),
                 source="iec_61850",
                 source_timestamp=src_ts,
             )
