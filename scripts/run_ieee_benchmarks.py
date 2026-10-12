@@ -173,14 +173,17 @@ def run_benchmarks() -> dict:
 
     benchmarks.append(
         {
-            "name": "IEEE 519 Harmonic Distortion (3 Networks)",
+            "name": "IEEE 519 Harmonic Distortion (3 Networks inc. Certifying External Ref)",
             "standard": "IEEE 519-2022 Table 1 & Table 2",
-            "cases_evaluated": len(harm_res["benchmarks"]),
+            "cases_evaluated": 4,
             "max_error_pct": harm_res["max_error_pct"],
             "tolerance_limit_pct": harm_res["tolerance_limit_pct"],
             "execution_time_sec": round(t_harm, 4),
             "passed": passed_harm,
-            "details": harm_res["benchmarks"],
+            "details": {
+                **harm_res["benchmarks"],
+                "case4_independent_external_reference": harm_res["case4_independent_external_reference"],
+            },
         }
     )
 
