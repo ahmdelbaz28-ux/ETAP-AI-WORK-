@@ -338,7 +338,7 @@ def run_benchmarks() -> dict:
         {
             "name": "IEC 62933 Battery Energy Storage System (8760h Sizing, ROI, TOU Dispatch & Aging)",
             "standard": "IEC 62933-1 / IEC 62933-2-1 / IEC 62933-5-2",
-            "cases_evaluated": 4,
+            "cases_evaluated": 5,
             "max_error_pct": bess_res["max_error_pct"],
             "tolerance_limit_pct": bess_res["tolerance_limit_pct"],
             "execution_time_sec": round(t_bess, 4),
@@ -348,6 +348,7 @@ def run_benchmarks() -> dict:
                 "case2_financial_roi": bess_res["case2_financial_roi"],
                 "case3_tou_arbitrage_dispatch": bess_res["case3_tou_arbitrage_dispatch"],
                 "case4_lfp_cycle_life": bess_res["case4_lfp_cycle_life"],
+                "case5_independent_external_reference": bess_res["case5_independent_external_reference"],
             },
         }
     )
