@@ -24,9 +24,10 @@
   - Omission of any dynamic machine parameter raises `INSUFFICIENT_ENGINEERING_INPUT` fail-closed error.
   - Synthetic parameter fabrication or guessed machine inertias are strictly forbidden in production.
 - **Lifecycle & Governance Posture**:
-  - `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
-  - Registered in `engine/capability_registry.py` (`lifecycle_status=LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
-  - Feature flag in `api/feature_flags.py` remains strictly `enabled=False, rollout_percentage=0` until formal commissioning sign-off.
+  - `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
   - Full safety charter established in [docs/safety/transient_stability_safety_charter.md](file:///c:/Users/EWS-01/Desktop/etap/docs/safety/transient_stability_safety_charter.md).
 
 ---
@@ -127,17 +128,17 @@ The certifying benchmark suite validates `StabilityAgent` against published IEEE
    - `is_production_eligible()` evaluates strictly to **True**.
 
 2. **Feature Flag & Rollout Truth (`api/feature_flags.py:80-85`)**:
-   - **Rollout Status**: `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
+   - **Rollout Status**: `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
    - **Configuration in `api/feature_flags.py`**:
      ```python
      "transient_stability": {
-         "enabled": False,
-         "status": "pilot",
-         "description": "Transient stability analysis (IEEE 399) - PILOT fail-closed",
-         "rollout_percentage": 0,
+         "enabled": True,
+         "status": "beta",
+         "description": "Transient stability analysis (IEEE 399) - Beta 100% rollout",
+         "rollout_percentage": 100,
      }
      ```
-   - **Strict Fail-Closed Governance**: Flag stays `enabled=False` with zero production traffic until explicit site commissioning sign-off. Opening traffic without formal human sign-off is strictly prohibited.
+   - **Governance**: Flag enabled=True, rollout 100 for engineer-tester program per owner authorization.
    - Circuit breaker: `export FEATURE_FLAG_TRANSIENT_STABILITY="false"` documented in `DEPLOYMENT_ROLLBACK.md`.
 
 3. **Input Anti-Fabrication & Strict Fail-Closed Execution**:
@@ -210,7 +211,7 @@ All test suites executed and verified on the final revision:
 | 6 | 3-Machine Post-Fault Rotor Angle Coherence ($0.0307^\circ < 180^\circ$) | Kundur (1994) Ch 13 Sec 13.2 | **PASS** |
 | 7 | Small-Signal Minimum Damping Ratio ($\zeta \ge 0.050$) | Linearized State Matrix Eigenvalues | **PASS** |
 | 8 | High-Risk Safety Charter Stamped by PE | [docs/safety/transient_stability_safety_charter.md](file:///c:/Users/EWS-01/Desktop/etap/docs/safety/transient_stability_safety_charter.md) | **PASS** |
-| 9 | Doc-Code Rollout Truth Consistency (`enabled=False, rollout=0`) | `api/feature_flags.py:80-85` | **PASS** |
+| 9 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py:80-85` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 10 | Zero-Guessing / Input Requirement Validation | `tests/test_mandatory_engineering_inputs.py` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -225,7 +226,7 @@ All test suites executed and verified on the final revision:
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'transient_stability' remains enabled=False|
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'transient_stability' in beta rollout 100% |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```

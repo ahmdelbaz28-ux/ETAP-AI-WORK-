@@ -80,10 +80,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 100,
     },
     "transient_stability": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Transient stability analysis (IEEE 399) - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "beta",
+        "description": "Transient stability analysis (IEEE 399) - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "optimal_power_flow": {
         "enabled": True,
