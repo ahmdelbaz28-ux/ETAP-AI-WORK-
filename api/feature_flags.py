@@ -107,10 +107,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 0,
     },
     "battery_storage": {
-        "enabled": False,
-        "status": "pilot",
-        "description": "Battery energy storage system (BESS) sizing & dispatch per IEC 62933 - PILOT fail-closed",
-        "rollout_percentage": 0,
+        "enabled": True,
+        "status": "beta",
+        "description": "Battery energy storage system (BESS) sizing & dispatch per IEC 62933 - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "scada": {
         "enabled": False,

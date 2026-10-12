@@ -6,7 +6,10 @@
 - **Mathematical Formulations**: Peak shaving power/energy capacity envelope, dynamic TOU arbitrage dispatch optimization, SEI layer growth degradation model ($Q_{loss}(t) = A \times \exp(-E_a/RT) \times t^z$), rainflow cycle counting, levelized cost of storage (LCOS), and discounted cash flow NPV/IRR.
 - **Safety & Performance Criteria**: Usable SOC operating limits (10%–90%), round-trip efficiency ($\eta_{rt} \ge 85\%$), depth-of-discharge boundaries ($\text{DoD}_{max} \le 90\%$), reserve energy margin (10%), and thermal runaway prevention limits.
 - **Zero-Guessing Constraint**: Omission of engineering inputs triggers immediate fail-closed termination (`AgentStatus.FAILED` with error code `INSUFFICIENT_ENGINEERING_INPUT`). Synthetic substitution strictly forbidden in production.
-- **Lifecycle & Governance**: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (`LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
+- **Lifecycle & Governance**: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -155,7 +158,7 @@ The certifying benchmark suite tests `BatteryStorageAgent` against four independ
 | 12 | CATL 280Ah Nominal Baseline Cycle Count | CATL-LFP280-DS-2023-V2 Table 3 | **PASS** |
 | 13 | LFP Arrhenius Thermal Derating (35°C vs 25°C) | Ecker et al. (2014) Table 3 | **PASS** |
 | 14 | Operational Boundaries (SOC 10%–90%, $\text{DoD}_{max} \le 90\%$) | IEC 62933-5-2 Clause 7 | **PASS** |
-| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=False, rollout=0) | **PASS** |
+| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 16 | Safety Charter & PE Stamp Integration | `docs/safety/battery_storage_safety_charter.md` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -170,7 +173,7 @@ The certifying benchmark suite tests `BatteryStorageAgent` against four independ
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'battery_storage' remains enabled=False,   |
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'battery_storage' in beta rollout 100%     |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```
