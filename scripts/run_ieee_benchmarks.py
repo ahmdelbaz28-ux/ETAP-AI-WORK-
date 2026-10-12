@@ -257,6 +257,7 @@ def run_benchmarks() -> dict:
             "details": {
                 "smib_cct_case": ts_res["smib_cct_case"],
                 "multimachine_rk4_case": ts_res["multimachine_rk4_case"],
+                "case3_independent_external_reference": ts_res.get("case3_independent_external_reference"),
             },
         }
     )
