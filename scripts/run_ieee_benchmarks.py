@@ -290,9 +290,9 @@ def run_benchmarks() -> dict:
         overall_passed = False
     benchmarks.append(
         {
-            "name": "IEEE 80 Substation Ground Grid Design & Tolerable Potentials",
+            "name": "IEEE 80 Substation Ground Grid Design & Tolerable Potentials (3 Cases inc. Certifying External Ref)",
             "standard": "IEEE 80-2013 Section 16 & Annex B",
-            "cases_evaluated": 2,
+            "cases_evaluated": 3,
             "max_error_pct": eg_res["max_error_pct"],
             "tolerance_limit_pct": eg_res["tolerance_limit_pct"],
             "execution_time_sec": round(t_eg, 4),
@@ -300,6 +300,7 @@ def run_benchmarks() -> dict:
             "details": {
                 "case1_substation_70x70m": eg_res["case1_substation_70x70m"],
                 "case2_geometric_factors_50x40m": eg_res["case2_geometric_factors_50x40m"],
+                "case3_independent_external_reference": eg_res["case3_independent_external_reference"],
             },
         }
     )

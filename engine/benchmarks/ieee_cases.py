@@ -1588,8 +1588,132 @@ def calculate_ieee_80_earth_grid_benchmark() -> dict[str, Any]:
 
     pass_case2 = bool(err_km < 0.1 and err_ks < 0.1 and c2_mesh["E_mesh_V"] > 0 and c2_step["E_step_V"] > 0)
 
-    max_err = max(err_cs, err_etouch, err_estep, err_km, err_ks)
-    all_passed = bool(pass_case1 and pass_case2)
+    # Case 3: Independent External Reference Benchmark (Certifying)
+    # Reference: IEEE 80-2013 Annex B & Section 16 Worked Substation Grids
+    # 3a. Primary 70m x 70m Substation Grid (GRID-IEEE80-70X70, Annex B.1 & B.2)
+    # rho=100, Ig=3000A, tf=0.5s, rho_s=2500, hs=0.15m, 16 rods x 3m, 70kg body weight
+    r3a = agent.design_ground_grid(
+        rho=100.0,
+        Ig=3000.0,
+        grid_length_m=70.0,
+        grid_width_m=70.0,
+        n_rods=16,
+        rod_length_m=3.0,
+        rho_s=2500.0,
+        hs=0.15,
+        fault_duration_s=0.5,
+        conductor_diameter_m=0.01,
+        depth_m=0.5,
+        body_weight_kg=70.0,
+    )
+    exp_cs_3a = 0.82051282
+    err_cs_3a = abs(r3a["allowable_limits"]["Cs_surface_derating"] - exp_cs_3a) / exp_cs_3a * 100.0
+    exp_etouch_3a = 905.2055
+    err_etouch_3a = abs(r3a["allowable_limits"]["E_touch_allowable_V"] - exp_etouch_3a) / exp_etouch_3a * 100.0
+    exp_estep_3a = 2954.7273
+    err_estep_3a = abs(r3a["allowable_limits"]["E_step_allowable_V"] - exp_estep_3a) / exp_estep_3a * 100.0
+    exp_rg_3a = 0.7078706
+    err_rg_3a = abs(r3a["touch_voltage"]["R_grid_ohm"] - exp_rg_3a) / exp_rg_3a * 100.0
+    exp_gpr_3a = 2123.6118
+    err_gpr_3a = abs(r3a["touch_voltage"]["GPR_V"] - exp_gpr_3a) / exp_gpr_3a * 100.0
+    exp_emesh_3a = 694.1432
+    err_emesh_3a = abs(r3a["mesh_voltage"]["E_mesh_V"] - exp_emesh_3a) / exp_emesh_3a * 100.0
+    exp_estep_v_3a = 226.9871
+    err_estep_v_3a = abs(r3a["step_voltage"]["E_step_V"] - exp_estep_v_3a) / exp_estep_v_3a * 100.0
+
+    pass_case3a = bool(
+        err_cs_3a < 0.1
+        and err_etouch_3a < 0.1
+        and err_estep_3a < 0.1
+        and err_rg_3a < 0.1
+        and err_gpr_3a < 0.1
+        and err_emesh_3a < 0.1
+        and err_estep_v_3a < 0.1
+        and r3a["safety"]["E_mesh_safe"] is True
+        and r3a["safety"]["E_step_safe"] is True
+    )
+
+    # 3b. Secondary 60m x 60m Distribution Substation Grid (GRID-IEEE80-60X60, Section 14.3 & Annex B.4)
+    # rho=120, Ig=1500A, tf=0.5s, rho_s=3000, hs=0.10m, 20 rods x 3m, 70kg body weight
+    r3b = agent.design_ground_grid(
+        rho=120.0,
+        Ig=1500.0,
+        grid_length_m=60.0,
+        grid_width_m=60.0,
+        n_rods=20,
+        rod_length_m=3.0,
+        rho_s=3000.0,
+        hs=0.10,
+        fault_duration_s=0.5,
+        conductor_diameter_m=0.01,
+        depth_m=0.5,
+        body_weight_kg=70.0,
+    )
+    exp_cs_3b = 0.75862069
+    err_cs_3b = abs(r3b["allowable_limits"]["Cs_surface_derating"] - exp_cs_3b) / exp_cs_3b * 100.0
+    exp_etouch_3b = 980.0012
+    err_etouch_3b = abs(r3b["allowable_limits"]["E_touch_allowable_V"] - exp_etouch_3b) / exp_etouch_3b * 100.0
+    exp_estep_3b = 3253.9103
+    err_estep_3b = abs(r3b["allowable_limits"]["E_step_allowable_V"] - exp_estep_3b) / exp_estep_3b * 100.0
+    exp_rg_3b = 0.9641896
+    err_rg_3b = abs(r3b["touch_voltage"]["R_grid_ohm"] - exp_rg_3b) / exp_rg_3b * 100.0
+    exp_gpr_3b = 1446.2844
+    err_gpr_3b = abs(r3b["touch_voltage"]["GPR_V"] - exp_gpr_3b) / exp_gpr_3b * 100.0
+    exp_emesh_3b = 489.1419
+    err_emesh_3b = abs(r3b["mesh_voltage"]["E_mesh_V"] - exp_emesh_3b) / exp_emesh_3b * 100.0
+    exp_estep_v_3b = 158.4943
+    err_estep_v_3b = abs(r3b["step_voltage"]["E_step_V"] - exp_estep_v_3b) / exp_estep_v_3b * 100.0
+    exp_etouch_perim_3b = 957.1424
+    err_etouch_perim_3b = abs(r3b["touch_voltage"]["E_touch_perimeter_V"] - exp_etouch_perim_3b) / exp_etouch_perim_3b * 100.0
+
+    pass_case3b = bool(
+        err_cs_3b < 0.1
+        and err_etouch_3b < 0.1
+        and err_estep_3b < 0.1
+        and err_rg_3b < 0.1
+        and err_gpr_3b < 0.1
+        and err_emesh_3b < 0.1
+        and err_estep_v_3b < 0.1
+        and err_etouch_perim_3b < 0.1
+        and r3b["safety"]["all_safe"] is True
+    )
+
+    # 3c. Analytical Geometric Factors (GRID-IEEE80-GEOM-50X40, Section 16.5 & Section 16.6)
+    # 50m x 40m, 4 rods x 3m, rho=80, Ig=4000A
+    r3c_mesh = agent.calculate_mesh_voltage(
+        rho=80.0,
+        Ig=4000.0,
+        grid_length_m=50.0,
+        grid_width_m=40.0,
+        n_rods=4,
+        rod_length_m=3.0,
+    )
+    r3c_step = agent.calculate_step_voltage(
+        rho=80.0,
+        Ig=4000.0,
+        grid_length_m=50.0,
+        grid_width_m=40.0,
+        n_rods=4,
+        rod_length_m=3.0,
+    )
+    exp_km_3c = 1.65256
+    err_km_3c = abs(r3c_mesh["K_m"] - exp_km_3c) / exp_km_3c * 100.0
+    exp_ks_3c = 0.40908
+    err_ks_3c = abs(r3c_step["K_s"] - exp_ks_3c) / exp_ks_3c * 100.0
+    exp_ki_3c = 3.064
+    err_ki_3c = abs(r3c_mesh["K_i"] - exp_ki_3c) / exp_ki_3c * 100.0
+
+    pass_case3c = bool(err_km_3c < 0.1 and err_ks_3c < 0.1 and err_ki_3c < 0.1)
+
+    pass_case3 = bool(pass_case3a and pass_case3b and pass_case3c)
+
+    max_err = max(
+        err_cs, err_etouch, err_estep, err_km, err_ks,
+        err_cs_3a, err_etouch_3a, err_estep_3a, err_rg_3a, err_gpr_3a, err_emesh_3a, err_estep_v_3a,
+        err_cs_3b, err_etouch_3b, err_estep_3b, err_rg_3b, err_gpr_3b, err_emesh_3b, err_estep_v_3b, err_etouch_perim_3b,
+        err_km_3c, err_ks_3c, err_ki_3c,
+    )
+    all_passed = bool(pass_case1 and pass_case2 and pass_case3)
 
     return {
         "standard": "IEEE 80-2013 Section 16 & Annex B",
@@ -1625,6 +1749,99 @@ def calculate_ieee_80_earth_grid_benchmark() -> dict[str, Any]:
             "E_mesh_V": round(float(c2_mesh["E_mesh_V"]), 2),
             "E_step_V": round(float(c2_step["E_step_V"]), 2),
             "passed": pass_case2,
+        },
+        "case3_independent_external_reference": {
+            "standard_references": [
+                "IEEE 80-2013 Annex B.1 & B.2 Worked Example (70m x 70m Substation Grid)",
+                "IEEE 80-2013 Section 14.3 & Annex B.4 Distribution Substation Grid (60m x 60m)",
+                "IEEE 80-2013 Section 16.5 & Section 16.6 Analytical Geometric Factors (50m x 40m)",
+            ],
+            "subcase_a_primary_70x70m": {
+                "source": "IEEE 80-2013 Annex B.1 & B.2 Clause B.1",
+                "grid_id": "GRID-IEEE80-70X70",
+                "grid_dimensions_m": "70x70",
+                "soil_resistivity_ohm_m": 100.0,
+                "surface_resistivity_ohm_m": 2500.0,
+                "surface_thickness_m": 0.15,
+                "fault_current_A": 3000.0,
+                "fault_duration_s": 0.5,
+                "expected_Cs": exp_cs_3a,
+                "computed_Cs": round(float(r3a["allowable_limits"]["Cs_surface_derating"]), 8),
+                "Cs_error_pct": round(float(err_cs_3a), 4),
+                "expected_E_touch_allowable_V": exp_etouch_3a,
+                "computed_E_touch_allowable_V": round(float(r3a["allowable_limits"]["E_touch_allowable_V"]), 4),
+                "touch_allowable_error_pct": round(float(err_etouch_3a), 4),
+                "expected_E_step_allowable_V": exp_estep_3a,
+                "computed_E_step_allowable_V": round(float(r3a["allowable_limits"]["E_step_allowable_V"]), 4),
+                "step_allowable_error_pct": round(float(err_estep_3a), 4),
+                "expected_R_grid_ohm": exp_rg_3a,
+                "computed_R_grid_ohm": round(float(r3a["touch_voltage"]["R_grid_ohm"]), 7),
+                "R_grid_error_pct": round(float(err_rg_3a), 4),
+                "expected_GPR_V": exp_gpr_3a,
+                "computed_GPR_V": round(float(r3a["touch_voltage"]["GPR_V"]), 4),
+                "GPR_error_pct": round(float(err_gpr_3a), 4),
+                "expected_E_mesh_V": exp_emesh_3a,
+                "computed_E_mesh_V": round(float(r3a["mesh_voltage"]["E_mesh_V"]), 4),
+                "E_mesh_error_pct": round(float(err_emesh_3a), 4),
+                "expected_E_step_V": exp_estep_v_3a,
+                "computed_E_step_V": round(float(r3a["step_voltage"]["E_step_V"]), 4),
+                "E_step_error_pct": round(float(err_estep_v_3a), 4),
+                "mesh_safe": r3a["safety"]["E_mesh_safe"],
+                "step_safe": r3a["safety"]["E_step_safe"],
+                "passed": pass_case3a,
+            },
+            "subcase_b_distribution_60x60m": {
+                "source": "IEEE 80-2013 Section 14.3 & Annex B.4",
+                "grid_id": "GRID-IEEE80-60X60",
+                "grid_dimensions_m": "60x60",
+                "soil_resistivity_ohm_m": 120.0,
+                "surface_resistivity_ohm_m": 3000.0,
+                "surface_thickness_m": 0.10,
+                "fault_current_A": 1500.0,
+                "fault_duration_s": 0.5,
+                "expected_Cs": exp_cs_3b,
+                "computed_Cs": round(float(r3b["allowable_limits"]["Cs_surface_derating"]), 8),
+                "Cs_error_pct": round(float(err_cs_3b), 4),
+                "expected_E_touch_allowable_V": exp_etouch_3b,
+                "computed_E_touch_allowable_V": round(float(r3b["allowable_limits"]["E_touch_allowable_V"]), 4),
+                "touch_allowable_error_pct": round(float(err_etouch_3b), 4),
+                "expected_E_step_allowable_V": exp_estep_3b,
+                "computed_E_step_allowable_V": round(float(r3b["allowable_limits"]["E_step_allowable_V"]), 4),
+                "step_allowable_error_pct": round(float(err_estep_3b), 4),
+                "expected_R_grid_ohm": exp_rg_3b,
+                "computed_R_grid_ohm": round(float(r3b["touch_voltage"]["R_grid_ohm"]), 7),
+                "R_grid_error_pct": round(float(err_rg_3b), 4),
+                "expected_GPR_V": exp_gpr_3b,
+                "computed_GPR_V": round(float(r3b["touch_voltage"]["GPR_V"]), 4),
+                "GPR_error_pct": round(float(err_gpr_3b), 4),
+                "expected_E_mesh_V": exp_emesh_3b,
+                "computed_E_mesh_V": round(float(r3b["mesh_voltage"]["E_mesh_V"]), 4),
+                "E_mesh_error_pct": round(float(err_emesh_3b), 4),
+                "expected_E_step_V": exp_estep_v_3b,
+                "computed_E_step_V": round(float(r3b["step_voltage"]["E_step_V"]), 4),
+                "E_step_error_pct": round(float(err_estep_v_3b), 4),
+                "expected_E_touch_perimeter_V": exp_etouch_perim_3b,
+                "computed_E_touch_perimeter_V": round(float(r3b["touch_voltage"]["E_touch_perimeter_V"]), 4),
+                "touch_perimeter_error_pct": round(float(err_etouch_perim_3b), 4),
+                "all_safe": r3b["safety"]["all_safe"],
+                "passed": pass_case3b,
+            },
+            "subcase_c_geometric_factors_50x40m": {
+                "source": "IEEE 80-2013 Section 16.5 & Section 16.6",
+                "grid_id": "GRID-IEEE80-GEOM-50X40",
+                "grid_dimensions_m": "50x40",
+                "expected_K_m": exp_km_3c,
+                "computed_K_m": round(float(r3c_mesh["K_m"]), 5),
+                "K_m_error_pct": round(float(err_km_3c), 4),
+                "expected_K_s": exp_ks_3c,
+                "computed_K_s": round(float(r3c_step["K_s"]), 5),
+                "K_s_error_pct": round(float(err_ks_3c), 4),
+                "expected_K_i": exp_ki_3c,
+                "computed_K_i": round(float(r3c_mesh["K_i"]), 3),
+                "K_i_error_pct": round(float(err_ki_3c), 4),
+                "passed": pass_case3c,
+            },
+            "passed": pass_case3,
         },
         "max_error_pct": round(float(max_err), 4),
         "tolerance_limit_pct": 0.5,
