@@ -488,7 +488,8 @@ class TestSelfConfirmationGateway:
         return resp.json()["data"]
 
     def test_self_approval_scada_cua_with_valid_token_and_validation_succeeds(self, client):
-        data = self._create_pending(client, tool="scada_control")
+        """Authoritative server-side validation passes and records server-computed snapshot."""
+        data = self._create_pending(client, tool="scada_control", args={"device_id": "CB-101", "action": "open"})
         action_id = data["id"]
         args_hash = data["args_hash"]
         assert args_hash is not None
@@ -497,7 +498,7 @@ class TestSelfConfirmationGateway:
         payload = {
             "decision": "approve",
             "confirm_token": args_hash,
-            "validation_results": {"status": "PASS", "checks": ["envelope_ok"]},
+            "validation_results": {"status": "PASS", "checks": ["client_preflight_ok"]},
             "program_suggestion": {"action": "open", "confidence": 0.99},
             "override_reason": None,
         }
@@ -510,6 +511,35 @@ class TestSelfConfirmationGateway:
         assert res_data["validation_snapshot"] is not None
         assert res_data["validation_snapshot"]["confirm_token"] == args_hash
         assert res_data["validation_snapshot"]["self_approved"] is True
+        # Server-side validation must be authoritative
+        server_val = res_data["validation_snapshot"]["server_validation"]
+        assert server_val["status"] == "PASS"
+        assert server_val["server_verified"] is True
+        assert "target_existence" in server_val["checks"]
+
+    def test_self_approval_scada_cua_fabricated_client_validation_fails_server_check_403(self, client):
+        """Client-fabricated validation results cannot bypass server checks for destructive/invalid actions."""
+        # Action with destructive operation pattern
+        data = self._create_pending(
+            client,
+            tool="scada_control",
+            args={"device_id": "CB-101", "action": "emergency_trip_hard_kill"},
+        )
+        action_id = data["id"]
+        args_hash = data["args_hash"]
+
+        # Client fabricates a PASS claim in validation_results
+        payload = {
+            "decision": "approve",
+            "confirm_token": args_hash,
+            "validation_results": {"status": "PASS", "checks": ["forged_client_claim"]},
+            "program_suggestion": {"action": "emergency_trip_hard_kill"},
+        }
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
+        assert resp.status_code == 403
+        detail = resp.json()["detail"]
+        assert detail["code"] == MAKER_CHECKER_VIOLATION
+        assert "Server validation failed" in detail["message"]
 
     def test_self_approval_scada_cua_with_mismatched_token_fails_403(self, client):
         data = self._create_pending(client, tool="scada_control")
@@ -526,15 +556,15 @@ class TestSelfConfirmationGateway:
         detail = resp.json()["detail"]
         assert detail["code"] == MAKER_CHECKER_VIOLATION
 
-    def test_self_approval_scada_cua_missing_validation_fails_403(self, client):
+    def test_self_approval_scada_cua_missing_token_fails_403(self, client):
         data = self._create_pending(client, tool="scada_control")
         action_id = data["id"]
-        args_hash = data["args_hash"]
 
-        # Missing validation_results and program_suggestion
+        # Missing confirm_token
         payload = {
             "decision": "approve",
-            "confirm_token": args_hash,
+            "validation_results": {"status": "PASS"},
+            "program_suggestion": {"action": "open"},
         }
         resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
         assert resp.status_code == 403

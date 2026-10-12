@@ -214,6 +214,260 @@ class CreateApprovalRequest(BaseModel):
     tenant_id: Optional[str] = Field(default=None, max_length=36)
 
 
+
+def validate_server_control_action(
+    action: PendingAction,
+) -> tuple[bool, Dict[str, Any], str]:
+    """Authoritative server-side validation for SCADA / CUA control actions.
+
+    Single-operator self-confirmation MUST be verified authoritatively by the server
+    rather than trusting client-supplied validation assertions.
+    Inspired by agents.cua_base_executor.validate_control_action:
+      1. Target existence & format (non-empty, non-placeholder, recognized ID).
+      2. Refusal of destructive / lethal operation patterns.
+      3. Interlock verification (grounding switch de-energization, locked/tagged-out checks).
+      4. Action type validity (must be a supported SCADA / CUA control command).
+      5. Value envelope checks (operating envelope limits for voltage, frequency, setpoints).
+    """
+    args = action.args or {}
+    if isinstance(args, str):
+        try:
+            args = json.loads(args)
+        except Exception:
+            args = {}
+    if not isinstance(args, dict) or not args:
+        return (
+            False,
+            {"valid": False, "reason": "Action arguments are missing or malformed"},
+            "INVALID_ARGUMENTS",
+        )
+
+    # 1. Target existence check
+    raw_target = (
+        args.get("device_id")
+        or args.get("target")
+        or args.get("element_id")
+        or args.get("target_id")
+    )
+    target_str = str(raw_target or "").strip()
+    target_lower = target_str.lower()
+
+    if (
+        not target_str
+        or target_lower in ("unknown", "none", "null", "undefined", "<device_id>", "<target>", "placeholder")
+        or "<" in target_str
+        or ">" in target_str
+    ):
+        return (
+            False,
+            {
+                "valid": False,
+                "target_exists": False,
+                "reason": f"Target device/element does not exist, is empty, or is placeholder: {raw_target!r}",
+            },
+            "INVALID_TARGET",
+        )
+
+    # 2. Action type check
+    raw_action = (
+        args.get("action_type")
+        or args.get("command")
+        or args.get("action")
+        or args.get("type")
+    )
+    if raw_action is None:
+        return (
+            False,
+            {
+                "valid": False,
+                "supported_action": False,
+                "reason": "Missing action type or command in action arguments",
+            },
+            "MISSING_ACTION_TYPE",
+        )
+
+    action_str = str(raw_action).strip().lower()
+    if not action_str:
+        return (
+            False,
+            {
+                "valid": False,
+                "supported_action": False,
+                "reason": "Empty action type in action arguments",
+            },
+            "MISSING_ACTION_TYPE",
+        )
+
+    supported_actions = {
+        # Breaker / Switch operations
+        "open", "close", "trip", "breaker_open", "breaker_close", "switch_open", "switch_close",
+        # Transformer / Tap changer operations
+        "raise", "lower", "tap_up", "tap_down", "tap_change",
+        # Setpoints / Analog control
+        "setpoint", "set_setpoint", "set_active_power", "set_reactive_power",
+        "set_voltage_setpoint", "set_voltage", "voltage_setpoint", "frequency_setpoint",
+        # CUA desktop / browser actions
+        "click", "type", "key", "press", "drag", "scroll", "select", "input", "navigate",
+        # General state commands
+        "start", "stop", "reset", "enable", "disable",
+    }
+    if action_str not in supported_actions:
+        return (
+            False,
+            {
+                "valid": False,
+                "supported_action": False,
+                "reason": f"Action type {raw_action!r} is unsupported or cannot be authoritatively verified on server",
+            },
+            "UNSUPPORTED_ACTION_TYPE",
+        )
+
+    # 3. Destructive / lethal pattern check
+    destructive_patterns = (
+        "format", "wipe", "destroy", "kill", "rm -rf", "drop database", "purge",
+        "emergency_trip", "black_start_inhibit", "disable_protection", "trip_generator",
+        "drop_load_shedding", "hard_kill", "bypass_safety", "delete_all", "destructive",
+    )
+    combined_text = f"{target_lower} {action_str} {str(args.get('reason') or '').lower()}"
+    for pat in destructive_patterns:
+        if pat in combined_text:
+            return (
+                False,
+                {
+                    "valid": False,
+                    "destructive_refused": True,
+                    "reason": f"Destructive operation pattern '{pat}' is hard-refused for self-confirmation",
+                },
+                "DESTRUCTIVE_OPERATION_REFUSED",
+            )
+
+    # 4. Interlock check
+    if ("earth" in target_lower or "ground" in target_lower) and any(
+        k in action_str for k in ("close", "enable")
+    ):
+        if not args.get("is_deenergized", False):
+            return (
+                False,
+                {
+                    "valid": False,
+                    "interlock_ok": False,
+                    "reason": "Conflicting interlock state: grounding switch cannot close while circuit is not de-energized",
+                },
+                "INTERLOCK_VIOLATION",
+            )
+
+    if args.get("tagged_out") is True or "tagged_out" in target_lower or "locked" in target_lower:
+        return (
+            False,
+            {
+                "valid": False,
+                "interlock_ok": False,
+                "reason": f"Interlock violation: device {target_str} is tagged out or locked",
+            },
+            "INTERLOCK_VIOLATION",
+        )
+
+    # 5. Parameter envelope check
+    raw_val = (
+        args.get("target_value")
+        or args.get("setpoint")
+        or args.get("value")
+    )
+    if raw_val is not None:
+        try:
+            num_val = float(raw_val)
+        except (ValueError, TypeError):
+            return (
+                False,
+                {
+                    "valid": False,
+                    "within_envelope": False,
+                    "reason": f"Target setpoint value is non-numeric: {raw_val!r}",
+                },
+                "INVALID_VALUE",
+            )
+
+        custom_envelope = args.get("envelope")
+        if isinstance(custom_envelope, dict):
+            min_v = custom_envelope.get("min")
+            max_v = custom_envelope.get("max")
+            if min_v is not None and num_val < min_v:
+                return (
+                    False,
+                    {
+                        "valid": False,
+                        "within_envelope": False,
+                        "reason": f"Value {num_val} is below minimum allowed envelope {min_v}",
+                    },
+                    "ENVELOPE_VIOLATION",
+                )
+            if max_v is not None and num_val > max_v:
+                return (
+                    False,
+                    {
+                        "valid": False,
+                        "within_envelope": False,
+                        "reason": f"Value {num_val} exceeds maximum allowed envelope {max_v}",
+                    },
+                    "ENVELOPE_VIOLATION",
+                )
+
+        if any(k in target_lower or k in action_str for k in ("voltage", "v_bus", "vset", "p.u.", "pu")):
+            if num_val > 5.0:  # kV scale
+                if num_val < 0.0 or num_val > 765.0:
+                    return (
+                        False,
+                        {
+                            "valid": False,
+                            "within_envelope": False,
+                            "reason": f"Voltage setpoint {num_val} kV is outside safe limits [0, 765]",
+                        },
+                        "ENVELOPE_VIOLATION",
+                    )
+            else:  # p.u. scale
+                if num_val < 0.80 or num_val > 1.20:
+                    return (
+                        False,
+                        {
+                            "valid": False,
+                            "within_envelope": False,
+                            "reason": f"Voltage setpoint {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
+                        },
+                        "ENVELOPE_VIOLATION",
+                    )
+
+        if any(k in target_lower or k in action_str for k in ("frequency", "freq", "fset")):
+            if num_val < 45.0 or num_val > 65.0:
+                return (
+                    False,
+                    {
+                        "valid": False,
+                        "within_envelope": False,
+                        "reason": f"Frequency setpoint {num_val} Hz is outside safe grid envelope [45.0, 65.0]",
+                    },
+                    "ENVELOPE_VIOLATION",
+                )
+
+    return (
+        True,
+        {
+            "valid": True,
+            "status": "PASS",
+            "checks": [
+                "target_existence",
+                "supported_action",
+                "destructive_check",
+                "interlock_check",
+                "envelope_check",
+            ],
+            "target": target_str,
+            "action": action_str,
+            "server_verified": True,
+        },
+        "",
+    )
+
+
 class ResolveRequest(BaseModel):
     """Body for approving / rejecting a pending action."""
 
@@ -222,7 +476,10 @@ class ResolveRequest(BaseModel):
     # Self-confirmation lane fields (SCADA/CUA control tools only)
     validation_results: Optional[Dict[str, Any]] = Field(default=None)
     program_suggestion: Optional[Dict[str, Any]] = Field(default=None)
-    confirm_token: Optional[str] = Field(default=None)
+    confirm_token: Optional[str] = Field(
+        default=None,
+        description="content-bound confirmation digest (binds decision to exact action args)",
+    )
     override_reason: Optional[str] = Field(default=None, max_length=2000)
 
 
@@ -621,18 +878,41 @@ async def resolve_action(
         and user.user_id == action.requested_by_user_id
     ):
         is_scada_cua_tool = action.tool in SCADA_CUA_CONTROL_TOOLS
-        has_validation_payload = (
-            body.validation_results is not None
-            and body.program_suggestion is not None
-            and body.confirm_token is not None
-        )
-        token_matches = has_validation_payload and (body.confirm_token == action.args_hash)
+        token_matches = (body.confirm_token is not None) and (body.confirm_token == action.args_hash)
 
         if is_scada_cua_tool and token_matches:
+            # Server-side validation MUST be authoritative
+            valid, server_validation, err_code = validate_server_control_action(action)
+            if not valid:
+                record_approval_event(
+                    APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
+                    action.id,
+                    user.user_id,
+                    {
+                        "tool": action.tool,
+                        "attempted_decision": body.decision,
+                        "rejection_reason": server_validation.get("reason"),
+                        "error_code": err_code,
+                    },
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail={
+                        "code": MAKER_CHECKER_VIOLATION,
+                        "message": (
+                            f"Server validation failed for self-confirmation: "
+                            f"{server_validation.get('reason', 'Verification failed')}. "
+                            f"Dual-control required."
+                        ),
+                    },
+                )
+
             # Validated self-confirmation lane (Owner-authorized single-operator mode)
             is_self_approved = True
             action.validation_snapshot = {
-                "validation_results": body.validation_results,
+                "server_validation": server_validation,
+                "validation_results": server_validation,
+                "client_supplied_results": body.validation_results,
                 "program_suggestion": body.program_suggestion,
                 "confirm_token": body.confirm_token,
                 "override_reason": body.override_reason,
@@ -640,7 +920,7 @@ async def resolve_action(
             }
         else:
             # Dual-control remains the DEFAULT for all other critical tools,
-            # or when self-confirmation token/validation payload is missing or invalid.
+            # or when content-bound confirmation digest is missing or invalid.
             record_approval_event(
                 APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
                 action.id,
