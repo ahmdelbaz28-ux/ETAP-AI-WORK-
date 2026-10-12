@@ -115,7 +115,7 @@ This is a deliberate, owner-accepted risk downgrade from dual-control to single-
 ### Operational Envelopes & Governance Rules for Single-Operator Mode:
 1. **Validated Self-Confirmation Lane**:
    - The dual-human (maker-checker / second-colleague) gate on SCADA and CUA supervisory CONTROL actions is replaced with **Validated Self-Confirmation**: the system autonomously runs pre-flight safety validations (interlocks, operational envelopes, target parameters), presents a structured confirmation dialog showing validation results and program suggestions to the operator, and the SAME operator confirms and executes.
-   - Replay protection is enforced via cryptographic argument hash (`confirm_token == action.args_hash`).
+   - Replay protection is enforced via content-bound confirmation digest (binds decision to exact action args, `confirm_token == action.args_hash`).
    - If the operator departs from standard program suggestions, an explicit override reason is captured and logged.
 2. **Personnel Qualifications**:
    - The single operator MUST be a licensed engineer or authorized field specialist holding credentials verified by RBAC (`engineer` or `admin`). Non-licensed personnel or unauthenticated users remain hard-blocked.
@@ -123,4 +123,7 @@ This is a deliberate, owner-accepted risk downgrade from dual-control to single-
    - High-consequence life-safety destructive actions (direct breaker trip under bolted fault, bus grounding without de-energization verification, bulk shedding) still require explicit authorization and are NEVER silently or automatically executed.
 4. **Emergency Stop, Kill-Switch, and Fail-Safe Governance**:
    - Emergency kill-switch mechanisms (`api/agents.py`, `agents/cua_base_executor.py`), FAILSAFE abort loops, 60-second execution timeouts, and append-only tamper-evident SHA-256 audit logging remain 100% active, non-bypassable, and unchanged.
+
+> [!NOTE]
+> **Feature Flag Storage Precedence:** Stored `.feature-flags.json` on disk takes strict precedence over code defaults in `api/feature_flags.py` (`_load_flags` merge in `api/feature_flags.py:288-292`). Any newly configured rollout percentage or status in code becomes active in deployment only upon deployment with a new/synchronized stored flags file.
 

@@ -25,9 +25,12 @@
 |:---|:---:|:---:|:---:|:---|
 | **Modbus TCP** | `proven-local` | `scada: enabled=False, status="pilot", rollout=0` | `available-beta` (local traffic proven, 100% Beta) | Injected/explicit adapter (`protocol="modbus"`, `LiveModbusAdapter`) |
 | **OPC UA** | `proven-local` | `scada: enabled=False, status="pilot", rollout=0` | `available-beta` (local traffic proven, 100% Beta) | Injected/explicit adapter (`protocol="opcua"`, `LiveOpcUaAdapter`) |
-| **IEC 61850** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (owner field step pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); physical IED proof by Owner pending |
+| **IEC 61850** | `NOT IMPLEMENTED / NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (fail-closed, live read not implemented) | Fail-closed (`ConnectionError: REAL_INTEGRATION_UNAVAILABLE`); live measurement reading not implemented, zero synthetic/fabricated values; physical IED field testing by Owner pending |
 | **IEC 60870-5-104** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (substation gateway proof pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); remote RTU field proof pending |
-| **Control Path (Supervisory Switching)** | `proven-local` | Owner-Authorized Single-Operator Mode | `SELF-CONFIRMED-ONLY (no second human)` | Validated self-confirmation lane with cryptographic token match & pre-flight interlock validation |
+| **Control Path (Supervisory Switching)** | `proven-local` | Owner-Authorized Single-Operator Mode | `SELF-CONFIRMED-ONLY (no second human)` | Validated self-confirmation lane with content-bound confirmation digest match (`confirm_token == action.args_hash`) & authoritative server-side pre-flight validation |
+
+> [!NOTE]
+> **Feature Flag Storage Precedence:** Stored `.feature-flags.json` on disk takes strict precedence over code defaults in `api/feature_flags.py` (via `_load_flags` merge in `api/feature_flags.py:288-292`). Any newly configured rollout percentage or status in code becomes effective in deployment only upon deployment with a new/synchronized stored flags file.
 
 ---
 
