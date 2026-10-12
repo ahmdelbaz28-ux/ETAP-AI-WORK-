@@ -7,7 +7,10 @@
 - **Mathematical Formulations**: Harmonic admittance matrix inversion ($Z(h) = Y(h)^{-1}$), frequency-domain harmonic superposition, bus voltage total harmonic distortion ($THD_V = \frac{\sqrt{\sum_{h=2}^{H} |V_h|^2}}{|V_1|} \times 100\%$), branch current total demand distortion ($TDD_I = \frac{\sqrt{\sum_{h=2}^{H} |I_h|^2}}{I_L} \times 100\%$), and individual harmonic order spectra ($h=3, 5, 7, 9, 11, 13$).
 - **Target Safety Criteria**: Point of Common Coupling (PCC) voltage distortion ($THD_V \le 5.0\%$, individual $V_h \le 3.0\%$), branch current total demand distortion ($TDD_I \le 12.0\%$ for $I_{sc}/I_L = 50$), and resonance frequency identification.
 - **Zero-Guessing Constraint**: Omission of engineering inputs triggers immediate fail-closed termination (`SpecializedExecutionUnavailableError` / `INSUFFICIENT_ENGINEERING_INPUT`). Synthetic parameter substitution in production is strictly forbidden.
-- **Lifecycle & Governance**: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (`LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
+- **Lifecycle & Governance**: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -145,7 +148,7 @@ The certifying benchmark suite tests `HarmonicAnalysisEngine` against published 
 | 12 | Commercial 480V 7th & 9th Harmonic Voltages | EPRI Distribution Archive Case C-480 | **PASS** |
 | 13 | Commercial 480V PCC Voltage Distortion $THD_V = 4.8500\%$ | IEEE Std 519-2022 Table 1 | **PASS** |
 | 14 | Commercial 480V Transformer $TDD_I = 15.6343\%$ & Table 2 Violation | IEEE Std 519-2022 Table 2 ($15.63\% > 12.0\%$) | **PASS** |
-| 15 | Doc-Code Rollout Truth Consistency (`enabled=False, rollout=0`) | `api/feature_flags.py` | **PASS** |
+| 15 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 16 | Zero-Guessing / Input Requirement Validation | `tests/test_mandatory_engineering_inputs.py` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -160,7 +163,7 @@ The certifying benchmark suite tests `HarmonicAnalysisEngine` against published 
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'harmonic_analysis' remains enabled=False, |
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'harmonic_analysis' in beta rollout 100%   |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```
