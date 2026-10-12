@@ -125,6 +125,7 @@ def main() -> int:
         "gis_integration",
         "adms_control",
         "contracts",
+        "copilot",
         "etap_integration",
         "scripts",
         "scada_model",
