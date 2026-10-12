@@ -169,7 +169,7 @@ etap = [
 # (so users know the integration exists) but installs no extra packages.
 arcgis = []
 
-# SCADA protocol stack (Modbus TCP / OPC UA / IEC 60870-5-104).
+# SCADA protocol stack (Modbus TCP / OPC UA / IEC 60870-5-104 / IEC 61850).
 # Bounds match the import shims and published upstream versions:
 # - pymodbus >=3.9 exposes pymodbus.client.AsyncModbusTcpClient; capped
 #   <3.15 because 3.15 gates the classic ModbusDeviceContext datastore
@@ -178,7 +178,9 @@ arcgis = []
 # - asyncua 1.x is the maintained line (tops out at 1.1.8 before the 2.0
 #   rewrite) exposing asyncua.Server/Client/ua.*.
 # - c104 publishes cp313 Windows wheels.
-scada = ["pymodbus>=3.9,<3.16", "asyncua>=1.1,<2", "c104"]
+# - py61850 is the IEC 61850 MMS/IED client binding (fallback for
+#   iec61850datamodel which has no distribution on PyPI).
+scada = ["pymodbus>=3.9,<3.16", "asyncua>=1.1,<2", "c104", "py61850"]
 
 # Combined optional dependencies
 full = [

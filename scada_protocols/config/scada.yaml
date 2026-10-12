@@ -262,32 +262,37 @@ iec104:
 #   - Other standard ports: Modbus TCP (502/5020), OPC UA (4840), IEC 104 (2404).
 # -----------------------------------------------------------------------------
 iec61850:
-  enabled: true
+  enabled: false # DISABLED BY DEFAULT — Awaiting owner physical IED field testing
   role: client
   server_host: "0.0.0.0"
   server_port: 102
   ied_name: "ETAP_IED_1"
   poll_interval_sec: 1.0
 
+  # FIELD PROOF TEMPLATE:
+  # The owner will fill actual IED IP and logical node names during the physical field session.
+  # Do NOT enable or attempt connection with placeholder values.
   clients:
-    - name: "bay-controller-1"
-      host: "192.168.30.10"
-      port: 102
-      ied_name: "BAY01_IED"
+    - name: "field-ied-placeholder"
+      host: "<PLACEHOLDER_IED_IP>" # Owner field step: e.g. "192.168.30.10"
+      port: 102 # Port 102 (ISO-TSAP / MMS)
+      ied_name: "<PLACEHOLDER_IED_NAME>" # Owner field step: e.g. "BAY01_IED"
       poll_interval_sec: 1.0
 
+  # Point map: logical node / data attribute to electrical model element
+  # MMXU = 3-phase electrical measurements, XCBR = circuit breaker position
   point_map:
     - element_id: "BUS-1"
       measurement_type: "voltage_magnitude"
-      logical_node: "MMXU1"
+      logical_node: "<PLACEHOLDER_MMXU_VOLTAGE_LN>" # e.g. "MMXU1" (to be confirmed against field ICD/CID)
       data_attribute: "Vol.mag.f"
       unit: "p.u."
     - element_id: "BUS-1"
       measurement_type: "active_power"
-      logical_node: "MMXU1"
+      logical_node: "<PLACEHOLDER_MMXU_POWER_LN>" # e.g. "MMXU1" (to be confirmed against field ICD/CID)
       data_attribute: "TotW.mag.f"
       unit: "MW"
     - element_id: "BRK-1"
       measurement_type: "breaker_status"
-      logical_node: "XCBR1"
+      logical_node: "<PLACEHOLDER_XCBR_STATUS_LN>" # e.g. "XCBR1" (to be confirmed against field ICD/CID)
       data_attribute: "Pos.stVal"
