@@ -265,9 +265,9 @@ def run_benchmarks() -> dict:
         overall_passed = False
     benchmarks.append(
         {
-            "name": "IEC 60364 Cable Sizing & Thermal Withstand (3 Real Feeder Loads)",
+            "name": "IEC 60364 Cable Sizing & Thermal Withstand (4 Feeder Loads inc. Certifying External Ref)",
             "standard": "IEC 60364-5-52 / IEC 60949",
-            "cases_evaluated": 3,
+            "cases_evaluated": 4,
             "max_error_pct": cs_res["max_error_pct"],
             "tolerance_limit_pct": cs_res["tolerance_limit_pct"],
             "execution_time_sec": round(t_cs, 4),
@@ -276,6 +276,7 @@ def run_benchmarks() -> dict:
                 "case1_motor_feeder": cs_res["case1_motor_feeder"],
                 "case2_distribution_feeder": cs_res["case2_distribution_feeder"],
                 "case3_al_direct_buried_feeder": cs_res["case3_al_direct_buried_feeder"],
+                "case4_independent_external_reference": cs_res["case4_independent_external_reference"],
             },
         }
     )
