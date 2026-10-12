@@ -85,9 +85,10 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "rollout_percentage": 0,
     },
     "optimal_power_flow": {
-        "enabled": False,
-        "status": "alpha",
-        "description": "OPF (economic dispatch) - experimental",
+        "enabled": True,
+        "status": "beta",
+        "description": "OPF (economic dispatch) - Beta 100% rollout",
+        "rollout_percentage": 100,
     },
     "cable_sizing": {
         "enabled": True,

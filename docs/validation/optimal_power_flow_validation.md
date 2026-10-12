@@ -24,9 +24,10 @@
   - Omission of generator parameters or empty payload raises `SpecializedExecutionUnavailableError` (`INSUFFICIENT_ENGINEERING_INPUT`).
   - Synthetic generator bounds, assumed fuel prices, or fabricated network topologies are strictly forbidden in production.
 - **Lifecycle & Governance Posture**:
-  - `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
-  - Registered in `engine/capability_registry.py` (`lifecycle_status=LifecycleStatus.PRODUCTION`, `production_supported=True`, `benchmark_status=VERIFIED_BENCHMARK`).
-  - Feature flag in `api/feature_flags.py` remains strictly `enabled=False` with zero production traffic until formal commissioning sign-off.
+  - `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
+
+> [!WARNING]
+> **Beta-use warning**: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.
 
 ---
 
@@ -152,16 +153,17 @@ The certifying benchmark suite validates `OptimalPowerFlowEngine` against publis
    - `is_production_eligible()` evaluates strictly to **True**.
 
 2. **Feature Flag & Rollout Truth (`api/feature_flags.py:86-90`)**:
-   - **Rollout Status**: `PRODUCTION-certified, NOT YET ROLLED OUT — enabled=False, rollout 0, no traffic`.
+   - **Rollout Status**: `IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%)`.
    - **Configuration in `api/feature_flags.py`**:
      ```python
      "optimal_power_flow": {
-         "enabled": False,
-         "status": "alpha",
-         "description": "OPF (economic dispatch) - experimental",
+         "enabled": True,
+         "status": "beta",
+         "description": "OPF (economic dispatch) - Beta 100% rollout",
+         "rollout_percentage": 100,
      }
      ```
-   - **Strict Fail-Closed Governance**: Flag stays `enabled=False` with zero production traffic until explicit site commissioning sign-off. Opening traffic without formal human sign-off is strictly prohibited.
+   - **Governance**: Flag enabled=True, rollout 100 for engineer-tester program per owner authorization.
    - Circuit breaker: `export FEATURE_FLAG_OPTIMAL_POWER_FLOW="false"` documented in `DEPLOYMENT_ROLLBACK.md`.
 
 3. **Input Anti-Fabrication & Zero Guessing**:
@@ -236,7 +238,7 @@ All test suites executed and verified on the final revision:
 | 8 | IEEE 30-Bus AC-OPF Active Power Conservation ($189.20\text{ MW}$) | Lee, Park & Ortiz (1985) Table IV | **PASS** |
 | 9 | IEEE 30-Bus AC-OPF Reactive Power Balance ($107.20\text{ MVAR}$) | Lee, Park & Ortiz (1985) Table IV ($\sum Q_{load} = 107.2\text{ MVAR}$) | **PASS** |
 | 10 | 3-Bus PTDF Transmission Congestion Redispatch ($60.00\text{ MW}$) | Wood & Wollenberg (1996) Example 3F | **PASS** |
-| 11 | Doc-Code Rollout Truth Consistency (`enabled=False, rollout=0`) | `api/feature_flags.py:86-90` | **PASS** |
+| 11 | Doc-Code Rollout Truth Consistency | `api/feature_flags.py:86-90` (enabled=True, rollout=100, beta tester program) | **PASS** |
 | 12 | Zero-Guessing / Input Requirement Validation | `tests/test_mandatory_engineering_inputs.py` | **PASS** |
 
 ### Rollout Posture & Final Sign-Off
@@ -251,7 +253,7 @@ All test suites executed and verified on the final revision:
 |   Verification Date:  2026-10-12                                              |
 |                                                                               |
 |   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-|                       Feature flag 'optimal_power_flow' remains enabled=False,|
-|                       rollout 0 until site-specific commissioning sign-off.   |
+|                       Feature flag 'optimal_power_flow' in beta rollout 100%  |
+|                       (engineer-tester program) per owner authorization.      |
 +-------------------------------------------------------------------------------+
 ```
