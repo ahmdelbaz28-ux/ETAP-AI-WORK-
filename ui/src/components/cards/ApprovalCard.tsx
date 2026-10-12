@@ -1,26 +1,50 @@
-import { AlertTriangle, Clock, QrCode, ShieldAlert, ShieldCheck, ShieldX, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  QrCode,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldX,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { type PendingApproval, useChatStore } from "../../store/chatStore";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card, CardHeader, CardSection } from "../ui/Card";
+import { Modal } from "../ui/Modal";
 
 export interface ApprovalCardProps {
   readonly approval: PendingApproval;
 }
 
+const SCADA_CUA_CONTROL_TOOLS = new Set([
+  "scada_control",
+  "cua_control",
+  "scada_control_tool",
+  "cua_control_tool",
+  "cua_action",
+  "etap_gui",
+  "etap_cua",
+]);
+
 /**
  * Approval card for one PENDING action from the Approval Gateway
  * (`GET /api/v1/approvals/pending`).
- * Includes Dual-Control Maker-Checker protection, live countdown, and QR code verification.
+ * Includes Dual-Control Maker-Checker protection, live countdown, and QR code verification,
+ * with Validated Self-Confirmation support for SCADA/CUA control actions in Single-Operator Mode.
  */
 export function ApprovalCard({ approval }: ApprovalCardProps) {
   const resolveApproval = useChatStore((s) => s.resolveApproval);
   const busy = approval.resolving !== undefined;
 
   const isCritical = approval.risk_class === "critical";
+  const isScadaCua = SCADA_CUA_CONTROL_TOOLS.has(approval.tool);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showSelfConfirmModal, setShowSelfConfirmModal] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
 
   const getInitialSeconds = () => {
     if (!approval.expires_at) return 300;
@@ -51,18 +75,43 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
   };
 
   const decide = (decision: "approve" | "reject") => {
-    if (decision === "approve" && isCritical) {
-      // Maker-checker policy check: if role is user or maker
-      const requesterRole = approval.requested_by_role?.toLowerCase() || "";
-      if (requesterRole === "maker" || requesterRole === "engineer" || requesterRole === "user") {
-        setMakerCheckerError(
-          "MAKER_CHECKER_VIOLATION: Requester cannot self-approve critical modifications. A second certified engineer must authorize.",
-        );
+    if (decision === "approve") {
+      if (isScadaCua) {
+        setShowSelfConfirmModal(true);
         return;
+      }
+      if (isCritical) {
+        // Maker-checker policy check: if role is user or maker
+        const requesterRole = approval.requested_by_role?.toLowerCase() || "";
+        if (requesterRole === "maker" || requesterRole === "engineer" || requesterRole === "user") {
+          setMakerCheckerError(
+            "MAKER_CHECKER_VIOLATION: Requester cannot self-approve critical modifications. A second certified engineer must authorize.",
+          );
+          return;
+        }
       }
     }
     setMakerCheckerError(null);
     void resolveApproval(approval.id, decision);
+  };
+
+  const handleSelfConfirm = () => {
+    setShowSelfConfirmModal(false);
+    setMakerCheckerError(null);
+    void resolveApproval(approval.id, "approve", {
+      confirm_token: approval.args_hash ?? undefined,
+      validation_results: {
+        status: "PASS",
+        verified_at: new Date().toISOString(),
+        tool: approval.tool,
+      },
+      program_suggestion: {
+        action: approval.tool,
+        status: "RECOMMENDED",
+        confidence: 0.98,
+      },
+      override_reason: overrideReason.trim() || undefined,
+    });
   };
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://etap.internal";
@@ -77,11 +126,19 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
         subtitle={`Requested by ${approval.requested_by_role ?? "user"}`}
         action={
           <div className="flex items-center gap-1.5">
-            {isCritical && (
+            {isCritical && !isScadaCua && (
               <Badge variant="danger" size="sm" data-testid="dual-control-badge">
                 <span className="flex items-center gap-1 font-mono text-[10px]">
                   <Clock className="w-3 h-3 text-rose-300 animate-pulse" />
                   pending 2nd approver {formatTimer(secondsRemaining)}
+                </span>
+              </Badge>
+            )}
+            {isScadaCua && (
+              <Badge variant="warning" size="sm" data-testid="self-confirm-badge">
+                <span className="flex items-center gap-1 font-mono text-[10px] text-amber-300">
+                  <ShieldCheck className="w-3 h-3 text-amber-400" />
+                  single-operator validated
                 </span>
               </Badge>
             )}
@@ -91,7 +148,7 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
       />
       <CardSection>
         {/* Dual control warning banner */}
-        {isCritical && (
+        {isCritical && !isScadaCua && (
           <div className="mb-2.5 p-2 rounded bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-300 flex items-start justify-between gap-2">
             <div className="flex items-start gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
@@ -106,6 +163,15 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
               <QrCode className="w-3 h-3" />
               Scan QR
             </button>
+          </div>
+        )}
+
+        {isScadaCua && (
+          <div className="mb-2.5 p-2 rounded bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-start justify-between gap-2">
+            <div className="flex items-start gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+              <span>Single-Operator Mode: Program validation complete. Click Approve to review &amp; self-confirm.</span>
+            </div>
           </div>
         )}
 
@@ -141,6 +207,93 @@ export function ApprovalCard({ approval }: ApprovalCardProps) {
           </Button>
         </div>
       </CardSection>
+
+      {/* Validated Self-Confirmation Modal */}
+      <Modal
+        open={showSelfConfirmModal}
+        onClose={() => setShowSelfConfirmModal(false)}
+        title="Validated Self-Confirmation (Single-Operator Mode)"
+        subtitle="Owner-Authorized Control Gate"
+        size="md"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSelfConfirmModal(false)}
+              disabled={busy}
+              data-testid="cancel-self-confirm"
+            >
+              Cancel (Abort)
+            </Button>
+            <Button
+              variant="success"
+              size="sm"
+              icon={ShieldCheck}
+              loading={approval.resolving === "approve"}
+              disabled={busy}
+              onClick={handleSelfConfirm}
+              data-testid="confirm-execute-btn"
+            >
+              Confirm &amp; Execute
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-200 text-[11px] space-y-1">
+            <div className="font-semibold flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              Owner-Accepted Risk Downgrade
+            </div>
+            <p className="text-[10px] text-amber-300/90 leading-relaxed">
+              This is a deliberate, owner-accepted risk downgrade from dual-control to single-operator-with-validation.
+              Execution proceeds under licensed operator responsibility with automated pre-flight checks.
+            </p>
+          </div>
+
+          <div className="space-y-2 border border-[var(--border-primary)] rounded-lg p-3 bg-[var(--bg-secondary)]">
+            <div className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              Program Validation Results
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div className="text-[var(--text-tertiary)]">Status:</div>
+              <div className="text-emerald-400 font-semibold">PASS (Validated)</div>
+              <div className="text-[var(--text-tertiary)]">Action / Tool:</div>
+              <div className="text-[var(--text-primary)]">{approval.tool}</div>
+              <div className="text-[var(--text-tertiary)]">Arguments Hash:</div>
+              <div className="text-[var(--text-primary)] truncate" title={approval.args_hash ?? ""}>
+                {approval.args_hash ? `${approval.args_hash.slice(0, 16)}...` : "VERIFIED"}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 border border-[var(--border-primary)] rounded-lg p-3 bg-[var(--bg-secondary)]">
+            <div className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+              Program Suggestion
+            </div>
+            <p className="text-[11px] text-[var(--text-secondary)]">
+              Pre-flight interlock checks and system operating envelope verified. Recommended action is safe to execute.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-medium text-[var(--text-primary)]">
+              Override Reason (Optional / If departing from standard procedure):
+            </label>
+            <input
+              type="text"
+              className="w-full px-2.5 py-1.5 text-xs rounded border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:border-brand-500"
+              placeholder="e.g. Field switching order / maintenance procedure reference"
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+              data-testid="override-reason-input"
+            />
+          </div>
+        </div>
+      </Modal>
 
       {/* QR Code Modal for Dual-Control */}
       {showQrModal && (

@@ -100,5 +100,27 @@ In accordance with Platform Safety Governance and Owner Directive:
 1. **Telemetry Read Paths Beta-Opening**: Read and telemetry monitoring paths for locally proven protocols (Modbus TCP and OPC UA) are available at 100% Beta for engineering telemetry ingestion and state verification via explicit protocol adapter bindings.
 2. **Supervisory Control-Path Lock**: All switchgear actuation, breaker control, setpoint adjustment, and supervisory control commands remain permanently gated behind strict Select-Before-Operate (SBO) verification and Maker-Checker dual control:
    - **SBO Dispatch Bridge**: Handled by `SCADAControlExecutor` in `scada/control_executor.py` (`_dispatch_iec61850_sbo`, `_dispatch_modbus`, `_dispatch_opc_ua`, `_dispatch_iec104`), requiring two-stage arm-and-fire discipline with verified physical readback (`_verify_readback`).
-   - **Dual-Control Approval Policy**: Mandatory Maker-Checker dual authorization (`api/approvals.py`) is enforced on all control actions. Self-approval is blocked with `MAKER_CHECKER_VIOLATION` (HTTP 403).
+   - **Dual-Control Approval Policy**: Mandatory Maker-Checker dual authorization (`api/approvals.py`) is enforced on all control actions. Self-approval is blocked with `MAKER_CHECKER_VIOLATION` (HTTP 403), except when operating in owner-authorized Single-Operator Mode with validated self-confirmation.
    - **Direct-Operate Lock**: Automated actuation without human engineer check and verified interlocks is prohibited under all operational conditions.
+
+---
+
+## 7. Single-Operator Mode (Owner-Authorized 12-10-2026)
+
+**Authorization Authority:** Platform Owner Order (Field Work Operational Speed Directive)  
+**Effective Date:** 2026-10-12  
+
+This is a deliberate, owner-accepted risk downgrade from dual-control to single-operator-with-validation — record that sentence verbatim in the safety charter.
+
+### Operational Envelopes & Governance Rules for Single-Operator Mode:
+1. **Validated Self-Confirmation Lane**:
+   - The dual-human (maker-checker / second-colleague) gate on SCADA and CUA supervisory CONTROL actions is replaced with **Validated Self-Confirmation**: the system autonomously runs pre-flight safety validations (interlocks, operational envelopes, target parameters), presents a structured confirmation dialog showing validation results and program suggestions to the operator, and the SAME operator confirms and executes.
+   - Replay protection is enforced via cryptographic argument hash (`confirm_token == action.args_hash`).
+   - If the operator departs from standard program suggestions, an explicit override reason is captured and logged.
+2. **Personnel Qualifications**:
+   - The single operator MUST be a licensed engineer or authorized field specialist holding credentials verified by RBAC (`engineer` or `admin`). Non-licensed personnel or unauthenticated users remain hard-blocked.
+3. **Destructive Life-Safety Actions Hard-Refusal**:
+   - High-consequence life-safety destructive actions (direct breaker trip under bolted fault, bus grounding without de-energization verification, bulk shedding) still require explicit authorization and are NEVER silently or automatically executed.
+4. **Emergency Stop, Kill-Switch, and Fail-Safe Governance**:
+   - Emergency kill-switch mechanisms (`api/agents.py`, `agents/cua_base_executor.py`), FAILSAFE abort loops, 60-second execution timeouts, and append-only tamper-evident SHA-256 audit logging remain 100% active, non-bypassable, and unchanged.
+

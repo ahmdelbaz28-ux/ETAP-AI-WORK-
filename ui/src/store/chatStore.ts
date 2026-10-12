@@ -229,7 +229,11 @@ export interface ChatWorkspaceState {
   sendMessage: (text: string) => Promise<boolean>;
   setStreamStatus: (status: ChatStreamStatus) => void;
   refreshApprovals: () => Promise<void>;
-  resolveApproval: (approvalId: string, decision: "approve" | "reject") => Promise<boolean>;
+  resolveApproval: (
+    approvalId: string,
+    decision: "approve" | "reject",
+    extra?: Record<string, unknown>,
+  ) => Promise<boolean>;
   setAutoApprove: (enabled: boolean) => Promise<boolean>;
   activateEmergencyStop: (reason?: string) => Promise<boolean>;
   checkEmergencyStop: () => Promise<void>;
@@ -982,7 +986,7 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
     }
   },
 
-  resolveApproval: async (approvalId, decision) => {
+  resolveApproval: async (approvalId, decision, extra) => {
     if (!approvalId) return false;
     const targetApproval = get().approvals.find((a) => a.id === approvalId);
     const next = get().approvals.map((a) =>
@@ -994,7 +998,11 @@ export const useChatStore = create<ChatWorkspaceState>()((set, get) => ({
         `/api/v1/approvals/${encodeURIComponent(approvalId)}/resolve`,
         {
           method: "POST",
-          body: JSON.stringify({ decision, session_id: get().sessionId }),
+          body: JSON.stringify({
+            decision,
+            session_id: get().sessionId,
+            ...(extra || {}),
+          }),
         },
       );
       set({

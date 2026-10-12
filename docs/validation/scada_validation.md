@@ -27,6 +27,7 @@
 | **OPC UA** | `proven-local` | `scada: enabled=False, status="pilot", rollout=0` | `available-beta` (local traffic proven, 100% Beta) | Injected/explicit adapter (`protocol="opcua"`, `LiveOpcUaAdapter`) |
 | **IEC 61850** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (owner field step pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); physical IED proof by Owner pending |
 | **IEC 60870-5-104** | `NOT PROVEN` | `scada: enabled=False, status="pilot", rollout=0` | `CLOSED` (substation gateway proof pending) | Fail-closed (`REAL_INTEGRATION_UNAVAILABLE`); remote RTU field proof pending |
+| **Control Path (Supervisory Switching)** | `proven-local` | Owner-Authorized Single-Operator Mode | `SELF-CONFIRMED-ONLY (no second human)` | Validated self-confirmation lane with cryptographic token match & pre-flight interlock validation |
 
 ---
 

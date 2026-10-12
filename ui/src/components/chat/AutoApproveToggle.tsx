@@ -40,7 +40,11 @@ export function AutoApproveToggle() {
           onChange={requestChange}
           disabled={loading}
           label="Auto-approve session actions"
-          description={enabled ? "Backend will auto-approve eligible actions." : "Each action requires explicit approval."}
+          description={
+            enabled
+              ? "Backend auto-approves eligible read/advisory actions. Control actions require validated self-confirmation."
+              : "Each action requires explicit approval."
+          }
         />
         {loading && <Loader2 className="w-4 h-4 animate-spin text-[var(--text-muted)]" aria-label="Updating" />}
       </div>
@@ -75,7 +79,7 @@ export function AutoApproveToggle() {
       >
         <p className="text-sm text-[var(--text-secondary)]">
           {pendingValue
-            ? "Enabling auto-approve delegates eligibility decisions to the backend approval gateway. No approval will be granted client-side."
+            ? "Enabling auto-approve delegates eligibility decisions to the backend approval gateway. Auto-approve applies only to read and advisory tools; SCADA/CUA control actions never execute silently and strictly require validated self-confirmation."
             : "Disabling auto-approve means every action will require explicit approval again."}
         </p>
       </Modal>

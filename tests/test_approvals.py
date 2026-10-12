@@ -474,3 +474,98 @@ class TestVerifyEndpoint:
         assert v_data["verified"] is True
         assert v_data["status"] == "pending"
         assert v_data["dual_control_required"] is True
+
+
+# ---------------------------------------------------------------------------
+# Validated Self-Confirmation Gateway (Single-Operator Mode)
+# ---------------------------------------------------------------------------
+
+
+class TestSelfConfirmationGateway:
+    def _create_pending(self, client: TestClient, tool: str = "scada_control", args: dict | None = None) -> dict:
+        resp = _propose(client, tool=tool, session_id="self-conf", args=args or {"device_id": "CB-101", "action": "open"})
+        assert resp.status_code == 200
+        return resp.json()["data"]
+
+    def test_self_approval_scada_cua_with_valid_token_and_validation_succeeds(self, client):
+        data = self._create_pending(client, tool="scada_control")
+        action_id = data["id"]
+        args_hash = data["args_hash"]
+        assert args_hash is not None
+
+        # Same requester (MAKER) resolves via validated self-confirmation lane
+        payload = {
+            "decision": "approve",
+            "confirm_token": args_hash,
+            "validation_results": {"status": "PASS", "checks": ["envelope_ok"]},
+            "program_suggestion": {"action": "open", "confidence": 0.99},
+            "override_reason": None,
+        }
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
+        assert resp.status_code == 200
+        res_data = resp.json()["data"]
+        assert res_data["status"] == "approved"
+        assert res_data["self_approved"] is True
+        assert res_data["decided_by_user_id"] == MAKER.user_id
+        assert res_data["validation_snapshot"] is not None
+        assert res_data["validation_snapshot"]["confirm_token"] == args_hash
+        assert res_data["validation_snapshot"]["self_approved"] is True
+
+    def test_self_approval_scada_cua_with_mismatched_token_fails_403(self, client):
+        data = self._create_pending(client, tool="scada_control")
+        action_id = data["id"]
+
+        payload = {
+            "decision": "approve",
+            "confirm_token": "mismatched-token-hash-1234",
+            "validation_results": {"status": "PASS"},
+            "program_suggestion": {"action": "open"},
+        }
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
+        assert resp.status_code == 403
+        detail = resp.json()["detail"]
+        assert detail["code"] == MAKER_CHECKER_VIOLATION
+
+    def test_self_approval_scada_cua_missing_validation_fails_403(self, client):
+        data = self._create_pending(client, tool="scada_control")
+        action_id = data["id"]
+        args_hash = data["args_hash"]
+
+        # Missing validation_results and program_suggestion
+        payload = {
+            "decision": "approve",
+            "confirm_token": args_hash,
+        }
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
+        assert resp.status_code == 403
+        detail = resp.json()["detail"]
+        assert detail["code"] == MAKER_CHECKER_VIOLATION
+
+    def test_self_approval_non_allowlisted_critical_tool_fails_even_with_token(self, client):
+        # provider-settings-tool is critical, but NOT in SCADA_CUA_CONTROL_TOOLS
+        data = self._create_pending(client, tool="provider-settings-tool", args={"key": "val"})
+        action_id = data["id"]
+        args_hash = data["args_hash"]
+
+        payload = {
+            "decision": "approve",
+            "confirm_token": args_hash,
+            "validation_results": {"status": "PASS"},
+            "program_suggestion": {"key": "val"},
+        }
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json=payload)
+        assert resp.status_code == 403
+        detail = resp.json()["detail"]
+        assert detail["code"] == MAKER_CHECKER_VIOLATION
+
+    def test_second_engineer_can_still_approve_scada_control_dual_control_fallback(self, client):
+        data = self._create_pending(client, tool="scada_control")
+        action_id = data["id"]
+
+        client.app.dependency_overrides[get_current_user_from_header] = lambda: CHECKER
+        resp = client.post(f"/api/v1/approvals/{action_id}/resolve", json={"decision": "approve"})
+        assert resp.status_code == 200
+        res_data = resp.json()["data"]
+        assert res_data["status"] == "approved"
+        assert res_data["decided_by_user_id"] == CHECKER.user_id
+

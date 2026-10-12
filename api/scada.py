@@ -23,7 +23,7 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Any, Dict, Optional
 
 UTC = timezone.utc
 
@@ -97,6 +97,10 @@ class SCADAResolveRequest(BaseModel):
 
     decision: str = Field(..., pattern="^(approve|reject)$", description="'approve' or 'reject'")
     reason: Optional[str] = Field(default=None, max_length=1000, description="Reason for decision")
+    validation_results: Optional[Dict[str, Any]] = Field(default=None)
+    program_suggestion: Optional[Dict[str, Any]] = Field(default=None)
+    confirm_token: Optional[str] = Field(default=None)
+    override_reason: Optional[str] = Field(default=None, max_length=1000)
 
 
 # ---------------------------------------------------------------------------
@@ -555,8 +559,13 @@ async def resolve_control_action(
     if replay is not None:
         return replay
 
-    # 1. RBAC: Only admin can approve/reject
-    if user.role != "admin":
+    # 1. RBAC: Only admin can approve/reject, unless licensed engineer in validated self-confirmation lane
+    is_self_confirm_payload = (
+        body.confirm_token is not None
+        and body.validation_results is not None
+        and body.program_suggestion is not None
+    )
+    if user.role != "admin" and not (user.role == "engineer" and is_self_confirm_payload):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -595,24 +604,36 @@ async def resolve_control_action(
             },
         }
 
-    # 4. Anti-Self-Approval (Maker-Checker violation)
+    # 4. Anti-Self-Approval (Maker-Checker violation) with Validated Self-Confirmation exception
+    is_self_approved = False
     if body.decision == "approve" and user.user_id == action.requested_by_user_id:
-        record_approval_event(
-            APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
-            action.id,
-            user.user_id,
-            {
-                "device_id": (action.args or {}).get("device_id"),
-                "attempted_decision": body.decision,
-            },
-        )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": "MAKER_CHECKER_VIOLATION",
-                "message": "Self-approval is forbidden. A different authorized admin must approve this critical control action.",
-            },
-        )
+        token_matches = is_self_confirm_payload and (body.confirm_token == action.args_hash)
+        if token_matches:
+            is_self_approved = True
+            action.validation_snapshot = {
+                "validation_results": body.validation_results,
+                "program_suggestion": body.program_suggestion,
+                "confirm_token": body.confirm_token,
+                "override_reason": body.override_reason,
+                "self_approved": True,
+            }
+        else:
+            record_approval_event(
+                APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
+                action.id,
+                user.user_id,
+                {
+                    "device_id": (action.args or {}).get("device_id"),
+                    "attempted_decision": body.decision,
+                },
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "MAKER_CHECKER_VIOLATION",
+                    "message": "Self-approval is forbidden. A different authorized admin must approve this critical control action.",
+                },
+            )
 
     now = datetime.now(UTC)
     action.decided_by_user_id = user.user_id
@@ -641,7 +662,11 @@ async def resolve_control_action(
         APPROVAL_EVENT_APPROVED,
         action.id,
         user.user_id,
-        {"reason": body.reason or "Approved by administrator"},
+        {
+            "reason": body.reason or "Approved by administrator",
+            "self_approved": is_self_approved,
+            "validation_snapshot": action.validation_snapshot,
+        },
     )
     await db.flush()
 

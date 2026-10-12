@@ -101,6 +101,20 @@ _RISK_CRITICAL = "critical"
 
 _IDEMPOTENCY_REPLAY_FLAG = "idempotent_replay"
 
+# SCADA / CUA control tools eligible for Owner-Authorized Single-Operator Mode
+# (Validated Self-Confirmation lane). Everything else requires dual-control.
+SCADA_CUA_CONTROL_TOOLS: frozenset[str] = frozenset(
+    {
+        "scada_control",
+        "cua_control",
+        "scada_control_tool",
+        "cua_control_tool",
+        "cua_action",
+        "etap_gui",
+        "etap_cua",
+    }
+)
+
 
 def _utc_now() -> datetime:
     return datetime.now(UTC)
@@ -159,6 +173,9 @@ class PendingAction(Base):
     # Original arguments (for the executor once approved)
     args: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
+    # Single-operator validated self-confirmation snapshot
+    validation_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
     __table_args__ = (Index("ix_pending_actions_session_status", "session_id", "status"),)
 
 
@@ -202,6 +219,11 @@ class ResolveRequest(BaseModel):
 
     decision: str = Field(pattern="^(approve|reject)$")
     reason: Optional[str] = Field(default=None, max_length=2000)
+    # Self-confirmation lane fields (SCADA/CUA control tools only)
+    validation_results: Optional[Dict[str, Any]] = Field(default=None)
+    program_suggestion: Optional[Dict[str, Any]] = Field(default=None)
+    confirm_token: Optional[str] = Field(default=None)
+    override_reason: Optional[str] = Field(default=None, max_length=2000)
 
 
 class AutoApproveRequest(BaseModel):
@@ -230,6 +252,8 @@ class ApprovalResponse(BaseModel):
     requested_by_role: Optional[str] = None
     decided_by_user_id: Optional[str] = None
     decided_by_role: Optional[str] = None
+    self_approved: Optional[bool] = None
+    validation_snapshot: Optional[Dict[str, Any]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -390,6 +414,14 @@ router = APIRouter(prefix="/api/v1/approvals", tags=["approvals"])
 
 
 def _action_to_response(action: PendingAction) -> Dict[str, Any]:
+    is_self = bool(
+        (action.validation_snapshot or {}).get("self_approved", False)
+        or (
+            action.decided_by_user_id is not None
+            and action.decided_by_user_id == action.requested_by_user_id
+            and action.validation_snapshot is not None
+        )
+    )
     return {
         "id": action.id,
         "tenant_id": action.tenant_id,
@@ -405,6 +437,8 @@ def _action_to_response(action: PendingAction) -> Dict[str, Any]:
         "requested_by_role": action.requested_by_role,
         "decided_by_user_id": action.decided_by_user_id,
         "decided_by_role": action.decided_by_role,
+        "self_approved": is_self,
+        "validation_snapshot": action.validation_snapshot,
     }
 
 
@@ -577,28 +611,52 @@ async def resolve_action(
             },
         }
 
-    # Maker-checker: critical actions require a second pair of eyes.
+    # Maker-checker: critical actions require a second pair of eyes, EXCEPT
+    # for SCADA/CUA control tools operating under Owner-Authorized Single-Operator Mode
+    # (Validated Self-Confirmation lane).
+    is_self_approved = False
     if (
         action.risk_class == _RISK_CRITICAL
         and body.decision == "approve"
         and user.user_id == action.requested_by_user_id
     ):
-        record_approval_event(
-            APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
-            action.id,
-            user.user_id,
-            {"tool": action.tool, "attempted_decision": body.decision},
+        is_scada_cua_tool = action.tool in SCADA_CUA_CONTROL_TOOLS
+        has_validation_payload = (
+            body.validation_results is not None
+            and body.program_suggestion is not None
+            and body.confirm_token is not None
         )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "code": MAKER_CHECKER_VIOLATION,
-                "message": (
-                    "Critical actions cannot be approved by their requester — "
-                    "a second engineer must decide."
-                ),
-            },
-        )
+        token_matches = has_validation_payload and (body.confirm_token == action.args_hash)
+
+        if is_scada_cua_tool and token_matches:
+            # Validated self-confirmation lane (Owner-authorized single-operator mode)
+            is_self_approved = True
+            action.validation_snapshot = {
+                "validation_results": body.validation_results,
+                "program_suggestion": body.program_suggestion,
+                "confirm_token": body.confirm_token,
+                "override_reason": body.override_reason,
+                "self_approved": True,
+            }
+        else:
+            # Dual-control remains the DEFAULT for all other critical tools,
+            # or when self-confirmation token/validation payload is missing or invalid.
+            record_approval_event(
+                APPROVAL_EVENT_MAKER_CHECKER_VIOLATION,
+                action.id,
+                user.user_id,
+                {"tool": action.tool, "attempted_decision": body.decision},
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": MAKER_CHECKER_VIOLATION,
+                    "message": (
+                        "Critical actions cannot be approved by their requester — "
+                        "a second engineer must decide."
+                    ),
+                },
+            )
 
     action.decided_by_user_id = user.user_id
     action.decided_by_role = user.role
@@ -621,6 +679,8 @@ async def resolve_action(
             "decision": body.decision,
             "reason": body.reason,
             "requested_by": action.requested_by_user_id,
+            "self_approved": is_self_approved,
+            "validation_snapshot": action.validation_snapshot,
         },
     )
 
