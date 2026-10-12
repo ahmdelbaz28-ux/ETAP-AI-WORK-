@@ -23,7 +23,7 @@ jobs:
   # ── Gate 1: Lint ──────────────────────────────────────────────────────────
   lint:
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
   # ── Gate 2: Type Check ───────────────────────────────────────────────────
   typecheck:
     name: Type Check
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
   # ── Gate 3: Unit Tests ───────────────────────────────────────────────────
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -109,7 +109,7 @@ jobs:
   # ── Gate 4: Build ────────────────────────────────────────────────────────
   build:
     name: Build
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 20
     needs: [lint, typecheck]
     steps:
@@ -141,7 +141,7 @@ jobs:
   # ── Gate 4b: Build UI ───────────────────────────────────────────────────
   build-ui:
     name: Build UI
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 15
     needs: [lint, typecheck]
     steps:
@@ -185,7 +185,7 @@ jobs:
   # ── Gate 5: Integration Tests ────────────────────────────────────────────
   integration-tests:
     name: Integration Tests
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 30
     needs: [build]
     steps:
@@ -211,7 +211,7 @@ jobs:
   # ── Gate 6: SCADA & Scenario Tests (FIX-30) ──────────────────────────────
   scenario-tests:
     name: SCADA & Scenario Tests
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 35
     needs: [build]
     services:
@@ -257,7 +257,7 @@ jobs:
   # ── Gate 7: Security Audit ───────────────────────────────────────────────
   security-audit:
     name: Security Audit
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -296,7 +296,7 @@ jobs:
   # ── Gate 8: Bundle Size Check ────────────────────────────────────────────
   bundle-size:
     name: Bundle Size
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 15
     needs: [build, build-ui]
     steps:
@@ -326,7 +326,7 @@ jobs:
   # ── Summary ──────────────────────────────────────────────────────────────
   ci-success:
     name: CI Success
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, ubuntu-24.04]
     timeout-minutes: 10
     needs: [lint, typecheck, unit-tests, build, build-ui, integration-tests, scenario-tests, security-audit, bundle-size]
     if: always()
