@@ -228,6 +228,13 @@ def validate_server_control_action(
       3. Interlock verification (grounding switch de-energization, locked/tagged-out checks).
       4. Action type validity (must be a supported SCADA / CUA control command).
       5. Value envelope checks (operating envelope limits for voltage, frequency, setpoints).
+
+    Limitations:
+      - Voltage envelope heuristic: In the parameter-envelope section, a numeric target
+        value > 5.0 is treated as kV (rejected outside [0, 765]) and <= 5.0 as p.u.
+        (rejected outside [0.80, 1.20]). A legitimate < 5 kV setpoint (e.g., 4.5 kV) is
+        therefore misclassified as p.u. and fails closed (rejected). Supplying an explicit
+        unit argument in action args is the recommended future improvement.
     """
     args = action.args or {}
     if isinstance(args, str):

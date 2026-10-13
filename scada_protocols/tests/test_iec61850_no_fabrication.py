@@ -95,3 +95,67 @@ def test_iec61850_no_fabrication_regression():
     for pt in cfg.point_map:
         adapter._dispatch_point(pt)
     assert len(emitted) == 0, f"Expected zero emitted points without real connection, but got {emitted}"
+
+
+def test_iec61850_bare_scalar_produces_unknown_quality():
+    """A bare scalar MMS return carries no quality metadata and produces quality='unknown' (never 'good')."""
+    cfg = _create_test_config()
+    emitted = []
+
+    def on_meas_cb(**kwargs):
+        emitted.append(kwargs)
+
+    adapter = IEC61850ClientAdapter(config=cfg, on_measurement=on_meas_cb)
+
+    mock_conn = MagicMock()
+    mock_conn.read_value.side_effect = lambda ln, attr: 13.85 if ln == "MMXU1" else 412.3
+
+    adapter._active_connections["ied_primary"] = mock_conn
+
+    # 1. read_measurements produces quality "unknown" (never "good")
+    with patch.object(adapter, "health_check", return_value=True):
+        res = adapter.read_measurements()
+
+    assert res["success"] is True
+    assert res["measurement_count"] == 2
+    meas = {m["element_id"]: m for m in res["measurements"]}
+
+    assert meas["BUS_1"]["value"] == 13.85
+    assert meas["BUS_1"]["quality"] == "unknown"
+    assert meas["LINE_1"]["value"] == 412.3
+    assert meas["LINE_1"]["quality"] == "unknown"
+
+    # 2. _dispatch_point produces quality "unknown" (never "good")
+    for pt in cfg.point_map:
+        adapter._dispatch_point(pt)
+
+    assert len(emitted) == 2
+    dispatched = {e["element_id"]: e for e in emitted}
+    assert dispatched["BUS_1"]["value"] == 13.85
+    assert dispatched["BUS_1"]["quality"] == "unknown"
+    assert dispatched["LINE_1"]["value"] == 412.3
+    assert dispatched["LINE_1"]["quality"] == "unknown"
+
+
+def test_iec61850_dict_result_keeps_source_quality():
+    """A dict MMS return preserves the source-provided quality metadata."""
+    cfg = _create_test_config()
+    adapter = IEC61850ClientAdapter(config=cfg)
+
+    mock_conn = MagicMock()
+    mock_conn.read_value.side_effect = lambda ln, attr: (
+        {"value": 13.85, "quality": "valid"}
+        if ln == "MMXU1"
+        else {"value": 412.3, "quality": "questionable"}
+    )
+
+    adapter._active_connections["ied_primary"] = mock_conn
+
+    with patch.object(adapter, "health_check", return_value=True):
+        res = adapter.read_measurements()
+
+    assert res["success"] is True
+    meas = {m["element_id"]: m for m in res["measurements"]}
+    assert meas["BUS_1"]["quality"] == "valid"
+    assert meas["LINE_1"]["quality"] == "questionable"
+

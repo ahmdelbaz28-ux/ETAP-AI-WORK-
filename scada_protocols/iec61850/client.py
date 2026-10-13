@@ -96,7 +96,12 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         measurement_tags: Optional[List[str]] = None,
         iec61850_refs: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
-        """Read measurements from active IEC 61850 IED."""
+        """Read measurements from active IEC 61850 IED.
+
+        Quality is taken from the binding when it provides one (tuple/dict result).
+        A bare scalar carries no quality metadata and is reported as 'unknown' rather
+        than fabricated 'good'.
+        """
         if not self.health_check():
             raise ConnectionError("IEC 61850 client is not running or no active connection")
 
@@ -158,7 +163,7 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                     q = read_res.get("quality", "good")
                 else:
                     val = float(read_res)
-                    q = "good"
+                    q = "unknown"
             except Exception as exc:
                 logger.warning("Failed to read MMS point %s: %s", ref, exc)
                 continue
@@ -258,6 +263,9 @@ class IEC61850ClientAdapter(ProtocolAdapter):
         Extracted from _poll_loop to reduce cognitive complexity (SonarCloud S3776).
         Only dispatches if an active MMS connection with read_value is available.
         Never fabricates default values (0.0/1.0) or fake 'good' quality.
+        Quality is taken from the binding when it provides one (tuple/dict result).
+        A bare scalar carries no quality metadata and is reported as 'unknown' rather
+        than fabricated 'good'.
         """
         if self._on_measurement is None:
             return
@@ -284,7 +292,7 @@ class IEC61850ClientAdapter(ProtocolAdapter):
                 q = read_res.get("quality", "good")
             else:
                 val = float(read_res)
-                q = "good"
+                q = "unknown"
         except Exception as exc:
             logger.warning("Failed to read MMS point %s$%s: %s", node, attr, exc)
             return
