@@ -44,7 +44,7 @@ jobs:
     if: (github.event_name != 'pull_request' || !github.event.pull_request.draft) && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0  # SonarCloud needs full history for blame + new-code detection
 
@@ -74,7 +74,7 @@ jobs:
 
       - name: Set up Python
         if: steps.verify-token.outputs.ci_mode == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
 
@@ -103,7 +103,7 @@ jobs:
 
       - name: Upload test results
         if: steps.verify-token.outputs.ci_mode == 'true' && always()
-        uses: actions/upload-artifact@v4.5.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         with:
           name: test-results-sonarcloud-${{ github.sha }}
           path: test-results.xml
