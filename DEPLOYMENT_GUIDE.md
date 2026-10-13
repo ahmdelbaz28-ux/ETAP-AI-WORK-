@@ -95,6 +95,15 @@ cd ETAP-AI-WORK-
 >
 > **OWNER ACTION:** In the Hugging Face Space settings, set `DATABASE_URL` as a Space secret pointing to a managed PostgreSQL database (e.g., Supabase, Neon, AWS RDS). Note that running on ephemeral SQLite wipes all users, projects, and study versions on every container restart or rebuild.
 
+#### Deployment Topology & Redis Configuration
+
+> [!NOTE]
+> **Deployment Topology & Redis Requirements:**
+> - `DEPLOYMENT_TOPOLOGY=single_replica` (Default for single-instance environments like Hugging Face Spaces):
+>   Redis (`REDIS_URL`) is **optional**. Rate limiting and execution state fallback to robust in-memory stores safely bounded to the single container instance.
+> - `DEPLOYMENT_TOPOLOGY=cluster` or `multi_replica` (Multi-pod Kubernetes / clustered deployments):
+>   Redis (`REDIS_URL`) is **mandatory (fail-closed)**. Distributed state management, cross-pod rate limiters, and idempotency locks strictly require an active Redis instance. Startup will abort if `REDIS_URL` is omitted.
+
 
 ### Step 3: Install Python Dependencies
 

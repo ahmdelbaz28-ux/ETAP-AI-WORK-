@@ -838,7 +838,7 @@ async def get_version():
         content={
             "version": VERSION,
             "commit_sha": deploy_sha,
-            "environment": os.getenv("ENVIRONMENT", "development"),
+            "environment": os.getenv("ENVIRONMENT", "production"),
             "status": "ok",
         },
         status_code=200,

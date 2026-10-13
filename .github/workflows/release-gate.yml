@@ -83,6 +83,16 @@ jobs:
             exit 1
           fi
 
+          # If the target commit is an auto-update project index commit, resolve to parent code-SHA (R2)
+          COMMIT_MSG=$(git log -1 --pretty=%B "$TARGET_SHA" 2>/dev/null || echo "")
+          if echo "$COMMIT_MSG" | grep -q "chore(index): auto-update project index"; then
+            PARENT_SHA=$(git rev-parse "${TARGET_SHA}^" 2>/dev/null || echo "")
+            if [ -n "$PARENT_SHA" ] && git cat-file -e "${PARENT_SHA}^{commit}" 2>/dev/null; then
+              echo "Detected auto-index commit $TARGET_SHA — resolving to parent code commit $PARENT_SHA"
+              TARGET_SHA="$PARENT_SHA"
+            fi
+          fi
+
           echo "commit_sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Evaluate Required Workflow Statuses (Fail-Closed)
@@ -131,7 +141,7 @@ jobs:
           echo "Changed files for this commit:"
           echo "$CHANGED_FILES" | sed 's/^/  /'
 
-          DOCKER_TRIGGER_RE='^(Dockerfile|hf-space/Dockerfile|docker-compose|requirements.*\.txt|pyproject\.toml|\.github/workflows/docker-validation\.yml)'
+          DOCKER_TRIGGER_RE='^(Dockerfile.*|hf-space/Dockerfile.*|docker-compose.*\.yml|requirements.*\.txt|hf-space/requirements\.hf\.txt|pyproject\.toml|\.github/workflows/docker-validation\.yml)'
           UI_TRIGGER_RE='^(ui/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/ui-quality\.yml)'
 
           DOCKER_APPLICABLE=0

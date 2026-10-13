@@ -23,10 +23,10 @@ on:
     - cron: '0 3 * * 0'
   workflow_dispatch:
 
-# Cancel previous runs on the same PR/branch for faster feedback
+# Do not cancel in-progress runs to ensure Release Gate evaluates consistent target SHA
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"

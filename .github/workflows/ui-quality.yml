@@ -24,6 +24,7 @@ on:
       - 'ui/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '.github/workflows/ui-quality.yml'
   schedule:
     # Weekly on Sunday at 06:00 UTC
     - cron: '0 6 * * 0'
@@ -31,7 +32,7 @@ on:
 
 concurrency:
   group: ui-quality-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
