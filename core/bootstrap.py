@@ -335,6 +335,11 @@ def _validate_environment() -> None:
     env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "development")).lower()
     is_production = env in ("production", "prod", "staging")
 
+    if is_production:
+        from api.config_prod import validate_production_config
+
+        validate_production_config(require_auth_keys=False)
+
     # Warn about missing optional-but-recommended vars
     warnings: list[str] = []
     if is_production:
@@ -397,7 +402,9 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
         from scripts.maintenance.verify_agents import verify_agent_registry
 
         verify_agent_registry(fail_loudly=True)
-        logger.info("M1.6 Agent registry verified successfully at startup")  # nosemgrep: etap.logging.secret-in-log
+        logger.info(
+            "M1.6 Agent registry verified successfully at startup"
+        )  # nosemgrep: etap.logging.secret-in-log
     except Exception as ag_err:
         logger.critical("M1.6 Fail-Fast: Agent registry verification failed: %s", ag_err)
         raise RuntimeError(f"Startup aborted due to agent registry failure: {ag_err}") from ag_err

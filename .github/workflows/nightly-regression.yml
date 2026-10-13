@@ -33,8 +33,20 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install Python dependencies
-        run: python3 -m pip install -r requirements.txt ruff pytest pytest-asyncio pytest-cov pytest-xdist pytest-timeout respx
+      - name: Disk preflight & cache cleanup
+        run: |
+          df -h
+          python3 -m pip cache purge || true
+          rm -rf ~/.cache/pip || true
+          if command -v docker &> /dev/null; then
+            docker image prune -af --filter "until=24h" || true
+          fi
+          df -h
+
+      - name: Install Python dependencies (CI test requirements)
+        run: |
+          python3 -m pip install -r requirements-ci.txt
+          df -h
 
       - name: Ruff lint check
         run: ruff check . --config ruff.toml

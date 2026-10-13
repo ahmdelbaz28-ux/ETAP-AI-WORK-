@@ -64,6 +64,17 @@ router = APIRouter(prefix="/api/v1/email/webhooks", tags=["email", "webhooks"])
 # ---------------------------------------------------------------------------
 # Registered outbound webhook endpoints (in-memory; persist via Redis if set)
 # ---------------------------------------------------------------------------
+# ARCHITECTURE NOTE (DEPLOYMENT_TOPOLOGY & Coherence):
+# The in-memory data structures below (_endpoints, _webhook_rate_limit,
+# _processed_svix_ids) provide process-local state suitable for single-replica
+# deployments (e.g. Hugging Face Spaces or containers running gunicorn -w 1).
+#
+# In multi-replica / cluster topologies (DEPLOYMENT_TOPOLOGY in ("multi_replica",
+# "cluster", "distributed")), state will drift across processes and replicas.
+# Production multi-replica deployments MUST configure REDIS_URL for cluster-wide
+# rate limiting, webhook endpoint persistence, and svix idempotency deduplication,
+# as enforced by services.execution_orchestrator and api.config_prod.
+# ---------------------------------------------------------------------------
 
 
 @dataclass

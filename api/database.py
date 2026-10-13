@@ -75,18 +75,12 @@ except Exception:
 _IS_POSTGRES = DATABASE_URL.startswith("postgresql+asyncpg")
 _IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
-from api.environment import is_production_environment
-
 if _IS_SQLITE:
     _sqlite_prefix = "sqlite+aiosqlite:///"
     _db_path = DATABASE_URL[len(_sqlite_prefix) :]
-    allow_sqlite = os.getenv("ALLOW_SQLITE_IN_PROD", "").lower() in ("1", "true", "yes")
-    if is_production_environment() and not allow_sqlite:
-        raise RuntimeError(
-            f"CRITICAL CONFIGURATION ERROR: SQLite ({DATABASE_URL}) is not permitted in production (including HF Space). "
-            "Set DATABASE_URL to a persistent PostgreSQL instance (e.g. Supabase / HF Postgres: postgresql+asyncpg://...) or "
-            "set ALLOW_SQLITE_IN_PROD=true if running in a single-instance container test."
-        )
+    from api.config_prod import validate_production_config
+
+    validate_production_config(require_auth_keys=False)
     logger.warning(
         "Using SQLite database (%s). "
         "This is suitable for local development but NOT for production. "

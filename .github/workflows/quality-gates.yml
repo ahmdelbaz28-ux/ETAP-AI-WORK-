@@ -45,6 +45,9 @@ jobs:
       - name: Python syntax validation
         run: python3 validate_syntax.py
 
+      - name: Environment documentation guard (.env.example)
+        run: python3 scripts/check_env_docs.py
+
       - name: Engineering validation suite
         run: python3 scripts/dev/validation_suite.py
 
