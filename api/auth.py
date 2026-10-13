@@ -1173,6 +1173,46 @@ class UserService:
         try:
             await db.flush()
         except _SAIntegrityError as exc:
+            orig = getattr(exc, "orig", None)
+            sqlstate = str(getattr(orig, "sqlstate", None) or getattr(orig, "pgcode", None) or "")
+            err_msg = str(exc).lower()
+            orig_msg = str(orig).lower() if orig else ""
+
+            is_fk = (
+                sqlstate == "23503"
+                or "foreign key" in err_msg
+                or "foreign key" in orig_msg
+                or "foreignkeyviolation" in err_msg
+                or "foreignkeyviolation" in orig_msg
+                or "fk_" in err_msg
+            )
+            is_tenant_fk = is_fk and ("tenant" in err_msg or "tenant" in orig_msg)
+
+            if is_tenant_fk:
+                _logger.error(
+                    "register_tenant_fk_error username=%s email=%s tenant_id=%s err=%s",
+                    username,
+                    normalised_email,
+                    tenant_id,
+                    exc,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Default tenant not initialized in database. System configuration error.",
+                ) from exc
+
+            if is_fk:
+                _logger.error(
+                    "register_fk_violation username=%s email=%s err=%s",
+                    username,
+                    normalised_email,
+                    exc,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Database foreign key constraint violation during user registration.",
+                ) from exc
+
             _logger.info(
                 "register_integrity_conflict username=%s email=%s err=%s",
                 username,

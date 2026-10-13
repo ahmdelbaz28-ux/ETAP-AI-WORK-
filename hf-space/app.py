@@ -251,6 +251,7 @@ from api.magic_links import router as magic_links_router  # noqa: E402
 from api.notifications import router as notifications_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
 from api.results_store import router as results_router  # noqa: E402
+from api.solver_parameters import router as solver_parameters_router  # noqa: E402
 from api.studies import StudyReRunRequest  # noqa: E402
 from api.study_versions import router as study_versions_router  # noqa: E402
 from api.templates import router as templates_router  # noqa: E402
@@ -278,6 +279,7 @@ app.include_router(data_import_router)
 app.include_router(assets_router)
 app.include_router(notifications_router)
 # Production parity routers
+app.include_router(solver_parameters_router)  # /api/v1/studies/parameters/*
 app.include_router(study_versions_router)
 app.include_router(templates_router)
 app.include_router(export_router)

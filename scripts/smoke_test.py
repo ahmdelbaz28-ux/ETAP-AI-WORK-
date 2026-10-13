@@ -74,9 +74,20 @@ async def run_smoke():
         if not token:
             token = _create_access_token("admin-user", role="admin")
 
+        csrf_token = os.environ.get("CSRF_TOKEN", "")
+        if not csrf_token:
+            try:
+                csrf_resp = httpx.get(f"{prod_url}/api/v1/csrf/token", timeout=10.0)
+                if csrf_resp.status_code == 200:
+                    csrf_token = csrf_resp.json().get("csrf_token", "")
+            except Exception:
+                pass
+        if not csrf_token:
+            csrf_token = generate_csrf_token()
+
         headers = {
             "Authorization": f"Bearer {token}",
-            "x-csrf-token": generate_csrf_token(),
+            "x-csrf-token": csrf_token,
             "Idempotency-Key": "smoke-test-001",
         }
         client = httpx.Client(base_url=prod_url, headers=headers, timeout=30.0)
@@ -94,9 +105,46 @@ async def run_smoke():
             client.headers[k] = v
 
     # 1. إنشاء مشروع
+    sample_system = {
+        "buses": [
+            {
+                "bus_id": 1,
+                "voltage_magnitude": 1.05,
+                "voltage_angle": 0.0,
+                "base_kv": 13.8,
+                "bus_type": "slack",
+                "generation_power_real": 50.0,
+                "generation_power_imag": 20.0,
+            },
+            {
+                "bus_id": 2,
+                "voltage_magnitude": 1.0,
+                "voltage_angle": 0.0,
+                "base_kv": 13.8,
+                "bus_type": "pq",
+                "generation_power_real": 0.0,
+                "generation_power_imag": 0.0,
+            },
+        ],
+        "branches": [
+            {
+                "line_id": 1,
+                "from_bus": 1,
+                "to_bus": 2,
+                "resistance": 0.01,
+                "reactance": 0.05,
+                "susceptance": 0.0,
+                "rating": 100.0,
+            }
+        ],
+    }
     proj = client.post(
         "/api/v1/projects/",
-        json={"name": "Smoke Test Project", "description": "Production validation"},
+        json={
+            "name": "Smoke Test Project",
+            "description": "Production validation",
+            "system_config": sample_system,
+        },
     )
     assert proj.status_code == 201, f"Failed: {proj.status_code} {proj.text}"
     project_id = proj.json()["id"]
