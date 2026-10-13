@@ -69,6 +69,37 @@ class Tenant(Base):
 
 
 # ---------------------------------------------------------------------------
+# Default platform tenant
+# ---------------------------------------------------------------------------
+
+DEFAULT_TENANT_ID: str = "00000000-0000-0000-0000-000000000000"
+_DEFAULT_TENANT_ID: str = DEFAULT_TENANT_ID
+
+
+async def ensure_default_tenant(session: AsyncSession) -> Tenant:
+    """Ensure the default tenant exists in the database (idempotent)."""
+    stmt = select(Tenant).where(Tenant.id == DEFAULT_TENANT_ID)
+    res = await session.execute(stmt)
+    existing = res.scalar_one_or_none()
+    if existing:
+        return existing
+
+    default_tenant = Tenant(
+        id=DEFAULT_TENANT_ID,
+        name="Default Organization",
+        slug="default",
+        is_active=True,
+        plan="enterprise",
+        max_projects=999999,
+        max_users=999999,
+    )
+    session.add(default_tenant)
+    await session.commit()
+    await session.refresh(default_tenant)
+    return default_tenant
+
+
+# ---------------------------------------------------------------------------
 # Pydantic v2 schemas
 # ---------------------------------------------------------------------------
 

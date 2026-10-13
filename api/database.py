@@ -24,6 +24,7 @@ DB_ECHO               set to "true" to log all SQL statements
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import logging
 import os
@@ -416,9 +417,49 @@ async def init_db() -> None:
         from core import models as _models  # noqa: F401
 
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables created/verified successfully")
+        if _IS_POSTGRES:
+            from sqlalchemy import inspect
+
+            from api.database_migrations import run_upgrade_head_sync
+
+            def _inspect_tables(sync_conn):
+                inspector = inspect(sync_conn)
+                tables = set(inspector.get_table_names())
+                return "alembic_version" in tables, len(tables) == 0, tables
+
+            async with engine.connect() as conn:
+                has_alembic, is_empty, existing_tables = await conn.run_sync(_inspect_tables)
+
+            if not has_alembic and is_empty:
+                logger.info(
+                    "Empty PostgreSQL database detected — running alembic upgrade head to establish schema provenance..."
+                )
+                await asyncio.to_thread(run_upgrade_head_sync)
+            elif not has_alembic and not is_empty:
+                logger.warning(
+                    "PostgreSQL database has tables %s but no alembic_version table. "
+                    "Stamp on create_all without verification is strictly forbidden.",
+                    existing_tables,
+                )
+            else:
+                logger.info(
+                    "PostgreSQL database with alembic_version detected — ensuring head migration is up-to-date..."
+                )
+                await asyncio.to_thread(run_upgrade_head_sync)
+        else:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            logger.info("Database tables created/verified successfully (SQLite/dev mode)")
+
+        # Ensure default platform tenant is seeded idempotently
+        try:
+            from api.tenants import ensure_default_tenant
+
+            async with async_session() as session:
+                await ensure_default_tenant(session)
+            logger.info("Default platform organization/tenant verified successfully")
+        except Exception as tenant_err:
+            logger.warning("Failed to verify default tenant during init_db: %s", tenant_err)
 
         # Seed component library definitions on startup if not present
         try:
