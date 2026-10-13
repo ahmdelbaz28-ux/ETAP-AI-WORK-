@@ -46,6 +46,7 @@ jobs:
     permissions:
       contents: read
       security-events: write  # SonarCloud S8233: scoped to this job only
+      actions: read
     steps:
       - name: Free runner disk space
         # Free disk space on GitHub-hosted runner to prevent incremental analysis exhaustion
@@ -119,9 +120,11 @@ jobs:
     name: Trivy Security Scan
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    needs: [codeql]
     permissions:
       contents: read
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
+      actions: read
     # CRITICAL FIX: Removed continue-on-error from the job level.
     # Per CI/CD skill: "No gate can be skipped." Vulnerabilities MUST block
     # the pipeline. The .trivyignore file lists known accepted exceptions;
@@ -201,6 +204,7 @@ jobs:
     name: Node.js Security Audits
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    needs: [trivy]
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -238,6 +242,7 @@ jobs:
     name: pip Audit (Python)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    needs: [codeql]
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -272,6 +277,7 @@ jobs:
     name: Runtime Security Check
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    needs: [pip-audit]
     services:
       postgres:
         image: postgres:15-alpine

@@ -50,6 +50,7 @@ jobs:
     name: Type Check
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    needs: [lint]
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
@@ -261,6 +262,7 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    needs: [unit-tests]
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
