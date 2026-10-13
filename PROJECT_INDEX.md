@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-12T15:05:50.460260+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-13T15:15:40.628157+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,16 +10,16 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 397 |
+| Python | Files | 398 |
 | Python | Classes | 973 |
-| Python | Functions | 862 |
+| Python | Functions | 864 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 287 |
-| Total | Tests | 4022 |
+| Test | Files | 291 |
+| Total | Tests | 4042 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 478 |
-| Scripts | | 168 |
+| Environment | Variables | 457 |
+| Scripts | | 170 |
 | AI | Agents | 31 |
 | Integrations | | 22 |
 | UI | Search Index Entries | 474 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -121,150 +121,15 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **478** variables
+Total: **457** variables
 
 ### General
 
+- `ABAC_ENABLED`
+- `ABAC_ENFORCE_BUSINESS_HOURS`
 - `ACP_LOG_LEVEL`
 - `ACP_SOCKET_PATH`
 - `ACP_TRANSPORT`
-- `ALERT_WEBHOOK_URL`
-- `ANTHROPIC_API_KEY`
-- `ANTHROPIC_MAX_RETRIES`
-- `ANTHROPIC_TIMEOUT`
-- `ANTHROPIC_VISION_MODEL`
-- `APP_ENV`
-- `ARCGIS_API_KEY`
-- `ARCGIS_PORTAL_URL`
-- `ARCGIS_TOKEN`
-- `CELERY_BROKER_URL`
-- `CELERY_RESULT_BACKEND`
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ORIGIN_SECRET`
-- `CODESANDBOX_API_KEY`
-- `CODESANDBOX_ENABLED`
-- `COHERE_API_KEY`
-- `CORS_ALLOWED_ORIGINS`
-- `DATABASE_URL`
-- `DAYTONA_API_KEY`
-- `DAYTONA_TARGET`
-- `DB_NAME`
-- `DB_PASSWORD`
-- `DB_USER`
-- `DEEPSEEK_API_KEY`
-- `ENCRYPTION_KEY`
-- `ENGINEERING_SERVICE_API_KEY`
-- `ENGINEERING_SERVICE_CORS_ORIGINS`
-- `ENGINEERING_SERVICE_HOST`
-- `ENGINEERING_SERVICE_PORT`
-- `ENGINEERING_SERVICE_TRUSTED_PROXIES`
-- `ENGINEERING_SERVICE_URL`
-- `ENVIRONMENT`
-- `ETAP_HOST`
-- `ETAP_INSTALL_PATH`
-- `ETAP_LICENSE_PATH`
-- `ETAP_PORT`
-- `ETAP_VERSION`
-- `ETAP_WORKER_API_KEY`
-- `ETAP_WORKER_PORT`
-- `ETAP_WORKER_URL`
-- `FEATURE_FLAG_ARCGIS_PROVIDER`
-- `FERNET_ENCRYPTION_KEY`
-- `FIREWORKS_API_KEY`
-- `GEMINI_API_KEY`
-- `GEMINI_MAX_RETRIES`
-- `GEMINI_MODEL`
-- `GEMINI_TIMEOUT`
-- `GIS_MAX_FEATURES_PER_EDIT`
-- `GIS_SERVICE_ALLOWLIST`
-- `GIS_WRITE_ENABLED`
-- `GITHUB_REPO`
-- `GITHUB_TOKEN`
-- `GLM_API_KEY`
-- `GRAFANA_ADMIN_PASSWORD`
-- `GRAFANA_ADMIN_USER`
-- `GRAFANA_PASSWORD`
-- `GRAFANA_USER`
-- `GROQ_API_KEY`
-- `HF_REPO_URL`
-- `HF_SPACE_NAME`
-- `HF_TOKEN`
-- `HOST`
-- `JWT_SECRET_KEY`
-- `LANGFUSE_ALERT_WEBHOOK_HEADERS`
-- `LANGFUSE_ALERT_WEBHOOK_URL`
-- `LANGFUSE_BASE_URL`
-- `LANGFUSE_DEFAULT_MODEL`
-- `LANGFUSE_PUBLIC_KEY`
-- `LANGFUSE_SECRET_KEY`
-- `LANGWATCH_API_KEY`
-- `LANGWATCH_ENDPOINT`
-- `LANGWATCH_PROJECT`
-- `LLM_ALLOW_UNKNOWN_MODELS`
-- `LLM_APPROVED_MODELS`
-- `LLM_MAX_INPUT_CHARS`
-- `LLM_REQUIRE_AGENT_TAG`
-- `MASTRA_DB_URL`
-- `MASTRA_LOG_LEVEL`
-- `MASTRA_PLATFORM_ACCESS_TOKEN`
-- `MAX_LLM_CALLS_PER_REQUEST`
-- `MAX_TOKENS_PER_REQUEST`
-- `MINIMAX_API_KEY`
-- `MISTRAL_API_KEY`
-- `MOONSHOT_API_KEY`
-- `NEO4J_PASSWORD`
-- `NEO4J_URI`
-- `NEO4J_USER`
-- `NVIDIA_API_KEY`
-- `OAUTH_CLIENT_ID`
-- `OAUTH_CLIENT_NAME`
-- `OAUTH_CLIENT_SECRET`
-- `OAUTH_PROVIDER`
-- `OAUTH_REDIRECT_URI`
-- `OAUTH_SCOPES`
-- `OPENAI_API_KEY`
-- `OPENAI_BASE_URL`
-- `OPENAI_MAX_RETRIES`
-- `OPENAI_TIMEOUT`
-- `OPENAI_VISION_MODEL`
-- `PERPLEXITY_API_KEY`
-- `PORT`
-- `POSTGRES_DB`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_USER`
-- `PRIVACY_MODE`
-- `PROMETHEUS_ENABLED`
-- `PROMETHEUS_PORT`
-- `QDRANT_API_KEY`
-- `QDRANT_HOST`
-- `QDRANT_PORT`
-- `QWEN_API_KEY`
-- `REDIS_PASSWORD`
-- `REDIS_URL`
-- `RESEND_API_KEY`
-- `SESSION_SECRET`
-- `SMITHERY_API_KEY`
-- `SMITHERY_BASE_URL`
-- `SONAR_TOKEN`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_PAT`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_URL`
-- `TOGETHER_API_KEY`
-- `USE_ETAP`
-- `VAULT_ADDR`
-- `VAULT_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-- `VERCEL_TOKEN`
-- `WORKER_CONCURRENCY`
-- `WORKER_CPU_LIMIT`
-- `WORKER_MEMORY_LIMIT`
-
-### Detected in code
-
-- `ABAC_ENABLED`
-- `ABAC_ENFORCE_BUSINESS_HOURS`
 - `ADMIN_TOKEN`
 - `AKAMAI_ACCESS_TOKEN`
 - `AKAMAI_BOT_SCORE_BLOCK`
@@ -278,21 +143,29 @@ Total: **478** variables
 - `AKAMAI_ORIGIN_SECRET`
 - `AKAMAI_REQUIRE_ORIGIN_TOKEN`
 - `ALERT_DEBOUNCE_SECONDS`
+- `ALERT_WEBHOOK_URL`
 - `ALLOWED_APP_URL_DOMAINS`
 - `ALLOW_BIDIRECTIONAL_SYNC`
 - `ALLOW_EPHEMERAL_JWT_IN_DEV`
 - `ALLOW_GIS_TO_ETAP_SYNC`
 - `ALLOW_SQLITE_IN_PROD`
 - `ALLOW_TEST_TOKENS`
-- `ANDROID_BUILD_TOP`
 - `ANOMALY_CURRENT_MAX`
 - `ANOMALY_TEMP_MAX`
 - `ANOMALY_VOLTAGE_MAX`
 - `ANOMALY_VOLTAGE_MIN`
+- `ANTHROPIC_API_KEY`
 - `ANTHROPIC_BASE_URL`
+- `ANTHROPIC_MAX_RETRIES`
+- `ANTHROPIC_TIMEOUT`
+- `ANTHROPIC_VISION_MODEL`
 - `API_KEY_ENCRYPTION_KEY`
+- `APP_ENV`
+- `ARCGIS_API_KEY`
 - `ARCGIS_PASSWORD`
+- `ARCGIS_PORTAL_URL`
 - `ARCGIS_PRO_PROJECT_TEMPLATE`
+- `ARCGIS_TOKEN`
 - `ARCGIS_USERNAME`
 - `AUDIT_BACKUP_ACCESS_KEY`
 - `AUDIT_BACKUP_SECRET_KEY`
@@ -307,47 +180,49 @@ Total: **478** variables
 - `BACKEND_URL`
 - `BASE_URL`
 - `CACHE_TTL`
-- `CC`
+- `CELERY_BROKER_URL`
 - `CELERY_BROKER_USE_SSL`
 - `CELERY_MAX_WORKERS`
 - `CELERY_MIN_WORKERS`
-- `CFLAGS`
+- `CELERY_RESULT_BACKEND`
 - `CF_BLOCKED_COUNTRIES`
 - `CF_ORIGIN_RATE_LIMIT`
-- `CI`
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_KEY`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ORIGIN_SECRET`
+- `CODESANDBOX_API_KEY`
+- `CODESANDBOX_ENABLED`
 - `CODE_CONTEXT_INDEX_DIR`
-- `COMMIT_SHA`
+- `COHERE_API_KEY`
 - `CONF_THRESHOLD`
-- `CPPFLAGS`
+- `CORS_ALLOWED_ORIGINS`
 - `CRON_SECRET`
 - `CSRF_ALLOWED_ORIGINS`
 - `CSRF_SECRET`
+- `CSRF_TOKEN`
 - `CUA_AUDIT_DIR`
 - `CUA_CHECKPOINT_DIR`
 - `CUA_LOOP_TIMEOUT_SEC`
-- `CXX`
-- `CXXFLAGS`
-- `DAYTONA_API_TOKEN`
-- `DAYTONA_API_URL`
-- `DAYTONA_SERVER_URL`
+- `DATABASE_URL`
+- `DAYTONA_API_KEY`
+- `DAYTONA_TARGET`
 - `DB_CONNECT_TIMEOUT`
 - `DB_ECHO`
 - `DB_MAX_CONNECTIONS`
 - `DB_MAX_OVERFLOW`
+- `DB_NAME`
+- `DB_PASSWORD`
 - `DB_POOL_RECYCLE`
 - `DB_POOL_SIZE`
 - `DB_POOL_TIMEOUT`
+- `DB_USER`
+- `DEEPSEEK_API_KEY`
 - `DEPLOYMENT_TOPOLOGY`
-- `DEPLOY_SHA`
 - `DISABLE_TEST_MODE`
-- `DISPLAY`
 - `DUCKDBSTORE_CONSTRUCTOR_KWARGS_JSON`
 - `DUCKDBSTORE_DB_PATH`
 - `DUCKDBSTORE_IMPORT_PATH`
-- `DXSDK_DIR`
-- `E2E_USER_PASSWORD`
 - `EMAIL_APP_URL`
 - `EMAIL_BRAND_NAME`
 - `EMAIL_BRAND_TAGLINE`
@@ -364,57 +239,76 @@ Total: **478** variables
 - `EMBEDDING_API_KEY`
 - `EMBEDDING_MODEL`
 - `ENABLE_DOCS`
+- `ENCRYPTION_KEY`
 - `ENFORCE_HTTPS`
-- `ENGINEERING_SERVICE_AUTH_DISABLED`
+- `ENGINEERING_SERVICE_API_KEY`
 - `ENGINEERING_SERVICE_CACHE_DISABLED`
+- `ENGINEERING_SERVICE_CORS_ORIGINS`
+- `ENGINEERING_SERVICE_HOST`
 - `ENGINEERING_SERVICE_MAX_BODY_SIZE`
+- `ENGINEERING_SERVICE_PORT`
 - `ENGINEERING_SERVICE_RATE_LIMIT_DISABLED`
 - `ENGINEERING_SERVICE_RATE_LIMIT_MAX`
 - `ENGINEERING_SERVICE_RATE_LIMIT_WINDOW`
 - `ENGINEERING_SERVICE_REQUEST_TIMEOUT`
+- `ENGINEERING_SERVICE_TRUSTED_PROXIES`
+- `ENGINEERING_SERVICE_URL`
 - `ENGINEERING_SERVICE_VERSION`
-- `ENV`
+- `ENVIRONMENT`
 - `ETAP_DATA_DIR`
 - `ETAP_DEV_API_KEY`
 - `ETAP_DEV_BASE_URL`
 - `ETAP_DEV_PASSWORD`
 - `ETAP_ENV`
 - `ETAP_GUI_QUICK_MODE`
+- `ETAP_HOST`
 - `ETAP_INDEXER_DIR`
+- `ETAP_INSTALL_PATH`
+- `ETAP_LICENSE_PATH`
+- `ETAP_PORT`
 - `ETAP_PROMPTS_DIR`
 - `ETAP_PROVIDER`
-- `ETAP_REST_ALLOWLIST`
-- `ETAP_REST_TOKEN`
-- `ETAP_REST_URL`
 - `ETAP_SECRETS_DIR`
+- `ETAP_VERSION`
+- `ETAP_WORKER_API_KEY`
 - `ETAP_WORKER_HOST`
+- `ETAP_WORKER_PORT`
 - `ETAP_WORKER_SERVICE_URL`
+- `ETAP_WORKER_URL`
 - `EXTERNAL_SERVICE_PROVIDER`
 - `EXTERNAL_SERVICE_TIMEOUT_SEC`
 - `EXTERNAL_SERVICE_URL`
 - `EXTRA_CORS_ORIGINS`
 - `FEATURE_FLAGS_DB_PATH`
 - `FEATURE_FLAGS_PATH`
+- `FEATURE_FLAG_ARCGIS_PROVIDER`
+- `FERNET_ENCRYPTION_KEY`
+- `FIREWORKS_API_KEY`
 - `FORGOT_PASSWORD_RATE_LIMIT_MAX`
 - `FORGOT_PASSWORD_RATE_LIMIT_WINDOW_SEC`
+- `GEMINI_API_KEY`
+- `GEMINI_MAX_RETRIES`
+- `GEMINI_MODEL`
+- `GEMINI_TIMEOUT`
+- `GIS_MAX_FEATURES_PER_EDIT`
 - `GIS_PROVIDER`
-- `GITHUB_ACTIONS`
+- `GIS_SERVICE_ALLOWLIST`
+- `GIS_WRITE_ENABLED`
 - `GITHUB_PAT`
-- `GYP_CONFIG_DIR`
-- `GYP_CROSSCOMPILE`
-- `GYP_GENERATORS`
-- `GYP_GENERATOR_OUTPUT`
-- `GYP_LINK_CONCURRENCY`
-- `GYP_LINK_CONCURRENCY_MAX`
-- `GYP_MSVS_OVERRIDE_PATH`
-- `GYP_MSVS_VERSION`
-- `GYP_USE_SEPARATE_MSPDBSRV`
+- `GITHUB_REPO`
+- `GITHUB_TOKEN`
+- `GLM_API_KEY`
+- `GRAFANA_ADMIN_PASSWORD`
+- `GRAFANA_ADMIN_USER`
+- `GRAFANA_PASSWORD`
+- `GRAFANA_USER`
+- `GROQ_API_KEY`
 - `HF_API_KEY`
-- `HF_COMMIT_SHA`
-- `HF_SPACE_API_KEY`
-- `HF_SPACE_ID`
-- `HF_SPACE_PRODUCTION_TESTS`
+- `HF_REPO_URL`
+- `HF_SPACE_NAME`
 - `HF_SPACE_URL`
+- `HF_TOKEN`
+- `HOST`
 - `HSTS_MAX_AGE`
 - `HUGGINGFACE_TOKEN`
 - `IEC104_CA`
@@ -429,6 +323,11 @@ Total: **478** variables
 - `INITIAL_ADMIN_USERNAME`
 - `JWT_ACCESS_EXPIRE_MINUTES`
 - `JWT_REFRESH_EXPIRE_DAYS`
+- `JWT_SECRET_KEY`
+- `LANGFUSE_ALERT_WEBHOOK_HEADERS`
+- `LANGFUSE_ALERT_WEBHOOK_URL`
+- `LANGFUSE_BASE_URL`
+- `LANGFUSE_DEFAULT_MODEL`
 - `LANGFUSE_ENABLED`
 - `LANGFUSE_HOST`
 - `LANGFUSE_HTTP_MAX_BODY`
@@ -436,17 +335,23 @@ Total: **478** variables
 - `LANGFUSE_NO_CAPTURE_ROUTES`
 - `LANGFUSE_OVERRIDE_MODE`
 - `LANGFUSE_PROJECT_ID`
+- `LANGFUSE_PUBLIC_KEY`
 - `LANGFUSE_SAFETY_PATHS`
+- `LANGFUSE_SECRET_KEY`
 - `LANGFUSE_TIMEOUT`
 - `LANGFUSE_UNTRACED_ALERT_THRESHOLD`
+- `LANGWATCH_API_KEY`
 - `LANGWATCH_DEFAULT_MODEL`
+- `LANGWATCH_ENDPOINT`
 - `LANGWATCH_OVERRIDE_MODE`
+- `LANGWATCH_PROJECT`
 - `LANGWATCH_PROJECT_ID`
 - `LANGWATCH_TIMEOUT`
-- `LDFLAGS`
+- `LLM_ALLOW_UNKNOWN_MODELS`
+- `LLM_APPROVED_MODELS`
+- `LLM_MAX_INPUT_CHARS`
 - `LLM_MODEL`
-- `LOCUST_TEST_PASSWORD`
-- `LOCUST_TEST_USERNAME`
+- `LLM_REQUIRE_AGENT_TAG`
 - `LOGIN_IP_RATE_LIMIT_MAX`
 - `LOGIN_IP_RATE_LIMIT_WINDOW_SEC`
 - `LOGIN_RATE_LIMIT_MAX_ATTEMPTS`
@@ -454,21 +359,40 @@ Total: **478** variables
 - `MAGIC_LINK_RATE_LIMIT_MAX`
 - `MAGIC_LINK_RATE_LIMIT_WINDOW`
 - `MAGIC_LINK_TTL_SECONDS`
+- `MASTRA_DB_URL`
+- `MASTRA_LOG_LEVEL`
+- `MASTRA_PLATFORM_ACCESS_TOKEN`
 - `MAX_BATCH_SIZE`
+- `MAX_LLM_CALLS_PER_REQUEST`
+- `MAX_TOKENS_PER_REQUEST`
 - `MCP_CONFIG_PATH`
 - `MCP_HEALTH_ALLOW_HTTP`
 - `MFA_CHALLENGE_EXPIRE_MINUTES`
+- `MINIMAX_API_KEY`
+- `MISTRAL_API_KEY`
 - `MODBUS_HOST`
 - `MODBUS_PORT`
 - `MODEL2VEC_MODEL_NAME`
+- `MOONSHOT_API_KEY`
 - `MQTT_BROKER`
 - `MQTT_PASSWORD`
 - `MQTT_USERNAME`
+- `NEO4J_PASSWORD`
+- `NEO4J_URI`
+- `NEO4J_USER`
+- `NEO4J_USERNAME`
 - `NOTION_API_KEY`
 - `NOTION_DATABASE_ID`
 - `NOTION_ENABLED`
 - `NOTION_PARENT_PAGE_ID`
 - `NOTION_PAT`
+- `NVIDIA_API_KEY`
+- `OAUTH_CLIENT_ID`
+- `OAUTH_CLIENT_NAME`
+- `OAUTH_CLIENT_SECRET`
+- `OAUTH_PROVIDER`
+- `OAUTH_REDIRECT_URI`
+- `OAUTH_SCOPES`
 - `OCR_BATCH_WAIT_TIME`
 - `OCR_DETECTION_MODEL`
 - `OCR_MAX_BATCH_SIZE`
@@ -476,6 +400,11 @@ Total: **478** variables
 - `OPCUA_SECURITY_MODE`
 - `OPCUA_SECURITY_POLICY`
 - `OPENAI_API_BASE`
+- `OPENAI_API_KEY`
+- `OPENAI_BASE_URL`
+- `OPENAI_MAX_RETRIES`
+- `OPENAI_TIMEOUT`
+- `OPENAI_VISION_MODEL`
 - `OTEL_ENVIRONMENT`
 - `OTEL_EXPORTER_ENDPOINT`
 - `OTEL_EXPORTER_TYPE`
@@ -486,20 +415,26 @@ Total: **478** variables
 - `OTP_MAX_ATTEMPTS`
 - `OTP_TTL_SECONDS`
 - `OVERLAP_THRESHOLD`
-- `PATH`
-- `PLAYWRIGHT_BROWSERS_PATH`
+- `PERPLEXITY_API_KEY`
+- `PORT`
 - `POSTGIS_DSN`
 - `POSTGIS_SCHEMA`
-- `PROCESSOR_ARCHITECTURE`
-- `PROCESSOR_ARCHITEW6432`
-- `PRODUCTION_URL`
+- `POSTGRES_DB`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_USER`
+- `PRIVACY_MODE`
+- `PROMETHEUS_ENABLED`
+- `PROMETHEUS_PORT`
 - `PROMPT_CACHE_TTL`
 - `PROMPT_CB_FAILURE_THRESHOLD`
 - `PROMPT_CB_RESET_SECONDS`
 - `PROMPT_LOCAL_TTL_SECONDS`
-- `PYTEST_XDIST_WORKER`
+- `QDRANT_API_KEY`
+- `QDRANT_HOST`
+- `QDRANT_PORT`
 - `QDRANT_URL`
 - `QGIS_PREFIX_PATH`
+- `QWEN_API_KEY`
 - `R2_ACCESS_KEY_ID`
 - `R2_ACCOUNT_ID`
 - `R2_AUTO_PURGE_ENABLED`
@@ -517,11 +452,14 @@ Total: **478** variables
 - `RATE_LIMIT_WINDOW`
 - `REDIS_HOST`
 - `REDIS_MAX_CONNECTIONS`
+- `REDIS_PASSWORD`
 - `REDIS_PORT`
 - `REDIS_SOCKET_CONNECT_TIMEOUT`
 - `REDIS_SOCKET_TIMEOUT`
+- `REDIS_URL`
 - `REPLICA_COUNT`
 - `REPORTS_OUTPUT_DIR`
+- `RESEND_API_KEY`
 - `RESEND_ENABLED`
 - `RESEND_FROM_EMAIL`
 - `RESEND_FROM_NAME`
@@ -561,6 +499,7 @@ Total: **478** variables
 - `SENTRY_RELEASE`
 - `SENTRY_TRACES_SAMPLE_RATE`
 - `SERVICE_HOST`
+- `SESSION_SECRET`
 - `SESSION_TTL_SECONDS`
 - `SIEM_API_KEY`
 - `SIEM_APP_NAME`
@@ -575,37 +514,77 @@ Total: **478** variables
 - `SIEM_TLS_CA_CERT`
 - `SIEM_TYPE`
 - `SLACK_WEBHOOK_URL`
+- `SMITHERY_API_KEY`
+- `SMITHERY_BASE_URL`
 - `SMITHERY_SERVER_EQUIPMENT`
 - `SMITHERY_SERVER_REPORT_GEN`
 - `SMITHERY_SERVER_STANDARDS_DB`
+- `SONAR_TOKEN`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_AUTH_ENABLED`
+- `SUPABASE_PAT`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_URL`
+- `TIMESCALE_URL`
+- `TOGETHER_API_KEY`
+- `TOKEN_BLACKLIST_PREFIX`
+- `TRUSTED_PROXY_HOPS`
+- `USE_ETAP`
+- `USE_MOCK_ETAP`
+- `USE_MOCK_GIS`
+- `USE_REDIS_RATE_LIMIT`
+- `VAULT_ADDR`
+- `VAULT_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `VERCEL_TOKEN`
+- `VITE_API_URL`
+- `WEBHOOK_DNS_TIMEOUT`
+- `WEBHOOK_RATE_LIMIT_MAX`
+- `WEBHOOK_RATE_LIMIT_WINDOW`
+- `WORKER_CONCURRENCY`
+- `WORKER_CPU_LIMIT`
+- `WORKER_MEMORY_LIMIT`
+- `X_FRAME_OPTIONS`
+- `ZAI_API_KEY`
+
+### Detected in code
+
+- `CI`
+- `COMMIT_SHA`
+- `DAYTONA_API_TOKEN`
+- `DAYTONA_API_URL`
+- `DAYTONA_SERVER_URL`
+- `DEPLOY_SHA`
+- `DISPLAY`
+- `E2E_USER_PASSWORD`
+- `ENGINEERING_SERVICE_AUTH_DISABLED`
+- `ENV`
+- `ETAP_REST_ALLOWLIST`
+- `ETAP_REST_TOKEN`
+- `ETAP_REST_URL`
+- `GH_TOKEN`
+- `GITHUB_ACTIONS`
+- `HF_COMMIT_SHA`
+- `HF_SPACE_API_KEY`
+- `HF_SPACE_ID`
+- `HF_SPACE_PRODUCTION_TESTS`
+- `LOCUST_TEST_PASSWORD`
+- `LOCUST_TEST_USERNAME`
+- `PLAYWRIGHT_BROWSERS_PATH`
+- `PRODUCTION_URL`
+- `PYTEST_XDIST_WORKER`
 - `SMOKE_BASE_URL`
 - `SMOKE_UI_URL`
 - `SONAR_PROJECT_KEY`
 - `SPACE_ID`
 - `STAGING_BASE_URL`
-- `SUPABASE_AUTH_ENABLED`
 - `TEST_CI_API_KEY`
 - `TEST_FAKE_TOKEN`
-- `TIMESCALE_URL`
-- `TOKEN_BLACKLIST_PREFIX`
-- `TRUSTED_PROXY_HOPS`
 - `UPTIMEROBOT_API_KEY`
-- `USERDOMAIN`
-- `USERNAME`
-- `USE_MOCK_ETAP`
-- `USE_MOCK_GIS`
-- `USE_REDIS_RATE_LIMIT`
-- `VITE_API_URL`
 - `WAYLAND_DISPLAY`
-- `WDK_DIR`
-- `WEBHOOK_DNS_TIMEOUT`
-- `WEBHOOK_RATE_LIMIT_MAX`
-- `WEBHOOK_RATE_LIMIT_WINDOW`
 - `WEB_CONCURRENCY`
-- `WINDIR`
 - `WORKERS`
-- `X_FRAME_OPTIONS`
-- `ZAI_API_KEY`
 
 ---
 
@@ -988,6 +967,36 @@ Orchestrates autonomous study execution pipelines, parallel dispatch,
 - **Class** `WorkflowEngine` (line 95)
   - Methods: `build_execution_plan()`, `export_execution_trace()`, `execute_workflow()`, `execute_parallel_studies()`
 
+#### 📄 `agents/optimizers/__init__.py` _0.5 KB_
+> agents/optimizers — Learning and Optimization Agents for AhmedETAP.
+
+
+#### 📄 `agents/optimizers/adaptive_planner.py` _6.3 KB_
+> agents/optimizers/adaptive_planner.py — Adaptive Critical Path Task Scheduling Optimizer.
+
+Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
+
+- **Class** `ScheduledTask` (line 19)
+- **Class** `ScheduleResult` (line 36)
+- **Class** `AdaptiveTaskScheduler` (line 47)
+  - Methods: `schedule()`
+
+#### 📄 `agents/optimizers/bandit_router.py` _8.3 KB_
+> agents/optimizers/bandit_router.py — Adaptive Learning Contextual Bandit Goal Router.
+
+Replaces static heuristic routing with an online learning Conte
+
+- **Class** `ContextualBanditRouter` (line 25)
+  - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
+
+#### 📄 `agents/optimizers/optimization_agent.py` _8.5 KB_
+> agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
+
+Integrates Particle Swarm Optimization (PSO), multi-objective 
+
+- **Class** `OptimizationAgent` (line 29)
+  - Methods: `name()`, `execute()`
+
 #### 📄 `agents/etap_expert/__init__.py` _1.3 KB_
 > ETAP Expert Skill — sub-modules package.
 
@@ -1028,36 +1037,6 @@ Contains the cable-sizing simulation engine and related calculations
 - **def** `simulate_cable_sizing()` (line 71)
 - **def** `try_cable_sizing_simulation()` (line 133)
 - **def** `generic_complete_response()` (line 189)
-
-#### 📄 `agents/optimizers/__init__.py` _0.5 KB_
-> agents/optimizers — Learning and Optimization Agents for AhmedETAP.
-
-
-#### 📄 `agents/optimizers/adaptive_planner.py` _6.3 KB_
-> agents/optimizers/adaptive_planner.py — Adaptive Critical Path Task Scheduling Optimizer.
-
-Replaces static 0.4/0.4/0.2 weight scoring in GoalPlannerAg
-
-- **Class** `ScheduledTask` (line 19)
-- **Class** `ScheduleResult` (line 36)
-- **Class** `AdaptiveTaskScheduler` (line 47)
-  - Methods: `schedule()`
-
-#### 📄 `agents/optimizers/bandit_router.py` _8.3 KB_
-> agents/optimizers/bandit_router.py — Adaptive Learning Contextual Bandit Goal Router.
-
-Replaces static heuristic routing with an online learning Conte
-
-- **Class** `ContextualBanditRouter` (line 25)
-  - Methods: `route()`, `resolve_intent()`, `update_reward()`, `to_dict()`, `parse_user_goal()`, `determine_execution_order()`
-
-#### 📄 `agents/optimizers/optimization_agent.py` _8.5 KB_
-> agents/optimizers/optimization_agent.py — Optimization Specialist Agent for AhmedETAP.
-
-Integrates Particle Swarm Optimization (PSO), multi-objective 
-
-- **Class** `OptimizationAgent` (line 29)
-  - Methods: `name()`, `execute()`
 
 ### 📦 `api/`
 
@@ -1213,7 +1192,7 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _39.3 KB_
+#### 📄 `api/approvals.py` _39.8 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
@@ -1223,19 +1202,19 @@ pass before execution. Provides:
 - **Class** `PendingAction` (line 144)
 - **Class** `IdempotencyKey` (line 182)
 - **Class** `CreateApprovalRequest` (line 206)
-- **Class** `ResolveRequest` (line 471)
-- **Class** `AutoApproveRequest` (line 486)
-- **Class** `ApprovalResponse` (line 493)
+- **Class** `ResolveRequest` (line 478)
+- **Class** `AutoApproveRequest` (line 493)
+- **Class** `ApprovalResponse` (line 500)
 - **def** `compute_args_hash()` (line 123)
 - **def** `classify_tool()` (line 129)
 - **def** `validate_server_control_action()` (line 218)
-- **def** `set_session_auto_approve()` (line 524)
-- **def** `get_session_auto_approve()` (line 529)
-- **async def** `expire_stale_actions()` (line 618)
-- **async def** `transition_status()` (line 645)
-- **async def** `create_approval()` (line 703)
-- **async def** `list_pending()` (line 784)
-- **async def** `resolve_action()` (line 813)
+- **def** `set_session_auto_approve()` (line 531)
+- **def** `get_session_auto_approve()` (line 536)
+- **async def** `expire_stale_actions()` (line 625)
+- **async def** `transition_status()` (line 652)
+- **async def** `create_approval()` (line 710)
+- **async def** `list_pending()` (line 791)
+- **async def** `resolve_action()` (line 820)
 
   **API Routes:**
   - `GET /pending`
@@ -1285,7 +1264,7 @@ log entries generated
   - `GET /`
   - `GET /stats`
 
-#### 📄 `api/auth.py` _75.2 KB_
+#### 📄 `api/auth.py` _76.8 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
@@ -1314,15 +1293,15 @@ Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 - **Class** `UserService` (line 1119)
   - Methods: `create()`
 - **def** `validate_email_app_url()` (line 275)
-- **async def** `register()` (line 1205)
-- **async def** `login()` (line 1342)
-- **async def** `refresh()` (line 1475)
-- **async def** `logout()` (line 1559)
-- **async def** `get_me()` (line 1641)
-- **async def** `update_me()` (line 1678)
-- **async def** `change_password()` (line 1763)
-- **async def** `forgot_password()` (line 1876)
-- **async def** `reset_password()` (line 1984)
+- **async def** `register()` (line 1245)
+- **async def** `login()` (line 1382)
+- **async def** `refresh()` (line 1515)
+- **async def** `logout()` (line 1599)
+- **async def** `get_me()` (line 1681)
+- **async def** `update_me()` (line 1718)
+- **async def** `change_password()` (line 1803)
+- **async def** `forgot_password()` (line 1916)
+- **async def** `reset_password()` (line 2024)
 
 #### 📄 `api/autodesk_connectors.py` _12.9 KB_
 > Autodesk Connector Health & Test API Router
@@ -1415,6 +1394,13 @@ Provides:
   - `GET /{id}`
   - `POST /{id}/verify`
   - `POST /{id}/reject`
+
+#### 📄 `api/config_prod.py` _4.8 KB_
+> api/config_prod.py — Shared production configuration fail-closed validator.
+
+Centralises fail-closed validation for production and staging environment
+
+- **def** `validate_production_config()` (line 27)
 
 #### 📄 `api/context_engine.py` _4.5 KB_
 - **Class** `FabricQueryRequest` (line 78)
@@ -1514,18 +1500,18 @@ model i
 - **async def** `execute_import()` (line 1163)
 - **async def** `upload_file()` (line 1340)
 
-#### 📄 `api/database.py` _17.9 KB_
+#### 📄 `api/database.py` _19.3 KB_
 > api/database.py — Async SQLAlchemy database configuration.
 
 Supports two backends:
   • PostgreSQL (production)  — asyncpg driver, connection pooling
  
 
-- **Class** `Base` (line 313)
-- **async def** `get_db()` (line 326)
-- **async def** `check_db_health()` (line 348)
-- **async def** `init_db()` (line 379)
-- **async def** `close_db()` (line 453)
+- **Class** `Base` (line 308)
+- **async def** `get_db()` (line 321)
+- **async def** `check_db_health()` (line 343)
+- **async def** `init_db()` (line 374)
+- **async def** `close_db()` (line 488)
 
 #### 📄 `api/database_migrations.py` _2.7 KB_
 > api/database_migrations.py — Startup Migration Gate & Schema Health (FIX-27).
@@ -1632,24 +1618,24 @@ Adds email-based one-time-passcode endpoints to t
 - **async def** `verify_otp_endpoint()` (line 243)
 - **async def** `invalidate_otp_endpoint()` (line 312)
 
-#### 📄 `api/email_webhooks.py` _30.2 KB_
+#### 📄 `api/email_webhooks.py` _31.0 KB_
 > api/email_webhooks.py — Email Webhooks (Inbound + Outbound) for AhmedETAP
 =========================================================================
 
 T
 
-- **Class** `WebhookEndpoint` (line 70)
-- **Class** `RegisterEndpointRequest` (line 144)
-- **Class** `_SSRFBlockedError` (line 170)
-- **Class** `EndpointResponse` (line 255)
-- **Class** `NoRedirectHandler` (line 605)
+- **Class** `WebhookEndpoint` (line 81)
+- **Class** `RegisterEndpointRequest` (line 155)
+- **Class** `_SSRFBlockedError` (line 181)
+- **Class** `EndpointResponse` (line 266)
+- **Class** `NoRedirectHandler` (line 616)
   - Methods: `redirect_request()`
-- **async def** `resend_webhook()` (line 355)
-- **def** `register_endpoint()` (line 680)
-- **def** `list_endpoints()` (line 733)
-- **def** `delete_endpoint()` (line 769)
-- **async def** `test_endpoint()` (line 804)
-- **def** `list_events()` (line 852)
+- **async def** `resend_webhook()` (line 366)
+- **def** `register_endpoint()` (line 691)
+- **def** `list_endpoints()` (line 744)
+- **def** `delete_endpoint()` (line 780)
+- **async def** `test_endpoint()` (line 815)
+- **def** `list_events()` (line 863)
 
 #### 📄 `api/environment.py` _1.8 KB_
 > Environment classification helpers for authentication gating.
@@ -1804,7 +1790,7 @@ Provides:
 - **async def** `resolve_gis_edit()` (line 444)
 - **async def** `get_gis_edit_status()` (line 589)
 
-#### 📄 `api/health.py` _9.2 KB_
+#### 📄 `api/health.py` _10.3 KB_
 > Health and Metrics API Router
 =============================
 Handles all health check endpoints with REAL dependency checks.
@@ -1815,14 +1801,14 @@ Separated from main engine
 - **Class** `MetricsResponse` (line 66)
 - **async def** `root()` (line 76)
 - **async def** `healthz()` (line 83)
-- **async def** `readyz()` (line 90)
-- **async def** `schema_health()` (line 152)
-- **async def** `health_check()` (line 163)
-- **async def** `platform_info()` (line 173)
-- **async def** `knowledge_info()` (line 212)
-- **async def** `readiness_check()` (line 221)
-- **async def** `metrics()` (line 251)
-- **async def** `prometheus_metrics()` (line 268)
+- **async def** `readyz()` (line 102)
+- **async def** `schema_health()` (line 173)
+- **async def** `health_check()` (line 184)
+- **async def** `platform_info()` (line 194)
+- **async def** `knowledge_info()` (line 233)
+- **async def** `readiness_check()` (line 242)
+- **async def** `metrics()` (line 272)
+- **async def** `prometheus_metrics()` (line 289)
 
   **API Routes:**
   - `GET /`
@@ -2434,7 +2420,7 @@ Provides:
   - `DELETE /{template_id}`
   - `POST /{template_id}/apply`
 
-#### 📄 `api/tenants.py` _5.3 KB_
+#### 📄 `api/tenants.py` _6.3 KB_
 > api/tenants.py — Tenant (organization) model and CRUD router.
 
 Provides:
@@ -2442,10 +2428,11 @@ Provides:
 - Tenant provisioning endpoint 
 
 - **Class** `Tenant` (line 42)
-- **Class** `TenantCreateRequest` (line 76)
-- **Class** `TenantResponse` (line 88)
-- **async def** `create_tenant()` (line 117)
-- **async def** `get_tenant()` (line 150)
+- **Class** `TenantCreateRequest` (line 107)
+- **Class** `TenantResponse` (line 119)
+- **async def** `ensure_default_tenant()` (line 79)
+- **async def** `create_tenant()` (line 148)
+- **async def** `get_tenant()` (line 181)
 
 #### 📄 `api/token_budget.py` _7.9 KB_
 > api/token_budget.py — Token Budget Manager (Phase 1).
@@ -2529,33 +2516,6 @@ Provides CRUD endpoints for:
 - **async def** `update_generator()` (line 577)
 - **async def** `delete_generator()` (line 629)
 
-#### 📄 `api/config/__init__.py` _0.2 KB_
-> Production configuration module for AhmedETAP.
-
-
-#### 📄 `api/config/production.py` _0.6 KB_
-> Production configuration for AhmedETAP Platform.
-
-Contains configuration flags and environment validation for production deployment.
-
-
-#### 📄 `api/cron/digest.py` _3.0 KB_
-> Vercel Serverless Function — Email Digest Cron Trigger
-======================================================
-Triggered by Vercel Cron daily at 08:00 
-
-- **Class** `handler` (line 16)
-  - Methods: `do_POST()`, `do_GET()`
-
-#### 📄 `api/models/__init__.py` _0.0 KB_
-> API ORM Models package.
-
-
-#### 📄 `api/models/solver_parameters.py` _1.2 KB_
-> ORM model for ProjectSolverParameters.
-
-- **Class** `ProjectSolverParameters` (line 16)
-
 #### 📄 `api/services/__init__.py` _0.0 KB_
 > API Services package.
 
@@ -2593,6 +2553,33 @@ Orchestrates:
 - **async def** `get_next_revision_number()` (line 32)
 - **async def** `execute_study_re_run()` (line 55)
 
+#### 📄 `api/models/__init__.py` _0.0 KB_
+> API ORM Models package.
+
+
+#### 📄 `api/models/solver_parameters.py` _1.2 KB_
+> ORM model for ProjectSolverParameters.
+
+- **Class** `ProjectSolverParameters` (line 16)
+
+#### 📄 `api/cron/digest.py` _3.0 KB_
+> Vercel Serverless Function — Email Digest Cron Trigger
+======================================================
+Triggered by Vercel Cron daily at 08:00 
+
+- **Class** `handler` (line 16)
+  - Methods: `do_POST()`, `do_GET()`
+
+#### 📄 `api/config/__init__.py` _0.2 KB_
+> Production configuration module for AhmedETAP.
+
+
+#### 📄 `api/config/production.py` _0.6 KB_
+> Production configuration for AhmedETAP Platform.
+
+Contains configuration flags and environment validation for production deployment.
+
+
 ### 📦 `core/`
 
 #### 📄 `core/__init__.py` _0.7 KB_
@@ -2603,7 +2590,7 @@ Provides:
 - metrics
 
 
-#### 📄 `core/bootstrap.py` _16.6 KB_
+#### 📄 `core/bootstrap.py` _16.8 KB_
 > Bootstrap module for the Engineering Service.
 Handles initialization of logging, metrics, and core services with privacy controls.
 
@@ -2613,8 +2600,8 @@ Handles initialization of logging, metrics, and core services with privacy contr
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
 - **Class** `_PromStub` (line 33)
   - Methods: `labels()`, `inc()`, `dec()`, `observe()`, `set()`, `info()`
-- **async def** `lifespan()` (line 373)
-- **def** `get_logger()` (line 499)
+- **async def** `lifespan()` (line 378)
+- **def** `get_logger()` (line 506)
 
 #### 📄 `core/error_tracking.py` _14.3 KB_
 > core/error_tracking.py — Sentry-ready error tracking hooks for AhmedETAP.
@@ -3454,24 +3441,6 @@ Enforces:
 - **def** `get_task_ownership()` (line 100)
 - **def** `verify_task_access()` (line 123)
 
-#### 📄 `services/doctr/main.py` _6.8 KB_
-> services/doctr/main.py — DocTR OCR Service for ETAP
-
-Standalone FastAPI service that provides OCR with bounding boxes.
-Called by etap.integration.docu
-
-- **Class** `Detection` (line 72)
-- **Class** `Word` (line 77)
-- **Class** `Line` (line 85)
-- **Class** `Block` (line 91)
-- **Class** `PageContent` (line 98)
-- **Class** `OCRResponse` (line 106)
-- **async def** `process_ocr_batch()` (line 114)
-- **async def** `lifespan()` (line 185)
-- **async def** `batch_ocr()` (line 195)
-- **async def** `root()` (line 212)
-- **async def** `health()` (line 217)
-
 #### 📄 `services/yolo/main.py` _7.0 KB_
 > services/yolo/main.py — YOLO Layout Segmentation Service for ETAP
 
@@ -3489,6 +3458,24 @@ Calle
 - **async def** `batch_segment()` (line 206)
 - **async def** `root()` (line 220)
 - **async def** `health()` (line 225)
+
+#### 📄 `services/doctr/main.py` _6.8 KB_
+> services/doctr/main.py — DocTR OCR Service for ETAP
+
+Standalone FastAPI service that provides OCR with bounding boxes.
+Called by etap.integration.docu
+
+- **Class** `Detection` (line 72)
+- **Class** `Word` (line 77)
+- **Class** `Line` (line 85)
+- **Class** `Block` (line 91)
+- **Class** `PageContent` (line 98)
+- **Class** `OCRResponse` (line 106)
+- **async def** `process_ocr_batch()` (line 114)
+- **async def** `lifespan()` (line 185)
+- **async def** `batch_ocr()` (line 195)
+- **async def** `root()` (line 212)
+- **async def** `health()` (line 217)
 
 ### 📦 `security/`
 
@@ -4081,6 +4068,34 @@ Impl
 > AhmedETAP Copilot Package.
 
 
+#### 📄 `copilot/mcp/__init__.py` _0.2 KB_
+> MCP Server — Engineering Copilot tool server.
+
+
+#### 📄 `copilot/mcp/server.py` _25.2 KB_
+> Engineering Copilot — MCP Server
+=================================
+Model Context Protocol server exposing all CAD, ETAP, and engineering tools
+as MCP 
+
+- **Class** `CopilotMCPServer` (line 293)
+  - Methods: `list_tools()`, `call_tool()`, `health_check()`
+
+#### 📄 `copilot/translation/__init__.py` _0.2 KB_
+> Translation Engine — Bidirectional engineering data translation.
+
+
+#### 📄 `copilot/translation/engine.py` _23.4 KB_
+> CAD Translation Engine
+======================
+Bidirectional translation between ETAP, AutoCAD, Revit, and the Unified Engineering Model.
+
+Mapping Arch
+
+- **Class** `MappingDirection` (line 37)
+- **Class** `TranslationEngine` (line 259)
+  - Methods: `get_drawing_rule()`, `get_all_mapping_rules()`, `etap_to_unified()`, `unified_to_etap()`, `unified_to_autocad_commands()`, `etap_to_autocad()`, `revit_to_unified()`, `unified_to_revit_commands()`
+
 #### 📄 `copilot/ai/__init__.py` _0.2 KB_
 > AI Drawing Engine — Autonomous CAD generation from natural language.
 
@@ -4119,38 +4134,6 @@ Security
   - Methods: `validate_voltage_results()`, `validate_short_circuit_results()`, `validate_trip_time()`, `validate_coordination_selectivity()`, `validate_arc_flash_results()`, `validate_cable_sizing()`, `validate()`, `run_assertions()`
 - **def** `validate_fallback_output()` (line 928)
 
-#### 📄 `copilot/api/__init__.py` _0.2 KB_
-> FastAPI Backend — Engineering Copilot REST API.
-
-
-#### 📄 `copilot/api/routes.py` _15.2 KB_
-> Engineering Copilot — FastAPI Backend
-=====================================
-REST API for the Engineering Copilot that orchestrates ETAP, AutoCAD, Revi
-
-- **Class** `ProcessRequest` (line 72)
-- **Class** `TranslateRequest` (line 85)
-- **Class** `ModelUpdateRequest` (line 91)
-- **Class** `ToolCallRequest` (line 95)
-- **Class** `SyncRequest` (line 99)
-- **Class** `ValidateRequest` (line 105)
-- **Class** `CopilotAPI` (line 115)
-  - Methods: `get_router()`
-- **def** `create_app()` (line 359)
-
-#### 📄 `copilot/mcp/__init__.py` _0.2 KB_
-> MCP Server — Engineering Copilot tool server.
-
-
-#### 📄 `copilot/mcp/server.py` _25.2 KB_
-> Engineering Copilot — MCP Server
-=================================
-Model Context Protocol server exposing all CAD, ETAP, and engineering tools
-as MCP 
-
-- **Class** `CopilotMCPServer` (line 293)
-  - Methods: `list_tools()`, `call_tool()`, `health_check()`
-
 #### 📄 `copilot/tests/test_copilot_unit.py` _19.2 KB_
 > Engineering Copilot — Integration Tests
 ========================================
@@ -4170,20 +4153,24 @@ M
 - **Class** `TestETAPAdapter` (line 506)
   - Methods: `setUp()`, `test_bus_to_unified()`, `test_transformer_to_unified()`, `test_cable_to_unified()`
 
-#### 📄 `copilot/translation/__init__.py` _0.2 KB_
-> Translation Engine — Bidirectional engineering data translation.
+#### 📄 `copilot/api/__init__.py` _0.2 KB_
+> FastAPI Backend — Engineering Copilot REST API.
 
 
-#### 📄 `copilot/translation/engine.py` _23.4 KB_
-> CAD Translation Engine
-======================
-Bidirectional translation between ETAP, AutoCAD, Revit, and the Unified Engineering Model.
+#### 📄 `copilot/api/routes.py` _15.2 KB_
+> Engineering Copilot — FastAPI Backend
+=====================================
+REST API for the Engineering Copilot that orchestrates ETAP, AutoCAD, Revi
 
-Mapping Arch
-
-- **Class** `MappingDirection` (line 37)
-- **Class** `TranslationEngine` (line 259)
-  - Methods: `get_drawing_rule()`, `get_all_mapping_rules()`, `etap_to_unified()`, `unified_to_etap()`, `unified_to_autocad_commands()`, `etap_to_autocad()`, `revit_to_unified()`, `unified_to_revit_commands()`
+- **Class** `ProcessRequest` (line 72)
+- **Class** `TranslateRequest` (line 85)
+- **Class** `ModelUpdateRequest` (line 91)
+- **Class** `ToolCallRequest` (line 95)
+- **Class** `SyncRequest` (line 99)
+- **Class** `ValidateRequest` (line 105)
+- **Class** `CopilotAPI` (line 115)
+  - Methods: `get_router()`
+- **def** `create_app()` (line 359)
 
 ### 📦 `schemas/`
 
@@ -5409,50 +5396,6 @@ Implements Phase 2: Semantic retrieval from ChromaDB + Lexical & Semantic Compre
 
 ### 📦 `autodesk_connector/`
 
-#### 📄 `autodesk_connector/autocad/__init__.py` _0.6 KB_
-> AutoCAD Connector Package
-=========================
-Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
-
-Architecture:
-  Pyth
-
-
-#### 📄 `autodesk_connector/autocad/connector.py` _24.1 KB_
-> AutoCAD Connector — Python Service Layer
-=========================================
-Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
-Provides
-
-- **Class** `AutoCADEntityType` (line 37)
-- **Class** `AutoCADDrawingOperation` (line 54)
-- **Class** `AutoCADDrawingContext` (line 68)
-- **Class** `AutoCADPluginClient` (line 86)
-  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
-- **Class** `AutoCADConnector` (line 393)
-  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
-
-#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
-> Revit Connector Package
-=======================
-Provides the Revit API integration layer for the Engineering Copilot.
-
-Architecture:
-  Python service 
-
-
-#### 📄 `autodesk_connector/revit/connector.py` _16.9 KB_
-> Revit Connector — Python Service Layer
-=======================================
-Orchestrates Revit BIM operations via the C# Revit Plugin.
-Supports rea
-
-- **Class** `RevitElementType` (line 36)
-- **Class** `RevitPluginClient` (line 68)
-  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
-- **Class** `RevitConnector` (line 241)
-  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
-
 #### 📄 `autodesk_connector/shared/models.py` _18.9 KB_
 > Unified Engineering Model — Python Dataclass Implementation
 ============================================================
@@ -5498,6 +5441,50 @@ Pydantic models for the Unifi
   - Methods: `to_json()`, `from_json()`, `from_dict()`, `add_building()`, `add_panel()`, `get_all_buses()`, `get_all_cables()`, `get_all_transformers()`
 - **Class** `ETAPModelAdapter` (line 540)
   - Methods: `bus_to_unified()`, `transformer_to_unified()`, `cable_to_unified()`
+
+#### 📄 `autodesk_connector/revit/__init__.py` _0.5 KB_
+> Revit Connector Package
+=======================
+Provides the Revit API integration layer for the Engineering Copilot.
+
+Architecture:
+  Python service 
+
+
+#### 📄 `autodesk_connector/revit/connector.py` _16.9 KB_
+> Revit Connector — Python Service Layer
+=======================================
+Orchestrates Revit BIM operations via the C# Revit Plugin.
+Supports rea
+
+- **Class** `RevitElementType` (line 36)
+- **Class** `RevitPluginClient` (line 68)
+  - Methods: `is_available()`, `open_model()`, `save_model()`, `create_model()`, `create_element()`, `update_element()`, `delete_element()`, `read_element()`
+- **Class** `RevitConnector` (line 241)
+  - Methods: `is_connected()`, `open_model()`, `create_model()`, `save_model()`, `create_level()`, `create_room()`, `place_panel()`, `place_equipment()`
+
+#### 📄 `autodesk_connector/autocad/__init__.py` _0.6 KB_
+> AutoCAD Connector Package
+=========================
+Provides the AutoCAD .NET API integration layer for the Engineering Copilot.
+
+Architecture:
+  Pyth
+
+
+#### 📄 `autodesk_connector/autocad/connector.py` _24.1 KB_
+> AutoCAD Connector — Python Service Layer
+=========================================
+Orchestrates AutoCAD operations via the C# AutoCAD Plugin.
+Provides
+
+- **Class** `AutoCADEntityType` (line 37)
+- **Class** `AutoCADDrawingOperation` (line 54)
+- **Class** `AutoCADDrawingContext` (line 68)
+- **Class** `AutoCADPluginClient` (line 86)
+  - Methods: `is_available()`, `send_command()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `create_layer()`, `create_block()`, `insert_block()`
+- **Class** `AutoCADConnector` (line 393)
+  - Methods: `is_connected()`, `open_drawing()`, `save_drawing()`, `create_drawing()`, `close_drawing()`, `draw_bus()`, `draw_transformer()`, `draw_cable()`
 
 ### 📦 `config/`
 
@@ -5698,10 +5685,22 @@ Pydantic models for the Unifi
 - `TitleBar.tsx` → Exports: `TitleBar`
 - `ZIPLoadEditorDialog.tsx` → Exports: `ZIPLoadEditorDialog`
 - `admin-primitives.tsx` → Exports: `StatRow`, `ErrorBanner`, `LoadingRow`, `inputClass`, `labelClass`, `StatCard`, `LoadingInline`, `JsonBlock`
-- `ActionCard.tsx` → Exports: `ActionCard`
-- `ApprovalCard.tsx` → Exports: `ApprovalCard`
-- `DecisionCard.tsx` → Exports: `DecisionCard`
-- `ResultCard.tsx` → Exports: `ResultCard`
+- `CadSimReadyCard.tsx` → Exports: `CadSimReadyCard`
+- `MFASetup.tsx` → Exports: `QRCodeDisplay`, `MFASetup`
+- `index.ts` → Exports: _none_
+- `GridEditorViewer.tsx` → Exports: `GridEditorViewer`
+- `ResultViewer.tsx` → Exports: `ResultViewer`
+- `payload.ts` → Exports: `toRedactedJson`, `extractTableData`, `extractVoltageProfile`, `extractLoadingProfile`, `extractDiagram`
+- `AgentsSkillsPromptsPanel.tsx` → Exports: `AgentsSkillsPromptsPanel`
+- `ProviderKeysPanel.tsx` → Exports: `SERVER_KEY_STORE_PROVIDERS`, `ProviderKeysPanel`
+- `SecurityFlagsPanel.tsx` → Exports: `SecurityFlagsPanel`
+- `AgentsSkillsPromptsPanel.test.tsx` → Exports: _none_
+- `ProviderKeysPanel.test.tsx` → Exports: _none_
+- `SecurityFlagsPanel.test.tsx` → Exports: _none_
+- `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
+- `MagicHelpInspector.tsx` → Exports: `MagicHelpInspector`
+- `SmartHelpDrawer.tsx` → Exports: `SmartHelpDrawer`
+- `OnboardingTour.tsx` → Exports: `OnboardingTour`
 - `AISettingsModal.tsx` → Exports: `AISettingsModal`
 - `ActivityDrawer.tsx` → Exports: `ActivityDrawer`
 - `AutoApproveToggle.tsx` → Exports: `AutoApproveToggle`
@@ -5715,28 +5714,6 @@ Pydantic models for the Unifi
 - `QuickActionsBar.tsx` → Exports: `QUICK_ACTIONS`, `QuickActionsBar`
 - `TokenBudgetIndicator.tsx` → Exports: `TokenBudgetIndicator`
 - `QuickActionsBar.test.tsx` → Exports: _none_
-- `CommandPalette.tsx` → Exports: `CommandPalette`
-- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
-- `ContextPanel.tsx` → Exports: `ContextPanel`
-- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
-- `CadSimReadyCard.tsx` → Exports: `CadSimReadyCard`
-- `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
-- `MagicHelpInspector.tsx` → Exports: `MagicHelpInspector`
-- `SmartHelpDrawer.tsx` → Exports: `SmartHelpDrawer`
-- `AppShell.tsx` → Exports: `AppShell`
-- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
-- `Sidebar.tsx` → Exports: `Sidebar`
-- `StatusBar.tsx` → Exports: `StatusBar`
-- `TopBar.tsx` → Exports: `TopBar`
-- `MFASetup.tsx` → Exports: `QRCodeDisplay`, `MFASetup`
-- `index.ts` → Exports: _none_
-- `OnboardingTour.tsx` → Exports: `OnboardingTour`
-- `AgentsSkillsPromptsPanel.tsx` → Exports: `AgentsSkillsPromptsPanel`
-- `ProviderKeysPanel.tsx` → Exports: `SERVER_KEY_STORE_PROVIDERS`, `ProviderKeysPanel`
-- `SecurityFlagsPanel.tsx` → Exports: `SecurityFlagsPanel`
-- `AgentsSkillsPromptsPanel.test.tsx` → Exports: _none_
-- `ProviderKeysPanel.test.tsx` → Exports: _none_
-- `SecurityFlagsPanel.test.tsx` → Exports: _none_
 - `Accordion.tsx` → Exports: `Accordion`
 - `Avatar.tsx` → Exports: `Avatar`
 - `Badge.tsx` → Exports: `Badge`
@@ -5764,9 +5741,19 @@ Pydantic models for the Unifi
 - `Tooltip.tsx` → Exports: `Tooltip`
 - `Visual.tsx` → Exports: `GlassPanel`, `AnimatedBackground`, `StatusIndicator`, `PremiumEmptyState`, `PremiumLoading`, `GradientText`, `Sparkline`, `GlowCard`
 - `index.ts` → Exports: _none_
-- `GridEditorViewer.tsx` → Exports: `GridEditorViewer`
-- `ResultViewer.tsx` → Exports: `ResultViewer`
-- `payload.ts` → Exports: `toRedactedJson`, `extractTableData`, `extractVoltageProfile`, `extractLoadingProfile`, `extractDiagram`
+- `ContextPanel.tsx` → Exports: `ContextPanel`
+- `ErrorRecovery.tsx` → Exports: `ErrorRecovery`, `useErrorRecovery`
+- `ActionCard.tsx` → Exports: `ActionCard`
+- `ApprovalCard.tsx` → Exports: `ApprovalCard`
+- `DecisionCard.tsx` → Exports: `DecisionCard`
+- `ResultCard.tsx` → Exports: `ResultCard`
+- `CommandPalette.tsx` → Exports: `CommandPalette`
+- `ShortcutsPanel.tsx` → Exports: `ShortcutsPanel`
+- `AppShell.tsx` → Exports: `AppShell`
+- `EngineeringWorkspace.tsx` → Exports: `EngineeringWorkspace`
+- `Sidebar.tsx` → Exports: `Sidebar`
+- `StatusBar.tsx` → Exports: `StatusBar`
+- `TopBar.tsx` → Exports: `TopBar`
 
 ### 🖥️ `components/help/`
 - `ContextHelpButton.tsx` → Exports: `ContextHelpButton`
@@ -5889,9 +5876,9 @@ Pydantic models for the Unifi
 | Type | Count |
 |:---|---:|
 | python-module | 41 |
-| api-route | 92 |
-| ui-component | 280 |
 | ui-page | 61 |
+| ui-component | 280 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -5903,7 +5890,7 @@ Pydantic models for the Unifi
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5920,10 +5907,10 @@ Pydantic models for the Unifi
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | — |
@@ -5931,7 +5918,7 @@ Pydantic models for the Unifi
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -6061,6 +6048,7 @@ Pydantic models for the Unifi
 | `test_hf_space_data_survival.py` | 2 | 0 | **2** |
 | `test_hf_space_fail_closed.py` | 4 | 0 | **4** |
 | `test_hf_space_production.py` | 12 | 0 | **12** |
+| `test_hf_space_prometheus.py` | 4 | 0 | **4** |
 | `test_hf_space_skill.py` | 14 | 0 | **14** |
 | `test_iec60909_published_cases.py` | 0 | 4 | **15** |
 | `test_ieee14_30_published.py` | 0 | 2 | **4** |
@@ -6119,6 +6107,7 @@ Pydantic models for the Unifi
 | `test_phase_a_rag_and_schema.py` | 0 | 3 | **7** |
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
+| `test_prod_database_failclosed.py` | 7 | 0 | **7** |
 | `test_production_hardening.py` | 0 | 5 | **12** |
 | `test_projects_api.py` | 0 | 7 | **28** |
 | `test_prompt_cache_tracking.py` | 0 | 6 | **23** |
@@ -6136,6 +6125,7 @@ Pydantic models for the Unifi
 | `test_rasp_security.py` | 0 | 4 | **20** |
 | `test_rate_limit.py` | 0 | 2 | **12** |
 | `test_rbac.py` | 23 | 0 | **23** |
+| `test_readiness_topology.py` | 4 | 0 | **4** |
 | `test_registry_integrity_gate.py` | 5 | 0 | **5** |
 | `test_regression_fixes.py` | 0 | 9 | **22** |
 | `test_relays.py` | 0 | 5 | **50** |
@@ -6182,6 +6172,7 @@ Pydantic models for the Unifi
 | `test_supabase_integration.py` | 0 | 9 | **37** |
 | `test_tcc_safety_guards.py` | 0 | 10 | **48** |
 | `test_temp_vercel.py` | 1 | 0 | **1** |
+| `test_tenant_initialization.py` | 5 | 0 | **5** |
 | `test_token_budget.py` | 7 | 0 | **7** |
 | `test_tool_policy.py` | 0 | 4 | **20** |
 | `test_transient_stability_acceptance.py` | 7 | 0 | **7** |
@@ -6199,17 +6190,6 @@ Pydantic models for the Unifi
 | `test_zenon_live_values.py` | 4 | 0 | **4** |
 | `test_zenon_network_import.py` | 0 | 3 | **14** |
 | `test_zenon_raw_dump_classifier.py` | 0 | 1 | **7** |
-| `test_cua_confirmation_ws.py` | 2 | 0 | **2** |
-| `test_api_response_vs_frontend_type.py` | 3 | 0 | **3** |
-| `test_file_path_vs_link_href.py` | 1 | 0 | **1** |
-| `test_snake_case_camel_case_consistency.py` | 2 | 0 | **2** |
-| `test_state_transition_completeness.py` | 1 | 0 | **1** |
-| `test_api_endpoints.py` | 12 | 0 | **12** |
-| `test_optimal_power_flow.py` | 1 | 0 | **1** |
-| `test_retry_behavior.py` | 11 | 0 | **11** |
-| `test_skill_loading.py` | 7 | 0 | **7** |
-| `test_skill_validator.py` | 12 | 0 | **12** |
-| `test_calculations_regression.py` | 6 | 0 | **6** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
 | `test_battery_storage_scenario.py` | 0 | 1 | **6** |
 | `test_cable_sizing_scenario.py` | 0 | 1 | **7** |
@@ -6226,10 +6206,21 @@ Pydantic models for the Unifi
 | `test_short_circuit_scenario.py` | 0 | 1 | **6** |
 | `test_stability_scenario.py` | 0 | 1 | **9** |
 | `test_validation_scenario.py` | 0 | 1 | **6** |
+| `test_retry_behavior.py` | 11 | 0 | **11** |
+| `test_skill_loading.py` | 7 | 0 | **7** |
+| `test_skill_validator.py` | 12 | 0 | **12** |
 | `test_api_values.py` | 26 | 0 | **26** |
 | `test_security_perf.py` | 12 | 0 | **12** |
 | `test_ui_interactive.py` | 11 | 0 | **11** |
 | `test_ui_real.py` | 11 | 0 | **11** |
+| `test_api_endpoints.py` | 12 | 0 | **12** |
+| `test_api_response_vs_frontend_type.py` | 3 | 0 | **3** |
+| `test_file_path_vs_link_href.py` | 1 | 0 | **1** |
+| `test_snake_case_camel_case_consistency.py` | 2 | 0 | **2** |
+| `test_state_transition_completeness.py` | 1 | 0 | **1** |
+| `test_cua_confirmation_ws.py` | 2 | 0 | **2** |
+| `test_calculations_regression.py` | 6 | 0 | **6** |
+| `test_optimal_power_flow.py` | 1 | 0 | **1** |
 
 ---
 
@@ -6247,12 +6238,13 @@ Pydantic models for the Unifi
 | `scripts/backup-mastra-db.ps1` | ps1 | 1.3 KB |  |
 | `scripts/backup-mastra-db.sh` | sh | 1.1 KB | !/bin/bash |
 | `scripts/backup/postgres_backup.sh` | sh | 8.3 KB | !/usr/bin/env bash |
-| `scripts/capture-screenshots.cjs` | cjs | 2.0 KB |  |
+| `scripts/capture-screenshots.cjs` | cjs | 1.9 KB |  |
 | `scripts/capture.mjs` | mjs | 1.6 KB |  |
 | `scripts/check_ai_fallback_guard.py` | py | 3.3 KB | scripts/check_ai_fallback_guard.py — M4.3 Denial Guard: no r |
 | `scripts/check_bundle_secrets.py` | py | 1.9 KB | scripts/check_bundle_secrets.py — Scan UI bundle for leaked  |
 | `scripts/check_bundle_size.js` | js | 2.9 KB |  |
 | `scripts/check_docker_drift.py` | py | 2.9 KB | check_docker_drift.py — verifies Dockerfile COPY sources mat |
+| `scripts/check_env_docs.py` | py | 6.0 KB | scripts/check_env_docs.py — Guard checking that all environm |
 | `scripts/check_hf_status.py` | py | 0.3 KB |  |
 | `scripts/check_links.ps1` | ps1 | 3.8 KB |  |
 | `scripts/check_links.py` | py | 3.6 KB | Check Internal Markdown Link Integrity across AhmedETAP Docu |
@@ -6264,6 +6256,7 @@ Pydantic models for the Unifi
 | `scripts/check_results.py` | py | 0.6 KB |  |
 | `scripts/check_workflows_meta.py` | py | 11.9 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
 | `scripts/ci_anti_greenwash_guard.py` | py | 4.4 KB | scripts/ci_anti_greenwash_guard.py — Meta-Guard against Sile |
+| `scripts/ci_audit_runners.py` | py | 4.6 KB | scripts/ci_audit_runners.py — Audit GitHub Actions workflows |
 | `scripts/claims_audit.py` | py | 6.7 KB | scripts/claims_audit.py — Engineering Claims and Standards T |
 | `scripts/clean_git_history.py` | py | 5.5 KB | Git History Cleanup Script |
 | `scripts/connect_neo4j.py` | py | 8.1 KB | Neo4j Connection & Verification Script for AhmedETAP. |
@@ -6342,7 +6335,7 @@ Pydantic models for the Unifi
 | `scripts/run_git.py` | py | 0.0 KB |  |
 | `scripts/run_ieee_benchmarks.py` | py | 14.6 KB | scripts/run_ieee_benchmarks.py — Standalone Scientific Numer |
 | `scripts/run_local_static_analysis.py` | py | 12.0 KB | run_local_static_analysis.py — Local proxy for SonarQube sca |
-| `scripts/run_npm_audit_gate.cjs` | cjs | 3.3 KB |  |
+| `scripts/run_npm_audit_gate.cjs` | cjs | 3.2 KB |  |
 | `scripts/run_sonar_scan.sh` | sh | 4.6 KB | !/usr/bin/env bash |
 | `scripts/run_validation_matrix.sh` | sh | 6.0 KB | !/bin/bash |
 | `scripts/scada_etap_consumer.py` | py | 5.1 KB | SCADA ETAP Consumer |
@@ -6367,7 +6360,7 @@ Pydantic models for the Unifi
 | `scripts/setup_github_secrets.ps1` | ps1 | 4.6 KB |  |
 | `scripts/setup_wizard.sh` | sh | 5.4 KB | !/usr/bin/env bash |
 | `scripts/showcase.sh` | sh | 3.7 KB | !/usr/bin/env bash |
-| `scripts/smoke_test.py` | py | 5.4 KB | scripts/smoke_test.py — Full Production Smoke Test Script. |
+| `scripts/smoke_test.py` | py | 6.8 KB | scripts/smoke_test.py — Full Production Smoke Test Script. |
 | `scripts/spa_server.py` | py | 3.1 KB | Simple SPA server for the ETAP frontend dist. |
 | `scripts/start-engineering-tunnel.sh` | sh | 2.7 KB | !/usr/bin/env bash |
 | `scripts/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
@@ -6412,32 +6405,32 @@ Pydantic models for the Unifi
 
 | File | Size (KB) | Hash |
 |:---|---:|:---|
-| `Dockerfile` | 5.8 KB | `5b847ac0488d` |
-| `Dockerfile.engineering-service` | 4.8 KB | `f2094f262cdd` |
-| `Dockerfile.hf` | 5.8 KB | `5b847ac0488d` |
-| `Dockerfile.windows-worker` | 5.2 KB | `49e59c292817` |
+| `Dockerfile` | 6.0 KB | `78a47c5c20c1` |
+| `Dockerfile.engineering-service` | 4.7 KB | `8dfe9fd83701` |
+| `Dockerfile.hf` | 5.7 KB | `82973426f2c8` |
+| `Dockerfile.windows-worker` | 5.1 KB | `4c9794be2ff7` |
 | `docker-compose.yml` | 9.0 KB | `b8659d57e3be` |
 | `docker-compose.monitoring.yml` | 9.2 KB | `2b4b5ce2be15` |
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `5ff777384404` |
-| `requirements.txt` | 11.5 KB | `23737285697a` |
-| `requirements-prod.txt` | 3.3 KB | `c50085a3704d` |
-| `requirements-dev.txt` | 0.9 KB | `2b36f06938f6` |
-| `requirements-minimal.txt` | 1.8 KB | `418272f3fb1d` |
-| `requirements-ml.txt` | 1.5 KB | `168d3d0d3697` |
-| `requirements.hf.txt` | 5.9 KB | `f8f195adef15` |
-| `.github/workflows/security.yml` | 14.2 KB | `62b4f968ed2c` |
-| `.github/workflows/release.yml` | 2.2 KB | `44f897df5e3f` |
+| `requirements.txt` | 11.2 KB | `ef8c4c9e366e` |
+| `requirements-prod.txt` | 3.2 KB | `7abc3b36253c` |
+| `requirements-dev.txt` | 0.9 KB | `f6171d453bba` |
+| `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
+| `requirements-ml.txt` | 1.5 KB | `531f66a9b434` |
+| `requirements.hf.txt` | 5.8 KB | `582a04e22600` |
+| `.github/workflows/security.yml` | 14.4 KB | `abcbc0b8121d` |
+| `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
 | `scripts/deploy-engineering-service.sh` | 10.3 KB | `0de0a3c9675b` |
-| `Makefile` | 13.2 KB | `e37262948ce3` |
-| `alembic.ini` | 2.6 KB | `b8243c02eaf4` |
+| `Makefile` | 12.8 KB | `2d50098ecf2a` |
+| `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
-| `nginx.conf` | 12.5 KB | `a2665ae875ea` |
-| `hf-space/app.py` | 79.5 KB | `eae3f3240662` |
+| `nginx.conf` | 12.2 KB | `e4874229fcba` |
+| `hf-space/app.py` | 78.2 KB | `656f36d80e2f` |
 | `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
