@@ -126,8 +126,15 @@ def test_protocol_start_without_manager():
     assert r.status_code == 503
 
 
-def test_unauthenticated_request_returns_401():
+def test_unauthenticated_request_returns_401(monkeypatch):
     """Security gate: requests without API key / authentication are rejected with 401."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "false")
+    monkeypatch.setenv("ENGINEERING_SERVICE_API_KEY", "deterministic-security-probe-key")
+
+    from api.environment import auth_disabled_allowed
+
+    assert auth_disabled_allowed() is False
+
     app = FastAPI()
     app.include_router(build_router(), prefix="/api/v1/scada/protocols")
     client = TestClient(app)
@@ -135,3 +142,20 @@ def test_unauthenticated_request_returns_401():
     assert r_read.status_code == 401
     r_mutating = client.post("/api/v1/scada/protocols/start")
     assert r_mutating.status_code == 401
+
+
+def test_auth_disabled_bypass_is_dev_gated(monkeypatch):
+    """C-02 dev-bypass: unauthenticated requests pass only when explicitly enabled in development."""
+    monkeypatch.setenv("ENGINEERING_SERVICE_AUTH_DISABLED", "true")
+    monkeypatch.setenv("ENVIRONMENT", "development")
+
+    from api.environment import auth_disabled_allowed
+
+    assert auth_disabled_allowed() is True
+
+    app = FastAPI()
+    app.include_router(build_router(), prefix="/api/v1/scada/protocols")
+    client = TestClient(app)
+    r_read = client.get("/api/v1/scada/protocols/libraries")
+    assert r_read.status_code == 200
+

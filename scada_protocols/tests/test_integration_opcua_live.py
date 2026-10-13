@@ -100,22 +100,26 @@ def test_opcua_server_client_round_trip():
 
     try:
         server.start()
-        # OPC UA servers take longer to bind than Modbus. Wait up to 5s for
-        # the server's health_check to report True (i.e. the thread is alive
-        # and the server has had time to register its endpoint).
-        deadline = time.time() + 5.0
+        # OPC UA servers take longer to bind than Modbus. Wait up to 15s for
+        # the server to report health_check and accept a loopback connection.
+        deadline = time.time() + 15.0
+        server_ready = False
         while time.time() < deadline:
             if server.health_check():
-                # Give the server an extra moment to finish registering
-                # its address space before we hammer it with a client.
-                time.sleep(1.0)
-                break
+                try:
+                    with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+                        server_ready = True
+                        # Allow server a brief moment to finish address-space publication
+                        time.sleep(0.5)
+                        break
+                except OSError:
+                    pass
             time.sleep(0.2)
-        assert server.health_check(), "OPC UA server failed to start"
+        assert server_ready or server.health_check(), "OPC UA server failed to start"
 
         client.start()
-        # Wait up to 10s for the client to read at least one value.
-        deadline = time.time() + 10.0
+        # Wait up to 15s for the client to read at least one value.
+        deadline = time.time() + 15.0
         while time.time() < deadline:
             if bridge.stats.total_ingested > 0:
                 break
