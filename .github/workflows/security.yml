@@ -34,7 +34,7 @@ permissions:
 jobs:
   codeql:
     name: CodeQL Analysis (${{ matrix.language }})
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -104,7 +104,7 @@ jobs:
 
   dependency-review:
     name: Dependency Review
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     if: github.event_name == 'pull_request'
     # CRITICAL FIX: Removed continue-on-error from both the job and the step.
@@ -125,7 +125,7 @@ jobs:
 
   trivy:
     name: Trivy Security Scan
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -208,7 +208,7 @@ jobs:
   # ── CUSTOM SECURITY CHECKS ────────────────────────────────────────────────────
   custom-scans:
     name: Node.js Security Audits
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -245,7 +245,7 @@ jobs:
 
   pip-audit:
     name: pip Audit (Python)
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -279,7 +279,7 @@ jobs:
   # ── RUNTIME SECURITY ──────────────────────────────────────────────────────────
   runtime-security:
     name: Runtime Security Check
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:

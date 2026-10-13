@@ -44,7 +44,7 @@ jobs:
   # ── 1. TYPESCRIPT TYPE CHECK ─────────────────────────────────────────────
   typecheck:
     name: TypeScript Type Check
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout code
@@ -87,7 +87,7 @@ jobs:
   # ── 2. ESLINT (with security rules) ───────────────────────────────────────
   eslint:
     name: ESLint + Security Rules
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout code
@@ -212,7 +212,7 @@ jobs:
   # ── 3. VITEST UNIT TESTS ──────────────────────────────────────────────────
   vitest:
     name: Vitest Unit Tests
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [typecheck, eslint]
     steps:
@@ -299,7 +299,7 @@ jobs:
   # ── 4. BUILD TEST (verify production build compiles) ─────────────────────
   build:
     name: Production Build Test
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [typecheck, eslint]
     steps:
@@ -376,7 +376,7 @@ jobs:
   # ── 5. SUMMARY ────────────────────────────────────────────────────────────
   summary:
     name: UI Quality Summary
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: [typecheck, eslint, vitest, build]
     if: always()

@@ -39,7 +39,7 @@ concurrency:
 jobs:
   npm-audit:
     name: npm audit (high)
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout code
