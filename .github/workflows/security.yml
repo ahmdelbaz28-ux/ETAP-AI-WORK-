@@ -39,6 +39,7 @@ jobs:
     name: CodeQL Analysis (${{ matrix.language }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    needs: [trivy]
     strategy:
       fail-fast: false
       matrix:
@@ -94,6 +95,7 @@ jobs:
         uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2 (must match init)
         with:
           category: "/language:${{ matrix.language }}"
+          upload: 'never'
 
   dependency-review:
     name: Dependency Review
@@ -120,7 +122,6 @@ jobs:
     name: Trivy Security Scan
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    needs: [codeql]
     permissions:
       contents: read
       security-events: write  # SonarCloud S8233: scoped to this job only (uploads SARIF)
@@ -242,7 +243,7 @@ jobs:
     name: pip Audit (Python)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    needs: [codeql]
+    needs: [custom-scans]
     steps:
       - name: Checkout code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5

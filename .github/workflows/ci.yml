@@ -194,19 +194,23 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android 2>/dev/null || true
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: "pip install --only-binary :all: --requirement requirements.txt"
+        run: "pip install --no-cache-dir --only-binary :all: --requirement requirements.txt"
 
       - name: Dependency alignment verification (FIX-25)
         run: pip check
 
       - name: Install test runner
-        run: "pip install --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
+        run: "pip install --no-cache-dir --only-binary :all: pytest==8.3.5 pytest-asyncio==0.25.3"
 
       - name: Run Integration & Canonical Execution Tests
         run: pytest tests/test_audit_phase2_fixes.py tests/test_hf_space_fail_closed.py tests/test_canonical_execution.py tests/test_structural_anti_bypass_regressions.py tests/test_ieee_gold_standard_benchmarks.py
@@ -216,7 +220,7 @@ jobs:
     name: SCADA & Scenario Tests
     runs-on: ubuntu-24.04
     timeout-minutes: 35
-    needs: [build]
+    needs: [integration-tests]
     services:
       postgres:
         image: postgres:15-alpine
@@ -243,13 +247,17 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/lib/android 2>/dev/null || true
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: "pip install --only-binary :all: --requirement requirements.txt pytest==8.3.5 pytest-asyncio==0.25.3"
+        run: "pip install --no-cache-dir --only-binary :all: --requirement requirements.txt pytest==8.3.5 pytest-asyncio==0.25.3"
 
       - name: Run SCADA and Multi-Agent Scenarios
         env:
