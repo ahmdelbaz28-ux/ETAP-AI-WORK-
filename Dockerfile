@@ -112,12 +112,15 @@ ENV HF_HOME=/tmp/cache
 ENV NUMBA_CACHE_DIR=/tmp/cache
 
 # Database configuration — in production, DATABASE_URL must be provided via environment secrets (PostgreSQL)
-ENV DATABASE_URL=""
+# Note: DATABASE_URL is not set here to avoid masking missing Space secrets at startup.
 
 # Environment mode (not a secret)
 ENV ENVIRONMENT=production
 
-# Redis URL — empty default means in-memory fallback (development mode).
+# Deployment topology: Redis is optional in single_replica and required in cluster/multi_replica
+ENV DEPLOYMENT_TOPOLOGY=single_replica
+
+# Redis URL — optional in single_replica topology; required for cluster/multi_replica.
 ENV REDIS_URL=
 
 # Health check
@@ -129,4 +132,5 @@ EXPOSE 7860
 # Use numeric UID (1000) per HF Spaces recommendation
 USER 1000
 
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:7860", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]
+# Single-worker default for single_replica topology prevents in-memory rate-limiter bucket drift
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:7860", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]

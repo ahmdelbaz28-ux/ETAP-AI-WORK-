@@ -108,7 +108,7 @@ psql $DATABASE_URL -c "\dt"
 
 Immediately after rollback, the QA / Validation Lead must verify:
 
-- [ ] **Health Endpoints**: `GET /healthz` and `GET /readyz` return HTTP 200 OK.
+- [ ] **Health Endpoints**: `GET /healthz` and `GET /readyz` return HTTP 200 OK (in single-replica mode; in cluster/multi_replica, Redis must also be reachable).
 - [ ] **Authentication & Sessions**: Users can log in, JWT validation succeeds.
 - [ ] **Projects API**: `GET /api/v1/projects` returns active project list.
 - [ ] **Study Execution**: Basic load flow calculation runs successfully.

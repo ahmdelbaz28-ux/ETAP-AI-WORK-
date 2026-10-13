@@ -52,12 +52,17 @@ cd ETAP-AI-WORK-
 
 ### Step 2: Configure Environment
 
-1. Copy environment template:
-   ```bash
-   cp .env.example .env
-   ```
+2.1. Copy environment template:
+    ```bash
+    cp .env.example .env
+    ```
 
-2. Edit `.env` file with your configuration:
+2.2. Generate secure JWT key:
+    ```python
+    python -c "import secrets; print(secrets.token_hex(32))"
+    ```
+
+2.3. Edit `.env` file with your configuration:
    ```env
    # API Keys
    OPENAI_API_KEY=sk-your-openai-key
@@ -80,10 +85,16 @@ cd ETAP-AI-WORK-
    TOKEN_EXPIRY_HOURS=8
    ```
 
-3. Generate secure JWT key:
-   ```python
-   python -c "import secrets; print(secrets.token_hex(32))"
-   ```
+#### Production Database Requirement (HF Space & Cloud Deployments)
+
+> [!IMPORTANT]
+> **Production Database Requirement:**
+> In production environments (including Hugging Face Spaces with `ENVIRONMENT=production`), `DATABASE_URL` must point to a persistent PostgreSQL instance (e.g., `postgresql+asyncpg://user:password@host:5432/dbname`).
+>
+> Running production on ephemeral SQLite is strictly prohibited by the fail-closed security guard (`api/config_prod.py`) and will abort startup unless the explicit operational escape hatch `ALLOW_SQLITE_IN_PROD=true` is set.
+>
+> **OWNER ACTION:** In the Hugging Face Space settings, set `DATABASE_URL` as a Space secret pointing to a managed PostgreSQL database (e.g., Supabase, Neon, AWS RDS). Note that running on ephemeral SQLite wipes all users, projects, and study versions on every container restart or rebuild.
+
 
 ### Step 3: Install Python Dependencies
 

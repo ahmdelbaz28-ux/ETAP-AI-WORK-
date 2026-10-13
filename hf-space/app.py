@@ -48,7 +48,7 @@ from pathlib import Path
 import uvicorn
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 
 # -- Shared handlers (single source of truth) ---------------------------------
 from api.shared_handlers import (
@@ -166,51 +166,12 @@ async def lifespan(_app: FastAPI):
 
 async def _startup_auth_fail_closed_check() -> None:
     """Ensure production/staging environments fail closed if mandatory vars are unconfigured (FIX-15)."""
-    env = os.environ.get("ENVIRONMENT", os.environ.get("ENV", "production")).lower()
-    is_prod = env in ("production", "staging", "prod")
+    from api.config_prod import validate_production_config
 
-    if is_prod:
-        missing_vars = []
-        eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
-            "HF_API_KEY", ""
-        )
-        if not eng_key:
-            missing_vars.append("ENGINEERING_SERVICE_API_KEY (or HF_API_KEY)")
+    validate_production_config(require_auth_keys=True, default_environment="production")
 
-        allow_sqlite = os.getenv("ALLOW_SQLITE_IN_PROD", "").lower() in ("1", "true", "yes")
-        db_url = os.environ.get("DATABASE_URL", "")
-        if (not db_url or db_url.startswith("sqlite")) and not allow_sqlite:
-            missing_vars.append(
-                "DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production unless ALLOW_SQLITE_IN_PROD=true)"
-            )
-
-        jwt_key = os.environ.get("JWT_SECRET_KEY", "")
-        if not jwt_key:
-            missing_vars.append("JWT_SECRET_KEY")
-
-        redis_url = os.environ.get("REDIS_URL", "").strip()
-        if not redis_url:
-            # OPERATIONAL CONSTRAINT (Single-Replica Pin):
-            # Production deployments without Redis MUST run pinned to exactly one replica (replicas=1).
-            # Running multiple replicas without REDIS_URL causes isolated in-memory rate limiting counters
-            # and token caches per worker, leading to race conditions, leaky bucket synchronization drift,
-            # and inconsistent quota enforcement across cluster nodes.
-            # To scale horizontally beyond a single instance, REDIS_URL must be configured.
-            logger.critical(
-                "PRODUCTION DEPLOYMENT WITHOUT REDIS: Rate limiting will fall back to in-memory! "
-                "Operational constraint: must run single-replica pinned (replicas=1) to prevent "
-                "multi-instance counter drift and race conditions. Configure REDIS_URL for distributed scale."
-            )
-
-        if missing_vars:
-            msg = (
-                f"FATAL STARTUP ERROR: Running in {env} mode with missing mandatory configuration: "
-                + ", ".join(missing_vars)
-                + ". Aborting startup (Fail-Closed Security Guard)."
-            )
-            logger.critical(msg)
-            raise RuntimeError(msg)
-    else:
+    env = (os.environ.get("ENVIRONMENT") or os.environ.get("ENV") or "production").lower()
+    if env not in ("production", "staging", "prod"):
         eng_key = os.environ.get("ENGINEERING_SERVICE_API_KEY", "") or os.environ.get(
             "HF_API_KEY", ""
         )
@@ -830,6 +791,18 @@ async def ready():
 @app.get("/metrics", tags=["Monitoring"])
 async def metrics():
     return build_metrics_response(platform="huggingface-spaces")
+
+@app.get("/prometheus/metrics", tags=["Monitoring"])
+@app.head("/prometheus/metrics", tags=["Monitoring"])
+async def prometheus_metrics() -> Response:
+    """Prometheus metrics endpoint exposing counters, histograms, and gauges
+    from ``core.metrics`` in standard Prometheus exposition format."""
+    from core.metrics import generate_metrics, get_metrics_content_type
+
+    return Response(
+        content=generate_metrics(),
+        media_type=get_metrics_content_type(),
+    )
 
 
 # -- Platform Info ------------------------------------------------------------

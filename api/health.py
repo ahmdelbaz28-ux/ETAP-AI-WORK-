@@ -85,6 +85,18 @@ async def healthz() -> Dict[str, str]:
     return {"status": "ok"}
 
 
+def _deployment_topology_is_multi_replica() -> bool:
+    """Return True if DEPLOYMENT_TOPOLOGY indicates a multi-replica/cluster deployment.
+
+    Reuses the canonical vocabulary from services.execution_orchestrator:
+    ("multi_replica", "cluster", "distributed").
+    In single-replica topologies (e.g. "single_replica", "standalone", or default),
+    Redis is optional and local in-memory coordination is permitted.
+    """
+    topo = os.getenv("DEPLOYMENT_TOPOLOGY", "").strip().lower()
+    return topo in ("multi_replica", "cluster", "distributed")
+
+
 @router.head("/readyz")
 @router.get("/readyz")
 async def readyz() -> Dict[str, object]:
@@ -127,16 +139,25 @@ async def readyz() -> Dict[str, object]:
     except Exception as exc:
         checks["schema_version"] = f"unknown: {exc}"
 
-    # Critical dependencies: DB must be ok. Redis is optional in dev but
-    # required in production (fail-closed if configured but unreachable).
+    # Critical dependencies: DB must be ok. Redis is required in multi-replica/cluster
+    # production deployments to coordinate rate limits and state across nodes.
+    # In single-replica production (e.g. HF Space single-container), Redis is optional
+    # and in-memory coordination is used. However, if REDIS_URL is configured but
+    # unreachable, the probe fails closed (503) in all topologies.
     # NOTE: checks["db"] may carry a backend suffix ("ok (sqlite)") so the
     # readiness decision must not rely on exact string equality.
     _env = os.getenv("ENVIRONMENT", "development").lower()
     is_prod = _env in ("production", "prod", "staging")
+    multi_replica = _deployment_topology_is_multi_replica()
+    redis_required = is_prod and multi_replica
+
+    if checks["redis"] == "not_configured" and is_prod and not multi_replica:
+        checks["redis"] = "not_configured_single_replica"
+
     db_ok = str(checks["db"]).startswith("ok")
+    redis_failed = str(checks["redis"]).startswith("fail")
     redis_ok = checks["redis"] == "ok"
-    redis_required = is_prod
-    all_ready = db_ok and (redis_ok or not redis_required)
+    all_ready = db_ok and not redis_failed and (redis_ok or not redis_required)
     # SECURITY (LB-2): Return HTTP 503 when not ready — K8s/HF readiness
     # probes check the HTTP status code, not the JSON body. Previously
     # this always returned 200, so the probe would route traffic to a
