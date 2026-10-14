@@ -1089,7 +1089,7 @@ requires-dist = [
     { name = "langchain-neo4j", specifier = ">=0.10.0,<0.11" },
     { name = "langchain-openai", specifier = ">=1.0.0,<2" },
     { name = "langchain-qdrant", specifier = ">=1.0.0,<2" },
-    { name = "langfuse", extras = ["anthropic"], specifier = "~=2.54.0" },
+    { name = "langfuse", extras = ["anthropic"], specifier = ">=2.54,<4.18" },
     { name = "langgraph-sdk", specifier = ">=0.4.4" },
     { name = "langsmith", specifier = ">=0.10.0,<0.15" },
     { name = "langwatch", specifier = ">=0.1.0" },
@@ -2003,20 +2003,22 @@ wheels = [
 
 [[package]]
 name = "langfuse"
-version = "2.54.1"
+version = "4.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "anyio" },
     { name = "backoff" },
     { name = "httpx" },
-    { name = "idna" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
     { name = "packaging" },
     { name = "pydantic" },
+    { name = "typing-extensions" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/3e/e48d76f0e19df3640710427f48dde06e3271c0c012d774b8b4ee4f27561c/langfuse-2.54.1.tar.gz", hash = "sha256:7efc70799740ffa0ac7e04066e0596fb6433e8e501fc850c6a4e7967de6de8a7", size = 136706, upload-time = "2024-11-20T14:12:36.194Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/93/30c97995ad3b24c8dfd45ff02d80f491bd5e103fae432a1872db32e16823/langfuse-4.17.0.tar.gz", hash = "sha256:f8cccfc49d9839969e962ffb88ce49cf531a8cbf31507eb99e43668fb5b3b5da", size = 394423, upload-time = "2026-10-05T08:53:34.777Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/8c/530f6a4650cede4c8fd8b67a743218388820be3170f6b7b1999657739869/langfuse-2.54.1-py3-none-any.whl", hash = "sha256:1f1261cf763886758c70e192133340ff296169cc0930cde725eee52d467eb661", size = 247880, upload-time = "2024-11-20T14:12:33.88Z" },
+    { url = "https://files.pythonhosted.org/packages/9b/e0/1eb38746bb1fbb925eb90a1a501abb15c9eaa5ecf1818c94943360fa563e/langfuse-4.17.0-py3-none-any.whl", hash = "sha256:02560e12d715dd24f239c240886ee197b9e62f4a808f06de77193356c56bf57a", size = 708167, upload-time = "2026-10-05T08:53:35.989Z" },
 ]
 
 [[package]]
