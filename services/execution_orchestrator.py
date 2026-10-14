@@ -362,6 +362,20 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
         errors: list[str] = []
         warnings: list[str] = []
 
+        # Q5 Warning for ignored parameters
+        canonical_st = (cap.study_type if cap else None) or request.capability_id
+        if canonical_st in ("load_flow", "etap_load_flow") and isinstance(params, dict):
+            known_lf_params = {
+                "tol", "tolerance", "convergence_tolerance", "max_iter", "max_iterations",
+                "mode", "solver_type", "algorithm", "use_warm_start", "trace_id", "task_id",
+            }
+            for k in params:
+                if k not in known_lf_params:
+                    warn_msg = f"Ignored unrecognized parameter in load_flow study: '{k}'"
+                    if warn_msg not in warnings:
+                        warnings.append(warn_msg)
+                        logger.warning(warn_msg)
+
         if is_dict:
             if data.get("success") is False:
                 success = False
@@ -375,7 +389,12 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
                 errors.append(str(data["error"]))
                 success = False
             if data.get("warnings"):
-                warnings.extend(str(w) for w in data["warnings"])
+                for w in data["warnings"]:
+                    if str(w) not in warnings:
+                        warnings.append(str(w))
+
+        if is_dict and isinstance(dict_data, dict):
+            dict_data["warnings"] = list(warnings)
 
         solver_opts = (
             getattr(request, "solver_options", {}) if hasattr(request, "solver_options") else {}
@@ -1924,6 +1943,9 @@ class ExecutionOrchestrator:
                     "sub_studies",
                 ):
                     provenance[k] = v
+
+        if isinstance(data, dict):
+            data["warnings"] = list(warnings)
 
         # ── 17. Persist Canonical Result ─────────────────────────────────────
         result = CanonicalExecutionResult(

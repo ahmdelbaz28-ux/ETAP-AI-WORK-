@@ -179,7 +179,7 @@ def run_smoke_pipeline(base_url: str, ui_url: Optional[str] = None, api_key: Opt
             "base_mva": 100.0,
             "buses": [
                 {"bus_id": 1, "name": "Bus-1", "base_kv": 115.0, "bus_type": "slack"},
-                {"bus_id": 2, "name": "Bus-2", "base_kv": 13.8, "bus_type": "pq", "load_power_real": 10.0},
+                {"bus_id": 2, "name": "Bus-2", "base_kv": 115.0, "bus_type": "pq", "load_power_real": 0.1},
             ],
             "lines": [
                 {

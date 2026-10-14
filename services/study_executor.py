@@ -245,6 +245,9 @@ class StudyExecutor:
             "validated_by": "EngineeringAssertionLayer",
         }
 
+        if isinstance(data, dict):
+            data["warnings"] = list(warnings)
+
         return StudyResult(
             execution_id=execution_id,
             request_id=request.request_id,
@@ -1430,7 +1433,7 @@ class StudyExecutor:
         return None
 
     def _pre_flight_voltage_bounds(
-        self, buses: list, operating_bounds: Optional[Any] = None
+        self, buses: Any, operating_bounds: Optional[Any] = None
     ) -> Optional[dict]:
         from core_model.specs import PhysicalOperatingBounds
 
@@ -1439,6 +1442,18 @@ class StudyExecutor:
             if isinstance(operating_bounds, PhysicalOperatingBounds)
             else PhysicalOperatingBounds()
         )
+        if hasattr(buses, "buses"):
+            buses = buses.buses
+        normalized_buses = []
+        for b in buses:
+            if hasattr(b, "model_dump"):
+                normalized_buses.append(b.model_dump())
+            elif hasattr(b, "dict"):
+                normalized_buses.append(b.dict())
+            elif isinstance(b, dict):
+                normalized_buses.append(b)
+        buses = normalized_buses
+
         for bus in buses:
             v = bus.get("voltage_magnitude")
             if v is not None:
@@ -1456,7 +1471,7 @@ class StudyExecutor:
                     )
         return None
 
-    def _pre_flight_units(self, system: dict) -> Optional[dict]:
+    def _pre_flight_units(self, system: Any) -> Optional[dict]:
         """Validate explicit units on system elements (buses, lines, transformers, loads, generators) for physical dimension consistency."""
         try:
             from core.units import validate_parameter_dimension
@@ -1465,6 +1480,11 @@ class StudyExecutor:
             if (os.getenv("ENVIRONMENT") or os.getenv("ENV") or "").lower() in ("production", "prod"):
                 return {"error": "Physical units validation engine (core.units) unavailable in production"}
             return None
+
+        if hasattr(system, "model_dump"):
+            system = system.model_dump()
+        elif hasattr(system, "dict"):
+            system = system.dict()
 
         # 1. Check buses
         for bus in system.get("buses", []):

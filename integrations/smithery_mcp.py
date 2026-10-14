@@ -424,7 +424,8 @@ class SmitheryClient:
         self,
         operation: Callable[[], Any],
         op_name: str,
-        timeout_sec: float,
+        timeout_sec: float = 30.0,
+        timeout: float | None = None,
     ) -> Any:
         """Execute an async operation with retry + exponential backoff.
 
@@ -434,6 +435,7 @@ class SmitheryClient:
         ``KeyboardInterrupt`` / ``SystemExit`` propagate immediately
         without being retried or swallowed.
         """
+        effective_timeout = timeout if timeout is not None else timeout_sec
         if not self._check_circuit():
             return {
                 "error": "smithery_circuit_open",
@@ -453,7 +455,7 @@ class SmitheryClient:
         last_exc: BaseException | None = None
         for attempt in range(self.max_retries + 1):
             try:
-                result = await asyncio.wait_for(operation(), timeout=timeout_sec)
+                result = await asyncio.wait_for(operation(), timeout=effective_timeout)
                 self._record_call(success=True)
                 self._record_circuit_result(success=True)
                 if attempt > 0:

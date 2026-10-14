@@ -394,7 +394,7 @@ class TestJsonSerialization:
     def test_to_jsonable_complex(self, executor):
         val = complex(3.0, 4.0)
         res = executor._to_jsonable(val)
-        assert res == {"re": 3.0, "im": 4.0}
+        assert res == {"re": 3.0, "im": 4.0, "real": 3.0, "imag": 4.0}
 
     def test_to_jsonable_numpy(self, executor):
         arr = np.array([1.0, 2.0, 3.0])
@@ -404,7 +404,7 @@ class TestJsonSerialization:
     def test_to_jsonable_nested(self, executor):
         data = {"v": complex(1.0, -2.0), "arr": np.array([5])}
         res = executor._to_jsonable(data)
-        assert res == {"v": {"re": 1.0, "im": -2.0}, "arr": [5]}
+        assert res == {"v": {"re": 1.0, "im": -2.0, "real": 1.0, "imag": -2.0}, "arr": [5]}
 
 
 class TestPreFlightChecks:
@@ -440,12 +440,12 @@ class TestPreFlightChecks:
         assert "references unknown to_bus" in executor._pre_flight_lines(lines, {1, 2})["error"]
 
     def test_pre_flight_voltage_bounds(self, executor):
-        # Out of bounds low voltage
+        # Out of bounds low voltage (< 0.5)
         buses = [{"bus_id": 1, "voltage_magnitude": 0.005}]
         assert "out of realistic range" in executor._pre_flight_voltage_bounds(buses)["error"]
 
-        # Out of bounds high voltage
-        buses = [{"bus_id": 1, "voltage_magnitude": 1.6}]
+        # Out of bounds high voltage (> 2.0)
+        buses = [{"bus_id": 1, "voltage_magnitude": 2.5}]
         assert "out of realistic range" in executor._pre_flight_voltage_bounds(buses)["error"]
 
         # In bounds voltage

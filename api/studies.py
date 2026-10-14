@@ -346,14 +346,26 @@ async def run_study(
             )
             if "AUTHENTICATION_REQUIRED" in err_msg or "TENANT_VALIDATION_FAILED" in err_msg:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=err_msg)
-            if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg:
+            if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg or "MAKER_CHECKER_VIOLATION" in err_msg:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=err_msg)
+            if "MISSING_REQUIRED_SYSTEM_DATA" in err_msg or "SYSTEM_MODEL_REQUIRED" in err_msg:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=err_msg)
             detail_str = (
                 err_msg
                 if "invalid" in err_msg.lower()
                 else f"Invalid study request parameters: {err_msg}"
             )
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail_str)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail_str)
+
+        if not canonical_res.success and canonical_res.errors:
+            err_msg = canonical_res.errors[0]
+            err_lower = err_msg.lower()
+            if any(k in err_lower for k in (
+                "validation error", "value error", "duplicate load",
+                "not found in system buses", "requires system components",
+                "missing_required_system_data", "unit normalization failed",
+            )) or ("bus_id" in err_lower and "not found" in err_lower):
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=err_msg)
 
         result = canonical_res.to_study_result()
         # P5 ResultStore: persist the successful study summary and surface the

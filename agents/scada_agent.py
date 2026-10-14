@@ -290,13 +290,22 @@ class LiveModbusAdapter:
             if measurement_tags and entry.name not in measurement_tags:
                 continue
             fc = entry.function_code
+            def _read_with_fallback(read_fn: Any, addr: int, cnt: int, uid: int) -> Any:
+                try:
+                    return read_fn(addr, count=cnt, slave=uid)
+                except TypeError:
+                    try:
+                        return read_fn(addr, count=cnt, device_id=uid)
+                    except TypeError:
+                        return read_fn(addr, cnt, slave=uid)
+
             if fc == 3:
-                rr = self._client.read_holding_registers(
-                    entry.address, count=entry.register_count, slave=self.unit_id
+                rr = _read_with_fallback(
+                    self._client.read_holding_registers, entry.address, entry.register_count, self.unit_id
                 )
             elif fc == 4:
-                rr = self._client.read_input_registers(
-                    entry.address, count=entry.register_count, slave=self.unit_id
+                rr = _read_with_fallback(
+                    self._client.read_input_registers, entry.address, entry.register_count, self.unit_id
                 )
             else:
                 continue

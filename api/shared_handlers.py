@@ -660,17 +660,83 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
         "reference": f"{ref_prefix}-{int(time.time())}",
     }
 
+    warnings_list = [str(w) for w in (canonical_res.warnings or [])]
+    response["warnings"] = warnings_list
+
     if canonical_res.success:
         response["status"] = "completed"
         response["success"] = True
         response["data"] = sanitize_result(canonical_res.data)
         response["result"] = response["data"]
+        if isinstance(response["data"], dict):
+            response["data"]["warnings"] = warnings_list
+        if isinstance(response["result"], dict):
+            response["result"]["warnings"] = warnings_list
+        return response
+
+    # Handle simulation completed with non-convergence (data produced, not a crash)
+    if (
+        canonical_res.data
+        and isinstance(canonical_res.data, dict)
+        and canonical_res.data.get("converged") is False
+        and canonical_res.status not in ("rejected", "unauthorized", "unsupported")
+    ):
+        response["status"] = "completed"
+        response["success"] = False
+        response["converged"] = False
+        response["data"] = sanitize_result(canonical_res.data)
+        response["result"] = response["data"]
+        if isinstance(response["data"], dict):
+            response["data"]["warnings"] = warnings_list
+        if isinstance(response["result"], dict):
+            response["result"]["warnings"] = warnings_list
+        response["errors"] = [str(e) for e in (canonical_res.errors or [])]
         return response
 
     err_msg = canonical_res.errors[0] if canonical_res.errors else "Study execution failed"
-    if canonical_res.status in ("unavailable", "rejected") or "unavailable" in err_msg.lower() or "not available" in err_msg.lower():
+    err_lower = err_msg.lower()
+
+    # Classification at API boundary:
+    # Client validation errors (ValidationError, MISSING_REQUIRED_SYSTEM_DATA, non-existent bus/load/line,
+    # duplicate loads, invalid parameters, unit normalization error) -> HTTP 422
+    rejection_reason = (
+        getattr(canonical_res, "provenance", {}).get("rejection_reason", "")
+        if isinstance(getattr(canonical_res, "provenance", None), dict)
+        else ""
+    )
+    is_client_validation_error = (
+        "validation error" in err_lower
+        or "value error" in err_lower
+        or "duplicate load" in err_lower
+        or "missing_required_system_data" in err_lower
+        or "system_model_required" in err_lower
+        or "not found in system buses" in err_lower
+        or ("bus_id" in err_lower and "not found" in err_lower)
+        or "requires system components" in err_lower
+        or "unit normalization failed" in err_lower
+        or "invalid study request" in err_lower
+        or rejection_reason in ("MISSING_REQUIRED_SYSTEM_DATA", "SYSTEM_MODEL_REQUIRED", "VALIDATION_FAILED")
+    )
+
+    if is_client_validation_error:
+        response["status"] = "failed"
+        response["success"] = False
+        response["error"] = err_msg
+        response["_status"] = 422
+        return response
+
+    if "authentication" in rejection_reason.lower() or "authentication_required" in err_lower:
+        response["status"] = "failed"
+        response["success"] = False
+        response["error"] = err_msg
+        response["_status"] = 401
+    elif any(k in rejection_reason.lower() for k in ("authorization", "approval", "maker_checker")) or any(k in err_lower for k in ("authorization_denied", "approval_required", "maker_checker_violation")):
+        response["status"] = "failed"
+        response["success"] = False
+        response["error"] = err_msg
+        response["_status"] = 403
+    elif canonical_res.status == "unavailable" or "specialized_execution_unavailable" in rejection_reason.lower():
         response["status"] = "unavailable"
-        response["is_simulated"] = True
         response["error"] = err_msg
         response["_status"] = 503
     else:
@@ -678,6 +744,7 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
         response["success"] = False
         response["error"] = err_msg
         response["_status"] = 500
+
     return response
 
 

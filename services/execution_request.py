@@ -301,6 +301,14 @@ class CanonicalExecutionResult(BaseModel):
             if self.data.get("converged") is False and self.status not in ("rejected", "unauthorized", "unsupported"):
                 legacy_success = True
 
+        if isinstance(clean_data, dict):
+            existing_w = clean_data.get("warnings", [])
+            merged_w = [str(w) for w in existing_w] if isinstance(existing_w, list) else []
+            for w in (self.warnings or []):
+                if str(w) not in merged_w:
+                    merged_w.append(str(w))
+            clean_data["warnings"] = merged_w
+
         return StudyResult(
             study_type=st,
             status=self.status or ("completed" if legacy_success else "failed"),

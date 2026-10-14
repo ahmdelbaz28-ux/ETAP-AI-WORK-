@@ -96,7 +96,7 @@ async def test_study_execution_service_re_run_uses_canonical_orchestrator():
     mock_project.id = "proj_1"
     mock_project.tenant_id = "tenant_alpha"
     mock_project.created_by = "user_rerun"
-    mock_project.system_config = {"base_mva": 100, "buses": [], "lines": []}
+    mock_project.system_config = {"base_mva": 100, "buses": [{"bus_id": 1, "name": "Bus 1", "base_kv": 115.0}], "lines": []}
     mock_scalar = Mock()
     mock_scalar.scalar_one_or_none.return_value = mock_project
     mock_scalar.scalar.return_value = 1
@@ -133,7 +133,7 @@ async def test_study_execution_service_re_run_uses_canonical_orchestrator():
         output = await execute_study_re_run(
             project_id="proj_1",
             tool="short_circuit",
-            params={"system": {"base_mva": 100, "buses": [], "lines": []}},
+            params={"system": {"base_mva": 100, "buses": [{"bus_id": 1, "name": "Bus 1", "base_kv": 115.0}], "lines": []}},
             user=user,
             db=mock_db,
         )
