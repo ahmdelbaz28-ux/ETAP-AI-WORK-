@@ -17,7 +17,7 @@ hypothesis>=6.100.0,<7.0.0
 
 # Test data factories (used by tests/factories/)
 factory-boy>=3.3.3,<4.0.0
-Faker>=40.40.0,<41.0.0
+Faker>=40.41.0,<41.0.0
 
 # Linting and formatting
 ruff>=0.1.0,<1.0.0
@@ -27,5 +27,5 @@ mypy>=1.0.0,<2.0.0
 pre-commit>=3.0.0,<5.0.0
 # SECURITY: black>=26.3.1 fixes CVE-2026-32274 (path traversal) and CVE-2026-31900 (code execution)
 black>=26.3.1
-isort>=9.0.1,<10.0.0
+isort>=9.0.2,<10.0.0
 

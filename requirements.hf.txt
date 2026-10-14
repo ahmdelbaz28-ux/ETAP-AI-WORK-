@@ -8,7 +8,7 @@
 
 # ─── Web Framework ────────────────────────────────────────────────────────────
 fastapi~=0.141.1
-uvicorn[standard]~=0.52.0
+uvicorn[standard]>=0.52,<0.55
 gunicorn>=23.0,<26.3
 pydantic[email]~=2.13.4
 python-multipart~=0.0.32
@@ -37,7 +37,7 @@ alembic~=1.18.5
 # ModuleNotFoundError on import → cascades to api.dependencies, api.settings,
 # api.auth, api.projects — and breaks every endpoint that imports any of
 # those modules. SQLite path (aiosqlite) doesn't need this.
-asyncpg~=0.31.0
+asyncpg>=0.31,<0.33
 
 # ─── Security ─────────────────────────────────────────────────────────────────
 bcrypt~=5.0.0
