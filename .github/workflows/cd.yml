@@ -164,7 +164,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.SUPABASE_DB_URL || secrets.SUPABASE_URL || secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || secrets.SUPABASE_DB_URL || secrets.SUPABASE_URL }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
           HF_API_KEY: ${{ secrets.HF_API_KEY || secrets.HF_TOKEN }}
