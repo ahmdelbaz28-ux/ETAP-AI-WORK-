@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-14T10:37:57.256648+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-14T11:09:56.763605+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,13 +12,13 @@
 | Python | Packages | 41 |
 | Python | Files | 398 |
 | Python | Classes | 973 |
-| Python | Functions | 864 |
+| Python | Functions | 872 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 294 |
-| Total | Tests | 4049 |
+| Test | Files | 295 |
+| Total | Tests | 4058 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 457 |
+| Environment | Variables | 458 |
 | Scripts | | 170 |
 | AI | Agents | 31 |
 | Integrations | | 22 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -121,7 +121,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **457** variables
+Total: **458** variables
 
 ### General
 
@@ -563,6 +563,7 @@ Total: **457** variables
 - `ETAP_REST_ALLOWLIST`
 - `ETAP_REST_TOKEN`
 - `ETAP_REST_URL`
+- `FASTAPI_ENV`
 - `GH_TOKEN`
 - `GITHUB_ACTIONS`
 - `HF_COMMIT_SHA`
@@ -1192,7 +1193,7 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _39.8 KB_
+#### 📄 `api/approvals.py` _43.8 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
@@ -1202,19 +1203,19 @@ pass before execution. Provides:
 - **Class** `PendingAction` (line 144)
 - **Class** `IdempotencyKey` (line 182)
 - **Class** `CreateApprovalRequest` (line 206)
-- **Class** `ResolveRequest` (line 478)
-- **Class** `AutoApproveRequest` (line 493)
-- **Class** `ApprovalResponse` (line 500)
+- **Class** `ResolveRequest` (line 563)
+- **Class** `AutoApproveRequest` (line 578)
+- **Class** `ApprovalResponse` (line 585)
 - **def** `compute_args_hash()` (line 123)
 - **def** `classify_tool()` (line 129)
 - **def** `validate_server_control_action()` (line 218)
-- **def** `set_session_auto_approve()` (line 531)
-- **def** `get_session_auto_approve()` (line 536)
-- **async def** `expire_stale_actions()` (line 625)
-- **async def** `transition_status()` (line 652)
-- **async def** `create_approval()` (line 710)
-- **async def** `list_pending()` (line 791)
-- **async def** `resolve_action()` (line 820)
+- **def** `set_session_auto_approve()` (line 616)
+- **def** `get_session_auto_approve()` (line 621)
+- **async def** `expire_stale_actions()` (line 710)
+- **async def** `transition_status()` (line 737)
+- **async def** `create_approval()` (line 795)
+- **async def** `list_pending()` (line 876)
+- **async def** `resolve_action()` (line 905)
 
   **API Routes:**
   - `GET /pending`
@@ -2454,18 +2455,18 @@ Replaces in-memory TokenBudgetManager for multi-instance horizontal scaling
 - **def** `get_distributed_budget_manager()` (line 228)
 - **def** `reset_distributed_budget_manager()` (line 235)
 
-#### 📄 `api/tool_policy.py` _12.6 KB_
+#### 📄 `api/tool_policy.py` _12.8 KB_
 > api/tool_policy.py — Tool Policy Engine.
 
 Classifies agent tools as read / mutating / critical so that tool calls
 receive an explicit decision: ``auto
 
-- **Class** `ToolPolicyRequest` (line 297)
+- **Class** `ToolPolicyRequest` (line 300)
 - **def** `validate_engineering_dimensions()` (line 155)
-- **def** `validate_engineering_source()` (line 191)
-- **def** `evaluate_tool_policy()` (line 236)
-- **async def** `evaluate_endpoint()` (line 304)
-- **def** `estimate_tool_tokens()` (line 314)
+- **def** `validate_engineering_source()` (line 194)
+- **def** `evaluate_tool_policy()` (line 239)
+- **async def** `evaluate_endpoint()` (line 307)
+- **def** `estimate_tool_tokens()` (line 317)
 
   **API Routes:**
   - `POST /evaluate`
@@ -2740,14 +2741,22 @@ Patterns drawn from open-telemetry/opentelemetry-python:
 - **def** `record_canonical_execution_attributes()` (line 413)
 - **def** `format_operator_audit_record()` (line 488)
 
-#### 📄 `core/units.py` _4.4 KB_
+#### 📄 `core/units.py` _13.9 KB_
 > Physical units and dimensions registry for electrical power engineering.
 
 Provides Pint-based UnitRegistry and dimensionality verification for
 enginee
 
-- **def** `parse_quantity()` (line 54)
-- **def** `validate_parameter_dimension()` (line 96)
+- **def** `parse_quantity()` (line 154)
+- **def** `validate_parameter_dimension()` (line 214)
+- **def** `normalize_quantity()` (line 245)
+- **def** `deg_to_rad()` (line 346)
+- **def** `rad_to_deg()` (line 351)
+- **def** `normalize_angle()` (line 356)
+- **def** `awg_to_mm2()` (line 374)
+- **def** `mm2_to_nearest_awg()` (line 380)
+- **def** `ft_to_m()` (line 389)
+- **def** `m_to_ft()` (line 394)
 
 #### 📄 `core/utils.py` _1.4 KB_
 > core/utils.py — Shared utility functions used across the ETAP-AI-WORK codebase.
@@ -3414,7 +3423,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _66.0 KB_
+#### 📄 `services/study_executor.py` _69.9 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -5875,10 +5884,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
 | ui-page | 61 |
-| api-route | 92 |
+| python-module | 41 |
 | ui-component | 280 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -6181,6 +6190,7 @@ Provides
 | `test_transient_stability_acceptance.py` | 7 | 0 | **7** |
 | `test_ui_coverage_api.py` | 0 | 9 | **27** |
 | `test_unified_load_flow_solvers.py` | 0 | 1 | **5** |
+| `test_units_dimensions.py` | 9 | 0 | **9** |
 | `test_validation_negative.py` | 0 | 6 | **17** |
 | `test_vision_base.py` | 0 | 5 | **15** |
 | `test_visualization.py` | 0 | 5 | **23** |
@@ -6418,8 +6428,8 @@ Provides
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
-| `requirements.txt` | 11.2 KB | `19b083462bc8` |
-| `requirements-prod.txt` | 3.2 KB | `d316c882b203` |
+| `requirements.txt` | 11.2 KB | `94f7f95e73d1` |
+| `requirements-prod.txt` | 3.2 KB | `783687e79569` |
 | `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
 | `requirements-ml.txt` | 1.5 KB | `04baa1273efe` |
