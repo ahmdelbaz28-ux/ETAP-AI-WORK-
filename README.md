@@ -1,4 +1,9 @@
-
+---
+title: "AhmedETAP Power Systems Engineering Platform"
+version: "2.1.0"
+last_updated: "2026-10-06"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
 
 <div align="center">
 
