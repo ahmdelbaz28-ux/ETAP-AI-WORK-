@@ -501,6 +501,14 @@ def validate_server_control_action(
                         )
             else:
                 # Fallback heuristic when no unit is specified (num_val > 5.0 => kV, else p.u.)
+                target = target_str
+                import logging
+
+                logging.getLogger("api.approvals").warning(
+                    "AMBIGUOUS_VOLTAGE_UNIT: no explicit unit for target=%s value=%s; heuristic kV-if->5-else-pu applied",
+                    target,
+                    num_val,
+                )
                 if num_val > 5.0:  # kV scale
                     if num_val < 0.0 or num_val > 765.0:
                         return (

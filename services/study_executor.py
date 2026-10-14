@@ -668,6 +668,9 @@ class StudyExecutor:
         if isinstance(spec, System):
             return spec
         if isinstance(spec, dict):
+            norm_err = self._normalize_system_units(spec)
+            if norm_err is not None:
+                raise ValueError(norm_err["error"])
             spec = SystemSpec.model_validate(spec)
         system = System(base_mva=spec.base_mva)
         bus_map = self._add_spec_buses(system, spec.buses)
@@ -1569,8 +1572,54 @@ class StudyExecutor:
 
         return None
 
+    def _normalize_system_units(self, system: dict) -> Optional[dict]:
+        """Normalize physical unit strings in system elements (buses, loads) to canonical platform units."""
+        from core.units import normalize_quantity, parse_quantity
+
+        # 1. Normalize bus voltage fields (base_kv, voltage_kv, nominal_voltage)
+        for bus in system.get("buses", []):
+            bus_id = bus.get("bus_id", "?")
+            for field in ("base_kv", "voltage_kv", "nominal_voltage"):
+                if field in bus:
+                    val = bus[field]
+                    if isinstance(val, str) and parse_quantity(val) is not None:
+                        try:
+                            canon_kv, _ = normalize_quantity(val, "voltage", base_val=None)
+                            bus[f"_raw_{field}"] = val
+                            bus[field] = canon_kv
+                        except Exception as e:
+                            return {"error": f"Unit normalization failed for bus {bus_id}.{field}: {e}"}
+
+        # 2. Normalize load power fields (p_mw, q_mvar)
+        base_mva = system.get("base_mva", 100.0)
+        for load in system.get("loads", []):
+            load_id = load.get("load_id", load.get("bus_id", "?"))
+            if "p_mw" in load:
+                val = load["p_mw"]
+                if isinstance(val, str) and parse_quantity(val) is not None:
+                    try:
+                        canon_p, _ = normalize_quantity(val, "power", base_val=base_mva)
+                        load["_raw_p_mw"] = val
+                        load["p_mw"] = canon_p
+                    except Exception as e:
+                        return {"error": f"Unit normalization failed for load {load_id}.p_mw: {e}"}
+            if "q_mvar" in load:
+                val = load["q_mvar"]
+                if isinstance(val, str) and parse_quantity(val) is not None:
+                    try:
+                        canon_q, _ = normalize_quantity(val, "reactive_power", base_val=base_mva)
+                        load["_raw_q_mvar"] = val
+                        load["q_mvar"] = canon_q
+                    except Exception as e:
+                        return {"error": f"Unit normalization failed for load {load_id}.q_mvar: {e}"}
+
+        return None
+
     def _pre_flight_check(self, system: dict) -> Optional[dict]:
         """Validate system configuration before running a study."""
+        norm_err = self._normalize_system_units(system)
+        if norm_err is not None:
+            return norm_err
         result = self._pre_flight_basic(system)
         if result is not None:
             return result

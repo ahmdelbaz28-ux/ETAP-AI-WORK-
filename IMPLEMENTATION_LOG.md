@@ -234,6 +234,11 @@ This log tracks the step-by-step implementation, verification, and git commit de
   - `pytest tests/test_quiz_l3_golden.py tests/test_bus_loads.py tests/test_short_circuit_validation.py -v`: 7 passed in 29.97s (100% green)
   - `ruff check .`: All checks passed (0 errors)
   - `bandit --ini .bandit -ll -ii -r api/ agents/ core/ services/`: 65,966 lines scanned, 0 issues identified
+  - **رتوش المتابعة (Follow-up)**:
+    - ربط `normalize_quantity` حياً في `services/study_executor.py` (`_normalize_system_units` و `_build_system_from_spec`) لتحويل "480 V" → 0.48 kV وحفظ `_raw_<field>`، مع الرفض المغلق Fail-Closed للوحدات الخاطئة ("25 kA" في base_kv).
+    - إضافة تحذير التدقيق `AMBIGUOUS_VOLTAGE_UNIT` في فرع الهيورستك داخل `api/approvals.py`.
+    - إضافة `DIM_ADMITTANCE` وتصحيح `bshunt1/0` إلى siemens وتضييق `conductor_size` إلى مساحة/مجرد في `core/units.py`، وإعادة `requirements.txt` إلى `pint>=0.26.1`.
+    - نتائج التحقق: `ruff check`: All checks passed! | `pytest tests/test_units_dimensions.py -q`: 12 passed in 41.09s | `pytest tests/test_bus_loads.py tests/test_short_circuit_validation.py -q`: 5 passed in 23.97s.
 
 ---
 

@@ -290,3 +290,66 @@ def test_study_executor_pre_flight_units():
     err = executor._pre_flight_units(invalid_load_system)
     assert err is not None
     assert "Load LD1 parameter 'p_mw' dimension mismatch" in err["error"]
+
+
+def test_pre_flight_normalizes_bus_voltage_units():
+    """Verify that '480 V' in base_kv is normalized to 0.48 kV and passes pre-flight."""
+    from services.study_executor import StudyExecutor
+
+    executor = StudyExecutor()
+    system = {
+        "base_mva": 100.0,
+        "buses": [
+            {"bus_id": 1, "base_kv": "480 V", "voltage_magnitude": 1.0},
+            {"bus_id": 2, "base_kv": "0.48 kV", "voltage_magnitude": 1.0},
+        ],
+        "lines": [
+            {"line_id": "L1", "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05}
+        ],
+        "loads": [
+            {"load_id": "LD1", "bus_id": 2, "p_mw": "500 kW", "q_mvar": "200 kvar"}
+        ],
+    }
+    err = executor._pre_flight_check(system)
+    assert err is None
+    assert system["buses"][0]["base_kv"] == pytest.approx(0.48)
+    assert system["buses"][0]["_raw_base_kv"] == "480 V"
+    assert system["loads"][0]["p_mw"] == pytest.approx(0.5)
+    assert system["loads"][0]["_raw_p_mw"] == "500 kW"
+    assert system["loads"][0]["q_mvar"] == pytest.approx(0.2)
+    assert system["loads"][0]["_raw_q_mvar"] == "200 kvar"
+
+
+def test_pre_flight_rejects_incompatible_bus_voltage_unit():
+    """Verify that incompatible unit (e.g. '25 kA' in base_kv) is rejected fail-closed."""
+    from services.study_executor import StudyExecutor
+
+    executor = StudyExecutor()
+    system = {
+        "base_mva": 100.0,
+        "buses": [
+            {"bus_id": 1, "base_kv": "25 kA", "voltage_magnitude": 1.0},
+            {"bus_id": 2, "base_kv": 11.0, "voltage_magnitude": 1.0},
+        ],
+        "lines": [
+            {"line_id": "L1", "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05}
+        ],
+    }
+    err = executor._pre_flight_check(system)
+    assert err is not None
+    assert "error" in err
+    err_str = str(err["error"]).lower()
+    assert "normalization failed" in err_str or "dimension mismatch" in err_str or "kiloampere" in err_str
+
+
+def test_bshunt_admittance_dimension():
+    """Verify bshunt admittance dimension validation (siemens vs MVA)."""
+    valid_siemens, err1 = validate_parameter_dimension("bshunt1", "0.02 siemens")
+    assert valid_siemens is True
+    assert err1 is None
+
+    valid_mva, err2 = validate_parameter_dimension("bshunt1", "5 MVA")
+    assert valid_mva is False
+    assert err2 is not None
+    assert "Dimension mismatch for parameter 'bshunt1'" in err2
+

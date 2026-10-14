@@ -36,6 +36,7 @@ DIM_INCIDENT_ENERGY = (ureg.joule / (ureg.meter**2)).dimensionality
 DIM_DIMENSIONLESS = ureg.dimensionless.dimensionality
 DIM_ANGLE = ureg.radian.dimensionality
 DIM_FREQUENCY = ureg.hertz.dimensionality
+DIM_ADMITTANCE = ureg.siemens.dimensionality
 
 # Comprehensive mapping covering all parameters in core_model/specs.py and api/tool_policy.py
 EXPECTED_DIMENSIONS: dict[str, tuple[pint.util.UnitsContainer, ...]] = {
@@ -97,13 +98,13 @@ EXPECTED_DIMENSIONS: dict[str, tuple[pint.util.UnitsContainer, ...]] = {
     "internal_impedance": (DIM_IMPEDANCE, DIM_DIMENSIONLESS),
     "ra": (DIM_IMPEDANCE, DIM_DIMENSIONLESS),
     "xd_prime": (DIM_IMPEDANCE, DIM_DIMENSIONLESS),
-    "bshunt1": (DIM_APPARENT_POWER, DIM_DIMENSIONLESS),
-    "bshunt0": (DIM_APPARENT_POWER, DIM_DIMENSIONLESS),
+    "bshunt1": (DIM_ADMITTANCE, DIM_DIMENSIONLESS),
+    "bshunt0": (DIM_ADMITTANCE, DIM_DIMENSIONLESS),
 
     # Dimensionless
     "tap_ratio": (DIM_DIMENSIONLESS,),
     "power_factor": (DIM_DIMENSIONLESS,),
-    "conductor_size": (DIM_AREA, DIM_LENGTH, DIM_DIMENSIONLESS),
+    "conductor_size": (DIM_AREA, DIM_DIMENSIONLESS),
 
     # Frequency
     "frequency_hz": (DIM_FREQUENCY,),
