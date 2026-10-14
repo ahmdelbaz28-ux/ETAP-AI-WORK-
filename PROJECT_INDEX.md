@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-13T15:15:40.628157+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-14T07:53:36.116180+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -69,7 +69,7 @@
 **Python integration modules:**
 
 - **`anthropic_vision`** (12.5 KB) — classes: `AnthropicVisionClient`
-- **`etap_component_importer`** (13.7 KB) — classes: `ETAPComponentImporter`
+- **`etap_component_importer`** (13.8 KB) — classes: `ETAPComponentImporter`
 - **`external_adms_connectors`** (3.9 KB) — classes: `BaseADMSConnector`, `ArcFMFeederConnector`, `EcoStruxureADMSConnector`
 - **`gemini_vision`** (10.0 KB) — classes: `GeminiVisionClient`
 - **`langfuse_evals`** (19.3 KB) — classes: _none_
@@ -3797,7 +3797,7 @@ Decomposes the monolithic ``propagate_swi
 - **Class** `PropagationChain` (line 692)
   - Methods: `execute()`
 
-#### 📄 `digital_twin/state_store.py` _19.9 KB_
+#### 📄 `digital_twin/state_store.py` _19.7 KB_
 > State Store - Versioned State Management for Digital Twin
 =========================================================
 Implements immutable state snapsho
@@ -3813,9 +3813,9 @@ Implements immutable state snapsho
   - Methods: `to_dict()`
 - **Class** `SimulationResults` (line 133)
   - Methods: `to_dict()`
-- **Class** `StateSnapshot` (line 168)
+- **Class** `StateSnapshot` (line 165)
   - Methods: `to_dict()`, `is_layer_synced()`, `to_json()`
-- **Class** `StateStore` (line 247)
+- **Class** `StateStore` (line 239)
   - Methods: `update_bus_state()`, `update_switch_state()`, `commit()`, `get_current()`, `get_version()`, `get_current_version()`, `rollback()`, `diff()`
 
 #### 📄 `digital_twin/time_series_store.py` _4.7 KB_
@@ -4395,7 +4395,7 @@ Provides direct integration with ETAP Power System software via COM automation.
   - Methods: `add_allowed_project_directory()`, `launch()`, `open_project()`, `create_project()`, `get_active_project()`, `close_project()`, `close_all_projects()`, `shutdown()`
 - **def** `run_etap_study()` (line 1977)
 
-#### 📄 `etap_integration/etap_compatibility.py` _11.4 KB_
+#### 📄 `etap_integration/etap_compatibility.py` _11.1 KB_
 > ETAP Compatibility Checker
 ==========================
 Verifies that the runtime environment meets ETAP software requirements,
@@ -4403,7 +4403,7 @@ including ETAP version,
 
 - **Class** `CheckResult` (line 77)
 - **Class** `CompatibilityReport` (line 85)
-- **Class** `ETAPCompatibilityChecker` (line 111)
+- **Class** `ETAPCompatibilityChecker` (line 104)
   - Methods: `check_version()`, `is_version_supported()`, `get_supported_versions()`, `check_module_availability()`, `check_windows_version()`, `check_dependencies()`, `check_dotnet_version()`, `run_compatibility_tests()`
 
 #### 📄 `etap_integration/etap_error_recovery.py` _14.4 KB_
@@ -4682,7 +4682,7 @@ Provides visual perception via Anthropic's Claude API (claude-3.5-sonnet,
 - **Class** `AnthropicVisionClient` (line 85)
   - Methods: `analyze_screenshot()`, `health_check()`
 
-#### 📄 `integrations/etap_component_importer.py` _13.7 KB_
+#### 📄 `integrations/etap_component_importer.py` _13.8 KB_
 > integrations/etap_component_importer.py — ETAP .etp / .etpx XML Component Importer.
 
 Parses ETAP project and library XML files to extract standardized
@@ -5186,10 +5186,10 @@ Supports:
 
 #### 📄 `gis_validation/__init__.py` _0.1 KB_
 
-#### 📄 `gis_validation/crs_validator.py` _2.5 KB_
+#### 📄 `gis_validation/crs_validator.py` _2.3 KB_
 - **Class** `CRSIssue` (line 10)
-- **def** `validate_crs_consistency()` (line 39)
-- **def** `validate_normalization_applied()` (line 75)
+- **def** `validate_crs_consistency()` (line 34)
+- **def** `validate_normalization_applied()` (line 70)
 
 #### 📄 `gis_validation/dataset_generator.py` _4.8 KB_
 - **def** `generate_synthetic_grid()` (line 21)
@@ -5231,9 +5231,9 @@ Supports:
 - **Class** `RuntimeTransformationResult` (line 20)
 - **def** `validate_real_assets_runtime()` (line 24)
 
-#### 📄 `gis_validation_real/ground_truth_validator.py` _2.7 KB_
+#### 📄 `gis_validation_real/ground_truth_validator.py` _2.6 KB_
 - **Class** `GroundTruthMismatch` (line 13)
-- **def** `validate_real_gis_to_adms()` (line 28)
+- **def** `validate_real_gis_to_adms()` (line 23)
 
 #### 📄 `gis_validation_real/project_adapters.py` _1.3 KB_
 - **Class** `ExtractedLayer` (line 12)
@@ -5283,9 +5283,9 @@ CI
 - **Class** `ImpedanceIssue` (line 9)
 - **def** `validate_impedance_consistency()` (line 16)
 
-#### 📄 `gis_validation_electrical/load_flow_validator.py` _4.1 KB_
-- **Class** `LoadFlowIssue` (line 10)
-- **def** `validate_load_flow()` (line 68)
+#### 📄 `gis_validation_electrical/load_flow_validator.py` _3.8 KB_
+- **Class** `LoadFlowIssue` (line 9)
+- **def** `validate_load_flow()` (line 58)
 
 #### 📄 `gis_validation_electrical/radiality_checker.py` _4.2 KB_
 - **Class** `RadialityIssue` (line 9)
@@ -5875,9 +5875,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
+| ui-component | 280 |
 | python-module | 41 |
 | ui-page | 61 |
-| ui-component | 280 |
 | api-route | 92 |
 | **TOTAL** | **474** |
 
@@ -6421,7 +6421,7 @@ Provides
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
 | `requirements-ml.txt` | 1.5 KB | `531f66a9b434` |
 | `requirements.hf.txt` | 5.8 KB | `582a04e22600` |
-| `.github/workflows/security.yml` | 14.4 KB | `abcbc0b8121d` |
+| `.github/workflows/security.yml` | 14.4 KB | `06eb1601ed98` |
 | `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
