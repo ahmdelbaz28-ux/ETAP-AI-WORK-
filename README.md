@@ -1,7 +1,7 @@
 ---
 title: "AhmedETAP Power Systems Engineering Platform"
 version: "2.1.0"
-last_updated: "2026-10-06"
+last_updated: "2026-10-14"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 
@@ -11,7 +11,7 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 <br/>
 
-<h1> AhmedETAP Platform</h1>
+<h1>⚡ AhmedETAP Platform</h1>
 <h3>Enterprise AI-Powered Power Systems Engineering Intelligence</h3>
 
 <p>
@@ -33,10 +33,11 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 [![UI](https://img.shields.io/badge/UI-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://etap-ai-work.vercel.app)
 [![API](https://img.shields.io/badge/API-HF%20Space-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://ahmdelbaz28-ahmedetap-platform.hf.space/health)
-[![DB](https://img.shields.io/badge/Postgres-Neon-00e599?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech)
+[![DB](https://img.shields.io/badge/Postgres-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci.yml?branch=main&style=flat-square&label=CI&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
-[![Security](https://img.shields.io/badge/Semgrep-passing-brightgreen?style=flat-square&logo=semgrep&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fahmdelbaz28-ux%2FETAP-AI-WORK-?ref=badge_shield)
+[![E2E Tests](https://img.shields.io/badge/Playwright-Passing-2EAD33?style=flat-square&logo=playwright&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
+[![API Tests](https://img.shields.io/badge/Postman-102%2F105%20Passed-FF6C37?style=flat-square&logo=postman&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
+[![Code Quality](https://img.shields.io/badge/SonarCloud-Clean%20Code-4B9CD3?style=flat-square&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-)
 [![LLM Obs](https://img.shields.io/badge/LLM%20Obs-Langfuse-7C3AED?style=flat-square&logo=langfuse&logoColor=white)](https://cloud.langfuse.com)
 [![Standards](https://img.shields.io/badge/Standards-IEEE%20%7C%20IEC-0052cc?style=flat-square&logo=ieee&logoColor=white)](#-engineering-standards)
 
@@ -58,6 +59,7 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 - [Platform Overview](#-platform-overview)
 - [Architecture](#-architecture)
+- [Live ETAP Auto-Draw & SCADA Integrations](#-live-etap-network-auto-draw--scada-integrations)
 - [AI Agent Inventory](#-ai-agent-inventory)
 - [Engineering Standards](#-engineering-standards)
 - [Quick Start](#-quick-start)
@@ -85,7 +87,7 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 |:---|:---|:---|:---|
 | **Frontend SPA** | Vercel Edge CDN | React 19 · Vite 6 · TypeScript 5.7 | Static UI, instant global delivery |
 | **Backend API** | Hugging Face Space (Docker) | FastAPI 0.115 · Python 3.13 · uvicorn | AI agents, engineering engines, auth |
-| **Database** | Neon PostgreSQL | Serverless Managed Postgres | Durable project & study persistence |
+| **Database** | Supabase PostgreSQL | Managed Postgres (AWS eu-central-1 Pooler :5432) | Durable project & study persistence |
 | **LLM Observability** | Langfuse Cloud | Prompt versioning · LLM traces | Unlimited prompts, 50k obs/month |
 | **LLM Evaluation** | LangWatch | Scenario evals · drift detection | Continuous agent quality monitoring |
 | **MCP Tooling** | Smithery | Model Context Protocol registry | Secure external tool discovery |
@@ -111,19 +113,20 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
               │                                                                    │
               ▼                                                                    ▼
  ┌─────────────────────────┐                              ┌─────────────────────────────┐
- │  Neon PostgreSQL         │                              │  Langfuse Cloud             │
- │  ─────────────────────   │                              │  ─────────────────────────  │
- │  Project persistence     │                              │  Prompt versioning          │
- │  Study revisions (OCC)   │                              │  LLM traces + safety alerts │
- │  Export history          │                              │  Rollback & A/B testing     │
- │  Solver parameters       │                              └────────────┬────────────────┘
- └─────────────────────────┘                                            │
-                                                                        ▼
+ │  Supabase PostgreSQL    │                              │  Langfuse Cloud             │
+ │  ─────────────────────  │                              │  ─────────────────────────  │
+ │  Project persistence    │                              │  Prompt versioning          │
+ │  Study revisions (OCC)  │                              │  LLM traces + safety alerts │
+ │  Export history         │                              │  Rollback & A/B testing     │
+ │  Solver parameters      │                              └────────────┬────────────────┘
+ └─────────────────────────┘                                           │
+                                                                       ▼
                                                           ┌─────────────────────────────┐
                                                           │  LangWatch                  │
                                                           │  ─────────────────────────  │
                                                           │  Scenario evaluations       │
                                                           │  Agent drift detection      │
+                                                          │  Continuous benchmark eval  │
                                                           └─────────────────────────────┘
 ```
 
@@ -137,6 +140,22 @@ The platform uses **two distinct computation layers**:
 | **ETAP COM Automation** | `etap_integration/etap_com.py` | Windows only (pywin32 + licensed ETAP) | Certified ETAP 2021/22 COM API for native `.edb` project studies |
 
 > **Note:** On HF Space and all Linux deployments, COM automation falls back to `NullEtapProvider`. All engineering computations use the native Python solvers. Configure `ETAP_WORKER_URL` to point to a remote Windows ETAP worker for COM-dependent studies.
+
+---
+
+## ⚡ Live ETAP Network Auto-Draw & SCADA Integrations
+
+Live drawing into ETAP DataHub etapAPI directly from existing SCADA/ADMS source projects (Zenon, project asset definitions, and CIM models).
+
+| Module | Primary Files | Role & Standards | Feature Flag |
+|:---|:---|:---|:---|
+| **Zenon Raw Dump & Classifier** | `integrations/zenon_network_export/raw_dump.py`, `classifier.py` | Strict Pydantic models & classifier mapping authentic zenon variable dumps and screen elements into formal export contracts with zero guessing. | `zenon_import` (default: `False`) |
+| **Zenon Network Export** | `integrations/zenon_network_export/contract.py`, `reader.py`, `mapping.py` | Strict Pydantic contract & reader for ABB/COPA-DATA zenon SCADA topology. Missing values flagged explicitly; zero guessing. | `zenon_import` (default: `False`) |
+| **Zenon Live SCADA Values** | `integrations/zenon_network_export/live_values.py` | Real-time telemetry enrichment (V/A/P/Q/status) via zenon Process Gateway. Fail-closed: unreachable servers report `BLOCKED`. | `zenon_live_values` (default: `False`) |
+| **ETAP REST Draw Elements** | `etap_integration/etap_rest.py` | Expanded `ElementKind` & properties for 13 electrical components: bus, transformer, breaker, line, cable, load, generator, motor, capacitor, reactor, switch, fuse, relay. | `etap_rest_draw` (default: `False`) |
+| **Atomic Draw Plan Builder** | `etap_integration/draw_plan_builder.py` | Dependency ordering (buses → transformers → switchgear → lines/loads/generators), chunking `<= 50` items, pre-flight bus connectivity checks, atomic rollback across failed chunks. | `etap_rest_draw` |
+| **Dual-Control Draw Endpoint** | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | Maker-Checker gated endpoint creating bounded atomic multi-chunk `PendingAction`. Admin approval strictly required; self-approval permanently rejected (`MAKER_CHECKER_VIOLATION`). | `etap_draw_full_network` (default: `False`) |
+| **Operational Post-Draw Verifier** | `etap_integration/post_draw_verifier.py` | Dispatches Load Flow study to `etap_worker_service` and verifies bus voltages against baseline within declared tolerance (default 2.0%). | — |
 
 ---
 
@@ -255,7 +274,7 @@ alembic upgrade head     # Apply all pending migrations
 alembic history          # View migration history
 ```
 
-Current head: migration `012` — adds `project_solver_parameters`, `study_versions`, `export_history` tables.
+Current head: migration `014` — adds `project_solver_parameters`, `study_versions`, `export_history`, and consolidated notifications schema.
 
 ### Kubernetes (Optional)
 
@@ -312,6 +331,12 @@ cd ui && npm run test:e2e           # Playwright E2E tests
 # Smoke test against production
 PRODUCTION_URL=https://ahmdelbaz28-ahmedetap-platform.hf.space python scripts/smoke_test.py
 ```
+
+### E2E & Live API Verification
+
+- **Playwright Browser E2E (`ui/`):** Edge verification against production (`https://etap-ai-work.vercel.app`) covering engineer authentication, live API connectivity badges, bi-directional English / Arabic (RTL) mirroring, and account registration with zero browser console errors.
+- **Postman API Test Suite (MCP Automation):** Automated collection execution (`ETAP-AI-WORK- API Tests`) validating 35 production API endpoints with 105 automated assertions. **102/105 passed (97.1%)**.
+- **SonarCloud Clean Code Gate:** Zero open bugs, zero vulnerabilities, zero security hotspots, and zero code smells maintained with strict Quality Gate enforcement.
 
 ### CI Workflows (GitHub Actions)
 

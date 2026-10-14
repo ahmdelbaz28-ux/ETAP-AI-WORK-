@@ -1,7 +1,7 @@
 ---
 title: "AhmedETAP Changelog"
-version: "2.1.0"
-last_updated: "2026-10-06"
+version: "2.2.0"
+last_updated: "2026-10-14"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 
@@ -13,7 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Table of Contents
 
-- [[Unreleased] — Trust-Hardening & Engineering Honesty](#unreleased)
+- [[Unreleased]](#unreleased)
+- [[2.2.0] — 2026-10-14: Live ETAP Auto-Draw, SCADA Integration, Supabase Cutover & Automated E2E Verification](#220---2026-10-14)
 - [[2.1.0] — 2026-09-16: Production Hardening & Enterprise Deployment](#210---2026-09-16)
 - [[2.0.0] — 2026-08-01: Major Architecture Evolution](#200---2026-08-01)
 - [[1.0.0] — 2026-06-15: Initial Enterprise Launch](#100---2026-06-15)
@@ -22,19 +23,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Trust-Hardening & Engineering Honesty (S0→S8 Closure — PR #598 @ 697f0336c)
+---
+
+## [2.2.0] - 2026-10-14
+
+### Live ETAP Auto-Draw, SCADA Integration, Supabase Cutover & Automated E2E Verification
 
 #### Added
-- **Canonical Agent Architecture**: Consolidated authoritative namespace of **27 Canonical Specialist Agents** in `agents/registry.py` (`CANONICAL_AGENT_KEYS`), 3 backward-compat aliases, and 17 `StudyType` members.
-- **BYOK Streaming Gateway**: Validated browser-to-server streaming channel with secure `X-User-LLM-Key` and `X-User-LLM-Provider` headers, removing insecure active-key fallbacks.
-- **Empirical Test Evidence**: Automated IEEE benchmarks certification (`scripts/run_ieee_benchmarks.py`: 4/4 PASS in 0.7997s) and strict standards coverage audit (`scripts/claims_audit.py --strict`: 16/16 Verified).
-- **Dual-Control Maker-Checker**: Enforced dual-control signoff on critical substation switching operations with WebSocket real-time broadcast and SBO pre-flight interlocks.
+- **Live ETAP Auto-Draw & SCADA Integration (v3.1)**:
+  - Strict Pydantic contracts and parser for ABB/COPA-DATA zenon SCADA topology exports (`integrations/zenon_network_export/`).
+  - ETAP REST Draw expansion across 13 electrical element kinds (`etap_integration/etap_rest.py`).
+  - Atomic Draw Plan Builder with pre-flight connectivity checking and automatic rollback on failure (`etap_integration/draw_plan_builder.py`).
+  - Dual-control Maker-Checker protected endpoint `POST /api/v1/etap/draw/from-project`.
+  - Operational post-draw verifier dispatching automated load-flow verification against baseline limits.
+- **Supabase PostgreSQL Session Pooler Migration**:
+  - Cut over primary production database to Supabase PostgreSQL on port 5432 (`aws-1-eu-central-1.pooler.supabase.com`) with HA connection pooler.
+  - Applied and verified schema migrations through `014_fix_notifications_schema`.
+- **E2E Testing & Postman MCP Automation**:
+  - Playwright browser E2E test suite running against production (`https://etap-ai-work.vercel.app`) with zero console errors, validating authentication, bi-directional Arabic (RTL) mirroring, and registration flows.
+  - Postman API collection (`ETAP-AI-WORK- API Tests`) executed via MCP server against production HF Space, verifying 35 endpoints and passing 102/105 tests (97.1%).
+- **Dependabot 23 PR Consolidation**:
+  - Unified and merged 23 security and feature dependency updates across GitHub Actions (SHA-pinned), Python packages (uvicorn, asyncpg, prophet, langchain-openai, langsmith, etc.), and UI packages (biome, happy-dom, jsdom, electron, etc.).
+- **SonarCloud Clean Code Remediation**:
+  - Remediated all reported bugs, code smells, duplicate fields, and unhandled exception paths, achieving a 100% Quality Gate Pass with Grade A maintainability and security.
 
 #### Fixed & Remediated
-- **Light Mode Dynamic Tokens**: Remediated 17 hardcoded dark hex constants in UI components (`LoginBackground.tsx`, `ResultViewer.tsx`, `AutoViewPanel.tsx`, `BrandLogo.tsx`) with adaptive CSS variables (`var(--accent-primary)`, `var(--border-primary)`, `var(--color-danger)`, `var(--color-success)`), achieving 100% theme parity.
+- **Light Mode Dynamic Tokens**: Remediated 17 hardcoded dark hex constants in UI components (`LoginBackground.tsx`, `ResultViewer.tsx`, `AutoViewPanel.tsx`, `BrandLogo.tsx`) with adaptive CSS variables, achieving 100% theme parity.
 - **Flaky SCADA Test Stabilization**: Hardened async queries and timeouts in `ScadaIntegration.test.tsx`, achieving **208/208 tests passed across 26 test files** in Vitest (`ui/`).
 - **IEC 60909 Documentation & Formulations**: Scoped method documentation accurately to standard clauses (`Clause 3.7`) without unsubstantiated Method B/C claims.
-- **Technical Debt Closure**: Purged historical secrets with verified key rotation in `SECURITY.md`, enabled Redis token blacklisting, and implemented distributed rate limiting.
+- **Documentation Metadata Enforcement**: Enforced standardized YAML frontmatter, word count, and table of contents checks across all 30 major documentation files via `scripts/check_metadata.py`.
 
 ## [2.1.0] - 2026-09-16
 

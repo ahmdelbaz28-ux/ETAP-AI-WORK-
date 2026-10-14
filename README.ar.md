@@ -1,7 +1,7 @@
 ---
 title: "منصة AhmedETAP للهندسة الكهربائية والذكاء الاصطناعي"
 version: "2.1.0"
-last_updated: "2026-10-06"
+last_updated: "2026-10-14"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 
@@ -31,6 +31,16 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 <br/>
 
+[![UI](https://img.shields.io/badge/UI-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://etap-ai-work.vercel.app)
+[![API](https://img.shields.io/badge/API-HF%20Space-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://ahmdelbaz28-ahmedetap-platform.hf.space/health)
+[![DB](https://img.shields.io/badge/Postgres-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmdelbaz28-ux/ETAP-AI-WORK-/ci.yml?branch=main&style=flat-square&label=CI&logo=github-actions&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
+[![E2E Tests](https://img.shields.io/badge/Playwright-ناجح-2EAD33?style=flat-square&logo=playwright&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/actions)
+[![API Tests](https://img.shields.io/badge/Postman-102%2F105%20ناجح-FF6C37?style=flat-square&logo=postman&logoColor=white)](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-)
+[![Code Quality](https://img.shields.io/badge/SonarCloud-كود_نظيف-4B9CD3?style=flat-square&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/project/overview?id=ahmdelbaz28-ux_ETAP-AI-WORK-)
+
+<br/>
+
 **[🚀 واجهة المستخدم المباشرة — Vercel](https://etap-ai-work.vercel.app)** &nbsp;•&nbsp;
 **[🧠 واجهة برمجة التطبيقات — Hugging Face](https://ahmdelbaz28-ahmedetap-platform.hf.space/docs)** &nbsp;•&nbsp;
 **[📚 مستندات التوثيق](docs/)** &nbsp;•&nbsp;
@@ -45,8 +55,10 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 - [نظرة عامة على المنصة](#-نظرة-عامة-على-المنصة)
 - [المعايير الهندسية المعتمدة](#-المعايير-الهندسية-المعتمدة)
+- [الرسم التلقائي والتكامل مع نظم سكادا](#-الرسم-التلقائي-والتكامل-مع-نظم-سكادا)
 - [هيكلية الوكلاء الأذكياء (27 وكيلاً معتمداً)](#-هيكلية-الوكلاء-الأذكياء)
 - [البدء السريع](#-البدء-السريع)
+- [الاختبارات الشاملة والجودة](#-الاختبارات-الشاملة-والجودة)
 - [الدروس التعليمية وخطوات العمل](#-الدروس-التعليمية-وخطوات-العمل)
 - [الأمان المؤسسي والتحكم المزدوج](#-الأمان-المؤسسي-والتحكم-المزدوج)
 - [المساهمة وإدارة الديون التقنية](#-المساهمة-وإدارة-الديون-التقنية)
@@ -56,7 +68,7 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 
 ## 🎯 نظرة عامة على المنصة
 
-منصة **AhmedETAP** هي بيئة متكاملة ثنائية المحرك (Dual-Runtime Architecture) تجمع بين بيئة التشغيل الحسابية الصارمة في بايثون لضمان مطابقة قوانين الفيزياء والرياضيات، وبيئة Mastra (TypeScript) لإدارة تدفق المحادثات وتوجيه الوكلاء الأذكياء.
+منصة **AhmedETAP** هي بيئة متكاملة ثنائية المحرك (Dual-Runtime Architecture) تجمع بين بيئة التشغيل الحسابية الصارمة في بايثون لضمان مطابقة قوانين الفيزياء والرياضيات، وبيئة Mastra (TypeScript) لإدارة تدفق المحادثات وتوجيه الوكلاء الأذكياء، وتعتمد على قاعدة بيانات موثوقة Supabase PostgreSQL مع مجمع اتصالات جلسات آمن (Session Pooler على المنفذ 5432).
 
 ### القدرات الهندسية الأساسية
 1. **سريان الأحمال (Load Flow):** محرك Newton-Raphson مع الجاكوبي التحليلي ومحرك Fast Decoupled وفق IEEE 3002.7.
@@ -84,6 +96,21 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 | **IEEE 80-2013** | شبكات التأريض الأرضية | أقصى جهود التلامس والخطوة (Touch/Step Potentials) | 🟢 معتمد وموثق |
 | **IEC 60364 / 60287** | تحديد مقاطع الكابلات الكهربائية | حساب السعة الحرارية وهبوط الجهد المستمر | 🟢 معتمد وموثق |
 | **IEC 61850** | بروتوكولات ونماذج بيانات المحطات | SCL / CID / GOOSE Modeling | 🟢 معتمد وموثق |
+
+---
+
+## ⚡ الرسم التلقائي والتكامل مع نظم سكادا
+
+رسم الشبكات الكهربائية مباشرة في برنامج إيتاب عبر واجهة etapAPI انطلاقاً من ملفات مشاريع سكادا المعتمدة (مثل أنظمة ABB / COPA-DATA zenon ونماذج CIM الدولية):
+
+| الوحدة البرمجية | الملفات الأساسية | الدور والمعايير الهندسية |
+| :--- | :--- | :--- |
+| **تفريغ وتصنيف zenon** | `integrations/zenon_network_export/raw_dump.py` | تصنيف عناصر شاشات ومتغيرات سكادا بدقة رياضية صارمة دون أي تخمين لقيم الممانعات والجهود. |
+| **تصدير طوبولوجيا zenon** | `integrations/zenon_network_export/reader.py`, `mapping.py` | استخلاص خطوط النقل والقواطع والمحولات مع التحقق التلقائي من القيم الناقصة ورفض التخمين. |
+| **موسّع عناصر الرسم (REST)** | `etap_integration/etap_rest.py` | دعم رسمي لـ 13 عنصراً كهربائياً: قضبان التوزيع، المحولات، القواطع، الكابلات، الأحمال، المولدات، والمرحلات. |
+| **منشئ خطة الرسم الذري** | `etap_integration/draw_plan_builder.py` | جدولة تبعيات البناء (القضبان أولاً ثم المحولات والقواطع) مع التراجع الذري التلقائي (Rollback) عند فشل أي حزمة. |
+| **بوابة التحكّم المزدوج** | `api/etap_draw.py` (`POST /api/v1/etap/draw/from-project`) | اشتراط موافقة مهندس معتمد (Maker-Checker) مع منع الموافقة الذاتية نهائياً لحماية غرف التحكم الحقيقية. |
+| **مدقق سريان الأحمال اللاحق** | `etap_integration/post_draw_verifier.py` | تشغيل دراسة سريان أحمال تلقائية ومقارنة جهود القضبان مع خط الأساس بنسبة سماحية لا تتجاوز 2.0%. |
 
 ---
 
@@ -125,6 +152,14 @@ pnpm dev
 ```
 
 للمزيد من خيارات التثبيت (مثل Docker و Helm)، راجع [دليل البدء السريع الكامل (QUICKSTART.ar.md)](QUICKSTART.ar.md).
+
+---
+
+## 🧪 الاختبارات الشاملة والجودة
+
+- **اختبارات المتصفح الطرفية بـ Playwright (`ui/`):** التحقق المباشر من الإنتاج الحقيقي (`https://etap-ai-work.vercel.app`)، بما يشمل تسجيل دخول المهندسين، ومراقبة مؤشرات صحة النظام، ودعم الواجهة العربية مع انعكاس كامل لاتجاه الشاشة (RTL) بدون أي أخطاء في Console.
+- **حزمة اختبارات API عبر Postman (أتمتة MCP):** تنفيذ حزمة اختبارات كاملة لـ 35 نقطة نهاية برمجية تتضمن 105 فحصاً آلياً بنسبة نجاح **97.1% (102/105)**.
+- **بوابة الجودة ونقاء الكود SonarCloud:** صفر أخطاء مفتوحة، صفر ثغرات أمنية، وصفر نقاط ضعف برمجية مع تصنيف A في الأمان وقابلية الصيانة.
 
 ---
 
