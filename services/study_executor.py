@@ -1441,7 +1441,7 @@ class StudyExecutor:
             from core.units import validate_parameter_dimension
         except ImportError:
             import os
-            if os.getenv("ENVIRONMENT") == "production" or os.getenv("FASTAPI_ENV") == "production":
+            if (os.getenv("ENVIRONMENT") or os.getenv("ENV") or "").lower() in ("production", "prod"):
                 return {"error": "Physical units validation engine (core.units) unavailable in production"}
             return None
 
