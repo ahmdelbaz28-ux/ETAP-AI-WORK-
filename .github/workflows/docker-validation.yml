@@ -297,11 +297,12 @@ jobs:
             exit 1
           fi
 
-      - name: 📤 Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2  # v4.38.2
+      - name: 📤 Upload SARIF artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1 (node24)
         if: always() && hashFiles(format('trivy-{0}.sarif', matrix.name)) != ''
         with:
-          sarif_file: 'trivy-${{ matrix.name }}.sarif'
+          name: trivy-${{ matrix.name }}-sarif
+          path: 'trivy-${{ matrix.name }}.sarif'
 
       - name: 🧹 Clean up
         if: always()
