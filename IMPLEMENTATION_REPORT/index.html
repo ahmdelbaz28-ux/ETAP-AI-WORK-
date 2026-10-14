@@ -1882,14 +1882,14 @@
 <tr>
 <td>6</td>
 <td>ETAPExecutionAgent</td>
-<td>—</td>
+<td>Windows COM Automation</td>
 <td>Phase 2</td>
 <td><code>agents/orchestrator.py</code></td>
 </tr>
 <tr>
 <td>7</td>
 <td>ValidationAgent</td>
-<td>—</td>
+<td>Multi-standard validation</td>
 <td>Phase 2</td>
 <td><code>agents/orchestrator.py</code></td>
 </tr>
@@ -1944,8 +1944,92 @@
 </tr>
 <tr>
 <td>15</td>
+<td>DigitalTwinAgent</td>
+<td>ISO 23247, IEC 63278</td>
+<td>Phase 6</td>
+<td><code>agents/digital_twin_agent.py</code></td>
+</tr>
+<tr>
+<td>16</td>
+<td>ETAPExpertAgent</td>
+<td>IEEE 80/141/242/399, IEC 60909</td>
+<td>Phase 6</td>
+<td><code>agents/etap_expert_agent.py</code></td>
+</tr>
+<tr>
+<td>17</td>
+<td>DesignAgent</td>
+<td>IEEE 141, IEC 62271</td>
+<td>Phase 6</td>
+<td><code>agents/design_agent.py</code></td>
+</tr>
+<tr>
+<td>18</td>
+<td>ETAPGUIAgent</td>
+<td>CUA Automation</td>
+<td>Phase 6</td>
+<td><code>agents/etap_gui_agent.py</code></td>
+</tr>
+<tr>
+<td>19</td>
+<td>AhmedETAPOrchestrationAgent</td>
+<td>Multi-agent autonomous study</td>
+<td>Phase 6</td>
+<td><code>agents/ahmed_etap_orchestrator.py</code></td>
+</tr>
+<tr>
+<td>20</td>
+<td>CodeGuardAgent</td>
+<td>Code safety validation</td>
+<td>Phase 6</td>
+<td><code>src/mastra/agents/code-guard-agent.ts</code></td>
+</tr>
+<tr>
+<td>21</td>
+<td>AnomalyAgent</td>
+<td>Real-time stream anomaly detection</td>
+<td>Phase 6</td>
+<td><code>engine/anomaly_detector.py</code></td>
+</tr>
+<tr>
+<td>22</td>
+<td>PredictiveAgent</td>
+<td>Load &amp; fault ML forecasting</td>
+<td>Phase 6</td>
+<td><code>engine/predictive_engine.py</code></td>
+</tr>
+<tr>
+<td>23</td>
+<td>QGISAgent</td>
+<td>Geospatial CIM mapping</td>
+<td>Phase 6</td>
+<td><code>gis_integration/qgis_provider.py</code></td>
+</tr>
+<tr>
+<td>24</td>
+<td>FallbackAgent</td>
+<td>Safety-net fail-closed fallback</td>
+<td>Phase 6</td>
+<td><code>prompts/fallback_agent.prompt.yaml</code></td>
+</tr>
+<tr>
+<td>25</td>
+<td>WeatherAgent</td>
+<td>Renewable irradiance &amp; wind data</td>
+<td>Phase 6</td>
+<td><code>src/mastra/agents/weather-agent.ts</code></td>
+</tr>
+<tr>
+<td>26</td>
+<td>GoalPlannerAgent</td>
+<td>Autonomous task planning</td>
+<td>Phase 6</td>
+<td><code>src/mastra/agents/goal-planner-agent.ts</code></td>
+</tr>
+<tr>
+<td>27</td>
 <td>ChiefEngineeringOrchestrator</td>
-<td>—</td>
+<td>Central task decomposition</td>
 <td>Phase 2</td>
 <td><code>agents/orchestrator.py</code></td>
 </tr>
@@ -1995,8 +2079,14 @@
 <tr>
 <td>Phase 6</td>
 <td>2026-03-20</td>
-<td>2026-03-04</td>
-<td>Predictive analytics, digital twin, GIS</td>
+<td>2026-04-05</td>
+<td>Predictive analytics, digital twin, GIS, and CUA</td>
+</tr>
+<tr>
+<td>Phase 7</td>
+<td>2026-09-20</td>
+<td>2026-10-12</td>
+<td>Live ETAP Network Auto-Draw &amp; SCADA/ADMS integrations</td>
 </tr>
 </tbody>
 </table>
@@ -2048,8 +2138,18 @@
 <td>100%</td>
 </tr>
 <tr>
+<td>Stress Tests</td>
+<td>20</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Full Network Draw &amp; SCADA</td>
+<td>110</td>
+<td>100%</td>
+</tr>
+<tr>
 <td><strong>Total</strong></td>
-<td><strong>548</strong></td>
+<td><strong>678</strong></td>
 <td><strong>100%</strong></td>
 </tr>
 </tbody>
@@ -2111,9 +2211,21 @@
 </thead>
 <tbody>
 <tr>
+<td><strong>Zenon Raw Dump &amp; Classifier</strong></td>
+<td>Strict Pydantic models for raw dumps, regex pattern element classification, authentic VBA COM collector</td>
+<td><code>integrations/zenon_network_export/raw_dump.py</code>, <code>classifier.py</code>, <code>config/zenon_element_patterns.yaml</code>, <code>scripts/zenon_export_collector.vba</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
 <td><strong>Zenon Contract &amp; Reader</strong></td>
-<td>Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, VBA export script, data_import format handler</td>
-<td><code>integrations/zenon_network_export/contract.py</code>, <code>reader.py</code>, <code>mapping.py</code>, <code>config/zenon_field_mapping.yaml</code>, <code>scripts/zenon_export_collector.vba</code>, <code>api/data_import.py</code></td>
+<td>Strict Pydantic contract for Zenon Network Export v1, field mapping from YAML, zero-guessing validation, data_import format handler</td>
+<td><code>integrations/zenon_network_export/contract.py</code>, <code>reader.py</code>, <code>mapping.py</code>, <code>config/zenon_field_mapping.yaml</code>, <code>api/data_import.py</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>Zenon Live SCADA Values Integration</strong></td>
+<td>Real-time telemetry enrichment (V/A/P/Q/status) via zenon Process Gateway behind <code>FEATURE_FLAG_ZENON_LIVE_VALUES</code>; fail-closed unreachable handling</td>
+<td><code>integrations/zenon_network_export/live_values.py</code>, <code>scada_protocols/config/scada.yaml</code></td>
 <td>✅ Complete</td>
 </tr>
 <tr>
@@ -2123,14 +2235,14 @@
 <td>✅ Complete</td>
 </tr>
 <tr>
-<td><strong>Draw Plan Builder</strong></td>
+<td><strong>Atomic Draw Plan Builder</strong></td>
 <td>Deterministic dependency ordering (<code>buses -&gt; transformers -&gt; switchgear -&gt; branches/loads</code>), chunking (<code>&lt;=50</code>), pre-flight connectivity validation, and atomic multi-chunk rollback</td>
 <td><code>etap_integration/draw_plan_builder.py</code></td>
 <td>✅ Complete</td>
 </tr>
 <tr>
 <td><strong>Dual-Control Endpoint</strong></td>
-<td>Maker-Checker endpoint proposing bounded <code>PendingAction</code> chunks from <code>project.system_config</code>, requiring admin approval</td>
+<td>Maker-Checker endpoint proposing single bounded <code>PendingAction</code> (<code>plan_kind="full_network"</code>), requiring admin approval; excluded from self-confirmation</td>
 <td><code>api/etap_draw.py</code> (<code>POST /api/v1/etap/draw/from-project</code>)</td>
 <td>✅ Complete</td>
 </tr>
@@ -2151,10 +2263,13 @@
 <h3 id="test-evidence_6">Test Evidence</h3>
 <ul>
 <li><code>tests/test_zenon_network_import.py</code> — 14 tests covering contract validation, zero-guessing warnings, topological checks, and feature flag gating</li>
-<li><code>tests/test_etap_full_network_draw.py</code> — 13 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, and dual-control endpoint</li>
+<li><code>tests/test_zenon_raw_dump_classifier.py</code> — 7 tests covering raw dump parsing, pattern classification, screen element binding, and unmapped variable auditing</li>
+<li><code>tests/test_etap_full_network_draw.py</code> — 17 tests covering dependency ordering, atomic rollback, post-draw verification, abstract connectors, dual-control proposal, atomic resolve, and anti-self-approval</li>
+<li><code>tests/test_zenon_live_values.py</code> — 4 tests verifying feature flag gating, unreachable BLOCKED status, and live measurement enrichment</li>
 <li><code>tests/test_export_cim.py</code> — 11 tests verifying backward compatibility of CIM export</li>
 <li><code>tests/test_etap_rest_draw.py</code> — 15 tests verifying base ETAP REST draw flow</li>
 <li><code>tests/test_data_import_parsing.py</code> — 20 tests verifying import parsing</li>
+<li><code>tests/test_approvals.py</code> — 22 tests verifying dual-control approvals, TTL, idempotency, and tenant isolation</li>
 </ul>
 <hr />
 <h2 id="conclusion">Conclusion</h2>

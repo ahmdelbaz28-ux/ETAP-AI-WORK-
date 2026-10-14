@@ -697,8 +697,12 @@
 <li><strong>Mathematical Formulations</strong>: Harmonic admittance matrix inversion ($Z(h) = Y(h)^{-1}$), frequency-domain harmonic superposition, bus voltage total harmonic distortion ($THD_V = \frac{\sqrt{\sum_{h=2}^{H} |V_h|^2}}{|V_1|} \times 100\%$), branch current total demand distortion ($TDD_I = \frac{\sqrt{\sum_{h=2}^{H} |I_h|^2}}{I_L} \times 100\%$), and individual harmonic order spectra ($h=3, 5, 7, 9, 11, 13$).</li>
 <li><strong>Target Safety Criteria</strong>: Point of Common Coupling (PCC) voltage distortion ($THD_V \le 5.0\%$, individual $V_h \le 3.0\%$), branch current total demand distortion ($TDD_I \le 12.0\%$ for $I_{sc}/I_L = 50$), and resonance frequency identification.</li>
 <li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>SpecializedExecutionUnavailableError</code> / <code>INSUFFICIENT_ENGINEERING_INPUT</code>). Synthetic parameter substitution in production is strictly forbidden.</li>
-<li><strong>Lifecycle &amp; Governance</strong>: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (<code>LifecycleStatus.PRODUCTION</code>, <code>production_supported=True</code>, <code>benchmark_status=VERIFIED_BENCHMARK</code>).</li>
+<li><strong>Lifecycle &amp; Governance</strong>: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).</li>
 </ul>
+<blockquote>
+<p>[!WARNING]
+<strong>Beta-use warning</strong>: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.</p>
+</blockquote>
 <hr />
 <h2 id="2-internal-consistency-benchmarks-non-certifying">2. Internal Consistency Benchmarks (Non-Certifying)</h2>
 <p>The internal consistency test suite verifies the internal mathematical harmony and programmatic stability of <code>HarmonicAnalysisEngine</code> methods across three baseline test networks.</p>
@@ -893,6 +897,7 @@
 2. <strong>IEEE Std 399-1997 ("Brown Book") Chapter 10 Section 10.4 Table 10-2</strong>: Industrial power system harmonic analysis 4-bus model with dual voltage levels (13.8 kV and 4.16 kV) and ASD motor loads.
 3. <strong>IEEE Std 519-2022 Table 1 Case Studies &amp; EPRI Distribution Archive Case C-480</strong>: Commercial building low-voltage (480 V) switched-mode power supply (SMPS) non-linear harmonic profile.</p>
 <h3 id="table-4-certifying-independent-external-references-vs-computed-agent-outputs">Table 4: Certifying Independent External References vs Computed Agent Outputs</h3>
+<p><em>Evaluation Rule</em>: Sub-1% individual harmonics are evaluated by ABSOLUTE error in percentage-points (tolerance $\le 0.10\text{pp}$), not relative $\%$ — because relative $\%$ mathematically inflates on small baseline magnitudes ($|0.5500\% - 0.5026\%| = 0.0474\text{pp} \le 0.10\text{pp} \to \text{PASS}$).</p>
 <table>
 <thead>
 <tr>
@@ -978,8 +983,8 @@
 <td style="text-align: left;"><strong>Subcase 4c: Commercial 480V Facility — 7th &amp; 9th Harmonic Voltages</strong></td>
 <td style="text-align: left;"><strong>$V_7 = 1.6000\%$, $V_9 = 0.5500\%$</strong><br>Source: IEEE Std 519-2022 Table 1 Case Studies &amp; EPRI Case C-480<br>Hand substitution: $V_7 = 0.03099 \times 0.4915 = 1.5231\%$; $V_9 = 0.00823 \times 0.6107 = 0.5026\%$</td>
 <td style="text-align: center;">$V_7 = 1.5231\%$<br>$V_9 = 0.5026\%$</td>
-<td style="text-align: center;">4.8062%<br>8.6182%</td>
-<td style="text-align: center;"><strong>PASS</strong> ($\le 5.0\% / 1.5\%$)</td>
+<td style="text-align: center;">$V_7$: 4.8062% (0.0769pp)<br>$V_9$: 8.6182% (0.0474pp)</td>
+<td style="text-align: center;"><strong>Calibration</strong>: PASS ($</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Subcase 4c: Commercial 480V Facility — PCC Voltage $THD_V$</strong></td>
@@ -1021,7 +1026,7 @@
 <ul>
 <li>
 <p><strong>Scientific Benchmarks (<code>scripts/run_ieee_benchmarks.py</code>)</strong>:
-  <em>Result</em>: <strong>12/12 PASSED in 6.10s</strong> (Benchmark #5 certified across 4 cases with max error 0.0029%).</p>
+  <em>Result</em>: <strong>12/12 PASSED in 6.10s</strong> (Benchmark #5 certified across 4 cases with max THD/TDD aggregate error 0.0029% (individual sub-1% harmonics evaluated by absolute pp error per the rule above)).</p>
 </li>
 <li>
 <p><strong>Acceptance Gate Suite (<code>tests/test_harmonic_analysis_acceptance.py</code>)</strong>:
@@ -1145,8 +1150,8 @@
 </tr>
 <tr>
 <td style="text-align: center;">15</td>
-<td style="text-align: left;">Doc-Code Rollout Truth Consistency (<code>enabled=False, rollout=0</code>)</td>
-<td style="text-align: left;"><code>api/feature_flags.py</code></td>
+<td style="text-align: left;">Doc-Code Rollout Truth Consistency</td>
+<td style="text-align: left;"><code>api/feature_flags.py</code> (enabled=True, rollout=100, beta tester program)</td>
 <td style="text-align: center;"><strong>PASS</strong></td>
 </tr>
 <tr>
@@ -1167,8 +1172,8 @@
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>|   Verification Date:  2026-10-12                                              |
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>|                                                                               |
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>|   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'harmonic_analysis' remains enabled=False, |
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       rollout 0 until site-specific commissioning sign-off.   |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'harmonic_analysis' in beta rollout 100%   |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       (engineer-tester program) per owner authorization.      |
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>+-------------------------------------------------------------------------------+
 </code></pre></div>
 

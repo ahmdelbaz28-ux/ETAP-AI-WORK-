@@ -696,8 +696,12 @@
 <li><strong>Mathematical Formulations</strong>: Continuous current carrying capacity with thermal and installation derating factors ($I_z = I_{base} \cdot C_a \cdot C_g \cdot C_s \ge I_b$), thermal short-circuit withstand via adiabatic equation ($S_{min} \ge \frac{I_k \sqrt{t}}{k}$ with $I^2 t \le I^2 t_{perm} = (k \cdot S)^2$), and balanced three-phase AC voltage drop ($\Delta V = \sqrt{3} \cdot I_b \cdot L \cdot (R \cos\phi + X \sin\phi)$ and $\Delta V\% = \frac{\Delta V}{V_{sys}} \times 100\%$).</li>
 <li><strong>Target Criteria</strong>: Continuous thermal rating compliance ($I_z \ge I_b$), permissible thermal let-through energy under fault conditions ($I^2 t \le I^2 t_{perm}$), and maximum steady-state voltage drop ($\Delta V \le 3.0\%$ for lighting/branch circuits, $\le 5.0\%$ for general distribution feeders per IEC 60364-5-52).</li>
 <li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>AgentStatus.FAILED</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>). Synthetic substitution strictly forbidden in production.</li>
-<li><strong>Lifecycle &amp; Governance</strong>: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (<code>LifecycleStatus.PRODUCTION</code>, <code>production_supported=True</code>, <code>benchmark_status=VERIFIED_BENCHMARK</code>).</li>
+<li><strong>Lifecycle &amp; Governance</strong>: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).</li>
 </ul>
+<blockquote>
+<p>[!WARNING]
+<strong>Beta-use warning</strong>: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.</p>
+</blockquote>
 <hr />
 <h2 id="2-internal-consistency-benchmarks-non-certifying">2. Internal Consistency Benchmarks (Non-Certifying)</h2>
 <p>The internal consistency test suite verifies the internal programmatic stability and mathematical harmony of <code>CableSizingAgent</code> methods across standard baseline feeder test configurations.</p>
@@ -1104,7 +1108,7 @@
 <tr>
 <td style="text-align: center;">15</td>
 <td style="text-align: left;">Doc-Code Rollout Truth Consistency</td>
-<td style="text-align: left;"><code>api/feature_flags.py</code> (enabled=False, rollout=0)</td>
+<td style="text-align: left;"><code>api/feature_flags.py</code> (enabled=True, rollout=100, beta tester program)</td>
 <td style="text-align: center;"><strong>PASS</strong></td>
 </tr>
 <tr>
@@ -1125,8 +1129,8 @@
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>|   Verification Date:  2026-10-12                                              |
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>|                                                                               |
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>|   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'cable_sizing' remains enabled=False,      |
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       rollout 0 until site-specific commissioning sign-off.   |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'cable_sizing' in beta rollout 100%        |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       (engineer-tester program) per owner authorization.      |
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>+-------------------------------------------------------------------------------+
 </code></pre></div>
 

@@ -687,8 +687,12 @@
 <li><strong>Mathematical Formulations</strong>: Rectangular grounding grid formulations (Sverak, Schwarz, and Laurent), mesh spacing factor ($K_m$), step geometric factor ($K_s$), irregularity factor ($K_i$), surface layer derating factor ($C_s$), tolerable touch/step voltage limits ($E_{touch}, E_{step}$), and Ground Potential Rise ($GPR$).</li>
 <li><strong>Target Safety Criteria</strong>: Mesh potential safety ($E_m \le E_{touch,allow}$), step potential safety ($E_s \le E_{step,allow}$), perimeter touch potential ($E_{touch,perim} \le E_{touch,allow}$), and ground resistance ($R_g \le 1.0\,\Omega$).</li>
 <li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>AgentStatus.FAILED</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>). Synthetic parameter substitution in production is strictly forbidden.</li>
-<li><strong>Lifecycle &amp; Governance</strong>: PRODUCTION-certified, NOT YET ROLLED OUT — flag enabled=False, rollout 0, no production traffic (<code>LifecycleStatus.PRODUCTION</code>, <code>production_supported=True</code>, <code>benchmark_status=VERIFIED_BENCHMARK</code>).</li>
+<li><strong>Lifecycle &amp; Governance</strong>: IN BETA ROLLOUT 100% — enabled=True, rollout 100, ENGINEER-TESTER PROGRAM, 2026-10-12, SHA feeb2e7a0, owner authorization reference (Owner-Ordered Full Beta Opening at 100%).</li>
 </ul>
+<blockquote>
+<p>[!WARNING]
+<strong>Beta-use warning</strong>: results are non-authoritative engineering assistance; any real-world design, purchase, or construction decision requires independent verification and a licensed PE stamp; report anomalies via the feedback channel with input data attached.</p>
+</blockquote>
 <hr />
 <h2 id="2-internal-consistency-benchmarks-non-certifying">2. Internal Consistency Benchmarks (Non-Certifying)</h2>
 <p>The internal consistency test suite verifies the internal mathematical harmony and programmatic stability of <code>EarthGridAgent</code> methods against baseline substation grid geometries.</p>
@@ -1100,8 +1104,8 @@
 </tr>
 <tr>
 <td style="text-align: center;">15</td>
-<td style="text-align: left;">Doc-Code Rollout Truth Consistency (<code>enabled=False, rollout=0</code>)</td>
-<td style="text-align: left;"><code>api/feature_flags.py</code></td>
+<td style="text-align: left;">Doc-Code Rollout Truth Consistency</td>
+<td style="text-align: left;"><code>api/feature_flags.py</code> (enabled=True, rollout=100, beta tester program)</td>
 <td style="text-align: center;"><strong>PASS</strong></td>
 </tr>
 <tr>
@@ -1122,8 +1126,8 @@
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>|   Verification Date:  2026-10-12                                              |
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>|                                                                               |
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>|   FINAL VERDICT:      GO-CLOSED (CERTIFIED PRODUCTION NUMERICAL ENGINE)       |
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'earth_grid' remains enabled=False,        |
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       rollout 0 until site-specific commissioning sign-off.   |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                       Feature flag 'earth_grid' in beta rollout 100%          |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|                       (engineer-tester program) per owner authorization.      |
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>+-------------------------------------------------------------------------------+
 </code></pre></div>
 

@@ -934,12 +934,12 @@ FINAL DIRECTIVE
 <p><strong>File:</strong> <code>core/engineering_router.py</code> — <code>_segment_cost_factor()</code>
 <strong>Consultant Claim:</strong> Only checks midpoint of cable segment, not the full segment. A 50m cable alongside an elevator shaft with midpoint in a safe zone gets no penalty.
 <strong>Verification:</strong> ✅ CONFIRMED — <code>mid_x, mid_y = (p1+p2)/2</code> then <code>_point_near_obstacle((mid_x, mid_y))</code> — single point check only.
-<strong>Impact:</strong> A<em> algorithm's cost function is undermined — routes through dangerous zones get same cost as safe routes.
-</em><em>Fix Applied:</em><em>
+<strong>Impact:</strong> A* algorithm's cost function is undermined — routes through dangerous zones get same cost as safe routes.
+<strong>Fix Applied:</strong>
 - When Shapely available: <code>ShapelyLineString([p1, p2]).intersects(obstacle_poly)</code> — checks ENTIRE segment
 - When Shapely unavailable: check midpoint AND quarter-points (3 points instead of 1)
 - Uses pre-computed <code>_obstacle_polys</code> for efficiency
-</em><em>Why NOT consultant's exact fix:</em>* Consultant multiplied clearance by 2.0 arbitrarily. We use the existing pre-computed obstacle polygons with standard clearance.</p>
+<strong>Why NOT consultant's exact fix:</strong> Consultant multiplied clearance by 2.0 arbitrarily. We use the existing pre-computed obstacle polygons with standard clearance.</p>
 <hr />
 <h2 id="v12-round-3-fixes-bridges-layer-2026-05-20">V12 Round 3 Fixes — Bridges Layer (2026-05-20)</h2>
 <h3 id="bug-8-unassigned-devices-black-hole-critical">Bug 8 — Unassigned Devices Black Hole (CRITICAL)</h3>
@@ -1132,7 +1132,7 @@ After line-by-line code reading, here is the full verification:</p>
 <li><strong>8 out of 12 consultant claims were stale</strong> — already fixed in V11-V13. This again validates the "verify before changing" protocol. Blindly applying would have been wasteful at best, harmful at worst.</li>
 <li><strong>DC Return Path is the most dangerous fix</strong> — a 50% under-report of voltage drop is a direct life-safety failure. This is the kind of bug that kills people.</li>
 <li><strong>AABB Rotation is theoretically correct but low practical impact</strong> — most architectural drawings are axis-aligned. Still worth fixing for correctness.</li>
-<li><strong>A* Crosses Bug is more dangerous than it sounds</strong> — <code>crosses()</code> returning False for contained lines means A* would happily route through obstacles it "can't see."</li>
+<li><em><em>A</em> Crosses Bug is more dangerous than it sounds</em>* — <code>crosses()</code> returning False for contained lines means A* would happily route through obstacles it "can't see."</li>
 <li><strong>Bowtie Merge is dormant but must be fixed</strong> — if someone enables gap closing, the bowtie bug would immediately corrupt all room polygons.</li>
 <li><strong>Bridge code regression claim was FALSE</strong> — <code>parser_bridge.py</code> already has the V11 fix (buffer(0.5) removed). <code>output_bridge.py</code> never had buffer(0.5).</li>
 </ol>
@@ -1308,9 +1308,9 @@ After line-by-line code reading, here is the full verification:</p>
 <h4 id="critique-3-seismic-joint-violation-flagging-vs-orthogonal-enforcement-major">Critique 3: Seismic Joint Violation-Flagging vs Orthogonal Enforcement (MAJOR)</h4>
 <p><strong>Consultant Claim:</strong> Flagging ALL joint crossings as violations is wrong — cables MUST cross joints. The requirement is orthogonal (90°) crossing with flexible conduit, not avoidance.
 <strong>Verification:</strong> ✅ CONFIRMED — NEC §300.4(D) requires flexible conduit transitions at 90° approach, not prohibition of crossings. My V19 code was punishing legitimate crossings.
-<strong>Impact:</strong> A<em> router detours unnecessarily, creating longer paths with more voltage drop, or fails to generate flexible junction elements for valid crossings.
-</em><em>Fix Applied:</em><em> Restructured <code>SeismicJointPenalyer</code>:
-- Crossing detection now computes </em><em>approach angle</em>* (path vs joint line direction)
+<strong>Impact:</strong> A* router detours unnecessarily, creating longer paths with more voltage drop, or fails to generate flexible junction elements for valid crossings.
+<strong>Fix Applied:</strong> Restructured <code>SeismicJointPenalyer</code>:
+- Crossing detection now computes <strong>approach angle</strong> (path vs joint line direction)
 - Orthogonal crossings (90° ± 30°) are ALLOWED with flexible junction injection
 - Only NON-orthogonal crossings generate violations
 - Cost penalty reduced from 5000 to 40 (anisotropic, not prohibitive)
@@ -3135,10 +3135,10 @@ Also added 8 new mandatory rules (9-16) to agent.md per user's explicit instruct
 <strong>Standard:</strong> NFPA 72-2022 §17.7.4.2.3.1</p>
 <h3 id="bug-v52-2-asetinfinity-bypasses-aset-rset-life-safety-gate-critical-egress">Bug V52-2 — ASET=Infinity Bypasses ASET &gt; RSET Life-Safety Gate (CRITICAL — Egress)</h3>
 <p><strong>File:</strong> <code>etap/core/release_gates.py</code> — Gate 7, lines 358-378
-<strong>Discovery:</strong> <code>float('inf') &gt; rset_s * safety_factor</code> is always True. Gate PASSES with corrupted ASET data. Also, <code>safety_factor=0</code> negates entire check (ASET &gt; RSET<em>0 = ASET &gt; 0).
-</em><em>Impact:</em><em> Building where occupants need 600s to evacuate but ASET is unknown/corrupted certified as safe.
-</em><em>Fix:</em><em> Added <code>math.isfinite()</code> validation for aset, rset, safety_factor. Enforced minimum safety_factor=1.0 per SFPE Engineering Guide.
-</em><em>Standard:</em>* SFPE Engineering Guide, NFPA 101 §9.3</p>
+<strong>Discovery:</strong> <code>float('inf') &gt; rset_s * safety_factor</code> is always True. Gate PASSES with corrupted ASET data. Also, <code>safety_factor=0</code> negates entire check (ASET &gt; RSET*0 = ASET &gt; 0).
+<strong>Impact:</strong> Building where occupants need 600s to evacuate but ASET is unknown/corrupted certified as safe.
+<strong>Fix:</strong> Added <code>math.isfinite()</code> validation for aset, rset, safety<strong>actor. En</strong>rced minimum safety_factor=1.0 per SFPE Engineering Guide.
+<strong>Standard:</strong> SFPE Engineering Guide, NFPA 101 §9.3</p>
 <h3 id="bug-v52-3-empty-device-list-passes-fault-isolation-gate-high-false-pass">Bug V52-3 — Empty Device List Passes Fault Isolation Gate (HIGH — False PASS)</h3>
 <p><strong>File:</strong> <code>etap/core/release_gates.py</code> — Gate 6, lines 332-337
 <strong>Discovery:</strong> <code>verify_isolator_compliance([])</code> returns <code>compliant=True</code> because empty loop has no violations. A loop with actual devices but missing from data structure would be certified as having adequate fault isolation.
@@ -5263,8 +5263,8 @@ Compared with current revit frontend to extract maximum benefit per agent.md rul
 <h3 id="high-fixes-applied-4">HIGH Fixes Applied (4)</h3>
 <h4 id="bug-23-runtime-packages-in-devdependencies-high">Bug 23 — Runtime Packages in devDependencies (HIGH)</h4>
 <p><strong>File:</strong> <code>frontend/package.json</code>
-<strong>Root Cause:</strong> 40+ runtime packages (react, @radix-ui/<em>, recharts, framer-motion, three, zod, etc.) were in <code>devDependencies</code>. A production <code>npm install --omit=dev</code> would not install them, causing runtime crashes.
-</em><em>Fix:</em>* Moved all runtime packages to <code>dependencies</code>. Moved type packages (@types/three) to <code>devDependencies</code>. Removed non-existent <code>autoprefixer@10.5.0</code>, unused <code>@tailwindcss/postcss</code>, replit plugins, and <code>tailwindcss-animate</code>.</p>
+<strong>Root Cause:</strong> 40+ runtime packages (react, @radix-ui/*, recharts, framer-motion, three, zod, etc.) were in <code>devDependencies</code>. A production <code>npm install --omit=dev</code> would not install them, causing runtime crashes.
+<strong>Fix:</strong> Moved all runtime packages to <code>dependencies</code>. Moved type packages (@types/three) to <code>devDependencies</code>. Removed non-existent <code>autoprefixer@10.5.0</code>, unused <code>@tailwindcss/postcss</code>, replit plugins, and <code>tailwindcss-animate</code>.</p>
 <h4 id="bug-24-typesthree-version-mismatch-high">Bug 24 — @types/three Version Mismatch (HIGH)</h4>
 <p><strong>File:</strong> <code>frontend/package.json</code> — line 86
 <strong>Root Cause:</strong> <code>@types/three@0.184.1</code> was 24 minor versions ahead of <code>three@0.160.1</code>. Type definitions would reference APIs that don't exist at runtime.
@@ -9228,7 +9228,7 @@ No probabilistic decisions. Pure deterministic logic.</p>
 </tbody>
 </table>
 <ul>
-<li><strong>A* Cost Function</strong>: bend penalty (0.5m), elevation (2.0m),
+<li><em><em>A</em> Cost Function</em>*: bend penalty (0.5m), elevation (2.0m),
   electrical proximity (1.0m)</li>
 <li><strong>Manhattan Heuristic</strong>: admissible for 6-directional orthogonal</li>
 <li><strong>ConstraintSource enum</strong>: every constraint has a traceable origin</li>
@@ -10598,8 +10598,8 @@ The same parameter <code>ambient_temp_c</code> was used as two physically differ
 <h3 id="medium-1-rate-limit-group-uses-first-match-instead-of-longest-prefix">MEDIUM-1: Rate Limit Group Uses First-Match Instead of Longest-Prefix</h3>
 <p><strong>File:</strong> backend_app.py, lines 702-709
 <strong>Severity:</strong> MEDIUM
-<strong>Root Cause:</strong> _find_limit() used longest-prefix match, but group counter key used first-match. For path /api/memory/gemini/search, the limit was 60/min but the counter was shared with /api/memory/<em> (30/min).
-</em><em>Fix:</em>* Changed group selection to use longest-prefix match (same algorithm as _find_limit).</p>
+<strong>Root Cause:</strong> _find_limit() used longest-prefix match, but group counter key used first-match. For path /api/memory/gemini/search, the limit was 60/min but the counter was shared with /api/memory/* (30/min).
+<strong>Fix:</strong> Changed group selection to use longest-prefix match (same algorithm as _find_limit).</p>
 <h3 id="commit-information_85">Commit Information</h3>
 <ul>
 <li><strong>Test Suite:</strong> 1057 passed, 1 skipped, 0 failures</li>
@@ -12858,9 +12858,9 @@ behavior if the caller reuses the dictionary.
 <strong>Fix:</strong> Replaced with <code>add_lwpolyline(bulge_vertices, format='xyb', close=True, dxfattribs=...)</code> where <code>bulge_vertices = [(x, y, 0.4) for (x, y) in vertices]</code>.</p>
 <h4 id="bug-3-test-5-obstacle-pattern-allows-3d-escape-critical">Bug 3 — Test 5 Obstacle Pattern Allows 3D Escape (CRITICAL)</h4>
 <p><strong>File:</strong> <code>qomn_fire_generator.py</code> — <code>test_routing_exceeds_bend_limits_fails()</code>
-<strong>Root Cause:</strong> Obstacles placed only at z=0 in a 3D routing engine. A<em> correctly routes around obstacles by going to z=1 (or z=-3), bypassing all zigzag walls. Path has only 360° of bends — exactly at the NEC limit, not exceeding it.
-</em><em>Impact:</em><em> NEC 358.26 compliance verification was impossible. The test's assertion was correct but unreachable because the obstacle setup was 2D-only.
-</em><em>Fix:</em><em> Added floor and ceiling slabs at z=-1 and z=1 that block ALL grid positions within the corridor. This physically forces A</em> to stay on the z=0 plane, producing 1710° of bends (19 × 90°), correctly triggering the NEC violation.
+<strong>Root Cause:</strong> Obstacles placed only at z=0 in a 3D routing engine. A* correctly routes around obstacles by going to z=1 (or z=-3), bypassing all zigzag walls. Path has only 360° of bends — exactly at the NEC limit, not exceeding it.
+<strong>Impact:</strong> NEC 358.26 compliance verification was impossible. The test's assertion was correct but unreachable because the obstacle setup was 2D-only.
+<strong>Fix:</strong> Added floor and ceiling slabs at z=-1 and z=1 that block ALL grid positions within the corridor. This physically forces A* to stay on the z=0 plane, producing 1710° of bends (19 × 90°), correctly triggering the NEC violation.
 <strong>Why this is NOT modifying a test (Rule 10):</strong> The test's assertion logic (expecting NECViolationError when bends &gt; 360°) is correct and unchanged. Only the test SETUP was fixed — the obstacle pattern now properly exercises the assertion it claims to verify.</p>
 <h4 id="bug-4-placementpy-missing-from-typing-import-list-high">Bug 4 — <code>placement.py</code> Missing <code>from typing import List</code> (HIGH)</h4>
 <p><strong>File:</strong> <code>qomn_fire/engine/placement.py</code> (generator embedded code)
@@ -13417,7 +13417,7 @@ design engine, preventing corrupted geometry from producing unsafe designs.</p>
 </tr>
 <tr>
 <td>BUG-20</td>
-<td>Route length = len(path)<em>step instead of (len-1)</em>step</td>
+<td>Route length = len(path)*step instead of (len-1)*step</td>
 <td>CRITICAL</td>
 <td>routing.py</td>
 <td>All lengths overstated by one grid step</td>
@@ -13866,7 +13866,7 @@ The 1.5× factor is conservative for most installations and dramatically safer t
 <h3 id="self-criticism-notes-v65-batch-4">Self-Criticism Notes (V65 Batch 4)</h3>
 <ol>
 <li><strong>This is the single most impactful fix in the entire audit</strong> — it changes voltage drop calculations by 50%+ for every circuit. Before this fix, every voltage drop calculation in the system was potentially underestimated by 2-3×.</li>
-<li><strong>The preferred solution is actual A* routed lengths</strong> — the routing factor is a conservative approximation. Engineers should always provide <code>cable_length_m</code> from the routing engine.</li>
+<li><em><em>The preferred solution is actual A</em> routed lengths</em>* — the routing factor is a conservative approximation. Engineers should always provide <code>cable_length_m</code> from the routing engine.</li>
 <li><strong>This fix may cause existing "PASS" circuits to now "FAIL"</strong> — which is CORRECT. Those circuits were falsely passing due to underestimated voltage drop. The new failures are real safety issues that were previously hidden.</li>
 </ol>
 <h3 id="commit-information_106">Commit Information</h3>
@@ -18653,9 +18653,9 @@ because they used editable install.
 <strong>Fix:</strong>
 1. Deleted <code>setup.py</code> — <code>pyproject.toml</code> is the sole build config (PEP 517/518).
 2. Added <code>[tool.setuptools.packages.find]</code> with explicit <code>include</code> list
-   (backend<em>, etap</em>, core<em>, parsers</em>, facp_system<em>, facp_distributed</em>,
-   qomn_fire<em>, qomn_conduit</em>, integration<em>, marine</em>, adapters<em>, services</em>,
-   skills<em>) and <code>exclude</code> list (tests</em>, docs<em>, deploy</em>, etc.).
+   (backend*, etap*, core*, parsers*, facp_system*, facp_distributed*,
+   qomn_fire*, qomn_conduit*, integration*, marine*, adapters*, services*,
+   skills*) and <code>exclude</code> list (tests*, docs*, deploy*, etc.).
 3. Added <code>[tool.setuptools.package-data]</code> for py.typed, JSON, YAML, SVG, HTML.
 4. Updated Dockerfiles to <code>COPY pyproject.toml ./</code> (removed <code>setup.py</code>).
 <strong>Verification:</strong> <code>python -m build --wheel</code> now produces a 4.5MB wheel with

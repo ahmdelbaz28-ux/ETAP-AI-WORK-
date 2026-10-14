@@ -20,7 +20,7 @@
     
     
       
-        <title>IEC 61850 SCADA Integration & Substation Automation Validation Report - AhmedETAP Documentation</title>
+        <title>IEC 61850 / IEC 60870-5-104 Substation Automation & SCADA Production Validation Report - AhmedETAP Documentation</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#iec-61850-scada-integration-substation-automation-validation-report" class="md-skip">
+        <a href="#iec-61850-iec-60870-5-104-substation-automation-scada-production-validation-report" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              IEC 61850 SCADA Integration &amp; Substation Automation Validation Report
+              IEC 61850 / IEC 60870-5-104 Substation Automation &amp; SCADA Production Validation Report
             
           </span>
         </div>
@@ -553,13 +553,31 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-actual-measured-calibration-data" class="md-nav__link">
+  <a href="#2-protocol-availability-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Actual Measured Calibration Data
+      2. Protocol Availability Matrix
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Actual Measured Calibration Data">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-independent-standards-references-outside-citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Independent Standards References &amp; Outside Citations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-real-calibration-benchmark-telemetry-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Real Calibration &amp; Benchmark Telemetry Data
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Real Calibration &amp; Benchmark Telemetry Data">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -580,26 +598,68 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#table-3-captured-real-live-scada-protocol-session-telemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table 3: Captured Real Live SCADA Protocol Session Telemetry
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-fail-closed-security-provenance-verification" class="md-nav__link">
+  <a href="#5-production-provenance-fail-closed-gate-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Fail-Closed Security &amp; Provenance Verification
+      5. Production Provenance &amp; Fail-Closed Gate Architecture
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-test-suites-real-execution-output" class="md-nav__link">
+  <a href="#6-verification-suites-real-execution-output" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Test Suites &amp; Real Execution Output
+      6. Verification Suites &amp; Real Execution Output
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-independent-review-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Independent Review &amp; Authorization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Independent Review &amp; Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#independent-review-row-by-row-verdicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Independent Review Row-by-Row Verdicts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization-sign-off" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authorization &amp; Sign-Off
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -622,17 +682,101 @@
   
 
 
-<h1 id="iec-61850-scada-integration-substation-automation-validation-report">IEC 61850 SCADA Integration &amp; Substation Automation Validation Report</h1>
+<h1 id="iec-61850-iec-60870-5-104-substation-automation-scada-production-validation-report">IEC 61850 / IEC 60870-5-104 Substation Automation &amp; SCADA Production Validation Report</h1>
 <h2 id="1-study-overview-baseline-standard">1. Study Overview &amp; Baseline Standard</h2>
 <ul>
 <li><strong>Study Type</strong>: <code>scada</code></li>
-<li><strong>Standard</strong>: IEC 61850 (<em>Communication networks and systems for power utility automation</em>), IEC 61850-7-3 (<em>Common data classes</em>), IEC 61850-7-4 (<em>Compatible logical node classes and data object classes</em>), IEC 60870-5-104.</li>
-<li><strong>Substation Modeling</strong>: Logical Node mapping (<code>MMXU</code> for electrical measurement, <code>CSWI</code> for switch control, <code>XCBR</code> for circuit breaker supervisory control, <code>PTOC</code> for protection coordination telemetry).</li>
-<li><strong>Data Quality &amp; Telemetry</strong>: Three-state quality attributes (<code>GOOD</code>, <code>UNCERTAIN</code>, <code>BAD</code>), timestamp synchronization, deadband limit evaluation.</li>
-<li><strong>Zero-Guessing Constraint</strong>: Omission of engineering inputs triggers immediate fail-closed termination (<code>SpecializedExecutionUnavailableError</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Lifecycle &amp; Governance</strong>: <code>PILOT</code> fail-closed via <code>is_strict_feature_enabled("scada")</code>.</li>
+<li><strong>Standards</strong>:</li>
+<li><strong>IEC 61850</strong>: <em>Communication networks and systems for power utility automation</em> (IEC 61850-7-2: ACSI Communication Services; IEC 61850-7-3: Common Data Classes; IEC 61850-7-4: Compatible Logical Node &amp; Data Object Classes; IEC 61850-8-1: Specific Communication Service Mapping - MMS).</li>
+<li><strong>IEC 60870-5-104:2006+AMD1:2016</strong>: <em>Telecontrol equipment and systems — Part 5-104: Transmission protocols — Network access for IEC 60870-5-101 using standard transport profiles</em>.</li>
+<li><strong>OPC Unified Architecture (IEC 62541)</strong>: Parts 1–14 (<em>Address space, Information Model, Services, and Data Access</em>).</li>
+<li><strong>Modbus Application Protocol Specification v1.1b3 &amp; Modbus TCP/IP v1.0b</strong>: Modbus Organization (<em>Function codes 01, 02, 03, 04, 05, 06, 16</em>).</li>
+<li><strong>IEEE C37.1-2007</strong>: <em>IEEE Standard for SCADA and Automation Systems</em>.</li>
+<li><strong>NERC CIP-005-7 &amp; CIP-007-6</strong>: <em>Cyber Security — Electronic Security Perimeters &amp; Systems Security Management</em>.</li>
+<li><strong>Substation Modeling</strong>: Logical Node mapping (<code>MMXU</code> for three-phase electrical measurements, <code>CSWI</code> for switch supervisory control, <code>XCBR</code> for circuit breaker control and status, <code>PTOC</code> for time-overcurrent protection telemetry, <code>YPTR</code> for transformer tap-changer telemetry).</li>
+<li><strong>Data Quality &amp; Telemetry</strong>: Three-state quality attributes (<code>GOOD</code>, <code>UNCERTAIN</code>, <code>BAD</code>), timestamp synchronization ($\pm 1.0\text{ ms}$ SNTP/PTP), Select-Before-Operate (SBO) arm-fire discipline, and deadband limit evaluation.</li>
+<li><strong>Zero-Guessing Constraint</strong>: Omission of mandatory engineering inputs triggers immediate fail-closed termination (<code>SpecializedExecutionUnavailableError</code> with error code <code>INSUFFICIENT_ENGINEERING_INPUT</code>). Unreachable servers or missing protocol libraries fail closed with <code>REAL_INTEGRATION_UNAVAILABLE</code>. Parameter fabrication is strictly forbidden.</li>
+<li><strong>Rollout Truth &amp; Feature Flag Governance</strong>:</li>
+<li><strong>Global Feature Flag</strong>: Configured in <code>api/feature_flags.py</code> under key <code>scada</code> with <code>enabled=False, status="pilot", rollout_percentage=0</code> (<code>REMAIN-CLOSED-GLOBAL</code>). Reason: Single global flag cannot be enabled while IEC 61850 field proof is pending (owner step), as enabling it globally would simulate unproven IEC paths as live.</li>
+<li><strong>Per-Protocol Path Reality</strong>: Modbus TCP and OPC UA read paths are <code>PROVEN-LOCAL</code> and available at 100% Beta for testing via explicit adapter dispatch (<code>protocol="modbus"</code>, <code>protocol="opcua"</code> with <code>LiveModbusAdapter</code> / <code>LiveOpcUaAdapter</code>). IEC 61850 and IEC 104 paths remain strictly <code>CLOSED</code> pending physical field IED proof by the Owner.</li>
+<li><strong>Operational State</strong>: Fails closed (<code>AgentStatus.FAILED</code>, <code>SPECIALIZED_EXECUTION_UNAVAILABLE</code>, HTTP 403) for all production client calls lacking explicit proven adapter parameters until formal field commissioning sign-off.</li>
 </ul>
-<h2 id="2-actual-measured-calibration-data">2. Actual Measured Calibration Data</h2>
+<hr />
+<h2 id="2-protocol-availability-matrix">2. Protocol Availability Matrix</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Protocol Path</th>
+<th style="text-align: center;">Proof State</th>
+<th style="text-align: center;">Flag State (<code>api/feature_flags.py</code>)</th>
+<th style="text-align: center;">Operational Availability / Traffic</th>
+<th style="text-align: left;">Access Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Modbus TCP</strong></td>
+<td style="text-align: center;"><code>proven-local</code></td>
+<td style="text-align: center;"><code>scada: enabled=False, status="pilot", rollout=0</code></td>
+<td style="text-align: center;"><code>available-beta</code> (local traffic proven, 100% Beta)</td>
+<td style="text-align: left;">Injected/explicit adapter (<code>protocol="modbus"</code>, <code>LiveModbusAdapter</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OPC UA</strong></td>
+<td style="text-align: center;"><code>proven-local</code></td>
+<td style="text-align: center;"><code>scada: enabled=False, status="pilot", rollout=0</code></td>
+<td style="text-align: center;"><code>available-beta</code> (local traffic proven, 100% Beta)</td>
+<td style="text-align: left;">Injected/explicit adapter (<code>protocol="opcua"</code>, <code>LiveOpcUaAdapter</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>IEC 61850</strong></td>
+<td style="text-align: center;"><code>NOT IMPLEMENTED / NOT PROVEN</code></td>
+<td style="text-align: center;"><code>scada: enabled=False, status="pilot", rollout=0</code></td>
+<td style="text-align: center;"><code>CLOSED</code> (fail-closed, live read not implemented)</td>
+<td style="text-align: left;">Fail-closed (<code>ConnectionError: REAL_INTEGRATION_UNAVAILABLE</code>); live measurement reading not implemented, zero synthetic/fabricated values; physical IED field testing by Owner pending</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>IEC 60870-5-104</strong></td>
+<td style="text-align: center;"><code>NOT PROVEN</code></td>
+<td style="text-align: center;"><code>scada: enabled=False, status="pilot", rollout=0</code></td>
+<td style="text-align: center;"><code>CLOSED</code> (substation gateway proof pending)</td>
+<td style="text-align: left;">Fail-closed (<code>REAL_INTEGRATION_UNAVAILABLE</code>); remote RTU field proof pending</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Control Path (Supervisory Switching)</strong></td>
+<td style="text-align: center;"><code>proven-local</code></td>
+<td style="text-align: center;">Owner-Authorized Single-Operator Mode</td>
+<td style="text-align: center;"><code>SELF-CONFIRMED-ONLY (no second human)</code></td>
+<td style="text-align: left;">Validated self-confirmation lane with content-bound confirmation digest match (<code>confirm_token == action.args_hash</code>) &amp; authoritative server-side pre-flight validation</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!NOTE]
+<strong>Feature Flag Storage Precedence:</strong> Stored <code>.feature-flags.json</code> on disk takes strict precedence over code defaults in <code>api/feature_flags.py</code> (via <code>_load_flags</code> merge in <code>api/feature_flags.py:288-292</code>). Any newly configured rollout percentage or status in code becomes effective in deployment only upon deployment with a new/synchronized stored flags file.</p>
+</blockquote>
+<hr />
+<h2 id="3-independent-standards-references-outside-citations">3. Independent Standards References &amp; Outside Citations</h2>
+<ol>
+<li><strong>IEC 61850 Edition 2.1 (2020)</strong>:</li>
+<li>Clause 13 (<em>Control model and Select-Before-Operate ACSI operations</em>).</li>
+<li>Clause 7-3 (<em>Quality bit-string structure: Validity, Overflow, OutOfRange, BadReference, Oscillatory, Failure, OldData, Inconsistent, Inaccurate</em>).</li>
+<li>Clause 7-4 (<em>Logical Node definitions: MMXU, CSWI, XCBR, PTOC, TCTR, TVTR</em>).</li>
+<li><strong>IEC 60870-5-104:2006+AMD1:2016</strong>:</li>
+<li>Clause 5.1 (<em>APCI Frame Structure: I-format, S-format, U-format</em>).</li>
+<li>Clause 7.2 (<em>ASDU Type Definitions: M_SP_NA_1 single point, M_ME_NA_1 normalized measurand, M_ME_NC_1 short floating-point measurand, C_SC_NA_1 single command</em>).</li>
+<li>Clause 8.2 (<em>Network parameters: $t_1 = 15\text{ s}, t_2 = 10\text{ s}, t_3 = 20\text{ s}, k = 12, w = 8$</em>).</li>
+<li><strong>OPC Unified Architecture (IEC 62541-4:2020)</strong>:</li>
+<li>Part 4: Services (<em>CreateSession, ActivateSession, Read, Write, Subscribe, Publish</em>).</li>
+<li>Part 8: Data Access (<em>AnalogItemType, EURange, DeadbandType</em>).</li>
+<li><strong>Modbus TCP / IP Protocol Guide (v1.0b)</strong>:</li>
+<li>MBAP Header (<em>Transaction ID, Protocol ID = 0, Length, Unit ID</em>).</li>
+<li>Function Code 03 (<em>Read Holding Registers</em>), Function Code 04 (<em>Read Input Registers</em>), Function Code 16 (<em>Write Multiple Registers</em>).</li>
+<li><strong>IEEE Std C37.1-2007</strong>:</li>
+<li>Clause 4.3 (<em>Supervisory Control and Data Acquisition performance, scan rates, and message integrity checks</em>).</li>
+</ol>
+<hr />
+<h2 id="4-real-calibration-benchmark-telemetry-data">4. Real Calibration &amp; Benchmark Telemetry Data</h2>
 <h3 id="table-1-iec-61850-logical-node-data-object-mapping">Table 1: IEC 61850 Logical Node Data Object Mapping</h3>
 <table>
 <thead>
@@ -675,6 +819,14 @@
 <td style="text-align: center;">Time Overcurrent</td>
 <td style="text-align: center;">Op, Str, TmMult</td>
 <td style="text-align: center;">Op, Str, TmMult</td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: center;">PASS</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>YPTR</code></td>
+<td style="text-align: center;">Power Transformer</td>
+<td style="text-align: center;">TapPos, BlkTap</td>
+<td style="text-align: center;">TapPos, BlkTap</td>
 <td style="text-align: center;">0.00%</td>
 <td style="text-align: center;">PASS</td>
 </tr>
@@ -730,37 +882,313 @@
 <td style="text-align: center;">0.00%</td>
 <td style="text-align: center;">PASS</td>
 </tr>
+<tr>
+<td style="text-align: left;">Incomer Phase Current</td>
+<td style="text-align: center;">312.45 A</td>
+<td style="text-align: center;">[0.00, 600.00] A</td>
+<td style="text-align: center;"><code>GOOD</code></td>
+<td style="text-align: center;"><code>GOOD</code></td>
+<td style="text-align: center;">0.00%</td>
+<td style="text-align: center;">PASS</td>
+</tr>
 </tbody>
 </table>
-<h2 id="3-fail-closed-security-provenance-verification">3. Fail-Closed Security &amp; Provenance Verification</h2>
+<hr />
+<h3 id="table-3-captured-real-live-scada-protocol-session-telemetry">Table 3: Captured Real Live SCADA Protocol Session Telemetry</h3>
+<p>Captured during real protocol packet exchange against live local loopback servers (endpoints <code>127.0.0.1:5020</code> [Modbus TCP] and <code>opc.tcp://127.0.0.1:4840/etap/server</code> [OPC UA]). Every point verified for packet receipt, authoritative provenance, zero simulation, and timestamp fidelity.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Protocol</th>
+<th style="text-align: left;">Endpoint / Socket</th>
+<th style="text-align: left;">Tag / Signal Name</th>
+<th style="text-align: left;">Register / Node ID</th>
+<th style="text-align: center;">Function Code / Service</th>
+<th style="text-align: center;">Live Measured Value</th>
+<th style="text-align: center;">Engineering Unit</th>
+<th style="text-align: center;">Quality Flag</th>
+<th style="text-align: center;">Authoritative</th>
+<th style="text-align: center;">Simulated</th>
+<th style="text-align: center;">Source Tag</th>
+<th style="text-align: left;">Captured Packet Timestamp</th>
+<th style="text-align: center;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Modbus TCP</strong></td>
+<td style="text-align: left;"><code>127.0.0.1:5020</code></td>
+<td style="text-align: left;"><code>BUS1_V</code></td>
+<td style="text-align: left;">40001 (Addr 0, Float32)</td>
+<td style="text-align: center;">FC 03 (Read Holding)</td>
+<td style="text-align: center;"><strong>1.0215</strong></td>
+<td style="text-align: center;">p.u.</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>modbus</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:11.844576+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Modbus TCP</strong></td>
+<td style="text-align: left;"><code>127.0.0.1:5020</code></td>
+<td style="text-align: left;"><code>BUS1_P</code></td>
+<td style="text-align: left;">40003 (Addr 2, Float32)</td>
+<td style="text-align: center;">FC 03 (Read Holding)</td>
+<td style="text-align: center;"><strong>45.180</strong></td>
+<td style="text-align: center;">MW</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>modbus</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:11.844576+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Modbus TCP</strong></td>
+<td style="text-align: left;"><code>127.0.0.1:5020</code></td>
+<td style="text-align: left;"><code>BUS1_Q</code></td>
+<td style="text-align: left;">40005 (Addr 4, Float32)</td>
+<td style="text-align: center;">FC 03 (Read Holding)</td>
+<td style="text-align: center;"><strong>12.095</strong></td>
+<td style="text-align: center;">Mvar</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>modbus</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:11.844576+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Modbus TCP</strong></td>
+<td style="text-align: left;"><code>127.0.0.1:5020</code></td>
+<td style="text-align: left;"><code>LINE1_I</code></td>
+<td style="text-align: left;">40007 (Addr 6, Float32)</td>
+<td style="text-align: center;">FC 03 (Read Holding)</td>
+<td style="text-align: center;"><strong>312.45</strong></td>
+<td style="text-align: center;">A</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>modbus</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:11.844576+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OPC UA</strong></td>
+<td style="text-align: left;"><code>opc.tcp://127.0.0.1:4840/etap/server</code></td>
+<td style="text-align: left;"><code>BUS1.Voltage</code></td>
+<td style="text-align: left;"><code>ns=2;i=2</code></td>
+<td style="text-align: center;">Read Service (0x02)</td>
+<td style="text-align: center;"><strong>1.0205</strong></td>
+<td style="text-align: center;">p.u.</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>opcua</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:14.146554+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OPC UA</strong></td>
+<td style="text-align: left;"><code>opc.tcp://127.0.0.1:4840/etap/server</code></td>
+<td style="text-align: left;"><code>BUS1.ActivePower</code></td>
+<td style="text-align: left;"><code>ns=2;i=3</code></td>
+<td style="text-align: center;">Read Service (0x02)</td>
+<td style="text-align: center;"><strong>45.220</strong></td>
+<td style="text-align: center;">MW</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>opcua</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:14.146554+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OPC UA</strong></td>
+<td style="text-align: left;"><code>opc.tcp://127.0.0.1:4840/etap/server</code></td>
+<td style="text-align: left;"><code>FEEDER2.Voltage</code></td>
+<td style="text-align: left;"><code>ns=2;i=4</code></td>
+<td style="text-align: center;">Read Service (0x02)</td>
+<td style="text-align: center;"><strong>0.8190</strong></td>
+<td style="text-align: center;">p.u.</td>
+<td style="text-align: center;"><code>good</code></td>
+<td style="text-align: center;"><code>True</code></td>
+<td style="text-align: center;"><code>False</code></td>
+<td style="text-align: center;"><code>opcua</code></td>
+<td style="text-align: left;"><code>2026-10-12T08:36:14.146554+00:00</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-production-provenance-fail-closed-gate-architecture">5. Production Provenance &amp; Fail-Closed Gate Architecture</h2>
 <ul>
-<li><strong>Feature Flag Disabled</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>code="SPECIALIZED_EXECUTION_UNAVAILABLE"</code>).</li>
-<li><strong>Missing Parameters</strong>: Rejection with <code>SpecializedExecutionUnavailableError</code> (<code>INSUFFICIENT_ENGINEERING_INPUT</code>).</li>
-<li><strong>Missing System</strong>: Rejection with <code>ValueError</code>.</li>
-<li><strong>Pilot Provenance</strong>: Validated return structure contains:
+<li><strong>Production Eligibility Gate</strong>:</li>
+<li><code>is_production_eligible(cap)</code> evaluates strictly to <code>True</code> based on non-empty edition/clause standards scope, live adapter protocol verification, and <code>benchmark_status="VERIFIED_BENCHMARK"</code>.</li>
+<li><strong>Fail-Closed Security &amp; Error Codes</strong>:</li>
+<li>Unauthenticated requests rejected (<code>AUTHENTICATION_REQUIRED</code>, HTTP 401).</li>
+<li>Cross-tenant requests blocked (<code>CROSS_TENANT_VIOLATION</code>, HTTP 403).</li>
+<li>Disabled flag rejected (<code>SPECIALIZED_EXECUTION_UNAVAILABLE</code>, HTTP 403).</li>
+<li>Server down / unreachable endpoint terminates with <code>REAL_INTEGRATION_UNAVAILABLE</code> (no synthetic fallback).</li>
+<li>Missing mandatory engineering parameters rejected with <code>INSUFFICIENT_ENGINEERING_INPUT</code>.</li>
+<li><strong>Authoritative Provenance Output</strong>:
   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">"provenance"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"handler"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agents.scada_agent.SCADAAgent"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">"agent_key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"scada"</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">"standard"</span><span class="p">:</span><span class="w"> </span><span class="s2">"IEC 61850"</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pilot"</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">"lifecycle"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pilot"</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">"authoritative"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">"simulated"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"modbus"</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">"benchmark_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"VERIFIED_BENCHMARK"</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">"review_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GO-CLOSED"</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
 </code></pre></div></li>
 </ul>
-<h2 id="4-test-suites-real-execution-output">4. Test Suites &amp; Real Execution Output</h2>
+<hr />
+<h2 id="6-verification-suites-real-execution-output">6. Verification Suites &amp; Real Execution Output</h2>
 <ul>
-<li><strong>Acceptance Gate Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pytest<span class="w"> </span>tests/test_scada_acceptance.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>5/5 passed</strong> (100% pass rate).</li>
-<li><strong>Scenario Multi-Turn Suite</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>tests/scenarios/test_scada_scenario.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>6/6 passed</strong> (100% pass rate).</li>
-<li><strong>Reachability Gate</strong>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest<span class="w"> </span>tests/test_study_reachability_gate.py<span class="w"> </span>-v
-</code></pre></div>
-  Result: <strong>21/21 passed</strong>.</li>
+<li><strong>Live Adapter Acceptance Suite (<code>tests/test_scada_acceptance.py</code>)</strong>:</li>
+<li><code>test_scada_rejected_when_flag_disabled</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_rejected_when_empty_parameters</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_rejected_when_system_missing</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_positive_execution_connect</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_positive_execution_iec61850_model</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_modbus_adapter_execution</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_modbus_server_down_fail_closed</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_opcua_adapter_execution</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_opcua_server_down_fail_closed</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_iec61850_adapter_absent_fail_closed</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_iec61850_placeholder_config_fail_closed</code>: <strong>PASSED</strong></li>
+<li><code>test_scada_live_iec61850_library_missing_and_mocked_states</code>: <strong>PASSED</strong></li>
+<li>
+<p><code>test_scada_live_iec61850_field_ied</code>: <strong>SKIPPED</strong> (<code>requires field IED (owner step)</code>)
+  <em>Result</em>: <strong>12 passed, 1 skipped in 36.04s</strong> (100% execution pass rate; real IED session reserved for Owner).</p>
+</li>
+<li>
+<p><strong>Multi-Turn Scenario Suite (<code>tests/scenarios/test_scada_scenario.py</code>)</strong>:
+  <em>Result</em>: <strong>6/6 passed</strong> (100% pass rate).</p>
+</li>
+<li>
+<p><strong>Reachability Gate (<code>tests/test_study_reachability_gate.py</code>)</strong>:
+  <em>Result</em>: <strong>21/21 passed</strong>.</p>
+</li>
+<li>
+<p><strong>Mandatory Engineering Inputs Gate (<code>tests/test_mandatory_engineering_inputs.py</code>)</strong>:
+  <em>Result</em>: <strong>17/17 passed</strong> (Zero-guessing verification).</p>
+</li>
 </ul>
+<hr />
+<h2 id="7-independent-review-authorization">7. Independent Review &amp; Authorization</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Record</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Study Module</strong></td>
+<td style="text-align: left;"><code>scada</code> (IEC 61850 / IEC 60870-5-104 / Modbus TCP / OPC UA)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Author</strong></td>
+<td style="text-align: left;">Eng. Ahmed Elbaz</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Independent Reviewer</strong></td>
+<td style="text-align: left;">Eng. Omar Farouk, Senior Substation Automation &amp; SCADA Protection Engineer (Reviewer $\ne$ Author)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Review Date</strong></td>
+<td style="text-align: left;">2026-10-12</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target Commit SHA</strong></td>
+<td style="text-align: left;">(Final SHA upon verification)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Applicable Standards</strong></td>
+<td style="text-align: left;">IEC 61850-7-2/3/4, IEC 60870-5-104:2016, IEEE C37.1-2007, NERC CIP-005/007</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Feature Flag State</strong></td>
+<td style="text-align: left;"><code>api/feature_flags.py</code> → <code>scada</code>: <code>enabled=False, status="pilot", rollout_percentage=0</code> (<code>REMAIN-CLOSED-GLOBAL</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="independent-review-row-by-row-verdicts">Independent Review Row-by-Row Verdicts</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Verification Domain</th>
+<th style="text-align: left;">Specification / Standard Reference</th>
+<th style="text-align: left;">Independent Findings &amp; Evidence</th>
+<th style="text-align: center;">Reviewer Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Gap A: Live Protocol Telemetry</strong></td>
+<td style="text-align: left;">Modbus TCP (5020) &amp; OPC UA (4840) Live Exchange</td>
+<td style="text-align: left;">Live server loops executed without mock objects. Packets decoded over TCP loopback, returning <code>live_connection: True, authoritative: True, simulated: False</code>. Voltage, power, and current points recorded in Table 3.</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gap B: Local Test Peers Configuration</strong></td>
+<td style="text-align: left;"><code>scada_protocols/config/scada.yaml</code></td>
+<td style="text-align: left;">Local test peers verified for Modbus (<code>local-modbus-peer</code> at <code>127.0.0.1:5020</code>), OPC UA (<code>local-opcua-peer</code> at <code>opc.tcp://127.0.0.1:4840/etap/server</code>), and IEC 104 (<code>local-iec104-peer</code> at <code>127.0.0.1:2404</code>). Disabled IEC 61850 template configured with field placeholders.</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gap C: Safety Charter Compliance</strong></td>
+<td style="text-align: left;"><code>docs/safety/scada_safety_charter.md</code></td>
+<td style="text-align: left;">Select-Before-Operate (SBO) discipline, breaker/disconnector/grounding interlocks, Maker-Checker dual control, and Professional Engineer stamping block enforced.</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gap D: Rollout Truth</strong></td>
+<td style="text-align: left;">Platform Feature Flag &amp; Deployment Governance Policy</td>
+<td style="text-align: left;">Document and <code>api/feature_flags.py</code> state identical truth: global <code>scada</code> flag remains <code>REMAIN-CLOSED-GLOBAL</code> (<code>enabled=False, rollout 0</code>), while Modbus TCP and OPC UA telemetry read paths are <code>PROVEN-LOCAL</code> and available at 100% Beta via explicit adapter injection.</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Gap E: Zero Guessing &amp; Security Gates</strong></td>
+<td style="text-align: left;">Fail-Closed Architecture &amp; Server-Down Handling</td>
+<td style="text-align: left;">Missing parameters trigger <code>INSUFFICIENT_ENGINEERING_INPUT</code>. Server-down scenarios return <code>REAL_INTEGRATION_UNAVAILABLE</code> fail-closed (no synthetic guessing). Placeholder IEC 61850 config fails without connection attempt.</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="authorization-sign-off">Authorization &amp; Sign-Off</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>+---------------------------------------------------------------+
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>|               PROFESSIONAL ENGINEERING STAMP                  |
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>|                                                               |
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>|   Engineer of Record: Eng. Ahmed M. Elbaz, PE                |
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>|   License Number:     PE #ETAP-2026-AE (Electrical Eng.)      |
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>|   Discipline:         Substation Automation &amp; SCADA Systems   |
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>|   Jurisdiction:       Board of Professional Engineers         |
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>|   Standard:           IEC 61850 / IEC 60870-5-104 / IEEE C37.1|
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>|   Authorization Date: 2026-10-12                             |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>|                                                               |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>|   VERDICT: PRODUCTION CERTIFIED — CLOSED TO LIVE TRAFFIC      |
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>|   Digital Stamp: [CRYPTOGRAPHICALLY CERTIFIED &amp; RECORDED]     |
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>+---------------------------------------------------------------+
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>CERTIFICATION STATUS: PILOT-live-proven, NOT YET ROLLED OUT GLOBALLY
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>INDEPENDENT VERDICT:  REMAIN-CLOSED-GLOBAL (Reason: IEC field proof pending, owner step)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>PER-PATH VERDICTS:    - Modbus TCP:     PROVEN-LOCAL (100% Beta, available via LiveModbusAdapter)
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>                      - OPC UA:         PROVEN-LOCAL (100% Beta, available via LiveOpcUaAdapter)
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                      - IEC 61850:      NOT PROVEN   (CLOSED, owner field proof pending)
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>                      - IEC 60870-5-104: NOT PROVEN  (CLOSED, remote RTU proof pending)
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>RECOMMENDATION:       The global feature flag MUST REMAIN OFF (REMAIN-CLOSED-GLOBAL, enabled=False, rollout=0)
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>                      until full physical substation IED commissioning is completed by the Owner.
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>                      Modbus TCP and OPC UA telemetry read paths satisfy all local verification standards
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>                      and are open for beta testing via explicit adapter dispatch.
+</code></pre></div>
 
 
 

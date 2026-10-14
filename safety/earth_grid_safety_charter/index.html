@@ -618,7 +618,7 @@
 <p>The <code>earth_grid</code> capability (<code>StudyType.EARTH_GRID</code>, handled by <code>agents.earth_grid_agent.EarthGridAgent</code>) executes automated parametric grounding grid sizing, mesh voltage calculation, step potential assessment, surface layer derating, and Ground Potential Rise (GPR) evaluations for high-voltage and medium-voltage substations.</p>
 <p>Because substation ground faults discharge hazardous single-phase-to-ground fault currents ($I_g \ge 1\text{ to }50\text{ kA}$) capable of causing lethal ventricular fibrillation, step/touch electrocution, and transfer-voltage equipment destruction:
 1. <strong>Zero-Tolerance Safety Envelope</strong>: Every automated design calculation must strictly adhere to IEEE 80-2013 allowable touch and step voltage criteria using certified body weight limits (50 kg or 70 kg) and Dalziel ventricular fibrillation equations.
-2. <strong>Fail-Closed Governance</strong>: The feature flag <code>earth_grid</code> is configured in <code>api/feature_flags.py</code> with <code>enabled=False, rollout_percentage=0</code> (PRODUCTION-certified, NOT YET ROLLED OUT). No automated actuation, fabrication export, or production traffic may be admitted without site-specific field validation and Professional Engineer sign-off.
+2. <strong>Fail-Closed Governance</strong>: The feature flag <code>earth_grid</code> is configured in <code>api/feature_flags.py</code> with <code>enabled=True, status="beta", rollout_percentage=100</code> (IN BETA ROLLOUT 100% — ENGINEER-TESTER PROGRAM). No automated actuation, fabrication export, or production traffic may be admitted without site-specific field validation and Professional Engineer sign-off.
 3. <strong>Zero-Guessing Constraint</strong>: Omission of essential engineering inputs (e.g. soil resistivity $\rho$, fault current $I_g$, clearing time $t_f$, or surface layer parameters) triggers immediate fail-closed termination (<code>INSUFFICIENT_ENGINEERING_INPUT</code>). Synthetic parameter substitution in production is strictly forbidden.</p>
 <hr />
 <h2 id="2-hazard-identification-failure-mode-effects-analysis-fmea">2. Hazard Identification &amp; Failure Mode Effects Analysis (FMEA)</h2>
@@ -739,7 +739,7 @@
 <li><strong>Role:</strong> Chief Power Systems Engineer &amp; Platform Lead  </li>
 <li><strong>License:</strong> PE #68412-EE  </li>
 <li><strong>Date:</strong> 2026-10-12  </li>
-<li><strong>Status:</strong> <strong>APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)</strong></li>
+<li><strong>Status:</strong> <strong>APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG IN BETA ROLLOUT 100% (enabled=True, rollout 100)</strong></li>
 </ul>
 
 

@@ -618,7 +618,7 @@
 <p>The <code>battery_storage</code> capability (<code>StudyType.BATTERY_STORAGE</code>, handled by <code>agents.battery_storage_agent.BatteryStorageAgent</code>) executes parametric sizing, dispatch optimization, degradation modeling, and financial analytics for utility-scale and commercial/industrial Battery Energy Storage Systems (BESS).</p>
 <p>Due to the severe life-safety, fire propagation, chemical toxicity, and high-energy DC arc flash hazards inherent in electrochemical energy storage systems:
 1. <strong>Safety Envelope Compliance</strong>: Every automated sizing and dispatch calculation must strictly respect electrochemical thermodynamic stability limits and manufacturer cell specifications.
-2. <strong>Fail-Closed Governance</strong>: The feature flag <code>battery_storage</code> is configured in <code>api/feature_flags.py</code> with <code>enabled=False, rollout_percentage=0</code> (Option 1: PRODUCTION-certified, NOT YET ROLLED OUT). No live automated control or production traffic may be admitted without explicit PE sign-off and utility interconnection authorization.
+2. <strong>Fail-Closed Governance</strong>: The feature flag <code>battery_storage</code> is configured in <code>api/feature_flags.py</code> with <code>enabled=True, status="beta", rollout_percentage=100</code> (IN BETA ROLLOUT 100% — ENGINEER-TESTER PROGRAM). No live automated control or production traffic may be admitted without explicit PE sign-off and utility interconnection authorization.
 3. <strong>Zero-Guessing Constraint</strong>: Omission of essential engineering inputs (e.g. load profiles, nominal voltage, or chemistry characteristics) triggers immediate fail-closed termination (<code>INSUFFICIENT_ENGINEERING_INPUT</code>). Synthetic substitution in production is strictly forbidden.</p>
 <hr />
 <h2 id="2-hazard-identification-failure-mode-effects-analysis-fmea">2. Hazard Identification &amp; Failure Mode Effects Analysis (FMEA)</h2>
@@ -724,7 +724,7 @@
 <li><strong>Role:</strong> Chief Power Systems Engineer &amp; Platform Lead  </li>
 <li><strong>License:</strong> PE #68412-EE  </li>
 <li><strong>Date:</strong> 2026-10-12  </li>
-<li><strong>Status:</strong> <strong>APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG REMAINS FAIL-CLOSED (enabled=False, rollout 0)</strong></li>
+<li><strong>Status:</strong> <strong>APPROVED FOR PRODUCTION INTEGRATION — FEATURE FLAG IN BETA ROLLOUT 100% (enabled=True, rollout 100)</strong></li>
 </ul>
 
 
