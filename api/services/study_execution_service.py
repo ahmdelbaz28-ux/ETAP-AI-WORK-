@@ -165,6 +165,11 @@ async def execute_study_re_run(
     version_number = 1
     for attempt in range(max_retries):
         version_number = await get_next_revision_number(db, project_id)
+        from api.pe_stamp import _compute_data_hash
+
+        input_hash = _compute_data_hash(params)
+        output_hash = _compute_data_hash(study_res.data) if study_res.data is not None else None
+
         study_version = StudyVersion(
             id=str(uuid.uuid4()),
             tenant_id=tenant_id,
@@ -175,6 +180,8 @@ async def execute_study_re_run(
             description=f"Re-run study using {tool}",
             config_snapshot=params,
             results_snapshot=study_res.data,
+            input_hash=input_hash,
+            output_hash=output_hash,
             diff_summary=f"Re-run executed with tool={tool} (status={status_val})",
             created_by=str(creator_id),
             created_at=datetime.now(UTC),

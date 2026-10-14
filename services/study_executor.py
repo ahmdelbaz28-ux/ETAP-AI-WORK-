@@ -1426,13 +1426,31 @@ class StudyExecutor:
             return {"error": f"Isolated buses with no connections: {isolated}"}
         return None
 
-    def _pre_flight_voltage_bounds(self, buses: list) -> Optional[dict]:
+    def _pre_flight_voltage_bounds(
+        self, buses: list, operating_bounds: Optional[Any] = None
+    ) -> Optional[dict]:
+        from core_model.specs import PhysicalOperatingBounds
+
+        active_bounds = (
+            operating_bounds
+            if isinstance(operating_bounds, PhysicalOperatingBounds)
+            else PhysicalOperatingBounds()
+        )
         for bus in buses:
             v = bus.get("voltage_magnitude")
-            if v is not None and (v < 0.5 or v > 2.0):
-                return {
-                    "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.5-2.0)"
-                }
+            if v is not None:
+                if v < 0.5 or v > 2.0:
+                    return {
+                        "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.5-2.0)"
+                    }
+                if v < active_bounds.v_min_pu or v > active_bounds.v_max_pu:
+                    logger.warning(
+                        "Bus %s voltage %s pu outside standard operating envelope [%s, %s] pu",
+                        bus.get("bus_id"),
+                        v,
+                        active_bounds.v_min_pu,
+                        active_bounds.v_max_pu,
+                    )
         return None
 
     def _pre_flight_units(self, system: dict) -> Optional[dict]:
@@ -1565,7 +1583,17 @@ class StudyExecutor:
         result = self._pre_flight_isolated_buses(bus_ids, lines)
         if result is not None:
             return result
-        result = self._pre_flight_voltage_bounds(buses)
+        bounds_data = system.get("operating_bounds") or system.get("physical_bounds")
+        operating_bounds = None
+        if bounds_data and isinstance(bounds_data, dict):
+            try:
+                from core_model.specs import PhysicalOperatingBounds
+
+                operating_bounds = PhysicalOperatingBounds(**bounds_data)
+            except Exception as e:
+                return {"error": f"Invalid physical operating bounds: {e}"}
+
+        result = self._pre_flight_voltage_bounds(buses, operating_bounds)
         if result is not None:
             return result
         return self._pre_flight_units(system)

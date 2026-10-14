@@ -235,4 +235,32 @@ This log tracks the step-by-step implementation, verification, and git commit de
   - `ruff check .`: All checks passed (0 errors)
   - `bandit --ini .bandit -ll -ii -r api/ agents/ core/ services/`: 65,966 lines scanned, 0 issues identified
 
+---
+
+## التحسين 16: تكامل حدود التشغيل الفيزيائية وهجرة التجزئة التشفيرية لإصدارات الدراسات (e8b91a2c3d4e)
+- **الحالة**: مكتمل ومتحقق منه بالكامل (VERIFIED)
+- **الفرع**: `main`
+- **الملفات المعدلة / المضافة**:
+  - `core_model/specs.py`:
+    - إضافة صنف Pydantic جديد `PhysicalOperatingBounds(_BaseSpecModel)` بالقيم الافتراضية والحدود المعتمدة: `v_min_pu=0.90` (0.5..1.0)، `v_max_pu=1.10` (1.0..1.5)، `pf_min=0.70` (0.0..1.0).
+    - تصدير `PhysicalOperatingBounds` ضمن `__all__`.
+  - `services/study_executor.py`:
+    - ربط `PhysicalOperatingBounds` بفحص ما قبل التشغيل `_pre_flight_voltage_bounds` و `_pre_flight_check` للتحقق الحتمي من مجالات الجهد ومنع الحلول المنحلة ومراقبة معامل القدرة.
+  - `api/study_versions.py`:
+    - إضافة عمودي التجزئة التشفيرية `input_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)` و `output_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)` لجدول `StudyVersion`.
+    - تحديث `VersionResponse` و `create_version` لحساب التجزئة التلقائية عبر `_compute_data_hash`.
+  - `api/services/study_execution_service.py`:
+    - حساب وتخزين `input_hash` لمعاملات الدراسة و `output_hash` لمخرجات الدراسة عند إنشاء كل إصدار نسخة Snapshot للدراسة.
+  - `migrations/versions/015_add_hashes_to_study_versions.py`:
+    - إضافة ترحيل Alembic بالمعرّف `revision = "e8b91a2c3d4e"` متسلسلاً من `014_fix_notifications_schema` لإضافة العمودين `input_hash` و `output_hash` على جدول `study_versions` مع دعم كامل للترقية (`upgrade`) والتراجع (`downgrade`).
+  - `tests/test_physical_operating_bounds_and_hashes.py`:
+    - جناح اختبارات متكامل يتضمن 5 اختبارات تفصيلية للتحقق من الحدود الافتراضية، والحدود المخصصة، ورفض القيم غير الواقعية، وتكامل فحص الجهد في StudyExecutor، والحساب التشفيري الحتمي للهاش.
+- **نتائج بوابات الجودة الخمس المنفذة**:
+  - بوابة 1 (Ruff): `ruff check .` → All checks passed! (0 errors)
+  - بوابة 2 (Bandit): `bandit --ini .bandit -ll -ii -r api/ agents/ adms_control/ ai_context_engine/` → 56,928 lines scanned, No issues identified (High: 0, Medium: 0, Low: 36, Exit 0).
+  - بوابة 3 (Boundary Mismatch): `pytest tests/boundary_mismatch/ -v` → 7 passed in 83.78s.
+  - بوابة 4 (Quiz Golden & Validation): `pytest tests/test_quiz_l3_golden.py tests/test_bus_loads.py tests/test_short_circuit_validation.py -v` → 7 passed in 67.10s.
+  - بوابة 5 (No-Mock Audit): فحص 16 نمطاً محظوراً عبر `api/ agents/ engine/ services/ core/` → Total forbidden mock matches found: 0.
+
+
 

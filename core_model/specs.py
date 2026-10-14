@@ -34,6 +34,29 @@ class _BaseSpecModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
+class PhysicalOperatingBounds(_BaseSpecModel):
+    """Physical operating envelope bounds for power system studies."""
+
+    v_min_pu: float = Field(
+        default=0.90,
+        ge=0.5,
+        le=1.0,
+        description="Minimum acceptable bus voltage magnitude in pu",
+    )
+    v_max_pu: float = Field(
+        default=1.10,
+        ge=1.0,
+        le=1.5,
+        description="Maximum acceptable bus voltage magnitude in pu",
+    )
+    pf_min: float = Field(
+        default=0.70,
+        ge=0.0,
+        le=1.0,
+        description="Minimum acceptable power factor",
+    )
+
+
 # ─── BusSpec ─────────────────────────────────────────────────────────────────
 
 
@@ -647,6 +670,7 @@ __all__ = [
     "GeneratorSpec",
     "LoadSpec",
     "SystemSpec",
+    "PhysicalOperatingBounds",
     "StudyRequest",
     "StudyResult",
     "CanonicalExecutionResult",

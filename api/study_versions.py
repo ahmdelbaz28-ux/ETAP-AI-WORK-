@@ -74,6 +74,8 @@ class StudyVersion(Base):
         JSON, nullable=True
     )  # Results at this version
     diff_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # What changed
+    input_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    output_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     created_by: Mapped[str] = mapped_column(String(36), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -96,6 +98,8 @@ class VersionResponse(BaseModel):
     description: str | None = None
     config_snapshot: dict | None = None
     diff_summary: str | None = None
+    input_hash: str | None = None
+    output_hash: str | None = None
     created_by: str = ""
     created_at: datetime | None = None
 
@@ -238,6 +242,11 @@ async def create_version(
         )
         version_number = count_result.scalar_one()
 
+        from api.pe_stamp import _compute_data_hash
+
+        cfg_hash = _compute_data_hash(study.config or {})
+        res_hash = _compute_data_hash(study.results) if study.results is not None else None
+
         version = StudyVersion(
             id=str(uuid.uuid4()),
             tenant_id=user.tenant_id,
@@ -248,6 +257,8 @@ async def create_version(
             description=body.description,
             config_snapshot=study.config or {},
             results_snapshot=study.results,
+            input_hash=cfg_hash,
+            output_hash=res_hash,
             created_by=user.user_id,
         )
         db.add(version)

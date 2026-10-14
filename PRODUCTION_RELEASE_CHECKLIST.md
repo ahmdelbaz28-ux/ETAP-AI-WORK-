@@ -30,6 +30,7 @@
 - [x] Pydantic boundary validation & physical assertions verified against degenerate collapse (`DEGENERATE_SOLUTION` on $|V| < 0.5$ p.u.)
 - [x] Regression & Boundary test suites 100% green (Boundary mismatch: 7 passed; Quiz Golden & Load/ShortCircuit validation: 7 passed; Bandit: 0 issues; Ruff: 0 errors)
 - [x] Physical Units & Dimension Safety (P0-1..P2-7) verified: 64 parameter dimensions in `core/units.py`, unit-aware voltage envelopes in `api/approvals.py`, comprehensive 5-element pre-flight unit validation in `services/study_executor.py`, fail-closed imports, angle & cable bridges, and 9/9 unit tests passing (`tests/test_units_dimensions.py`).
+- [x] Physical Operating Bounds & Cryptographic Revision Hashing: `PhysicalOperatingBounds` integrated into `core_model/specs.py` and `StudyExecutor._pre_flight_voltage_bounds`, Alembic migration `e8b91a2c3d4e` adding `input_hash` / `output_hash` on `study_versions`, SHA-256 computation in `study_execution_service.py` and `api/study_versions.py`, and 5/5 unit tests passing (`tests/test_physical_operating_bounds_and_hashes.py`).
 
 ## 🚀 Production Authorization
 - [x] All above verified by: AhmedETAP Lead Engineering Agent  Date: 2026-10-14
