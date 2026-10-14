@@ -1429,39 +1429,119 @@ class StudyExecutor:
     def _pre_flight_voltage_bounds(self, buses: list) -> Optional[dict]:
         for bus in buses:
             v = bus.get("voltage_magnitude")
-            if v is not None and (v < 0.01 or v > 1.5):
+            if v is not None and (v < 0.5 or v > 2.0):
                 return {
-                    "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.01-1.5)"
+                    "error": f"Bus {bus.get('bus_id')} voltage {v} pu out of realistic range (0.5-2.0)"
                 }
         return None
 
     def _pre_flight_units(self, system: dict) -> Optional[dict]:
-        """Validate explicit units on system elements (buses, lines, parameters) for physical dimension consistency."""
+        """Validate explicit units on system elements (buses, lines, transformers, loads, generators) for physical dimension consistency."""
         try:
             from core.units import validate_parameter_dimension
         except ImportError:
+            import os
+            if os.getenv("ENVIRONMENT") == "production" or os.getenv("FASTAPI_ENV") == "production":
+                return {"error": "Physical units validation engine (core.units) unavailable in production"}
             return None
 
-        # Check buses
+        # 1. Check buses
         for bus in system.get("buses", []):
             bus_id = bus.get("bus_id", "unknown")
             v_val = bus.get("base_kv") or bus.get("voltage_kv") or bus.get("nominal_voltage")
             if v_val is not None:
-                valid, err = validate_parameter_dimension("voltage_setpoint", v_val)
+                valid, err = validate_parameter_dimension("base_kv", v_val)
                 if not valid:
-                    return {"error": f"Bus {bus_id} voltage dimension mismatch: {err}"}
+                    return {"error": f"Bus {bus_id} base_kv dimension mismatch: {err}"}
+            for param, canonical in (
+                ("voltage_magnitude", "voltage_magnitude"),
+                ("voltage_angle", "voltage_angle"),
+                ("load_power_real", "p_mw"),
+                ("load_power_imag", "q_mvar"),
+                ("p_mw", "p_mw"),
+                ("q_mvar", "q_mvar"),
+            ):
+                val = bus.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension(canonical, val)
+                    if not valid:
+                        return {"error": f"Bus {bus_id} parameter '{param}' dimension mismatch: {err}"}
 
-        # Check lines
+        # 2. Check lines
         for line in system.get("lines", []):
             line_id = line.get("line_id", "unknown")
             for param in ("r1", "x1", "r0", "x0"):
                 val = line.get(param)
                 if val is not None:
-                    valid, err = validate_parameter_dimension("transformer_impedance", val)
+                    valid, err = validate_parameter_dimension("line_impedance", val)
+                    if not valid:
+                        return {"error": f"Line {line_id} parameter '{param}' dimension mismatch: {err}"}
+            for param, canonical in (
+                ("bshunt1", "bshunt1"),
+                ("bshunt0", "bshunt0"),
+                ("length_km", "length_km"),
+                ("rated_current_a", "rated_current_a"),
+            ):
+                val = line.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension(canonical, val)
                     if not valid:
                         return {"error": f"Line {line_id} parameter '{param}' dimension mismatch: {err}"}
 
-        # Check top-level engineering parameters if present in system dictionary
+        # 3. Check transformers
+        for xfmr in system.get("transformers", []):
+            xfmr_id = xfmr.get("transformer_id") or xfmr.get("id", "unknown")
+            for param in ("r1", "x1", "r0", "x0"):
+                val = xfmr.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension("transformer_impedance", val)
+                    if not valid:
+                        return {"error": f"Transformer {xfmr_id} parameter '{param}' dimension mismatch: {err}"}
+            for param, canonical in (
+                ("rating_mva", "rating_mva"),
+                ("tap_ratio", "tap_ratio"),
+                ("phase_shift_deg", "phase_shift_deg"),
+                ("primary_kv", "base_kv"),
+                ("secondary_kv", "base_kv"),
+            ):
+                val = xfmr.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension(canonical, val)
+                    if not valid:
+                        return {"error": f"Transformer {xfmr_id} parameter '{param}' dimension mismatch: {err}"}
+
+        # 4. Check loads
+        for load in system.get("loads", []):
+            load_id = load.get("load_id") or load.get("id", "unknown")
+            for param, canonical in (("p_mw", "p_mw"), ("q_mvar", "q_mvar")):
+                val = load.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension(canonical, val)
+                    if not valid:
+                        return {"error": f"Load {load_id} parameter '{param}' dimension mismatch: {err}"}
+
+        # 5. Check generators
+        for gen in system.get("generators", []):
+            gen_id = gen.get("generator_id") or gen.get("id", "unknown")
+            for param, canonical in (
+                ("p_mw", "p_mw"),
+                ("q_mvar", "q_mvar"),
+                ("mva_rating", "mva_rating"),
+                ("voltage_magnitude", "voltage_magnitude"),
+                ("voltage_angle", "voltage_angle"),
+                ("voltage_setpoint", "voltage_setpoint"),
+                ("internal_voltage", "voltage_setpoint"),
+                ("internal_impedance", "line_impedance"),
+                ("ra", "line_impedance"),
+                ("xd_prime", "line_impedance"),
+            ):
+                val = gen.get(param)
+                if val is not None:
+                    valid, err = validate_parameter_dimension(canonical, val)
+                    if not valid:
+                        return {"error": f"Generator {gen_id} parameter '{param}' dimension mismatch: {err}"}
+
+        # 6. Check top-level engineering parameters
         for key, val in system.items():
             if key in ("buses", "lines", "transformers", "loads", "generators"):
                 continue

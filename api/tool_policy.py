@@ -163,6 +163,9 @@ def validate_engineering_dimensions(args: dict, depth: int = 0) -> tuple[bool, s
     try:
         from core.units import validate_parameter_dimension
     except ImportError:
+        import os
+        if os.getenv("ENVIRONMENT") == "production" or os.getenv("FASTAPI_ENV") == "production":
+            return False, "Physical units validation engine (core.units) unavailable in production"
         return True, None
 
     for key, val in args.items():

@@ -381,18 +381,27 @@ def validate_server_control_action(
         or args.get("value")
     )
     if raw_val is not None:
+        parsed_q = None
         try:
             num_val = float(raw_val)
         except (ValueError, TypeError):
-            return (
-                False,
-                {
-                    "valid": False,
-                    "within_envelope": False,
-                    "reason": f"Target setpoint value is non-numeric: {raw_val!r}",
-                },
-                "INVALID_VALUE",
-            )
+            try:
+                from core.units import parse_quantity
+                parsed_q = parse_quantity(raw_val)
+                if parsed_q is not None:
+                    num_val = float(parsed_q.magnitude)
+                else:
+                    raise ValueError("Cannot parse numeric quantity")
+            except Exception:
+                return (
+                    False,
+                    {
+                        "valid": False,
+                        "within_envelope": False,
+                        "reason": f"Target setpoint value is non-numeric: {raw_val!r}",
+                    },
+                    "INVALID_VALUE",
+                )
 
         custom_envelope = args.get("envelope")
         if isinstance(custom_envelope, dict):
@@ -420,28 +429,100 @@ def validate_server_control_action(
                 )
 
         if any(k in target_lower or k in action_str for k in ("voltage", "v_bus", "vset", "p.u.", "pu")):
-            if num_val > 5.0:  # kV scale
-                if num_val < 0.0 or num_val > 765.0:
-                    return (
-                        False,
-                        {
-                            "valid": False,
-                            "within_envelope": False,
-                            "reason": f"Voltage setpoint {num_val} kV is outside safe limits [0, 765]",
-                        },
-                        "ENVELOPE_VIOLATION",
-                    )
-            else:  # p.u. scale
-                if num_val < 0.80 or num_val > 1.20:
-                    return (
-                        False,
-                        {
-                            "valid": False,
-                            "within_envelope": False,
-                            "reason": f"Voltage setpoint {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
-                        },
-                        "ENVELOPE_VIOLATION",
-                    )
+            # Check explicit unit from parsed quantity or unit argument
+            explicit_unit = args.get("unit")
+            if parsed_q is None:
+                try:
+                    from core.units import parse_quantity
+                    parsed_q = parse_quantity(raw_val)
+                except Exception:
+                    pass
+
+            if parsed_q is not None:
+                unit_name = str(parsed_q.units).lower()
+                if "volt" in unit_name:
+                    kv_val = float(parsed_q.to("kV").magnitude)
+                    if kv_val < 0.0 or kv_val > 765.0:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {kv_val} kV is outside safe limits [0, 765]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+                elif unit_name in ("pu", "per_unit", "dimensionless"):
+                    pu_val = float(parsed_q.magnitude)
+                    if pu_val < 0.80 or pu_val > 1.20:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {pu_val} p.u. is outside safe operating envelope [0.80, 1.20]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+            elif explicit_unit:
+                unit_str = str(explicit_unit).strip().lower()
+                if unit_str in ("kv", "kilovolt"):
+                    if num_val < 0.0 or num_val > 765.0:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {num_val} kV is outside safe limits [0, 765]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+                elif unit_str in ("v", "volt"):
+                    if num_val < 0.0 or num_val > 765000.0:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {num_val} V is outside safe limits [0, 765000]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+                elif unit_str in ("pu", "p.u.", "per_unit"):
+                    if num_val < 0.80 or num_val > 1.20:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+            else:
+                # Fallback heuristic when no unit is specified (num_val > 5.0 => kV, else p.u.)
+                if num_val > 5.0:  # kV scale
+                    if num_val < 0.0 or num_val > 765.0:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {num_val} kV is outside safe limits [0, 765]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
+                else:  # p.u. scale
+                    if num_val < 0.80 or num_val > 1.20:
+                        return (
+                            False,
+                            {
+                                "valid": False,
+                                "within_envelope": False,
+                                "reason": f"Voltage setpoint {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
+                            },
+                            "ENVELOPE_VIOLATION",
+                        )
 
         if any(k in target_lower or k in action_str for k in ("frequency", "freq", "fset")):
             if num_val < 45.0 or num_val > 65.0:
@@ -473,6 +554,10 @@ def validate_server_control_action(
         },
         "",
     )
+
+
+# Alias for backward-compatibility with tests and internal callers
+_validate_control_action_authoritative = validate_server_control_action
 
 
 class ResolveRequest(BaseModel):

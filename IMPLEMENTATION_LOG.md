@@ -202,3 +202,37 @@ This log tracks the step-by-step implementation, verification, and git commit de
   - `pytest tests/boundary_mismatch/ -v`: 7 passed in 96.72s.
   - `pytest tests/test_quiz_l3_golden.py tests/test_bus_loads.py tests/test_short_circuit_validation.py -v`: 7 passed in 51.10s.
 
+---
+
+## التحسين 15: ترقية وتوسيع منظومة الوحدات والأبعاد الفيزيائية (P0-1..P2-7)
+- **الحالة**: مكتمل ومتحقق منه بالكامل (VERIFIED)
+- **الفرع**: `main`
+- **الملفات المعدلة**:
+  - `core/units.py`:
+    - إضافة تعريفات Pint الصريحة لوحدات القدرة والجهد: `pu = [] = per_unit = p_u`, `var = volt * ampere = VAR = Var = VAr`, و `cal_cm2 = cal / (centimeter ** 2)`.
+    - تعريف أبعاد الزوايا والتردد والقدرة غير الفعالة: `DIM_ANGLE`, `DIM_FREQUENCY`, `DIM_REACTIVE_POWER`.
+    - توسيع قاموس الأبعاد المتوقعة `EXPECTED_DIMENSIONS` من 14 مفتاحاً إلى 64 مفتاحاً لتغطية كافة بارامترات `BusSpec`, `LineSpec`, `TransformerSpec`, `LoadSpec`, `GeneratorSpec`, و `ENGINEERING_PARAMS`.
+    - ترقية `parse_quantity` للتعامل مع النصوص والقواميس وكائنات Pint والزوايا بالدرجات (`°`) ومضاعفات وحدات القدرة غير الفعالة (`MVAr`, `kVAR`).
+    - توفير دالة التطبيع الفيزيائي الموحدة `normalize_quantity(val, kind, base_val)` لتفادي أخطاء المضاعفات (1000x) وتحويل الوحدات إلى المقاييس المرجعية القياسية (kV, kA, MVA, pu, m, s, rad).
+    - إضافة جسر تحويل الزوايا `deg_to_rad`, `rad_to_deg`, `normalize_angle`.
+    - إضافة جسر مقاطع الكابلات `AWG_TO_MM2`, `awg_to_mm2`, `mm2_to_nearest_awg`, `ft_to_m`, `m_to_ft`.
+  - `api/approvals.py`:
+    - استبدال الهيورستك المحدود بفحص متعدد المستويات للوحدات عبر `parse_quantity` وفحص صريح للمجال الديناميكي وفق الوحدة (`[0, 765]` لـ kV، `[0, 765000]` لـ V، `[0.80, 1.20]` لـ pu).
+    - الحفاظ على التوافق الرجعي للهيورستك عند إدخال أرقام مجردة بدون وحدة، والاحتفاظ بـ `_validate_control_action_authoritative` كـ Alias.
+  - `services/study_executor.py`:
+    - توحيد حد الفحص المبدئي للجهد `_pre_flight_voltage_bounds` إلى `0.5..2.0` pu ليتطابق مع `specs.py:95`.
+    - توسيع `_pre_flight_units` لفحص كافة عناصر الشبكة الخمسة: القضبان (buses)، الخطوط (lines عبر `line_impedance` و `bshunt1` و `length_km`)، المحولات (transformers)، الأحمال (loads)، والمولدات (generators)، ومعاملات النظام (base_mva, frequency_hz).
+    - تطبيق مبدأ الإغلاق عند الفشل (Fail-Closed) في بيئات الإنتاج عند تعذر استيراد `core.units`.
+  - `api/tool_policy.py`:
+    - تحديث `validate_engineering_dimensions` لتطبيق Fail-Closed في بيئات الإنتاج عند تعذر استيراد `core.units`.
+  - `requirements.txt`, `requirements-prod.txt`, `hf-space/requirements.hf.txt`:
+    - إضافة وتثبيت `pint>=0.21.1` لضمان التوافق مع بيئة Python 3.8 المحلية وبيئات CI و HuggingFace الحديثة.
+  - `tests/test_units_dimensions.py`:
+    - بناء جناح اختبارات متكامل ومحكم يحتوي على 9 اختبارات تفصيلية تغطي كافة متطلبات التحسين السبعة.
+- **نتائج التحقق**:
+  - `pytest tests/test_units_dimensions.py -v`: 9 passed in 68.39s (100% green)
+  - `pytest tests/test_quiz_l3_golden.py tests/test_bus_loads.py tests/test_short_circuit_validation.py -v`: 7 passed in 29.97s (100% green)
+  - `ruff check .`: All checks passed (0 errors)
+  - `bandit --ini .bandit -ll -ii -r api/ agents/ core/ services/`: 65,966 lines scanned, 0 issues identified
+
+
