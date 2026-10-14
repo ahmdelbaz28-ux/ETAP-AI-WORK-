@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-14T11:16:18.088741+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-14T11:40:37.168319+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,12 +10,12 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 398 |
-| Python | Classes | 973 |
-| Python | Functions | 872 |
+| Python | Files | 399 |
+| Python | Classes | 974 |
+| Python | Functions | 874 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 295 |
-| Total | Tests | 4058 |
+| Test | Files | 296 |
+| Total | Tests | 4063 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 457 |
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -2354,7 +2354,7 @@ Per the C3 refactoring: all execution logic
   - `GET /types`
   - `POST /re-run`
 
-#### 📄 `api/study_versions.py` _16.0 KB_
+#### 📄 `api/study_versions.py` _16.5 KB_
 > api/study_versions.py — Version Control for Studies.
 
 Provides:
@@ -2363,15 +2363,15 @@ Provides:
 - Side-by-side compari
 
 - **Class** `StudyVersion` (line 55)
-- **Class** `VersionCreateRequest` (line 84)
-- **Class** `VersionResponse` (line 89)
-- **Class** `VersionListResponse` (line 103)
-- **Class** `CompareResponse` (line 109)
-- **async def** `list_versions()` (line 169)
-- **async def** `create_version()` (line 220)
-- **async def** `get_version()` (line 284)
-- **async def** `rollback_version()` (line 328)
-- **async def** `compare_versions()` (line 413)
+- **Class** `VersionCreateRequest` (line 86)
+- **Class** `VersionResponse` (line 91)
+- **Class** `VersionListResponse` (line 107)
+- **Class** `CompareResponse` (line 113)
+- **async def** `list_versions()` (line 173)
+- **async def** `create_version()` (line 224)
+- **async def** `get_version()` (line 295)
+- **async def** `rollback_version()` (line 339)
+- **async def** `compare_versions()` (line 424)
 
 #### 📄 `api/task_queue.py` _5.9 KB_
 > api/task_queue.py — Distributed Task Queue backed by Redis (FIX-22).
@@ -2543,7 +2543,7 @@ Supports project
 - **async def** `load_solver_params()` (line 31)
 - **async def** `save_solver_params()` (line 69)
 
-#### 📄 `api/services/study_execution_service.py` _6.7 KB_
+#### 📄 `api/services/study_execution_service.py` _7.0 KB_
 > Study Execution Service for Edit & Re-run workflows.
 
 Orchestrates:
@@ -3422,7 +3422,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _69.9 KB_
+#### 📄 `services/study_executor.py` _71.1 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -4351,6 +4351,16 @@ Create
 - **def** `upgrade()` (line 19)
 - **def** `downgrade()` (line 62)
 
+#### 📄 `migrations/versions/015_add_hashes_to_study_versions.py` _1.6 KB_
+> Add input_hash and output_hash columns to study_versions table.
+
+Revision ID: e8b91a2c3d4e
+Revises: 014_fix_notifications_schema
+Create Date: 2026-10-
+
+- **def** `upgrade()` (line 19)
+- **def** `downgrade()` (line 37)
+
 #### 📄 `migrations/versions/__init__.py` _0.0 KB_
 
 ### 📦 `etap_integration/`
@@ -4567,28 +4577,29 @@ Supports:
 - **Class** `MotorModel` (line 62)
   - Methods: `full_load_current()`, `starting_current()`, `starting_current_pu()`, `locked_rotor_current_pu()`, `running_current_pu()`, `acceleration_time()`, `voltage_dip_contribution()`, `calculate_starting_voltage_drop()`
 
-#### 📄 `core_model/specs.py` _24.9 KB_
+#### 📄 `core_model/specs.py` _25.5 KB_
 > Shared Pydantic spec models for power-system studies.
 
 These are the canonical request/response schemas for study execution.
 Both `api/studies.py` (HT
 
 - **Class** `_BaseSpecModel` (line 31)
-- **Class** `BusSpec` (line 40)
+- **Class** `PhysicalOperatingBounds` (line 37)
+- **Class** `BusSpec` (line 63)
   - Methods: `validate_bus_type()`, `validate_voltage_magnitude()`, `validate_voltage_angle()`, `validate_reactive_limits()`
-- **Class** `LineSpec` (line 121)
+- **Class** `LineSpec` (line 144)
   - Methods: `validate_impedance_values()`, `validate_rating()`, `validate_no_self_loop()`
-- **Class** `TransformerSpec` (line 167)
+- **Class** `TransformerSpec` (line 190)
   - Methods: `validate_reactance_positive()`, `validate_tap_ratio()`, `validate_phase_shift()`, `validate_no_self_loop()`
-- **Class** `GeneratorSpec` (line 218)
+- **Class** `GeneratorSpec` (line 241)
   - Methods: `validate_reactance_positive()`, `validate_voltage_magnitude()`
-- **Class** `LoadSpec` (line 274)
+- **Class** `LoadSpec` (line 297)
   - Methods: `validate_power_finite_and_bounded()`
-- **Class** `SystemSpec` (line 305)
+- **Class** `SystemSpec` (line 328)
   - Methods: `validate_buses_count()`, `validate_base_mva()`, `validate_no_duplicate_loads()`
-- **Class** `StudyRequest` (line 389)
+- **Class** `StudyRequest` (line 412)
   - Methods: `normalize_study_request_input()`, `validate_parameters_count()`, `validate_etap_project_path()`, `validate_study_type()`, `validate_study_request_parameters()`
-- **Class** `StudyResult` (line 530)
+- **Class** `StudyResult` (line 553)
   - Methods: `sync_data_and_results()`, `to_canonical_dict()`
 
 #### 📄 `core_model/system.py` _7.6 KB_
@@ -5883,10 +5894,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| ui-component | 280 |
 | ui-page | 61 |
+| ui-component | 280 |
 | api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
@@ -5915,7 +5926,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5926,7 +5937,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -6114,6 +6125,7 @@ Provides
 | `test_phase3_remediation_security.py` | 5 | 0 | **5** |
 | `test_phase_a_chat_enhancements.py` | 8 | 0 | **8** |
 | `test_phase_a_rag_and_schema.py` | 0 | 3 | **7** |
+| `test_physical_operating_bounds_and_hashes.py` | 5 | 0 | **5** |
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_prod_database_failclosed.py` | 7 | 0 | **7** |
