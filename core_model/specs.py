@@ -336,6 +336,22 @@ class SystemSpec(_BaseSpecModel):
             raise ValueError(f"base_mva is unreasonably large ({v}), max is 10000")
         return v
 
+    @model_validator(mode="after")
+    def validate_no_duplicate_loads(self) -> SystemSpec:
+        """Reject if load is specified both on bus fields and in loads list for the same bus."""
+        bus_loads = set()
+        for b in self.buses:
+            if getattr(b, "load_power_real", 0.0) != 0.0 or getattr(b, "load_power_imag", 0.0) != 0.0:
+                bus_loads.add(b.bus_id)
+
+        for ld in self.loads:
+            if ld.bus_id in bus_loads:
+                raise ValueError(
+                    f"Bus {ld.bus_id} has load defined both in bus fields (load_power_real/imag) "
+                    f"and in separate loads array (load_id {ld.load_id}). Duplicate load definition is rejected."
+                )
+        return self
+
 
 # ─── StudyRequest ────────────────────────────────────────────────────────────
 
@@ -468,6 +484,44 @@ class StudyRequest(_BaseSpecModel):
         if v not in _ALLOWED_STUDY_TYPES:
             raise ValueError(f"study_type must be one of {sorted(_ALLOWED_STUDY_TYPES)}")
         return v
+
+    @model_validator(mode="after")
+    def validate_study_request_parameters(self) -> StudyRequest:
+        """Validate study-specific parameters fail-closed."""
+        st = self.study_type.lower().replace("-", "_").strip()
+        if st in ("short_circuit", "fault", "fault_analysis"):
+            if self.system is not None:
+                bus_ids = {b.bus_id for b in self.system.buses}
+                bid = self.parameters.get("bus_id")
+                if bid is not None:
+                    try:
+                        bid_int = int(bid)
+                        if bid_int not in bus_ids:
+                            raise ValueError(
+                                f"bus_id {bid} specified in parameters not found in system buses {sorted(bus_ids)}"
+                            )
+                    except (ValueError, TypeError) as e:
+                        if "not found in system buses" in str(e):
+                            raise
+                        raise ValueError(f"Invalid bus_id '{bid}' in parameters") from e
+                elif not bus_ids:
+                    raise ValueError("System must contain at least one bus for short_circuit study")
+                ft = self.parameters.get("fault_type")
+                if ft is not None:
+                    allowed_ft = {
+                        "three_phase",
+                        "line_to_ground",
+                        "line_to_line",
+                        "double_line_to_ground",
+                        "slg",
+                        "ll",
+                        "llg",
+                    }
+                    if str(ft).lower().strip() not in allowed_ft:
+                        raise ValueError(
+                            f"Invalid fault_type '{ft}'. Allowed types: {sorted(allowed_ft)}"
+                        )
+        return self
 
 
 # ─── StudyResult / CanonicalExecutionResult ─────────────────────────────────

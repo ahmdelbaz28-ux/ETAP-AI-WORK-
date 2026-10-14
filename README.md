@@ -486,6 +486,29 @@ All secrets are managed via Vercel env vars and HF Space secrets — never commi
 
 ---
 
+## ⚡ Engineering Study API Contract & Load Modeling Specification
+### مواصفات واجهة الدراسات الهندسية ونمذجة الأحمال
+
+AhmedETAP supports two authoritative paradigms for modeling electrical loads in simulation studies:
+
+#### 1. Form A: Discrete Loads Array (`loads: [...]`)
+- **Format:** `{"load_id": int, "bus_id": int, "p_mw": float, "q_mvar": float}`
+- **Units:** Physical units (**MW** and **MVAr**), internally normalized by `base_mva`.
+- **When to Use:** Standard industrial power system modeling, multi-load bus substations, SCADA telemetry integration, and feeder-level metering.
+
+#### 2. Form B: Direct Bus-Field Loads (`buses: [{...}]`)
+- **Format:** `{"bus_id": int, ..., "load_power_real": float, "load_power_imag": float}`
+- **Units:** Per-unit (**p.u.**) on system MVA base (also accepts aliases `p_load`, `pd`, `q_load`, `qd`).
+- **When to Use:** Academic benchmark grids (IEEE 14, IEEE 30, IEEE 57, university problem sets), MATPOWER format conversions, and compact single-line definitions.
+
+#### 3. Strict Rules & Fail-Closed Guardrails (قواعد صارمة وحماية ضد الازدواج):
+- **Angle Units:** All `voltage_angle` inputs are strictly interpreted as **Degrees** (`-360.0` to `+360.0`). The system automatically converts them to radians at the solver boundary.
+- **No Duplicate Definition (منع الازدواج):** Specifying loads for the same bus in both the `buses` list and the `loads` array is strictly rejected fail-closed with **HTTP 422 Unprocessable Entity** (`DUPLICATE_LOAD_DEFINITION`).
+- **Ignored / Unrecognized Field Warnings:** Any unrecognized parameter passed in the study request is surfaced explicitly in the response `warnings[]` array and logged to server audit logs.
+- **Physical Voltage Guard:** Any non-slack bus voltage collapsing below `0.5 p.u.` triggers the `DEGENERATE_SOLUTION` physical guard, returning `converged: false` and blocking invalid results.
+
+---
+
 ## 📜 License
 
 MIT — see [`LICENSE`](LICENSE) for details.

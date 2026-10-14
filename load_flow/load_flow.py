@@ -58,9 +58,12 @@ class LoadFlowSolver:
         self.oscillation_window = 5
         self.oscillation_threshold = 0.7
 
-        # Logs
+        # Logs & Status
         self.switching_log = []
         self.iteration_log = []
+        self.converged = False
+        self.error_code = None
+        self.error_message = None
 
     def _rebuild_bus_type_indices(self):
         self.bus_types = [self.system.buses[bid].bus_type for bid in self.bus_ids]
@@ -468,6 +471,28 @@ class LoadFlowSolver:
                     # The solution with the old bus types is no longer valid
                     # — continue iterating with the updated type indices.
                     continue
+
+                # Q3 Physical Guard against degenerate collapsed solution:
+                # If any non-slack bus has |V| < 0.5 pu, this is a collapsed degenerate solution
+                # (e.g. V≈0 trivial solution where mismatch=0), reject fail-closed!
+                degenerate = False
+                for i, bid in enumerate(self.bus_ids):
+                    if self.system.buses[bid].bus_type != "slack" and np.abs(self.V[i]) < 0.5:
+                        degenerate = True
+                        break
+
+                if degenerate:
+                    logger.warning(
+                        "[LoadFlow] Degenerate solution detected: non-slack bus |V| < 0.5 pu. Failing closed."
+                    )
+                    self.converged = False
+                    self.error_code = "DEGENERATE_SOLUTION"
+                    self.error_message = "حل منحل مرفوض فيزيائيًا"
+                    return False
+
+                self.converged = True
+                self.error_code = None
+                self.error_message = None
                 # Write back results to system buses
                 P, Q = self._calculate_power(self.V)
                 for i, bid in enumerate(self.bus_ids):

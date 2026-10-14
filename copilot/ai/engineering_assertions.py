@@ -123,11 +123,11 @@ class EngineeringAssertionLayer:
             # Reject or flag the AI output
     """
 
-    # IEEE C84.1 Range A voltage limits (per-unit, typical 11kV system)
+    # IEEE C84.1 / IEEE 399 / IEEE 3002.7 voltage limits (per-unit)
     VOLTAGE_PU_MIN_RANGE_A = 0.95
     VOLTAGE_PU_MAX_RANGE_A = 1.05
-    VOLTAGE_PU_MIN_RANGE_B = 0.91
-    VOLTAGE_PU_MAX_RANGE_B = 1.08
+    VOLTAGE_PU_MIN_RANGE_B = 0.90
+    VOLTAGE_PU_MAX_RANGE_B = 1.10
 
     # Physical constraints for short circuit currents
     MAX_FAULT_CURRENT_KA = 200.0  # No practical system exceeds 200 kA
@@ -209,8 +209,31 @@ class EngineeringAssertionLayer:
 
             voltage_pu = mag / nominal_voltage_kv
 
+            # Q3 Check: Degenerate collapsed voltage check (< 0.5 pu)
+            if voltage_pu < 0.5:
+                results.append(
+                    AssertionResult(
+                        check_name="degenerate_solution",
+                        passed=False,
+                        severity=AssertionSeverity.FATAL,
+                        message=(
+                            f"Bus {bus_id} voltage {voltage_pu:.4e} pu is below physical limit 0.5 pu. "
+                            f"Degenerate solution rejected physically (DEGENERATE_SOLUTION)."
+                        ),
+                        details={
+                            "bus_id": bus_id,
+                            "voltage_kv": voltage_kv,
+                            "voltage_pu": voltage_pu,
+                            "error_code": "DEGENERATE_SOLUTION",
+                        },
+                    )
+                )
+
             # Range B check (hard limit)
-            if voltage_pu < self.VOLTAGE_PU_MIN_RANGE_B or voltage_pu > self.VOLTAGE_PU_MAX_RANGE_B:
+            elif (
+                voltage_pu < (self.VOLTAGE_PU_MIN_RANGE_B - 1e-5)
+                or voltage_pu > (self.VOLTAGE_PU_MAX_RANGE_B + 1e-5)
+            ):
                 results.append(
                     AssertionResult(
                         check_name="voltage_range_b",

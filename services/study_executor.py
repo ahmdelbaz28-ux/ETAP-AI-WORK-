@@ -151,6 +151,19 @@ class StudyExecutor:
             engine_version="2.1.0",
         )
 
+        # Q5 Warning for ignored parameters
+        if canonical == "load_flow":
+            known_lf_params = {
+                "tol", "tolerance", "convergence_tolerance", "max_iter", "max_iterations",
+                "mode", "solver_type", "algorithm", "use_warm_start", "trace_id", "task_id",
+            }
+            for k in params:
+                if k not in known_lf_params:
+                    warn_msg = f"Ignored unrecognized parameter in load_flow study: '{k}'"
+                    if warn_msg not in warnings:
+                        warnings.append(warn_msg)
+                        logger.warning(warn_msg)
+
         try:
             data = self._dispatch(
                 canonical,
@@ -158,6 +171,10 @@ class StudyExecutor:
                 params,
             )
             data = self._to_jsonable(data)
+            if isinstance(data, dict) and "warnings" in data and isinstance(data["warnings"], list):
+                for w in data["warnings"]:
+                    if w and str(w) not in warnings:
+                        warnings.append(str(w))
             status = "success"
         except ValueError:
             raise
@@ -176,7 +193,11 @@ class StudyExecutor:
         if status == "success" and isinstance(data, dict):
             if canonical in ("load_flow", "optimal_power_flow") and data.get("converged") is False:
                 status = "failed"
-                errors.append("Load flow solver did not converge")
+                err_code = data.get("error_code")
+                if err_code == "DEGENERATE_SOLUTION":
+                    errors.append(f"DEGENERATE_SOLUTION: {data.get('error_message', 'حل منحل مرفوض فيزيائيًا')}")
+                else:
+                    errors.append("Load flow solver did not converge")
 
         # Step 3: Canonical Engineering Validation (Phase 13 Authority)
         validation_status = True
@@ -545,8 +566,11 @@ class StudyExecutor:
             bus = Bus(
                 bus_id=b.bus_id,
                 voltage_magnitude=b.voltage_magnitude,
-                voltage_angle=b.voltage_angle,
-                load_power=complex(0, 0),
+                voltage_angle=math.radians(b.voltage_angle),
+                load_power=complex(
+                    getattr(b, "load_power_real", 0.0),
+                    getattr(b, "load_power_imag", 0.0),
+                ),
                 generation_power=complex(b.generation_power_real, b.generation_power_imag),
                 base_kv=b.base_kv,
                 bus_type=b.bus_type,
@@ -625,9 +649,15 @@ class StudyExecutor:
         for ld in loads:
             if ld.bus_id not in bus_map:
                 raise ValueError(f"Load {ld.load_id} references unknown bus")
+            target_bus = bus_map[ld.bus_id]
+            if target_bus.load_power != complex(0, 0):
+                raise ValueError(
+                    f"Bus {ld.bus_id} has load defined both in bus fields (load_power_real/imag) "
+                    f"and in separate loads array (load_id {ld.load_id}). Duplicate load definition is rejected."
+                )
             load = Load(
                 load_id=ld.load_id,
-                bus=bus_map[ld.bus_id],
+                bus=target_bus,
                 load_power=complex(ld.p_mw / base_mva, ld.q_mvar / base_mva),
                 constant_impedance=ld.constant_impedance,
             )
@@ -1323,7 +1353,9 @@ class StudyExecutor:
         if isinstance(obj, (np.bool_,)):
             return True, bool(obj.item())
         if isinstance(obj, np.complexfloating):
-            return True, {"real": self._to_jsonable(obj.real), "imag": self._to_jsonable(obj.imag)}
+            r = self._to_jsonable(float(obj.real))
+            i = self._to_jsonable(float(obj.imag))
+            return True, {"re": r, "im": i, "real": r, "imag": i}
         return False, None
 
     def _to_jsonable(self, obj: Any) -> Any:
@@ -1335,7 +1367,9 @@ class StudyExecutor:
                 None if (isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj))) else obj
             )
         if isinstance(obj, complex):
-            return {"re": self._to_jsonable(obj.real), "im": self._to_jsonable(obj.imag)}
+            r = self._to_jsonable(obj.real)
+            i = self._to_jsonable(obj.imag)
+            return {"re": r, "im": i, "real": r, "imag": i}
 
         converted, val = self._convert_numpy_value(obj)
         if converted:

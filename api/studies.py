@@ -25,7 +25,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Annotated
 
@@ -364,17 +364,29 @@ async def run_study(
 
     except HTTPException:
         raise
+    except ValidationError as pve:
+        _increment_counter("failed")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Validation error: {pve.errors() if hasattr(pve, 'errors') else str(pve)}",
+        ) from pve
     except ValueError as ve:
         _increment_counter("failed")
         logger.warning(
             "study_run_validation_error study_type=%s error=%s",
-            payload.study_type,
+            getattr(payload, "study_type", "unknown") if payload else "unknown",
             str(ve),
             extra={"trace_id": trace_id},
         )
+        msg = str(ve)
+        status_code = (
+            status.HTTP_422_UNPROCESSABLE_ENTITY
+            if any(k in msg.lower() for k in ("bus_id", "fault_type", "system spec", "duplicate load", "not found"))
+            else status.HTTP_400_BAD_REQUEST
+        )
         raise HTTPException(
-            status_code=400, detail="Invalid study request parameters"
-        ) from ve  # NOSONAR
+            status_code=status_code, detail=f"Invalid study request parameters: {msg}"
+        ) from ve
     except Exception as e:
         _increment_counter("failed")
         logger.exception(

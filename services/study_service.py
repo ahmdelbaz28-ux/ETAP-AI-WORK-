@@ -6,6 +6,7 @@ Handles all study execution logic, system building, and ETAP integration.
 from __future__ import annotations
 
 import asyncio
+import math
 import os
 import time
 from collections.abc import Coroutine
@@ -69,8 +70,11 @@ def _build_system_from_spec(  # NOSONAR
         bus = Bus(
             bus_id=b.bus_id,
             voltage_magnitude=b.voltage_magnitude,
-            voltage_angle=b.voltage_angle,
-            load_power=complex(0, 0),  # load_power will be added by Load objects
+            voltage_angle=math.radians(b.voltage_angle),
+            load_power=complex(
+                getattr(b, "load_power_real", 0.0),
+                getattr(b, "load_power_imag", 0.0),
+            ),
             generation_power=complex(b.generation_power_real, b.generation_power_imag),
             base_kv=b.base_kv,
             bus_type=b.bus_type,
@@ -181,9 +185,15 @@ def _build_system_from_spec(  # NOSONAR
             bus = Bus(bus_id=ld.bus_id, bus_type="pq")
             system.add_bus(bus)
             bus_map[ld.bus_id] = bus
+        target_bus = bus_map[ld.bus_id]
+        if target_bus.load_power != complex(0, 0):
+            raise ValueError(
+                f"Bus {ld.bus_id} has load defined both in bus fields (load_power_real/imag) "
+                f"and in separate loads array (load_id {ld.load_id}). Duplicate load definition is rejected."
+            )
         load = Load(
             load_id=ld.load_id,
-            bus=bus_map[ld.bus_id],
+            bus=target_bus,
             load_power=complex(ld.p_mw / spec.base_mva, ld.q_mvar / spec.base_mva),
             constant_impedance=ld.constant_impedance,
         )

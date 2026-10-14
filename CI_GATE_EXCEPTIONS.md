@@ -31,6 +31,11 @@ Any legitimate, non-greenwashing exception (such as cleanup of test background p
 | `EXC-005` | `.github/workflows/etap-infra-integration.yml` | `kubectl -n etap logs ... \|\| true` | Diagnostic post-failure log dump gathering for GitHub Action summary. Actual gate assertions follow separately. | Kubernetes Team | 2027-01-01 |
 | `EXC-006` | `.github/workflows/no-mock-in-prod.yml` | `grep ... 2>/dev/null \|\| true` | Subshell grep match collector. Captures outputs to `$matches` variable; downstream assertion fails closed if `$matches` is non-empty. | Security Team | 2027-01-01 |
 | `EXC-007` | `.github/workflows/npm-audit.yml` | `grep -vE ... \|\| true` | Pipe exception parser for GHSA allowlist extraction. Handled downstream by Node validator. | AppSec Team | 2027-01-01 |
+| `EXC-008` | `.github/workflows/ci.yml` | `sudo rm -rf ... 2>/dev/null \|\| true` | Runner disk-space pre-clean in GitHub-hosted ephemeral runner to prevent out-of-disk failures during container build. | CI Team | 2027-01-01 |
+| `EXC-009` | `.github/workflows/nightly-regression.yml` | `pip cache purge \|\| true; docker image prune ... \|\| true` | Scheduled cron runner cache cleanup between nightly regression runs. | Core Infra | 2027-01-01 |
+| `EXC-010` | `.github/workflows/hf-production-tests.yml` | `curl -sf -m 15 "$HF_SPACE_URL/health" > /dev/null 2>&1 \|\| true` | Non-blocking HTTP wake probe sent when HF Space stage is reported as SLEEPING; subsequent polling strictly requires stage to reach RUNNING before smoke suite executes. | DevOps | 2027-01-01 |
+| `EXC-011` | `.github/workflows/rollback.yml` | `"$ALERT_WEBHOOK" \|\| true` | Best-effort webhook notification post-rollback; actual rollback gate status remains strictly bound to container health. | SRE Team | 2027-01-01 |
+| `EXC-012` | `.github/workflows/security-audit.yml` | `grep ... \|\| true` | Pipe collector for grep zero-match exit code suppression when assigning match counts to shell variables. | Security Team | 2027-01-01 |
 
 ---
 

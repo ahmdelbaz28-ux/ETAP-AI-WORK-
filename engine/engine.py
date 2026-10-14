@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Dict, Tuple
+
+import numpy as np
 
 from coordination.coordination import CoordinationEngine
 from core_model.system import System
@@ -178,14 +181,151 @@ class PowerSystemEngine:
         if self.load_flow_solver is None and self.system is not None:
             self.load_flow_solver = LoadFlowSolver(self.system)
 
+        base_mva = float(getattr(self.system, "base_mva", 100.0) or 100.0)
         converged = self.load_flow_solver.solve(max_iter=max_iter, tol=tol, mode=mode)
         bus_voltages = {}
         for bid in self.load_flow_solver.bus_ids:
             bus_voltages[bid] = self.load_flow_solver.V[self.load_flow_solver.bus_index[bid]]
+
+        if not converged or getattr(self.load_flow_solver, "error_code", None) == "DEGENERATE_SOLUTION":
+            err_code = getattr(self.load_flow_solver, "error_code", None)
+            err_msg = getattr(self.load_flow_solver, "error_message", "Load flow solver did not converge")
+            return {
+                "converged": False,
+                "error_code": err_code,
+                "error_message": err_msg,
+                "bus_voltages": bus_voltages,
+                "ybus": self.load_flow_solver.Ybus,
+                "Ybus": self.load_flow_solver.Ybus,
+                "base_mva": base_mva,
+                "warnings": [err_msg] if err_msg else [],
+            }
+
+        from network_solver.zbus import zbus_full
+
+        ybus = self.load_flow_solver.Ybus
+        zbus = zbus_full(ybus)
+
+        # Injections
+        p_inj, q_inj = self.load_flow_solver._calculate_power(self.load_flow_solver.V)
+        bus_injections = {}
+        for i, bid in enumerate(self.load_flow_solver.bus_ids):
+            bus_obj = self.system.buses[bid]
+            v_val = self.load_flow_solver.V[i]
+            bus_injections[bid] = {
+                "bus_id": bid,
+                "p_inj_pu": float(p_inj[i]),
+                "q_inj_pu": float(q_inj[i]),
+                "p_inj_mw": float(p_inj[i] * base_mva),
+                "q_inj_mvar": float(q_inj[i] * base_mva),
+                "p_gen_pu": float(bus_obj.generation_power.real),
+                "q_gen_pu": float(bus_obj.generation_power.imag),
+                "p_gen_mw": float(bus_obj.generation_power.real * base_mva),
+                "q_gen_mvar": float(bus_obj.generation_power.imag * base_mva),
+                "p_load_pu": float(bus_obj.load_power.real),
+                "q_load_pu": float(bus_obj.load_power.imag),
+                "p_load_mw": float(bus_obj.load_power.real * base_mva),
+                "q_load_mvar": float(bus_obj.load_power.imag * base_mva),
+                "voltage_magnitude": float(abs(v_val)),
+                "voltage_angle_deg": float(math.degrees(np.angle(v_val))),
+            }
+
+        # Line flows
+        line_flows = {}
+        for line in getattr(self.system, "lines", []):
+            fb = line.from_bus.bus_id
+            tb = line.to_bus.bus_id
+            v_f = bus_voltages[fb]
+            v_t = bus_voltages[tb]
+            z = line.z1
+            y = 1.0 / z if abs(z) > 1e-12 else 0.0
+            y_sh = line.yshunt1 / 2.0
+            i_ft = (v_f - v_t) * y + v_f * y_sh
+            i_tf = (v_t - v_f) * y + v_t * y_sh
+            s_ft = v_f * np.conj(i_ft)
+            s_tf = v_t * np.conj(i_tf)
+            line_flows[line.line_id] = {
+                "line_id": line.line_id,
+                "from_bus_id": fb,
+                "to_bus_id": tb,
+                "p_from_pu": float(s_ft.real),
+                "q_from_pu": float(s_ft.imag),
+                "p_from_mw": float(s_ft.real * base_mva),
+                "q_from_mvar": float(s_ft.imag * base_mva),
+                "p_to_pu": float(s_tf.real),
+                "q_to_pu": float(s_tf.imag),
+                "p_to_mw": float(s_tf.real * base_mva),
+                "q_to_mvar": float(s_tf.imag * base_mva),
+                "p_loss_pu": float((s_ft + s_tf).real),
+                "q_loss_pu": float((s_ft + s_tf).imag),
+                "p_loss_mw": float((s_ft + s_tf).real * base_mva),
+                "q_loss_mvar": float((s_ft + s_tf).imag * base_mva),
+                "current_from_pu": float(abs(i_ft)),
+                "current_from_angle_deg": float(math.degrees(np.angle(i_ft))),
+                "current_to_pu": float(abs(i_tf)),
+                "current_to_angle_deg": float(math.degrees(np.angle(i_tf))),
+            }
+
+        # Transformer flows
+        transformer_flows = {}
+        for xf in getattr(self.system, "transformers", []):
+            fb = xf.from_bus.bus_id
+            tb = xf.to_bus.bus_id
+            v_f = bus_voltages[fb]
+            v_t = bus_voltages[tb]
+            z = xf.z1
+            y = 1.0 / z if abs(z) > 1e-12 else 0.0
+            tap = xf.tap_ratio
+            ps = getattr(xf, "phase_shift", 0.0)
+            a = tap * np.exp(1j * ps)
+            y_sh = xf.yshunt1 / 2.0
+            i_ft = (v_f / (abs(a) ** 2) - v_t / np.conj(a)) * y + (v_f / (abs(a) ** 2)) * y_sh
+            i_tf = (v_t - v_f / a) * y + v_t * y_sh
+            s_ft = v_f * np.conj(i_ft)
+            s_tf = v_t * np.conj(i_tf)
+            transformer_flows[xf.transformer_id] = {
+                "transformer_id": xf.transformer_id,
+                "from_bus_id": fb,
+                "to_bus_id": tb,
+                "p_from_pu": float(s_ft.real),
+                "q_from_pu": float(s_ft.imag),
+                "p_from_mw": float(s_ft.real * base_mva),
+                "q_from_mvar": float(s_ft.imag * base_mva),
+                "p_to_pu": float(s_tf.real),
+                "q_to_pu": float(s_tf.imag),
+                "p_to_mw": float(s_tf.real * base_mva),
+                "q_to_mvar": float(s_tf.imag * base_mva),
+                "p_loss_pu": float((s_ft + s_tf).real),
+                "q_loss_pu": float((s_ft + s_tf).imag),
+                "p_loss_mw": float((s_ft + s_tf).real * base_mva),
+                "q_loss_mvar": float((s_ft + s_tf).imag * base_mva),
+            }
+
+        iterations = (
+            len(self.load_flow_solver.iteration_log)
+            if hasattr(self.load_flow_solver, "iteration_log")
+            else 0
+        )
+        last_mismatch = (
+            float(self.load_flow_solver.iteration_log[-1]["max_mismatch"])
+            if iterations > 0 and "max_mismatch" in self.load_flow_solver.iteration_log[-1]
+            else 0.0
+        )
+
         return {
-            "converged": converged,
+            "converged": True,
             "bus_voltages": bus_voltages,
-            "Ybus": self.load_flow_solver.Ybus,
+            "ybus": ybus,
+            "Ybus": ybus,
+            "zbus": zbus,
+            "Zbus": zbus,
+            "line_flows": line_flows,
+            "transformer_flows": transformer_flows,
+            "bus_injections": bus_injections,
+            "base_mva": base_mva,
+            "iterations": iterations,
+            "max_mismatch": last_mismatch,
+            "warnings": [],
         }
 
     def run_fault_analysis(self, fault_type: str, bus_id: int) -> dict[str, Any]:
@@ -200,7 +340,10 @@ class PowerSystemEngine:
         dict: Fault analysis results.
         """
         if self.load_flow_solver is None:
-            raise RuntimeError("No system model loaded — cannot run fault analysis")
+            if self.system is not None:
+                self.load_flow_solver = LoadFlowSolver(self.system)
+            else:
+                raise RuntimeError("No system model loaded — cannot run fault analysis")
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
         ybus_pos = self.system.get_ybus(
@@ -243,8 +386,23 @@ class PowerSystemEngine:
             base_kv=base_kv,
             slack_bus_index=slack_index,
         )
-        # Get bus index
+        # Get bus index fail-closed
+        if bus_id not in self.load_flow_solver.bus_index:
+            valid_buses = sorted(self.load_flow_solver.bus_index.keys())
+            raise ValueError(
+                f"bus_id {bus_id} not found in system buses {valid_buses} for fault analysis"
+            )
         bus_index = self.load_flow_solver.bus_index[bus_id]
+        # Normalize and validate fault type
+        ft = str(fault_type).lower().strip()
+        alias_ft = {
+            "slg": "line_to_ground",
+            "ll": "line_to_line",
+            "llg": "double_line_to_ground",
+            "3phase": "three_phase",
+            "3p": "three_phase",
+        }
+        fault_type = alias_ft.get(ft, ft)
         # Calculate fault
         if fault_type == "three_phase":
             result = fault_analyzer.three_phase_fault(bus_index)
