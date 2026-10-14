@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-14T08:19:10.840939+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-14T08:41:27.588100+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -5875,10 +5875,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-page | 61 |
 | ui-component | 280 |
 | python-module | 41 |
+| ui-page | 61 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -6414,14 +6414,14 @@ Provides
 | `docker-compose.copilot.yml` | 8.1 KB | `c95aca46863a` |
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
-| `pyproject.toml` | 11.7 KB | `5ff777384404` |
-| `requirements.txt` | 11.2 KB | `ef8c4c9e366e` |
-| `requirements-prod.txt` | 3.2 KB | `7abc3b36253c` |
-| `requirements-dev.txt` | 0.9 KB | `f6171d453bba` |
+| `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
+| `requirements.txt` | 11.2 KB | `19b083462bc8` |
+| `requirements-prod.txt` | 3.2 KB | `d316c882b203` |
+| `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
-| `requirements-ml.txt` | 1.5 KB | `531f66a9b434` |
-| `requirements.hf.txt` | 5.8 KB | `582a04e22600` |
-| `.github/workflows/security.yml` | 14.4 KB | `06eb1601ed98` |
+| `requirements-ml.txt` | 1.5 KB | `04baa1273efe` |
+| `requirements.hf.txt` | 5.8 KB | `2d88449a31fa` |
+| `.github/workflows/security.yml` | 14.4 KB | `ef770ec504af` |
 | `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
 | `scripts/docker_build.sh` | 10.7 KB | `946696eb4a11` |
@@ -6431,7 +6431,7 @@ Provides
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
 | `hf-space/app.py` | 78.2 KB | `656f36d80e2f` |
-| `ui/package.json` | 3.8 KB | `c9d0caa5aa98` |
+| `ui/package.json` | 3.8 KB | `a4afc5a6c8bb` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
