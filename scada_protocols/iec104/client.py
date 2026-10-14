@@ -30,6 +30,35 @@ from scada_protocols.iec104.asdu_mapper import (
 logger = logging.getLogger(__name__)
 
 
+def _build_receive_callback(c104_mod: Any, pt_meta: Any, src_name: str, adapter: Any) -> Any:
+    """Build a receive callback with explicit closure bindings and type hints for c104."""
+
+    def _cb(point: Any, previous_info: Any, message: Any) -> Any:
+        try:
+            val = decode_information(previous_info, pt_meta)
+            q = decode_quality(previous_info)
+            if val is None:
+                return c104_mod.ResponseState.NONE
+            adapter._ingest(
+                pt_meta.element_id,
+                pt_meta.measurement_type,
+                float(val),
+                quality=q,
+                source="iec104:" + src_name,
+            )
+        except Exception as exc:
+            adapter._mark_error("on_receive (ioa=" + str(pt_meta.ioa) + "): " + str(exc))
+        return c104_mod.ResponseState.NONE
+
+    _cb.__annotations__ = {
+        "point": c104_mod.Point,
+        "previous_info": c104_mod.Information,
+        "message": c104_mod.IncomingMessage,
+        "return": c104_mod.ResponseState,
+    }
+    return _cb
+
+
 class IEC104ClientAdapter(ProtocolAdapter):
     """IEC 60870-5-104 master that ingests measurements from remote RTUs."""
 
@@ -132,40 +161,7 @@ class IEC104ClientAdapter(ProtocolAdapter):
                         # stringifies to 'Any'). We must use the actual c104
                         # type objects in the annotations, not strings.
                         # `from __future__ import annotations` would make all
-                        # annotations strings — so we build the callback via
-                        # compile() with flags=0 to disable future annotations,
-                        # then set __annotations__ explicitly to be safe.
-                        _point_meta = pt
-                        _src_name = name
-                        _adapter = self
-
-                        def _cb(point, previous_info, message):
-                            try:
-                                val = decode_information(previous_info, _point_meta)  # noqa: B023
-                                q = decode_quality(previous_info)
-                                if val is None:
-                                    return c104.ResponseState.NONE
-                                _adapter._ingest(  # noqa: B023
-                                    _point_meta.element_id,  # noqa: B023
-                                    _point_meta.measurement_type,  # noqa: B023
-                                    float(val),
-                                    quality=q,
-                                    source="iec104:" + _src_name,  # noqa: B023
-                                )
-                            except Exception as exc:
-                                _adapter._mark_error(  # noqa: B023
-                                    "on_receive (ioa=" + str(_point_meta.ioa) + "): " + str(exc)  # noqa: B023
-                                )
-                            return c104.ResponseState.NONE
-
-                        # Set real type-object annotations (not strings).
-                        _cb.__annotations__ = {
-                            "point": c104.Point,
-                            "previous_info": c104.Information,
-                            "message": c104.IncomingMessage,
-                            "return": c104.ResponseState,
-                        }
-
+                        _cb = _build_receive_callback(c104, pt, name, self)
                         try:
                             point.on_receive(callable=_cb)
                         except Exception as exc:

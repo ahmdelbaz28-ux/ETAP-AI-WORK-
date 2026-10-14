@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 from gis_validation_electrical.electrical_model import ElectricalModel
 
@@ -11,15 +10,6 @@ class LoadFlowIssue:
     issue_type: str  # e.g. "voltage_propagation_inconsistent"
     affected_assets: list[str]
     details: dict[str, object]
-
-
-def _compute_deterministic_voltages(  # NOSONAR
-    model: ElectricalModel,
-) -> dict[
-    str, float
-]:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
-    affected_assets: List[str]  # noqa: F842
-    details: Dict[str, object]  # noqa: F842
 
 
 def _compute_deterministic_voltages(model: ElectricalModel) -> dict[str, float]:

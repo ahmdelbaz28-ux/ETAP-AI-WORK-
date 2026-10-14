@@ -12,7 +12,7 @@ import logging
 import platform
 import sys
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -92,13 +92,6 @@ class CompatibilityReport:
     com_modules_missing: list[str]
     checks: list[CheckResult] = field(default_factory=list)
     overall_pass: bool = False
-
-
-def _parse_version(v: str) -> tuple[int, ...]:
-    com_modules_available: List[str]  # noqa: F842
-    com_modules_missing: List[str]  # noqa: F842
-    checks: List[CheckResult] = field(default_factory=list)  # noqa: F841
-    overall_pass: bool = False  # noqa: F841
 
 
 def _parse_version(v: str) -> Tuple[int, ...]:

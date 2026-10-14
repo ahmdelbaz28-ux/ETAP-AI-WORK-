@@ -215,7 +215,7 @@ class IEC104ServerAdapter(ProtocolAdapter):
             elif type_name.startswith("M_ME_NB"):
                 # Scaled int
                 point.value = int(round(value))
-            elif type_name.startswith("M_ME_NC") or type_name.startswith("M_ME_TF"):
+            elif type_name.startswith(("M_ME_NC", "M_ME_TF")):
                 # Short float
                 point.value = float(value)
             elif type_name.startswith("M_IT"):

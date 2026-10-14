@@ -129,7 +129,9 @@ def _query_live_telemetry(device_id: str) -> Optional[Dict[str, Any]]:
             return {
                 "value": latest_m.value,
                 "status": "CLOSED" if latest_m.value > 0.5 else "OPEN",
-                "quality": latest_m.quality.name if hasattr(latest_m.quality, "name") else str(latest_m.quality),
+                "quality": latest_m.quality.name
+                if hasattr(latest_m.quality, "name")
+                else str(latest_m.quality),
                 "control_mode": "REMOTE",
                 "timestamp": getattr(latest_m, "source_timestamp", datetime.now(UTC).isoformat()),
             }
@@ -152,7 +154,9 @@ def _resolve_modbus_endpoint() -> Tuple[Optional[str], int]:
     return host, port
 
 
-async def _execute_modbus_write(client: Any, command: ControlCommandRequest, target_address: int) -> None:
+async def _execute_modbus_write(
+    client: Any, command: ControlCommandRequest, target_address: int
+) -> None:
     if command.action_type in (
         ControlActionType.BREAKER_OPEN,
         ControlActionType.BREAKER_CLOSE,
@@ -162,9 +166,7 @@ async def _execute_modbus_write(client: Any, command: ControlCommandRequest, tar
         if hasattr(res, "isError") and res.isError():
             raise RuntimeError(f"Modbus write_coil error: {res}")
     else:
-        res = await client.write_register(
-            address=target_address, value=int(command.target_value)
-        )
+        res = await client.write_register(address=target_address, value=int(command.target_value))
         if hasattr(res, "isError") and res.isError():
             raise RuntimeError(f"Modbus write_register error: {res}")
 
@@ -191,14 +193,10 @@ def _determine_iec104_cmd(c104: Any, command: ControlCommandRequest) -> Tuple[An
         ControlActionType.BREAKER_OPEN,
         ControlActionType.BREAKER_CLOSE,
     ):
-        cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(
-            c104.Type, "C_DC_NA_1", None
-        )
+        cmd_type = getattr(c104.Type, "C_SC_NA_1", None) or getattr(c104.Type, "C_DC_NA_1", None)
         cmd_val = bool(command.target_value)
     else:
-        cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(
-            c104.Type, "C_SE_NA_1", None
-        )
+        cmd_type = getattr(c104.Type, "C_SE_NC_1", None) or getattr(c104.Type, "C_SE_NA_1", None)
         cmd_val = float(command.target_value)
     return cmd_type, cmd_val
 
@@ -421,7 +419,7 @@ class SCADAControlExecutor:
                     await node.write_value(command.target_value)
                 return
             except Exception as exc:
-                logger.error("OPC UA physical write failed: %s", exc)
+                logger.exception("OPC UA physical write failed: %s", exc)
                 raise RuntimeError(f"OPC UA physical write failed: {exc}") from exc
 
         # Simulation mode: update device state after realistic actuation delay
@@ -443,7 +441,7 @@ class SCADAControlExecutor:
                     await _execute_modbus_write(client, command, target_address)
                 return
             except Exception as exc:
-                logger.error("Modbus physical write failed: %s", exc)
+                logger.exception("Modbus physical write failed: %s", exc)
                 raise RuntimeError(f"Modbus physical write failed: {exc}") from exc
 
         await asyncio.sleep(0.05)
@@ -483,7 +481,7 @@ class SCADAControlExecutor:
                     client.stop()
                 return
             except Exception as exc:
-                logger.error("IEC 104 physical command dispatch failed: %s", exc)
+                logger.exception("IEC 104 physical command dispatch failed: %s", exc)
                 raise RuntimeError(f"IEC 104 command dispatch failed: {exc}") from exc
 
         # Simulation mode: Type 45/46 ASDU emulation
@@ -514,17 +512,6 @@ class SCADAControlExecutor:
         self._sbo_selected_at[command.device_id] = now
         ctl_num = (self._ctl_num.get(command.device_id, 0) + 1) % 256
         self._ctl_num[command.device_id] = ctl_num
-
-        host = os.getenv("IEC61850_HOST")
-        port = int(os.getenv("IEC61850_PORT", "102"))
-        cfg = _get_protocol_config()
-        if cfg and hasattr(cfg, "iec61850") and cfg.iec61850:
-            if not host and cfg.iec61850.clients:
-                host = cfg.iec61850.clients[0].get("host", host)
-                port = int(cfg.iec61850.clients[0].get("port", port))
-            elif not host:
-                host = cfg.iec61850.server_host
-                port = cfg.iec61850.server_port
 
         if not self.is_simulation:
             self._sbo_selected_at.pop(command.device_id, None)

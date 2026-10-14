@@ -119,10 +119,10 @@ class ModbusClientAdapter(ProtocolAdapter):
         # One async client per slave; lazily (re)created on demand.
         clients: Dict[str, Any] = {}
 
-        async def _get_client(name: str, host: str, port: int, timeout: float) -> Any:
+        async def _get_client(name: str, host: str, port: int, timeout_sec: float) -> Any:
             cli = clients.get(name)
             if cli is None:
-                cli = self._AsyncModbusTcpClient(host=host, port=port, timeout=timeout)
+                cli = self._AsyncModbusTcpClient(host=host, port=port, timeout=timeout_sec)
                 try:
                     await cli.connect()
                 except Exception as exc:

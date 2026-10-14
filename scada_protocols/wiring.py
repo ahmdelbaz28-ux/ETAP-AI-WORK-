@@ -176,7 +176,7 @@ def wire_into_app(
                 sum(1 for a in mgr.list_adapters() if a["health"]),
             )
         except Exception as exc:
-            logger.error("Failed to start SCADAProtocolManager: %s", exc)
+            logger.exception("Failed to start SCADAProtocolManager: %s", exc)
 
     return mgr
 

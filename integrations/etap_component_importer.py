@@ -64,7 +64,7 @@ class ETAPComponentImporter:
         try:
             root = ET.fromstring(content)
         except Exception as err:
-            logger.error("Failed to parse ETAP XML: %s", err)
+            logger.exception("Failed to parse ETAP XML: %s", err)
             raise ValueError(f"Invalid ETAP XML: {err}") from err
 
         components: list[dict[str, Any]] = []
@@ -162,7 +162,12 @@ class ETAPComponentImporter:
                 kva = _safe_float(
                     elem.attrib.get("kVA") or elem.attrib.get("RatedkVA") or elem.findtext("kVA")
                 )
-                rated_power = mva * 1000.0 if mva else (kva if kva else 1000.0)
+                if mva:
+                    rated_power = mva * 1000.0
+                elif kva:
+                    rated_power = kva
+                else:
+                    rated_power = 1000.0
 
                 prim_kv = _safe_float(
                     elem.attrib.get("PriKV") or elem.attrib.get("PrimkV") or elem.findtext("PriKV"),

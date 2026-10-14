@@ -101,12 +101,12 @@ class ModbusServerAdapter(ProtocolAdapter):
         try:
             from pymodbus.datastore import ModbusDeviceContext  # type: ignore
 
-            DeviceCtxCls = ModbusDeviceContext
+            device_ctx_cls = ModbusDeviceContext
             _NEW_API = True
         except ImportError:
             from pymodbus.datastore import ModbusSlaveContext  # type: ignore
 
-            DeviceCtxCls = ModbusSlaveContext
+            device_ctx_cls = ModbusSlaveContext
             _NEW_API = False
 
         # Build the backing datastore from the register map.
@@ -155,10 +155,10 @@ class ModbusServerAdapter(ProtocolAdapter):
             except Exception:
                 _di_block = ModbusSequentialDataBlock(1, [0] * 100)
                 _co_block = ModbusSequentialDataBlock(1, [0] * 100)
-            device = DeviceCtxCls(di=_di_block, co=_co_block, hr=block, ir=block)
+            device = device_ctx_cls(di=_di_block, co=_co_block, hr=block, ir=block)
             context = ModbusServerContext(devices={self._cfg.server_unit_id: device}, single=False)
         else:  # pragma: no cover - legacy API
-            device = DeviceCtxCls(
+            device = device_ctx_cls(
                 di=ModbusSequentialDataBlock(0, [0] * 100),
                 co=ModbusSequentialDataBlock(0, [0] * 100),
                 hr=block,

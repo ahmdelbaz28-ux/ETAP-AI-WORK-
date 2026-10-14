@@ -140,9 +140,6 @@ class SimulationResults:
     state_estimation_bad_data: int = 0
     fault_currents: dict[str, complex] = field(default_factory=dict)
     arc_flash_incident_energy: dict[str, float] = field(default_factory=dict)
-
-    state_estimation_converged: bool = False
-    state_estimation_bad_data: int = 0
     protection_coordination_ok: bool = False
 
     def to_dict(self) -> dict:
@@ -185,11 +182,6 @@ class StateSnapshot:
 
     # ADMS Layer State
     switch_states: dict[str, SwitchState] = field(default_factory=dict)
-
-    # Electrical Layer State
-    ybus_checksum: int = 0  # Hash of Ybus for change detection
-
-    # ADMS Layer State
     topology: TopologyState = field(default_factory=TopologyState)
     scada_measurement_count: int = 0
 

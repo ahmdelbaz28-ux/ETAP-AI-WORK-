@@ -75,12 +75,9 @@ class IEC104Adapter(ProtocolAdapter):
             self._client.stop_client()
 
     def health_check(self) -> bool:
-        ok = True
-        if self._server is not None:
-            ok = ok and self._server.health_check()
-        if self._client is not None:
-            ok = ok and self._client.health_check()
-        return ok
+        server_ok = self._server.health_check() if self._server is not None else True
+        client_ok = self._client.health_check() if self._client is not None else True
+        return server_ok and client_ok
 
     @property
     def server(self) -> Optional[IEC104ServerAdapter]:

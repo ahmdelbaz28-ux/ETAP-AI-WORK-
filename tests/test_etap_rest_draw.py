@@ -14,6 +14,7 @@ Covers (per surgical prompt):
 from __future__ import annotations
 
 import httpx
+import pydantic
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -158,8 +159,9 @@ async def test_apply_draw_partial_create_fails():
 
 async def test_apply_draw_readback_miss_fails_and_cleans_up():
     c, calls = _client(mode="miss")
+    plan = EtapDrawPlan(**_plan())
     with pytest.raises(ETAPRestError) as ei:
-        await c.apply_draw(EtapDrawPlan(**_plan()))
+        await c.apply_draw(plan)
     assert ei.value.code == "VERIFY_MISMATCH"
     assert any(m == "DELETE" and p.endswith("/api/v1/projects/PRJ1/elements") for m, p in calls)
 
@@ -174,8 +176,9 @@ async def test_auth_401_maps_to_unavailable():
         transport=httpx.MockTransport(handler),
         retry_delays=(0, 0, 0),
     )
+    plan = EtapDrawPlan(**_plan())
     with pytest.raises(ETAPRestError) as ei:
-        await c.apply_draw(EtapDrawPlan(**_plan()))
+        await c.apply_draw(plan)
     assert ei.value.code == "AUTH_FAILED"
 
 
@@ -199,13 +202,13 @@ async def test_retry_on_503_then_success():
 
 
 def test_invalid_plan_rejected_locally_no_http():
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, pydantic.ValidationError)):
         EtapElement(element_type="bus", name="B1", properties={"base_kv": 11.0, "x": 5.0})
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, pydantic.ValidationError)):
         EtapDrawPlan(project_id="P", items=[], reason="long enough reason")
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, pydantic.ValidationError)):
         EtapDrawPlan(**_plan(delete_ids=["*"]))
-    with pytest.raises(Exception):
+    with pytest.raises((ValueError, pydantic.ValidationError)):
         EtapDrawPlan(**_plan(reason="abc"))
 
 

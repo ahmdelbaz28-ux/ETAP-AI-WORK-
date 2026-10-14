@@ -424,7 +424,7 @@ class SmitheryClient:
         self,
         operation: Callable[[], Any],
         op_name: str,
-        timeout: float,
+        timeout_sec: float,
     ) -> Any:
         """Execute an async operation with retry + exponential backoff.
 
@@ -453,7 +453,7 @@ class SmitheryClient:
         last_exc: BaseException | None = None
         for attempt in range(self.max_retries + 1):
             try:
-                result = await asyncio.wait_for(operation(), timeout=timeout)
+                result = await asyncio.wait_for(operation(), timeout=timeout_sec)
                 self._record_call(success=True)
                 self._record_circuit_result(success=True)
                 if attempt > 0:
@@ -530,7 +530,7 @@ class SmitheryClient:
             return resp.json().get("servers", [])
 
         result = await self._call_with_retry(
-            _do_list, op_name="list_servers", timeout=self.timeout_list
+            _do_list, op_name="list_servers", timeout_sec=self.timeout_list
         )
         if isinstance(result, list):
             return result
@@ -599,7 +599,7 @@ class SmitheryClient:
             return resp.json()
 
         return await self._call_with_retry(
-            _do_call, op_name=f"call_tool({server_id}/{tool_name})", timeout=timeout
+            _do_call, op_name=f"call_tool({server_id}/{tool_name})", timeout_sec=timeout
         )
 
     # ─── Lifecycle ───────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from gis_integration.models import ADMSAsset
 
@@ -11,11 +11,6 @@ class CRSIssue:
     issue_type: str
     affected_assets: list[str]
     details: dict[str, Any]
-
-
-def _asset_source_crs(asset: ADMSAsset) -> Optional[str]:
-    affected_assets: List[str]  # noqa: F842
-    details: Dict[str, Any]  # noqa: F842
 
 
 def _asset_source_crs(asset: ADMSAsset) -> str | None:
