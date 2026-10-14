@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-14T11:51:59.523662+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-14T13:17:28.551157+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -10,12 +10,12 @@
 | Metric | Count |
 |:---|---:|
 | Python | Packages | 41 |
-| Python | Files | 399 |
+| Python | Files | 400 |
 | Python | Classes | 974 |
-| Python | Functions | 874 |
+| Python | Functions | 876 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 296 |
-| Total | Tests | 4063 |
+| Test | Files | 297 |
+| Total | Tests | 4073 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 457 |
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -87,7 +87,7 @@
 - **`resend_email`** (17.8 KB) — classes: `EmailParams`, `EmailResult`, `ResendError`, `_RateLimiter`, `ResendEmailClient`
 - **`resilience`** (17.0 KB) — classes: `CheckpointStore`, `HybridVisionRouter`, `ResumeManager`
 - **`siem_syslog`** (19.0 KB) — classes: `SIEMSyslogForwarder`
-- **`smithery_mcp`** (29.5 KB) — classes: `_TokenBucket`, `SmitheryClient`, `ETAPMCPRegistry`
+- **`smithery_mcp`** (29.7 KB) — classes: `_TokenBucket`, `SmitheryClient`, `ETAPMCPRegistry`
 - **`supabase_auth`** (8.5 KB) — classes: `SupabaseAuthError`
 - **`supabase_integration`** (19.1 KB) — classes: `SupabaseUploadError`
 
@@ -926,7 +926,7 @@ Typed goal router and dependency-aware study planner for multi-agent workflo
 - **def** `determine_execution_order()` (line 256)
 - **def** `create_router()` (line 261)
 
-#### 📄 `agents/scada_agent.py` _59.6 KB_
+#### 📄 `agents/scada_agent.py` _60.0 KB_
 > AhmedETAP - SCADA Integration Agent
 =======================================================
 IEC 61850 data model mapping and real-time measurement pro
@@ -937,9 +937,9 @@ IEC 61850 data model mapping and real-time measurement pro
   - Methods: `connect()`, `disconnect()`
 - **Class** `LiveModbusAdapter` (line 216)
   - Methods: `connect()`, `read_measurements()`, `close()`
-- **Class** `LiveOpcUaAdapter` (line 340)
+- **Class** `LiveOpcUaAdapter` (line 349)
   - Methods: `connect()`, `read_measurements()`, `close()`
-- **Class** `SCADAAgent` (line 429)
+- **Class** `SCADAAgent` (line 438)
   - Methods: `connect_scada()`, `read_measurements()`, `map_to_bus_data()`, `process_realtime_data()`, `get_iec61850_model()`, `execute()`, `validate_result()`
 
 #### 📄 `agents/stability_agent.py` _32.4 KB_
@@ -1192,7 +1192,7 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _43.8 KB_
+#### 📄 `api/approvals.py` _44.1 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
@@ -1202,19 +1202,19 @@ pass before execution. Provides:
 - **Class** `PendingAction` (line 144)
 - **Class** `IdempotencyKey` (line 182)
 - **Class** `CreateApprovalRequest` (line 206)
-- **Class** `ResolveRequest` (line 563)
-- **Class** `AutoApproveRequest` (line 578)
-- **Class** `ApprovalResponse` (line 585)
+- **Class** `ResolveRequest` (line 571)
+- **Class** `AutoApproveRequest` (line 586)
+- **Class** `ApprovalResponse` (line 593)
 - **def** `compute_args_hash()` (line 123)
 - **def** `classify_tool()` (line 129)
 - **def** `validate_server_control_action()` (line 218)
-- **def** `set_session_auto_approve()` (line 616)
-- **def** `get_session_auto_approve()` (line 621)
-- **async def** `expire_stale_actions()` (line 710)
-- **async def** `transition_status()` (line 737)
-- **async def** `create_approval()` (line 795)
-- **async def** `list_pending()` (line 876)
-- **async def** `resolve_action()` (line 905)
+- **def** `set_session_auto_approve()` (line 624)
+- **def** `get_session_auto_approve()` (line 629)
+- **async def** `expire_stale_actions()` (line 718)
+- **async def** `transition_status()` (line 745)
+- **async def** `create_approval()` (line 803)
+- **async def** `list_pending()` (line 884)
+- **async def** `resolve_action()` (line 913)
 
   **API Routes:**
   - `GET /pending`
@@ -1751,25 +1751,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _20.1 KB_
+#### 📄 `api/feature_flags.py` _20.4 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 450)
-- **Class** `FeatureFlagListOut` (line 459)
-- **Class** `FeatureFlagPatch` (line 467)
+- **Class** `FeatureFlagOut` (line 457)
+- **Class** `FeatureFlagListOut` (line 466)
+- **Class** `FeatureFlagPatch` (line 474)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 336)
-- **def** `is_feature_enabled()` (line 341)
-- **def** `is_strict_feature_enabled()` (line 361)
-- **def** `get_disabled_studies()` (line 381)
-- **def** `get_flag_metadata()` (line 398)
-- **def** `evaluate_flag_with_rollout()` (line 429)
-- **async def** `list_feature_flags()` (line 522)
-- **async def** `get_feature_flag()` (line 541)
-- **async def** `update_feature_flag()` (line 564)
+- **def** `is_enabled()` (line 343)
+- **def** `is_feature_enabled()` (line 348)
+- **def** `is_strict_feature_enabled()` (line 368)
+- **def** `get_disabled_studies()` (line 388)
+- **def** `get_flag_metadata()` (line 405)
+- **def** `evaluate_flag_with_rollout()` (line 436)
+- **async def** `list_feature_flags()` (line 529)
+- **async def** `get_feature_flag()` (line 548)
+- **async def** `update_feature_flag()` (line 571)
 
   **API Routes:**
   - `GET /{key}`
@@ -2278,7 +2278,7 @@ Endpoints:
   - `POST /keys/{provider}/test`
   - `GET /health`
 
-#### 📄 `api/shared_handlers.py` _33.0 KB_
+#### 📄 `api/shared_handlers.py` _35.9 KB_
 > Shared Handlers & Utilities for AhmedETAP
 ==========================================
 
@@ -2297,8 +2297,8 @@ Lightweight, dependency-free implementations of common logic use
 - **def** `build_knowledge_info()` (line 480)
 - **def** `sanitize_result()` (line 545)
 - **def** `run_study_lightweight()` (line 593)
-- **def** `handle_etap_expert_chat()` (line 689)
-- **def** `handle_etap_gui_chat()` (line 708)
+- **def** `handle_etap_expert_chat()` (line 756)
+- **def** `handle_etap_gui_chat()` (line 775)
 
 #### 📄 `api/solver_parameters.py` _8.5 KB_
 > api/solver_parameters.py — Solver Parameters Management API.
@@ -2334,21 +2334,21 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _22.4 KB_
+#### 📄 `api/studies.py` _23.2 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 601)
+- **Class** `StudyReRunRequest` (line 613)
 - **def** `pre_flight_check()` (line 160)
 - **async def** `run_study()` (line 283)
-- **def** `get_celery_components()` (line 404)
-- **async def** `run_study_async()` (line 447)
-- **async def** `get_task_status()` (line 521)
-- **async def** `get_study_types()` (line 590)
-- **async def** `re_run_study()` (line 608)
+- **def** `get_celery_components()` (line 416)
+- **async def** `run_study_async()` (line 459)
+- **async def** `get_task_status()` (line 533)
+- **async def** `get_study_types()` (line 602)
+- **async def** `re_run_study()` (line 620)
 
   **API Routes:**
   - `GET /types`
@@ -2746,16 +2746,16 @@ Patterns drawn from open-telemetry/opentelemetry-python:
 Provides Pint-based UnitRegistry and dimensionality verification for
 enginee
 
-- **def** `parse_quantity()` (line 154)
-- **def** `validate_parameter_dimension()` (line 214)
-- **def** `normalize_quantity()` (line 245)
-- **def** `deg_to_rad()` (line 346)
-- **def** `rad_to_deg()` (line 351)
-- **def** `normalize_angle()` (line 356)
-- **def** `awg_to_mm2()` (line 374)
-- **def** `mm2_to_nearest_awg()` (line 380)
-- **def** `ft_to_m()` (line 389)
-- **def** `m_to_ft()` (line 394)
+- **def** `parse_quantity()` (line 155)
+- **def** `validate_parameter_dimension()` (line 215)
+- **def** `normalize_quantity()` (line 246)
+- **def** `deg_to_rad()` (line 347)
+- **def** `rad_to_deg()` (line 352)
+- **def** `normalize_angle()` (line 357)
+- **def** `awg_to_mm2()` (line 375)
+- **def** `mm2_to_nearest_awg()` (line 381)
+- **def** `ft_to_m()` (line 390)
+- **def** `m_to_ft()` (line 395)
 
 #### 📄 `core/utils.py` _1.4 KB_
 > core/utils.py — Shared utility functions used across the ETAP-AI-WORK codebase.
@@ -3323,7 +3323,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _91.7 KB_
+#### 📄 `services/execution_orchestrator.py` _92.7 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3338,21 +3338,21 @@ Coo
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
 - **Class** `NativeEngineeringExecutor` (line 286)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 416)
+- **Class** `AgentEngineeringExecutor` (line 435)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 574)
+- **Class** `EtapEngineeringExecutor` (line 593)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 706)
+- **Class** `ExternalServiceExecutor` (line 725)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 881)
+- **Class** `CompositeEngineeringExecutor` (line 900)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1130)
+- **Class** `ExecutionOrchestrator` (line 1149)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 2136)
+- **def** `get_execution_orchestrator()` (line 2158)
 
-#### 📄 `services/execution_request.py` _16.9 KB_
+#### 📄 `services/execution_request.py` _17.3 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
 
 Establishes:
@@ -3362,9 +3362,9 @@ Establishes:
   - Methods: `get_parameters()`, `get_system()`, `from_study_request()`
 - **Class** `CanonicalExecutionResult` (line 212)
   - Methods: `enforce_authoritative_boundary()`, `to_study_result()`
-- **Class** `IEngineeringExecutor` (line 343)
+- **Class** `IEngineeringExecutor` (line 351)
   - Methods: `execute()`
-- **def** `is_authoritative_production_result()` (line 356)
+- **def** `is_authoritative_production_result()` (line 364)
 
 #### 📄 `services/mcp_probe.py` _10.7 KB_
 > MCP Health Probe Service
@@ -3422,7 +3422,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _71.1 KB_
+#### 📄 `services/study_executor.py` _74.2 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -4361,6 +4361,16 @@ Create Date: 2026-10-
 - **def** `upgrade()` (line 19)
 - **def** `downgrade()` (line 37)
 
+#### 📄 `migrations/versions/016_add_validation_snapshot_and_components.py` _3.0 KB_
+> Add validation_snapshot to pending_actions and create components table.
+
+Revision ID: 016_snapshot_components
+Revises: e8b91a2c3d4e
+Create Date: 2026-
+
+- **def** `upgrade()` (line 19)
+- **def** `downgrade()` (line 60)
+
 #### 📄 `migrations/versions/__init__.py` _0.0 KB_
 
 ### 📦 `etap_integration/`
@@ -4926,7 +4936,7 @@ Forwards life-safety audit events from the CUA Loop to a SIEM system
 - **Class** `SIEMSyslogForwarder` (line 129)
   - Methods: `forward()`, `forward_audit_entry()`, `health_check()`
 
-#### 📄 `integrations/smithery_mcp.py` _29.5 KB_
+#### 📄 `integrations/smithery_mcp.py` _29.7 KB_
 > Smithery MCP Integration for AhmedETAP (Hardened Edition)
 =========================================================
 
@@ -4936,7 +4946,7 @@ Connects the platform to Model Co
   - Methods: `acquire()`
 - **Class** `SmitheryClient` (line 218)
   - Methods: `list_servers()`, `call_tool()`, `aclose()`, `health_check()`
-- **Class** `ETAPMCPRegistry` (line 642)
+- **Class** `ETAPMCPRegistry` (line 644)
   - Methods: `query_standards_database()`, `fetch_equipment_datasheet()`, `export_report()`
 
 #### 📄 `integrations/supabase_auth.py` _8.5 KB_
@@ -5894,9 +5904,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| ui-component | 280 |
 | python-module | 41 |
+| ui-component | 280 |
+| api-route | 92 |
 | ui-page | 61 |
 | **TOTAL** | **474** |
 
@@ -5909,7 +5919,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5917,7 +5927,7 @@ Provides
 | `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
 | `digital_twin` | `coordination`, `core_model`, `engine`, `fault_analysis`, `gis_integration`, `gis_model`, `load_flow`, `relays`, `scada_model` | `agents`, `copilot`, `core` |
-| `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `network_solver`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
+| `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `network_solver`, `relays`, `visualization` | `agents`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
 | `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `integrations`, `services`, `worker` |
 | `etap_user_guide` | — | — |
 | `fault_analysis` | — | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5926,7 +5936,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5937,7 +5947,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -6154,6 +6164,7 @@ Provides
 | `test_renewable_integration_acceptance.py` | 7 | 0 | **7** |
 | `test_reporting.py` | 0 | 6 | **31** |
 | `test_results_store.py` | 2 | 12 | **35** |
+| `test_round14_regressions.py` | 0 | 1 | **7** |
 | `test_router_completeness_gate.py` | 10 | 0 | **10** |
 | `test_router_regression.py` | 8 | 0 | **8** |
 | `test_run4_security_fixes.py` | 11 | 0 | **11** |
@@ -6201,7 +6212,7 @@ Provides
 | `test_transient_stability_acceptance.py` | 7 | 0 | **7** |
 | `test_ui_coverage_api.py` | 0 | 9 | **27** |
 | `test_unified_load_flow_solvers.py` | 0 | 1 | **5** |
-| `test_units_dimensions.py` | 9 | 0 | **9** |
+| `test_units_dimensions.py` | 12 | 0 | **12** |
 | `test_validation_negative.py` | 0 | 6 | **17** |
 | `test_vision_base.py` | 0 | 5 | **15** |
 | `test_visualization.py` | 0 | 5 | **23** |
@@ -6439,7 +6450,7 @@ Provides
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
-| `requirements.txt` | 11.2 KB | `94f7f95e73d1` |
+| `requirements.txt` | 11.2 KB | `19b083462bc8` |
 | `requirements-prod.txt` | 3.2 KB | `783687e79569` |
 | `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
@@ -6454,7 +6465,7 @@ Provides
 | `alembic.ini` | 2.5 KB | `1279127ea23b` |
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
-| `hf-space/app.py` | 78.2 KB | `656f36d80e2f` |
+| `hf-space/app.py` | 78.2 KB | `26c459c66193` |
 | `ui/package.json` | 3.8 KB | `a4afc5a6c8bb` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
