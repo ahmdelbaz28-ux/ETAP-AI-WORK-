@@ -337,6 +337,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
+          export VERCEL_TOKEN=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_TOKEN', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_ORG_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_ORG_ID', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
           npx vercel@59.25.0 pull --yes --environment=production
           npx vercel@59.25.0 build --prod
           npx vercel@59.25.0 deploy --prebuilt --prod

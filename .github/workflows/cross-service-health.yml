@@ -149,6 +149,8 @@ jobs:
         run: |
           set -e
           echo "── Test 2: Vercel ──"
+          export VERCEL_TOKEN=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_TOKEN', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
 
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "  ⚠️ VERCEL_TOKEN or VERCEL_PROJECT_ID not set — skipping"
