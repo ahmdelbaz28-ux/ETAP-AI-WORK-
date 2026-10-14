@@ -171,3 +171,34 @@ This log tracks the step-by-step implementation, verification, and git commit de
   - `pytest tests/test_ui_coverage_api.py -q`: 27 passed in 51.67s
   - `validate-findings.cjs`: PASS: 11 findings valid
 - **Commit**: `security: enforce bounded form parsing limits and chunked streaming in data import`
+
+---
+
+## التحسين 14: المراجعة الآمنة قراءة-أولاً وخطة التوحيد غير الكاسرة للإطلاق الإنتاجي
+- **الحالة**: مكتمل ومتحقق منه بالكامل (VERIFIED)
+- **الفرع / الـ Commit**: `main` @ `6c3353837d56c97fbe470f40aee865cfbeb74d34` (parent code commit `12961fba0ef762bd9077350d68ba2e4cd6be98ef`)
+- **الملخص الهندسي والتفقد المعماري**:
+  - جرد المرحلة 0 الكامل: فحص 77 ملفاً في 7 مجموعات محورية (القلب، الوكلاء، التنسيق، السياق، الإعداد، التحكم، الأمن) والتأكد من وجودها بنسبة 100% وأدلتها السطرية.
+  - تأكيد الفصل الحتمي الحسابي: التحقق من خلو الوكلاء الحسابيين من أي استدعاء LLM لحساب معادلات القدرة (IEEE 1584, IEC 60364, IEC 60949, NEC 310.16) واعتماد مبدأ `UNSOURCED_ENGINEERING_VALUE` لمنع الهلوسة.
+  - تأكيد أنماط الـ Adapter / Wrapper وعدم الدمج الحذفي: الحفاظ على `ChiefEngineeringOrchestrator` كأصل وتوثيق `AhmedETAPOrchestrator` كـ Wrapper إضافي، وبقاء `api/studies.py` كـ Thin-Adapter.
+  - تأكيد الأمان وعزل المستأجرين: فحص `api/results_store.py:18-23`، `api/dual_control.py` (V-17)، و `.gitleaks.toml`.
+- **جدول التدقيق السطري والفصل الحتمي**:
+| الملف | التغيير المقترح / الوظيفة | الدليل السطري | نتيجة الاختبار | الفصل الحتمي مثبت؟ |
+|---|---|---|---|---|
+| `core_model/specs.py` | التحقق الفيزيائي لمقاييس V/I/Z/PF والأحمال المزدوجة | L48, L99, L600 | `pytest tests/test_bus_loads.py`: 2 passed | نعم، فحص Pydantic حتمي 100% |
+| `services/study_executor.py` | تحويل الزوايا (deg→rad) وربط أحمال الموصلات | L548, L555 | `pytest tests/test_quiz_l3_golden.py`: 2 passed | نعم، `math.radians` حتمي |
+| `load_flow/load_flow.py` | الحارس الفيزيائي ضد الحل المنحل (`DEGENERATE_SOLUTION`) | L178-L190 | `pytest tests/test_quiz_l3_golden.py`: passed | نعم، فحص $|V| < 0.5$ p.u. |
+| `engine/engine.py` | تصدير كامل مصفوفات Ybus/Zbus وتدفقات الفروع وحقن الموصلات | L130-L245 | `pytest tests/test_quiz_l3_golden.py`: passed | نعم، `network_solver.zbus` حتمي |
+| `agents/arc_flash_agent.py` | حساب طاقة القوس الكهربائي IEEE 1584-2018 | L95-L160 | `bandit --ini .bandit`: 0 issues | نعم، معادلات IEEE حتمية بلا LLM |
+| `agents/cable_sizing_agent.py` | حساب مقاطع الكابلات IEC 60364 و IEC 60949 | L126-L180 | `ruff check .`: clean | نعم، جداول ومعادلات IEC حتمية |
+| `agents/etap_expert/simulator.py` | محاكي مقاطع الكابلات NEC 310.16 | L71-L115 | وحدة داخلية حتمية | نعم، دوال رياضية صافية |
+| `api/study_versions.py` | تخزين لقطات النسخ (مقترح Alembic migration للهاش) | L55-L81 | بنية بيانات متوافقة مع الـ DB | نعم، لا تعديل عشوائي لقاعدة البيانات |
+| `api/agent_executor.py` | بوابة خطط الأدوات وحظر powershell/node وطلب المصدر | L1-L32 | `pytest tests/boundary_mismatch/`: 7 passed | نعم، رفض صريح `UNSOURCED_VALUE` |
+| `api/results_store.py` | عزل المستأجرين الكامل وإلزام `CurrentUser.tenant_id` | L18-L23 | `pytest tests/boundary_mismatch/`: 7 passed | نعم، حماية 404 بلا كشف وجود |
+- **نتائج بوابات الجودة المنفذة**:
+  - `ruff check .`: All checks passed!
+  - `bandit --ini .bandit -ll -ii -r api/ agents/ adms_control/ ai_context_engine/`: 56,832 lines scanned, 0 issues identified!
+  - `no-mock-in-prod.yml` (Local grep audit): 0 mock patterns found in production paths.
+  - `pytest tests/boundary_mismatch/ -v`: 7 passed in 96.72s.
+  - `pytest tests/test_quiz_l3_golden.py tests/test_bus_loads.py tests/test_short_circuit_validation.py -v`: 7 passed in 51.10s.
+
