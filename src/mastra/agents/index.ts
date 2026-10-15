@@ -181,7 +181,7 @@ const standardAgentConfigs: Array<{
 }> = [
   { id: 'load-flow-agent', name: 'Load Flow Analysis Agent', promptHandle: 'load_flow_agent' },
   { id: 'short-circuit-agent', name: 'Short Circuit Analysis Agent', promptHandle: 'short_circuit_agent' },
-  { id: 'arcflash-agent', name: 'Arc Flash Analysis Agent', promptHandle: 'arcflash_agent_prompt' },
+  { id: 'arcflash-agent', name: 'Arc Flash Analysis Agent', promptHandle: 'arcflash_agent' },
   { id: 'protection-agent', name: 'Protection Coordination Agent', promptHandle: 'protection_agent' },
   { id: 'motorstarting-agent', name: 'Motor Starting Analysis Agent', promptHandle: 'motor_starting_agent' },
   { id: 'etap-engineer-agent', name: 'ETAP Engineering Agent', promptHandle: 'etap_engineer_agent' },

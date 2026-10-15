@@ -100,6 +100,7 @@ class OptimalPowerFlowEngine:
         ybus: np.ndarray,
         bus_ids: list[int],
         generator_costs: list[GeneratorCost],
+        bus_types: dict[int, str] | None = None,
     ):  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         """
         Initialize OPF engine.
@@ -108,12 +109,14 @@ class OptimalPowerFlowEngine:
         Ybus: System admittance matrix
         bus_ids: List of bus IDs
         generator_costs: Generator cost data
+        bus_types: Dict mapping bus_id -> bus_type ('slack', 'pv', 'pq')
         """
         self.Ybus = ybus  # NOSONAR standard IEEE/IEC engineering notation (Ybus/Zbus/sequence components); renaming would harm domain readability
         self.bus_ids = bus_ids
         self.n_buses = len(bus_ids)
         self.generator_costs = {gc.generator_id: gc for gc in generator_costs}
         self.bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
+        self.bus_types: dict[int, str] = dict(bus_types) if bus_types is not None else {}
 
         # Load and generation data (to be set)
         self.load_data: dict[int, complex] = {}  # bus_id -> S_load (MW + jMVAR)
@@ -123,6 +126,22 @@ class OptimalPowerFlowEngine:
         self.voltage_limits: dict[int, tuple[float, float]] = {}  # bus_id -> (Vmin, Vmax)
         self.branch_limits: dict[tuple[int, int], float] = {}  # (from, to) -> S_max (MVA)
         self.branch_reactances: dict[tuple[int, int], float] = {}  # (from, to) -> X (pu)
+
+    def set_bus_types(self, bus_types: dict[int, str]):
+        """Set bus types (slack, pv, pq) for each bus."""
+        self.bus_types = dict(bus_types)
+
+    def _get_slack_bus_id_and_index(self) -> tuple[int, int]:
+        """Find the designated slack/reference bus by bus_type == 'slack'.
+
+        Raises ValueError if no slack bus is designated (fail-closed).
+        """
+        for bid in self.bus_ids:
+            if self.bus_types.get(bid, "").lower() == "slack":
+                return bid, self.bus_index[bid]
+        raise ValueError(
+            "No slack bus found in system for OPF (fail-closed: select slack by bus_type=='slack', guessing position 0 is forbidden)."
+        )
 
     def set_load_data(self, load_data: dict[int, complex]):
         """Set load data for each bus."""
@@ -152,20 +171,19 @@ class OptimalPowerFlowEngine:
         B_prime: DC susceptance matrix
         P_injection: Net power injection vector
         """
+        _slack_bid, slack_idx = self._get_slack_bus_id_and_index()
+        non_slack_idx = [i for i in range(self.n_buses) if i != slack_idx]
+
         # Extract imaginary part of Ybus (susceptance)
         B = -self.Ybus.imag
 
         # Form B' matrix (remove reference bus row/column)
-        # Assume bus 0 is slack/reference
-        b_prime = B[
-            1:, 1:
-        ]  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        b_prime = B[np.ix_(non_slack_idx, non_slack_idx)]
 
         # Calculate net power injections
-        p_injection = np.zeros(
-            self.n_buses - 1
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        for i, bus_id in enumerate(self.bus_ids[1:], start=0):
+        p_injection = np.zeros(len(non_slack_idx))
+        for k, orig_idx in enumerate(non_slack_idx):
+            bus_id = self.bus_ids[orig_idx]
             # Generation
             P_gen = sum(  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
                 self.generator_costs[gid].p_min
@@ -176,7 +194,7 @@ class OptimalPowerFlowEngine:
             p_load = (
                 self.load_data.get(bus_id, 0).real if bus_id in self.load_data else 0
             )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-            p_injection[i] = P_gen - p_load
+            p_injection[k] = P_gen - p_load
 
         return b_prime, p_injection
 
@@ -258,6 +276,10 @@ class OptimalPowerFlowEngine:
                     else:
                         all_branches[(u, v)] = 0.1
 
+        _slack_bid, slack_idx = self._get_slack_bus_id_and_index()
+        non_slack_idx = [i for i in range(self.n_buses) if i != slack_idx]
+        red_map = {orig_idx: k for k, orig_idx in enumerate(non_slack_idx)}
+
         ptdf_computed = False
         B_red_inv = None
         if self.n_buses > 1 and all_branches:
@@ -271,7 +293,7 @@ class OptimalPowerFlowEngine:
                     B_bus[ui, ui] += b_val
                     B_bus[vi, vi] += b_val
 
-            B_red = B_bus[1:, 1:]
+            B_red = B_bus[np.ix_(non_slack_idx, non_slack_idx)]
             try:
                 B_red_inv = np.linalg.pinv(B_red)
                 ptdf_computed = True
@@ -289,10 +311,10 @@ class OptimalPowerFlowEngine:
                     continue
 
                 b_row = np.zeros(self.n_buses - 1, dtype=float)
-                if ui > 0:
-                    b_row[ui - 1] += 1.0 / x_val
-                if vi > 0:
-                    b_row[vi - 1] -= 1.0 / x_val
+                if ui != slack_idx:
+                    b_row[red_map[ui]] += 1.0 / x_val
+                if vi != slack_idx:
+                    b_row[red_map[vi]] -= 1.0 / x_val
 
                 ptdf_k = np.dot(b_row, B_red_inv)
 
@@ -300,16 +322,16 @@ class OptimalPowerFlowEngine:
                 for gid, bid in self.gen_buses.items():
                     if bid in self.bus_index:
                         b_idx = self.bus_index[bid]
-                        if b_idx > 0:
-                            A_flow[gen_col_map[gid]] = ptdf_k[b_idx - 1]
+                        if b_idx != slack_idx:
+                            A_flow[gen_col_map[gid]] = ptdf_k[red_map[b_idx]]
 
                 p_shift = 0.0
                 for bid, load_s in self.load_data.items():
                     if bid in self.bus_index:
                         b_idx = self.bus_index[bid]
-                        if b_idx > 0:
+                        if b_idx != slack_idx:
                             load_val = load_s.real if isinstance(load_s, complex) else float(load_s)
-                            p_shift += ptdf_k[b_idx - 1] * load_val
+                            p_shift += ptdf_k[red_map[b_idx]] * load_val
 
                 # A_flow * P_g <= s_max + p_shift
                 A_ub_list.append(A_flow)
@@ -354,24 +376,28 @@ class OptimalPowerFlowEngine:
                 bus_voltages = {}
                 branch_flows = {}
                 violations = []
+                if self.branch_limits and (not ptdf_computed or B_red_inv is None):
+                    violations.append("Failed to build PTDF matrix for branch thermal constraints")
+
                 if ptdf_computed and B_red_inv is not None and self.n_buses > 1:
                     p_inj_red = np.zeros(self.n_buses - 1, dtype=float)
                     for i, gid in enumerate(gen_ids):
                         bid = self.gen_buses.get(gid)
                         if bid in self.bus_index:
                             b_idx = self.bus_index[bid]
-                            if b_idx > 0:
-                                p_inj_red[b_idx - 1] += P_gen[i]
+                            if b_idx != slack_idx:
+                                p_inj_red[red_map[b_idx]] += P_gen[i]
                     for bid, load_s in self.load_data.items():
                         if bid in self.bus_index:
                             b_idx = self.bus_index[bid]
-                            if b_idx > 0:
+                            if b_idx != slack_idx:
                                 load_val = load_s.real if isinstance(load_s, complex) else float(load_s)
-                                p_inj_red[b_idx - 1] -= load_val
+                                p_inj_red[red_map[b_idx]] -= load_val
 
                     theta_red = np.dot(B_red_inv, p_inj_red)
                     theta_full = np.zeros(self.n_buses, dtype=float)
-                    theta_full[1:] = theta_red
+                    for orig_idx, k in red_map.items():
+                        theta_full[orig_idx] = theta_red[k]
 
                     for idx, bid in enumerate(self.bus_ids):
                         bus_voltages[bid] = complex(1.0, float(theta_full[idx]))
@@ -389,8 +415,9 @@ class OptimalPowerFlowEngine:
                                 f"Branch ({u}, {v}) flow {abs(flow.real):.2f} MW exceeds limit {s_max:.2f} MW"
                             )
 
+                is_success = bool(result.success) and (len(violations) == 0) and (not self.branch_limits or ptdf_computed)
                 return OPFResult(
-                    success=True,
+                    success=is_success,
                     objective_value=objective,
                     generator_dispatch=generator_dispatch,
                     bus_voltages=bus_voltages,
@@ -401,7 +428,7 @@ class OptimalPowerFlowEngine:
                     constraint_violations=violations,
                     iterations=result.nit if hasattr(result, "nit") else 0,
                     method_used="Linear Programming (DC-OPF)",
-                    convergence_status="converged",
+                    convergence_status="converged" if is_success else ("violations_detected" if violations else "failed"),
                 )
             else:
                 return OPFResult(
@@ -538,13 +565,15 @@ class OptimalPowerFlowEngine:
                 total_load = sum(load.real for load in self.load_data.values())
                 total_losses = total_gen - total_load
 
-                # Placeholder for bus voltages and branch flows
-                # (would require full AC power flow solution)
-                bus_voltages = {bid: complex(1.0, 0) for bid in self.bus_ids}
+                # Unconstrained formulation does not solve AC bus voltages or branch flows.
+                # Leave bus_voltages empty instead of fabricating 1.0∠0.
+                bus_voltages = {}
                 branch_flows = {}
+                violations = []
 
+                is_success = bool(result.success) and (len(violations) == 0)
                 return OPFResult(
-                    success=True,
+                    success=is_success,
                     objective_value=result.fun,
                     generator_dispatch=generator_dispatch,
                     bus_voltages=bus_voltages,
@@ -552,10 +581,10 @@ class OptimalPowerFlowEngine:
                     total_generation=total_gen,
                     total_load=total_load,
                     total_losses=max(total_losses, 0),
-                    constraint_violations=[],
+                    constraint_violations=violations,
                     iterations=result.nit,
-                    method_used="Interior Point Method (AC-OPF)",  # NOSONAR intentional repetition (audit constant)
-                    convergence_status="converged",
+                    method_used="SLSQP Unconstrained OPF (No AC Network Constraints)",
+                    convergence_status="converged" if is_success else "failed",
                 )
             else:
                 return OPFResult(
@@ -569,7 +598,7 @@ class OptimalPowerFlowEngine:
                     total_losses=0,
                     constraint_violations=[result.message],
                     iterations=result.nit,
-                    method_used="Interior Point Method (AC-OPF)",
+                    method_used="SLSQP Unconstrained OPF (No AC Network Constraints)",
                     convergence_status=result.message,
                 )
 

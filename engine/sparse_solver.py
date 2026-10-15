@@ -422,12 +422,12 @@ class SparseYBus:
             # --- Solve linear system ---
             try:
                 dx = spsolve(J.tocsr(), -mismatch)
-            except Exception:
+            except np.linalg.LinAlgError:
                 # NOSONAR
                 j_dense = (
                     J.toarray() if issparse(J) else np.asarray(J)
                 )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
-                dx = np.linalg.lstsq(j_dense, mismatch, rcond=None)[0]
+                dx = np.linalg.lstsq(j_dense, -mismatch, rcond=None)[0]
 
             # --- Update voltages ---
             # θ corrections for PV buses
@@ -793,9 +793,9 @@ class SparseYBus:
             # Analytical Jacobian (dense)
             J = _build_dense_jacobian(V, Ybus, pv_idx, pq_idx, n_unknowns)
             try:
-                dx = np.linalg.solve(J, mismatch)
+                dx = np.linalg.solve(J, -mismatch)
             except np.linalg.LinAlgError:
-                dx = np.linalg.lstsq(J, mismatch, rcond=None)[0]
+                dx = np.linalg.lstsq(J, -mismatch, rcond=None)[0]
 
             for k, i in enumerate(pv_idx):
                 V[i] = abs(V[i]) * np.exp(1j * (np.angle(V[i]) + dx[k]))

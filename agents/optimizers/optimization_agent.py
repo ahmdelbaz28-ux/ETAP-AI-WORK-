@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class OptimizationAgent(BaseAgent):
     """Specialist agent delivering swarm and metaheuristic optimizations."""
 
-    prompt_handle: str = "fallback_agent"
+    prompt_handle = "optimization_agent"
 
     def __init__(self) -> None:
         super().__init__("OptimizationAgent")

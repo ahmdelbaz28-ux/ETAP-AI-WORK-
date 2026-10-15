@@ -52,6 +52,9 @@ logger = logging.getLogger(__name__)
 
 class CoordinationAgent(BaseAgent):
     """
+    DEPRECATED: Use ProtectionCoordinationAgent (protection_coordination).
+    This class exists only for backward compatibility and will be removed in v3.0.
+
     Protection Coordination Agent (IEEE 242 / IEC 60255).
 
     Provides comprehensive protection system coordination analysis

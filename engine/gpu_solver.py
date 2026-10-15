@@ -270,7 +270,7 @@ class GPUSolver:
             )  # NOSONAR physics notation (I/V/P/Q); snake_case harms readability
 
             # --- Solve linear system ---
-            dx = self._solve_linear(j_sparse, mismatch, n_unknowns)
+            dx = self._solve_linear(j_sparse, -mismatch, n_unknowns)
 
             # --- Update voltages ---
             for k, i in enumerate(pv_idx):
@@ -625,7 +625,7 @@ class GPUSolver:
             if sp_issparse(A):
                 try:
                     return scipy_spsolve(A.tocsr(), b)
-                except Exception:
+                except np.linalg.LinAlgError:
                     return np.linalg.lstsq(A.toarray(), b, rcond=None)[0]
             else:
                 try:

@@ -353,7 +353,7 @@ gen_cost = GeneratorCost(
     q_max=50.0
 )
 
-opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen_cost])
+opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen_cost], bus_types={1: "slack", 2: "pq"})
 opf.set_load_data({2: complex(50.0, 20.0)})
 opf.set_generator_locations({1: 1})
 

@@ -221,6 +221,7 @@ class TestExecutionPipeline:
                 "bolted_fault_current_ka": 20.0,
                 "arc_duration_sec": 0.1,
                 "working_distance_mm": 457.0,
+                "arc_gap_mm": 25.0,
             },
         )
         res = await executor.execute(req)

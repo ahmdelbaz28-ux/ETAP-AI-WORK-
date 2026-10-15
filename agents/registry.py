@@ -646,11 +646,13 @@ class OptimalPowerFlowAgent(BaseAgent):
             )  # NOSONAR
             bus_ids = sorted(system_data.buses.keys())
             costs = [GeneratorCost(**gc) if isinstance(gc, dict) else gc for gc in generator_costs]
+            bus_types = {bus_id: getattr(bus, "bus_type", "pq") for bus_id, bus in system_data.buses.items()}
 
             if self._opf_factory is not None:
                 opf = self._opf_factory(ybus, bus_ids, costs)
             else:
-                opf = OptimalPowerFlowEngine(ybus, bus_ids, costs)
+                opf = OptimalPowerFlowEngine(ybus, bus_ids, costs, bus_types=bus_types)
+            opf.set_bus_types(bus_types)
 
             # Set load data
             load_data = {}
@@ -842,7 +844,7 @@ class ProtectionCoordinationAgent(BaseAgent):
 class ETAPExecutionAgent(BaseAgent):
     """ETAP Execution Agent - Unified Provider Interface.
 
-    Prompt Handle: etap_engineer_agent
+    Prompt Handle: etap_execution_agent
 
     Capabilities:
     - Execute studies via Local (Windows) or Remote (API) providers
@@ -853,7 +855,7 @@ class ETAPExecutionAgent(BaseAgent):
     Cross-platform compatible via RemoteEtapProvider.
     """
 
-    prompt_handle = "etap_engineer_agent"
+    prompt_handle = "etap_execution_agent"
 
     def __init__(self):
         super().__init__("ETAPExecutionAgent")

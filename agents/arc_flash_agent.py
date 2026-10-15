@@ -27,6 +27,7 @@ from typing import Any
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
+from fault_analysis.arc_flash_engine import classify_nfpa70e_ppe
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +308,7 @@ class ArcFlashAgent(BaseAgent):
 
     def _classify_ppe(self, ie: float) -> tuple:
         """
-        Classify required PPE category based on incident energy.
+        Classify required PPE category based on incident energy per NFPA 70E.
 
         Parameters
         ----------
@@ -319,10 +320,7 @@ class ArcFlashAgent(BaseAgent):
         tuple
             (category: int, description: str)
         """
-        for cat in _PPE_CATEGORIES:
-            if cat["min_ie"] <= ie < cat["max_ie"]:
-                return cat["category"], cat["description"]
-        return -1, "Dangerous — no PPE adequate; de-energize equipment"
+        return classify_nfpa70e_ppe(ie)
 
     # ------------------------------------------------------------------
     # Agent execute method

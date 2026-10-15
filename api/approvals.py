@@ -500,37 +500,24 @@ def validate_server_control_action(
                             "ENVELOPE_VIOLATION",
                         )
             else:
-                # Fallback heuristic when no unit is specified (num_val > 5.0 => kV, else p.u.)
+                # Rejection when no explicit unit is specified (guessing num_val > 5 => kV is forbidden fail-closed)
                 target = target_str
                 import logging
 
                 logging.getLogger("api.approvals").warning(
-                    "AMBIGUOUS_VOLTAGE_UNIT: no explicit unit for target=%s value=%s; heuristic kV-if->5-else-pu applied",
+                    "AMBIGUOUS_VOLTAGE_UNIT: no explicit unit for target=%s value=%s; guessing unit is forbidden (fail-closed)",
                     target,
                     num_val,
                 )
-                if num_val > 5.0:  # kV scale
-                    if num_val < 0.0 or num_val > 765.0:
-                        return (
-                            False,
-                            {
-                                "valid": False,
-                                "within_envelope": False,
-                                "reason": f"Voltage setpoint {num_val} kV is outside safe limits [0, 765]",
-                            },
-                            "ENVELOPE_VIOLATION",
-                        )
-                else:  # p.u. scale
-                    if num_val < 0.80 or num_val > 1.20:
-                        return (
-                            False,
-                            {
-                                "valid": False,
-                                "within_envelope": False,
-                                "reason": f"Voltage setpoint {num_val} p.u. is outside safe operating envelope [0.80, 1.20]",
-                            },
-                            "ENVELOPE_VIOLATION",
-                        )
+                return (
+                    False,
+                    {
+                        "valid": False,
+                        "within_envelope": False,
+                        "reason": f"Voltage setpoint {num_val} lacks explicit unit ('kV' or 'pu'). Ambiguous units are rejected fail-closed.",
+                    },
+                    "VOLTAGE_UNIT_AMBIGUOUS",
+                )
 
         if any(k in target_lower or k in action_str for k in ("frequency", "freq", "fset")):
             if num_val < 45.0 or num_val > 65.0:

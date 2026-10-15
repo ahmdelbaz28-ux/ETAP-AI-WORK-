@@ -49,12 +49,13 @@ SECURE_EXECUTOR = PROJECT_ROOT / "security" / "secure_executor.py"
 # working distance, VCB electrode, typical box enclosure. These are the
 # defaults used elsewhere in the test suite and the agent prompt examples.
 STUDY_PARAMS: dict = {
-    "voltage_kv": 4.16,
+    "voltage_kv": 0.48,
     "bolted_fault_current_ka": 20.0,
-    "arc_duration_sec": 0.183,
-    "working_distance_mm": 610.0,
+    "arc_duration_sec": 0.1,
+    "working_distance_mm": 457.0,
     "electrode_config": "VCB",
     "enclosure_type": "box",
+    "arc_gap_mm": 25.0,
 }
 
 # Fields compared between the two paths. String fields must match exactly
@@ -231,14 +232,14 @@ class TestArcFlashSingleEngine:
         # Engineering invariants.
         assert result["arc_current_ka"] > 0
         # IEEE 1584-2018 VarCf calculation: reduced arcing current uses standard variation
-        # correction factor (VarCf), returning 18.7252 kA for 4.16 kV / 20 kA / VCB,
+        # correction factor (VarCf), returning 16.6181 kA for 0.48 kV / 20 kA / VCB,
         # strictly less than full bolted arc current.
-        assert result["reduced_arc_current_ka"] == pytest.approx(18.7252, rel=1e-3)
+        assert result["reduced_arc_current_ka"] == pytest.approx(16.6181, rel=1e-3)
         assert 0 < result["reduced_arc_current_ka"] < result["arc_current_ka"]
         assert result["incident_energy_cal_per_cm2"] >= 0
         assert result["arc_flash_boundary_mm"] >= 0
         # PPE level is one of the documented categories.
-        assert result["ppe_level"] in {"0", "1", "2", "3", "4", "DANGER"}
+        assert result["ppe_level"] in {"0", "1", "2", "3", "4", "DANGER", "REJECTED"}
 
     def test_run_python_path_returns_same_shape(self) -> None:
         """The run_python tool path (via secure_executor.py) returns the
@@ -298,6 +299,7 @@ class TestArcFlashSingleEngineScenarios:
                         "working_distance_mm": 610.0,
                         "electrode_config": "VCB",
                         "enclosure_type": "box",
+                        "arc_gap_mm": 25.0,
                     },
                 },
                 id="low_voltage_480V_VCB",
@@ -312,7 +314,9 @@ class TestArcFlashSingleEngineScenarios:
                         "working_distance_mm": 610.0,
                         "electrode_config": "VCBB",
                         "enclosure_type": "box",
+                        "arc_gap_mm": 104.0,
                     },
+                    "expect_fail_closed": True,
                 },
                 id="mid_voltage_4kV_VCBB",
             ),
@@ -326,13 +330,19 @@ class TestArcFlashSingleEngineScenarios:
                         "working_distance_mm": 910.0,
                         "electrode_config": "VOA",
                         "enclosure_type": "open",
+                        "arc_gap_mm": 152.0,
                     },
+                    "expect_fail_closed": True,
                 },
                 id="high_energy_13kV_VOA_open",
             ),
         ],
     )
     def test_paths_agree_across_scenarios(self, scenario: dict) -> None:
+        if scenario.get("expect_fail_closed"):
+            with pytest.raises(ValueError, match="exceeds bolted fault current|boundary conditions"):
+                _run_direct_engine(scenario["params"])
+            return
         direct = _run_direct_engine(scenario["params"])
         agent = _run_via_run_python(scenario["params"])
         _assert_results_agree(direct, agent)

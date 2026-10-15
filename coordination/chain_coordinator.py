@@ -27,10 +27,24 @@ class RelayNode:
     name: str
     location: str
     relay: OvercurrentRelay
-    ct_ratio: float = 1.0  # Primary / Secondary CT ratio (e.g., 200/5 = 40.0)
-    load_current_a: float = 50.0  # Full load current in primary Amperes
-    max_fault_current_a: float = 5000.0  # Max bolted 3-phase fault at this bus
-    min_fault_current_a: float = 1500.0  # Min fault current (remote or phase-to-ground)
+    ct_ratio: float  # Primary / Secondary CT ratio (e.g., 200/5 = 40.0) — required
+    load_current_a: float  # Full load current in primary Amperes — required
+    max_fault_current_a: float  # Max bolted 3-phase fault at this bus — required
+    min_fault_current_a: float  # Min fault current (remote or phase-to-ground) — required
+
+    def __post_init__(self):
+        if self.ct_ratio <= 0:
+            raise ValueError(f"RelayNode {self.relay_id}: ct_ratio must be positive, got {self.ct_ratio}")
+        if self.load_current_a <= 0:
+            raise ValueError(f"RelayNode {self.relay_id}: load_current_a must be positive, got {self.load_current_a}")
+        if self.max_fault_current_a <= 0:
+            raise ValueError(f"RelayNode {self.relay_id}: max_fault_current_a must be positive, got {self.max_fault_current_a}")
+        if self.min_fault_current_a <= 0:
+            raise ValueError(f"RelayNode {self.relay_id}: min_fault_current_a must be positive, got {self.min_fault_current_a}")
+        if self.min_fault_current_a > self.max_fault_current_a:
+            raise ValueError(
+                f"RelayNode {self.relay_id}: min_fault_current_a ({self.min_fault_current_a}) cannot exceed max_fault_current_a ({self.max_fault_current_a})"
+            )
 
 
 @dataclass

@@ -282,8 +282,12 @@ def calculate_arcing_current_ieee1584(
         # 14.3 to 15.0 kV
         i_arc = i_14300
 
-    # Ensure physical constraint: I_arc <= I_bf
-    i_arc = min(i_arc, ibf)
+    # Physical constraint: I_arc <= I_bf (fail-closed if out of physical bounds)
+    if i_arc > ibf:
+        raise ValueError(
+            f"Calculated arcing current ({i_arc:.4f} kA) exceeds bolted fault current ({ibf:.4f} kA); "
+            "model parameters violate IEEE 1584-2018 physical boundary conditions."
+        )
 
     # Variation factor VarCf (§5.4)
     vk1, vk2, vk3 = VARCF_COEFFICIENTS.get(config, (0.105, -0.0004, 0.0002))

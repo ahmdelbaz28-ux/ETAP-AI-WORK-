@@ -40,6 +40,7 @@ def calculate_arc_flash(
     working_distance_mm: float,
     enclosure_type: str = "box",
     electrode_config: str = "VCB",
+    arc_gap_mm: float | None = None,
 ) -> dict:
     """
     IEEE 1584-2018 Arc Flash calculation (convenience wrapper).
@@ -61,6 +62,7 @@ def calculate_arc_flash(
 
     enc = enc_map.get(enclosure_type.lower(), EnclosureType.BOX)
     elec = elec_map.get(electrode_config.upper(), ElectrodeConfig.VCB)
+    gap = arc_gap_mm if arc_gap_mm is not None else (25.0 if voltage_kv <= 1.0 else 152.4)
 
     engine = _get_engine()
 
@@ -89,6 +91,7 @@ def calculate_arc_flash(
         working_distance_mm=working_distance_mm,
         electrode_config=elec,
         enclosure_type=enc,
+        arc_gap_mm=gap,
     )
 
     return {

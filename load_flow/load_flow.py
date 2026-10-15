@@ -469,7 +469,9 @@ class LoadFlowSolver:
                 if switched:
                     # A PV bus hit its Q limit and was switched to PQ.
                     # The solution with the old bus types is no longer valid
-                    # — continue iterating with the updated type indices.
+                    # — refresh scheduled power injections with the clamped Q limits
+                    # and continue iterating with the updated type indices.
+                    p_sch, q_sch = self._scheduled_power()
                     continue
 
                 # Q3 Physical Guard against degenerate collapsed solution:

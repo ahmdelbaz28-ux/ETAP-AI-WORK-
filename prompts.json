@@ -2,9 +2,9 @@
   "version": "1.1.0",
   "prompts": {
     "etap_engineer_agent": "prompts/etap_engineer_agent_v2.yaml",
-    "etap_engineer_agent_v2": "prompts/etap_engineer_agent_v2.yaml",
     "etap_expert_agent": "prompts/etap_expert_agent.prompt.yaml",
     "etap_gui_agent": "prompts/etap_gui_agent.prompt.yaml",
+    "etap_execution_agent": "prompts/etap_execution_agent.prompt.yaml",
     "goal_planner_agent": "prompts/goal_planner_agent.yaml",
     "arcflash_agent": "prompts/arcflash_agent.prompt.yaml",
     "arcflash_agent_prompt": "prompts/arcflash_agent.prompt.yaml",
@@ -13,10 +13,10 @@
     "protection_agent": "prompts/protection_agent.prompt.yaml",
     "motor_starting_agent": "prompts/motor_starting_agent.prompt.yaml",
     "weather_agent": "prompts/weather_agent.prompt.yaml",
-    "weather_activity_planner": "prompts/weather_activity_planner.prompt.yaml",
     "power_system_coordinator_agent": "prompts/power_system_coordinator_agent.prompt.yaml",
     "harmonic_agent": "prompts/harmonic_agent.prompt.yaml",
     "opf_agent": "prompts/opf_agent.prompt.yaml",
+    "optimization_agent": "prompts/optimization_agent.prompt.yaml",
     "validation_agent": "prompts/validation_agent.prompt.yaml",
     "report_agent": "prompts/report_agent.prompt.yaml",
     "stability_agent": "prompts/stability_agent.prompt.yaml",
@@ -31,11 +31,11 @@
     "coordination_agent": "prompts/coordination_agent.prompt.yaml",
     "code_guard_agent": "prompts/code_guard_agent.prompt.yaml",
     "ahmed_etap_agent": "prompts/ahmed_etap_agent.prompt.yaml",
-    "qgis_agent": "prompts/qgis_agent.prompt.yaml",
     "design_agent": "prompts/design_agent.prompt.yaml",
     "fallback_agent": "prompts/fallback_agent.prompt.yaml"
   },
   "_aliases": {
-    "arcflash_agent_prompt": "Alias for arcflash_agent (kept for back-compat with src/mastra/agents/arcflash-agent.ts and tests)."
+    "arcflash_agent_prompt": "Alias for arcflash_agent (kept for back-compat with src/mastra/agents/arcflash-agent.ts and tests).",
+    "coordination_agent": "Legacy alias — use protection_agent."
   }
 }

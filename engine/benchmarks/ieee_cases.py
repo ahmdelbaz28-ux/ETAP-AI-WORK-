@@ -604,7 +604,13 @@ def build_ieee_30bus_system() -> System:
 
     b_map = {}
     for bid, btype, vmag, qmin, qmax in buses_info:
-        b = Bus(bus_id=bid, voltage_magnitude=vmag, voltage_angle=0.0, bus_type=btype, base_kv=132.0 if bid <= 8 else 33.0)
+        b = Bus(
+            bus_id=bid,
+            voltage_magnitude=vmag,
+            voltage_angle=0.0,
+            bus_type=btype,
+            base_kv=132.0 if (bid <= 8 or bid == 28) else 33.0,
+        )
         if btype == "pv":
             b.q_min = qmin
             b.q_max = qmax
@@ -1039,7 +1045,8 @@ def calculate_ieee_30bus_opf_benchmark() -> dict:
         ),
     ]
 
-    engine = OptimalPowerFlowEngine(ybus, bus_ids, costs)
+    bus_types = {bid: getattr(b, "bus_type", "pq") for bid, b in system.buses.items()}
+    engine = OptimalPowerFlowEngine(ybus, bus_ids, costs, bus_types=bus_types)
     gen_locs = {g.generator_id: g.bus.bus_id for g in system.generators}
     engine.set_generator_locations(gen_locs)
 

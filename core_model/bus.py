@@ -45,7 +45,12 @@ class Bus:
         self.voltage_angle = voltage_angle
         self.load_power = load_power
         self.generation_power = generation_power
-        self.base_kv = base_kv
+        if base_kv is not None:
+            if not isinstance(base_kv, (int, float)) or base_kv <= 0:
+                raise ValueError(f"Bus base_kv must be positive float, got {base_kv}")
+            self.base_kv = float(base_kv)
+        else:
+            self.base_kv = None
         self.bus_type = bus_type  # 'slack', 'pv', 'pq'
         # Reactive power limits for PV buses
         self.q_min = q_min

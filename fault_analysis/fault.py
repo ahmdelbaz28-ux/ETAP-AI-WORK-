@@ -18,6 +18,7 @@ class FaultAnalyzer:
         base_mva=100.0,
         base_kv=115.0,
         slack_bus_index=None,
+        c_factor=1.0,
     ):
         """
         Initialize the FaultAnalyzer with sequence admittance matrices.
@@ -50,6 +51,7 @@ class FaultAnalyzer:
         self.base_mva = base_mva
         self.base_kv = base_kv
         self.slack_bus_index = slack_bus_index
+        self.c_factor = float(c_factor)
 
         self.n = ybus_pos.shape[0]
 
@@ -161,7 +163,7 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit, and optionally voltage.
         """
         vpre = complex(
-            1.0, 0.0
+            self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         zth = self._z(
             bus_index, "pos"
@@ -189,7 +191,7 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit for the faulted phase.
         """
         vpre = complex(
-            1.0, 0.0
+            self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
@@ -218,7 +220,7 @@ class FaultAnalyzer:
         dict: Contains fault current (complex) in per-unit for the faulted phases.
         """
         vpre = complex(
-            1.0, 0.0
+            self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")
@@ -249,7 +251,7 @@ class FaultAnalyzer:
         dict: Contains fault currents (complex) in per-unit.
         """
         vpre = complex(
-            1.0, 0.0
+            self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         Z1 = self._z(bus_index, "pos")
         Z2 = self._z(bus_index, "neg")

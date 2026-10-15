@@ -559,6 +559,10 @@ class MotorStartingAgent(BaseAgent):
                 missing_inputs.append("motor_hp (or motor_kw)")
             if "voltage_v" not in p and "rated_voltage_v" not in p and "voltage_V" not in p:
                 missing_inputs.append("voltage_v")
+            if analysis_type in ("voltage_dip", "full"):
+                has_sz = ("source_impedance_r_pu" in p and "source_impedance_x_pu" in p) or "source_impedance_pu" in p
+                if not has_sz:
+                    missing_inputs.append("source_impedance_r_pu and source_impedance_x_pu")
 
             if missing_inputs:
                 self.status = AgentStatus.FAILED
@@ -623,9 +627,18 @@ class MotorStartingAgent(BaseAgent):
             # --- Voltage dip ---
             if analysis_type in ("voltage_dip", "full"):
                 source_v_pu = float(task.parameters.get("source_voltage_pu", 1.0))
-                z_r = float(task.parameters.get("source_impedance_r_pu", 0.01))
-                z_x = float(task.parameters.get("source_impedance_x_pu", 0.05))
-                source_z_pu = complex(z_r, z_x)
+                if "source_impedance_pu" in task.parameters:
+                    source_z_pu = complex(task.parameters["source_impedance_pu"])
+                elif "source_impedance_r_pu" in task.parameters and "source_impedance_x_pu" in task.parameters:
+                    z_r = float(task.parameters["source_impedance_r_pu"])
+                    z_x = float(task.parameters["source_impedance_x_pu"])
+                    source_z_pu = complex(z_r, z_x)
+                else:
+                    raise ValueError(
+                        "Motor starting voltage dip analysis requires explicit source impedance "
+                        "('source_impedance_r_pu' and 'source_impedance_x_pu', or 'source_impedance_pu'); "
+                        "defaulting to fabricated 0.01 + j0.05 pu is strictly prohibited."
+                    )
 
                 lra_a = results.get("starting_current", {}).get(
                     "lra_a",

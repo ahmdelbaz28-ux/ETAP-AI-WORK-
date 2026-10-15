@@ -228,6 +228,11 @@ class CSRFMiddleware(_PureASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
+        # OAuth2 token exchange endpoint validates user credentials directly in payload
+        if request.url.path.rstrip("/") in ("/api/v1/auth/token", "/api/auth/token"):
+            await self.app(scope, receive, send)
+            return
+
         # Skip CSRF check for API-key-authenticated clients (server-to-server).
         # Re-read from env per-request so TestClient usage and runtime env
         # changes (e.g. tests that set the var after import) work correctly.

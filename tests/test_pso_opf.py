@@ -26,11 +26,12 @@ def sample_3bus_network():
     ]
     gen_buses = {1: 1, 2: 2}
     load_data = {3: complex(60.0, 20.0)}
-    return ybus, bus_ids, costs, gen_buses, load_data
+    bus_types = {1: "slack", 2: "pv", 3: "pq"}
+    return ybus, bus_ids, costs, gen_buses, load_data, bus_types
 
 
 def test_pso_ac_opf_convergence(sample_3bus_network):
-    ybus, bus_ids, costs, gen_buses, load_data = sample_3bus_network
+    ybus, bus_ids, costs, gen_buses, load_data, bus_types = sample_3bus_network
 
     pso_opf = PSOOptimalPowerFlow(
         ybus=ybus,
@@ -41,6 +42,7 @@ def test_pso_ac_opf_convergence(sample_3bus_network):
         swarm_size=35,
         max_iter=50,
         seed=42,
+        bus_types=bus_types,
     )
 
     result = pso_opf.solve()
@@ -69,7 +71,7 @@ def test_pso_ac_opf_convergence(sample_3bus_network):
 
 def test_pso_ac_opf_branch_limit_violation_triggers_failure(sample_3bus_network):
     """Enforcing an impossibly small branch limit must cause success=False and record violation."""
-    ybus, bus_ids, costs, gen_buses, load_data = sample_3bus_network
+    ybus, bus_ids, costs, gen_buses, load_data, bus_types = sample_3bus_network
 
     # Feeding 60 MW load at bus 3 through lines with only 2.0 MVA capacity
     impossible_branch_limits = {(1, 3): 2.0, (2, 3): 2.0}
@@ -84,6 +86,7 @@ def test_pso_ac_opf_branch_limit_violation_triggers_failure(sample_3bus_network)
         swarm_size=25,
         max_iter=30,
         seed=42,
+        bus_types=bus_types,
     )
 
     result = pso_opf.solve()
@@ -97,7 +100,7 @@ def test_pso_ac_opf_branch_limit_violation_triggers_failure(sample_3bus_network)
 
 def test_pso_ac_opf_infeasible_generator_q_limits(sample_3bus_network):
     """Restricting generator Q to near-zero when load demands 20 MVAR reactive power must fail."""
-    ybus, bus_ids, _, gen_buses, load_data = sample_3bus_network
+    ybus, bus_ids, _, gen_buses, load_data, bus_types = sample_3bus_network
 
     # Both generators cannot supply any reactive power
     choked_costs = [
@@ -114,6 +117,7 @@ def test_pso_ac_opf_infeasible_generator_q_limits(sample_3bus_network):
         swarm_size=25,
         max_iter=30,
         seed=42,
+        bus_types=bus_types,
     )
 
     result = pso_opf.solve()
@@ -126,7 +130,7 @@ def test_pso_ac_opf_infeasible_generator_q_limits(sample_3bus_network):
 
 def test_pso_ac_opf_disabled_reanalysis_fails_success(sample_3bus_network):
     """Witness M1.7: Disabling independent Newton-Raphson re-analysis must prevent success=True."""
-    ybus, bus_ids, costs, gen_buses, load_data = sample_3bus_network
+    ybus, bus_ids, costs, gen_buses, load_data, bus_types = sample_3bus_network
 
     pso_opf = PSOOptimalPowerFlow(
         ybus=ybus,
@@ -138,6 +142,7 @@ def test_pso_ac_opf_disabled_reanalysis_fails_success(sample_3bus_network):
         max_iter=30,
         seed=42,
         enable_reanalysis=False,
+        bus_types=bus_types,
     )
 
     result = pso_opf.solve()
@@ -145,4 +150,22 @@ def test_pso_ac_opf_disabled_reanalysis_fails_success(sample_3bus_network):
     assert isinstance(result, OPFResult)
     assert result.success is False
     assert "re-analysis" in result.convergence_status.lower()
+
+
+def test_pso_ac_opf_missing_slack_raises_fail_closed(sample_3bus_network):
+    """Missing slack bus in bus_types must raise ValueError (fail-closed)."""
+    ybus, bus_ids, costs, gen_buses, load_data, _ = sample_3bus_network
+    no_slack_types = {1: "pq", 2: "pv", 3: "pq"}
+
+    pso_opf = PSOOptimalPowerFlow(
+        ybus=ybus,
+        bus_ids=bus_ids,
+        generator_costs=costs,
+        gen_buses=gen_buses,
+        load_data=load_data,
+        bus_types=no_slack_types,
+    )
+
+    with pytest.raises(ValueError, match="No slack bus found"):
+        pso_opf.solve()
 

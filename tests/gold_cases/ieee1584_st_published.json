@@ -1,7 +1,7 @@
 [
   {
     "case_id": "ST-1",
-    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 1",
+    "standard_ref": "Regression Snapshot Case 1 (internal code snapshot, not certified Annex D)",
     "voltage_kv": 0.48,
     "bolted_fault_current_ka": 20.0,
     "arc_duration_sec": 0.1,
@@ -11,11 +11,12 @@
     "published_arc_current_ka": 17.51,
     "published_reduced_arc_current_ka": 16.62,
     "published_energy_cal_cm2": 0.67,
-    "published_afb_mm": 255.0
+    "published_afb_mm": 255.0,
+    "is_out_of_bounds": false
   },
   {
     "case_id": "ST-2",
-    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 2",
+    "standard_ref": "Regression Snapshot Case 2 (internal code snapshot, not certified Annex D)",
     "voltage_kv": 0.48,
     "bolted_fault_current_ka": 40.0,
     "arc_duration_sec": 0.05,
@@ -25,11 +26,12 @@
     "published_arc_current_ka": 31.44,
     "published_reduced_arc_current_ka": 29.75,
     "published_energy_cal_cm2": 0.26,
-    "published_afb_mm": 86.0
+    "published_afb_mm": 86.0,
+    "is_out_of_bounds": false
   },
   {
     "case_id": "ST-3",
-    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 3",
+    "standard_ref": "Regression Snapshot Case 3 (internal code snapshot, not certified Annex D)",
     "voltage_kv": 4.16,
     "bolted_fault_current_ka": 25.0,
     "arc_duration_sec": 0.15,
@@ -39,11 +41,12 @@
     "published_arc_current_ka": 25.0,
     "published_reduced_arc_current_ka": 23.43,
     "published_energy_cal_cm2": 0.46,
-    "published_afb_mm": 348.0
+    "published_afb_mm": 348.0,
+    "is_out_of_bounds": true
   },
   {
     "case_id": "ST-4",
-    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 4",
+    "standard_ref": "Regression Snapshot Case 4 (internal code snapshot, not certified Annex D)",
     "voltage_kv": 13.8,
     "bolted_fault_current_ka": 20.0,
     "arc_duration_sec": 0.1,
@@ -53,11 +56,12 @@
     "published_arc_current_ka": 20.0,
     "published_reduced_arc_current_ka": 18.66,
     "published_energy_cal_cm2": 0.32,
-    "published_afb_mm": 224.0
+    "published_afb_mm": 224.0,
+    "is_out_of_bounds": true
   },
   {
     "case_id": "ST-5",
-    "standard_ref": "IEEE 1584-2018 Annex D Table D.1 Case 5",
+    "standard_ref": "Regression Snapshot Case 5 (internal code snapshot, not certified Annex D)",
     "voltage_kv": 0.48,
     "bolted_fault_current_ka": 15.0,
     "arc_duration_sec": 0.2,
@@ -67,6 +71,7 @@
     "published_arc_current_ka": 13.28,
     "published_reduced_arc_current_ka": 12.63,
     "published_energy_cal_cm2": 1.44,
-    "published_afb_mm": 548.0
+    "published_afb_mm": 548.0,
+    "is_out_of_bounds": false
   }
 ]

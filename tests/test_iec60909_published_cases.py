@@ -361,3 +361,18 @@ class TestIEC60909MethodEvidence:
         )
         assert math.isclose(ku_oltc, 0.919262, rel_tol=1e-5)
 
+    def test_zero_reactance_raises_value_error(self):
+        """Zero reactance (X=0) must raise ValueError (fail-closed) per IEC 60909."""
+        engine = self._create_single_bus_engine(r=1.0, x=0.0)
+        with pytest.raises(ValueError, match="positive sequence reactance is zero"):
+            engine._get_rx_ratio(0)
+
+    def test_far_generator_breaking_current_no_decay(self):
+        """Far-from-generator fault must have mu=1.0 and Ib=Ik''."""
+        # High impedance -> low fault current (< 2 IrG)
+        engine = self._create_single_bus_engine(r=1.0, x=2.0)
+        res = engine.calculate_three_phase_fault(0, bus_kv=11.0)
+        assert res.is_near_generator is False
+        assert res.mu_factor == 1.0
+        assert math.isclose(res.Ib_breaking, res.Ik_initial_magnitude, rel_tol=1e-5)
+

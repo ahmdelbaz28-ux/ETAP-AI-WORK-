@@ -213,19 +213,25 @@ class StudyEngine:
         """Execute IEC 60909 Fault Analysis."""
         fault_type = parameters.get("fault_type", "3phase")
         fault_bus = parameters.get("fault_bus", "BUS_1")
-        voltage_kv = float(parameters.get("voltage_kv", 11.0))
+        if "voltage_kv" not in parameters and "base_kv" not in parameters:
+            raise ValueError(
+                "voltage_kv or base_kv parameter is required for short-circuit study (fail-closed: defaulting to 11.0 kV is prohibited per IEC 60909)"
+            )
+        voltage_kv = float(parameters.get("voltage_kv", parameters.get("base_kv")))
         system_data = parameters.get("system")
 
         if system_data and hasattr(system_data, "ybus_pos"):
             from fault_analysis.fault import FaultAnalyzer
 
             base_mva = float(parameters.get("base_mva", 100.0))
+            c_factor = float(parameters.get("c_factor", 1.10 if voltage_kv >= 1.0 else 1.05))
             analyzer = FaultAnalyzer(
                 ybus_pos=system_data.ybus_pos,
                 ybus_neg=getattr(system_data, "ybus_neg", None),
                 ybus_zero=getattr(system_data, "ybus_zero", None),
                 base_mva=base_mva,
                 base_kv=voltage_kv,
+                c_factor=c_factor,
             )
             bus_idx = int(parameters.get("bus_index", 0))
             fault_result = analyzer.three_phase_fault(bus_idx)
@@ -233,12 +239,26 @@ class StudyEngine:
                 ik_initial_val = float(fault_result.get("fault_current_ka", fault_result.get("fault_current_magnitude", 0.0)))
             else:
                 ik_initial_val = float(np.abs(fault_result))
+
+            # Calculate peak current ip from true kappa per IEC 60909 (kappa * sqrt(2) * Ik'')
+            if "rx_ratio" in parameters:
+                rx_val = float(parameters["rx_ratio"])
+                kappa = 1.02 + 0.98 * np.exp(-3.0 * rx_val)
+            elif "kappa" in parameters:
+                kappa = float(parameters["kappa"])
+            else:
+                raise ValueError(
+                    "Calculation of peak current ip requires explicit 'rx_ratio' or 'kappa' parameter; "
+                    "hardcoded multiplier 2.54 is prohibited (fail-closed)."
+                )
+            ip_peak_val = ik_initial_val * kappa * np.sqrt(2)
+
             return {
                 "fault_type": fault_type,
                 "fault_bus": fault_bus,
                 "ik_initial_ka": round(ik_initial_val, 3),
-                "ip_peak_ka": round(ik_initial_val * 2.54, 3),
-                "standards": "IEC 60909",
+                "ip_peak_ka": round(ip_peak_val, 3),
+                "standards": "IEC 60909 (via FaultAnalyzer)",
             }, []
 
         # Analytical IEC 60909 standard computation via canonical IEC60909Engine delegator
@@ -315,7 +335,8 @@ class StudyEngine:
             "ib_breaking_ka": round(float(result.Ib_breaking), 3),
             "ik_steady_ka": round(float(result.Ik_steady), 3),
             "ith_thermal_ka": round(float(result.Ith_thermal), 3),
-            "standards": "IEC 60909",
+            "standards": "Uncertified (Single-bus Synthesis)",
+            "uncertified_fabricated_network": True,
         }, []
 
     async def _run_arc_flash(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
@@ -324,6 +345,7 @@ class StudyEngine:
             ArcFlashEngine,
             ElectrodeConfig,
             EnclosureType,
+            classify_nfpa70e_ppe,
         )
 
         voltage_kv = float(parameters.get("voltage_kv", 0.48))
@@ -362,22 +384,22 @@ class StudyEngine:
         incident_energy_cal_cm2 = result.incident_energy_cal_cm2
         boundary_mm = result.arc_flash_boundary_mm
 
-        if incident_energy_cal_cm2 <= 1.2:
-            ppe_category = "Category 1"
-        elif incident_energy_cal_cm2 <= 8.0:
-            ppe_category = "Category 2"
-        elif incident_energy_cal_cm2 <= 25.0:
-            ppe_category = "Category 3"
-        elif incident_energy_cal_cm2 <= 40.0:
-            ppe_category = "Category 4"
-        else:
+        cat_int, cat_desc = classify_nfpa70e_ppe(incident_energy_cal_cm2)
+        if cat_int == -1:
             ppe_category = "Dangerous (> 40 cal/cm²)"
+            ppe_level = "DANGER"
+        elif cat_int == 0:
+            ppe_category = "Category 0 (No PPE)"
+            ppe_level = "0"
+        else:
+            ppe_category = f"Category {cat_int}"
+            ppe_level = str(cat_int)
 
         return {
             "incident_energy_cal_cm2": round(incident_energy_cal_cm2, 2),
             "arc_flash_boundary_mm": round(boundary_mm, 1),
             "ppe_category": ppe_category,
-            "ppe_level": result.ppe_level,
+            "ppe_level": ppe_level,
             "working_distance_mm": working_distance_mm,
             "standard": "IEEE 1584-2018",
             "method": result.method,

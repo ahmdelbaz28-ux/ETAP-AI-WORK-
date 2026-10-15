@@ -387,15 +387,23 @@ class HarmonicAnalysisEngine:
         Returns:
         Dictionary of bus_id -> THD percentage
         """
+        if not fundamental_magnitude:
+            raise ValueError(
+                "fundamental_magnitude dict {bus_id: V1_pu} is required for THD calculation "
+                "(fail-closed: defaulting to 1.0 pu is prohibited per IEEE 519)."
+            )
         thd = {}
 
         for bus_id in self.bus_ids:
-            # Get fundamental magnitude
-            V1 = fundamental_magnitude.get(bus_id, 1.0)
-
-            if V1 == 0:
-                thd[bus_id] = 0.0
-                continue
+            if bus_id not in fundamental_magnitude:
+                raise ValueError(
+                    f"Fundamental voltage magnitude missing for bus '{bus_id}' (fail-closed)."
+                )
+            V1 = float(fundamental_magnitude[bus_id])
+            if V1 <= 0:
+                raise ValueError(
+                    f"Invalid fundamental voltage magnitude V1={V1} for bus '{bus_id}' (must be > 0)."
+                )
 
             # Sum squared harmonic magnitudes
             sum_squared = 0.0
@@ -429,15 +437,23 @@ class HarmonicAnalysisEngine:
         Returns:
         Dictionary of branch_id -> TDD percentage
         """
+        if not fundamental_current:
+            raise ValueError(
+                "fundamental_current dict {branch_id: I_L_pu} is required for TDD calculation "
+                "(fail-closed: defaulting to 1.0 pu is prohibited per IEEE 519)."
+            )
         tdd = {}
 
         for branch_id in self.branch_data:
-            # Get fundamental (load) current
-            I_L = fundamental_current.get(branch_id, 1.0)
-
-            if I_L == 0:
-                tdd[branch_id] = 0.0
-                continue
+            if branch_id not in fundamental_current:
+                raise ValueError(
+                    f"Fundamental load current missing for branch '{branch_id}' (fail-closed)."
+                )
+            I_L = float(fundamental_current[branch_id])
+            if I_L <= 0:
+                raise ValueError(
+                    f"Invalid fundamental current I_L={I_L} for branch '{branch_id}' (must be > 0)."
+                )
 
             # Sum squared harmonic currents
             sum_squared = 0.0
@@ -600,26 +616,46 @@ class HarmonicAnalysisEngine:
         logger.info("Starting harmonic analysis up to %sth harmonic", self.max_harmonic)
 
         harmonic_results = []
+        solver_failures = []
 
-        # Analyze each harmonic order (odd harmonics typically most significant)
+        # Analyze each harmonic order (both even and odd harmonics per IEEE 519)
         for h in range(2, self.max_harmonic + 1):
-            if h % 2 == 0 and h > 2:
-                continue
-
             try:
                 result = self.solve_harmonic_power_flow(h)
                 harmonic_results.append(result)
             except Exception as e:
                 logger.exception("Failed to solve harmonic %s: %s", h, e)
-                continue
+                solver_failures.append(f"Harmonic solver failed at order {h}: {e}")
+
+        # Derive or validate fundamental magnitudes
+        fund_mag = fundamental_magnitudes
+        if fund_mag is None and hasattr(self, "system") and self.system and hasattr(self.system, "buses"):
+            fund_mag = {}
+            for b_id, b_obj in self.system.buses.items():
+                vm = getattr(b_obj, "voltage_magnitude", None)
+                if vm is not None and float(vm) > 0:
+                    fund_mag[str(b_id)] = float(vm)
+
+        if not fund_mag:
+            raise ValueError(
+                "fundamental_magnitudes dict {bus_id: V1_pu} is required or must be derivable from load flow (fail-closed)."
+            )
 
         # Calculate THD
-        fund_mag = fundamental_magnitudes or dict.fromkeys(self.bus_ids, 1.0)
         thd_voltage = self.calculate_thd(harmonic_results, fund_mag)
 
-        # Calculate TDD
-        fund_curr = fundamental_currents or {}
-        tdd_current = self.calculate_tdd(harmonic_results, fund_curr)
+        # Derive or validate fundamental currents
+        fund_curr = fundamental_currents
+        if fund_curr is None and hasattr(self, "system") and self.system and hasattr(self.system, "lines"):
+            fund_curr = {}
+            for l_id, l_obj in self.system.lines.items():
+                curr = getattr(l_obj, "current_magnitude", getattr(l_obj, "current", None))
+                if curr is not None and abs(curr) > 0:
+                    fund_curr[f"line_{l_id}"] = float(abs(curr))
+                    fund_curr[str(l_id)] = float(abs(curr))
+
+        # Calculate TDD if branch data exists and fundamental currents are provided
+        tdd_current = self.calculate_tdd(harmonic_results, fund_curr) if (self.branch_data and fund_curr) else {}
 
         # Detect resonance
         resonance_detected, resonance_freqs = self.detect_resonance(harmonic_results)
@@ -630,7 +666,20 @@ class HarmonicAnalysisEngine:
         )
 
         # Collect violations
-        violations = []
+        violations = list(solver_failures)
+        if solver_failures:
+            resonance_detected = True
+            compliance = {str(bus_id): False for bus_id in self.bus_ids}
+            if tdd_current:
+                for branch_id in tdd_current:
+                    compliance[f"branch_{branch_id}"] = False
+
+        # Fail closed: never produce "THD=0% compliant" if harmonic sources are active
+        active_sources = [s for s in self.harmonic_sources if s.harmonic_order > 1 and s.magnitude_pu > 0]
+        if active_sources and all(v == 0.0 for v in thd_voltage.values()):
+            violations.append("Harmonic sources active but THD calculated as 0% (solver mismatch; fail-closed).")
+            compliance = {str(bus_id): False for bus_id in self.bus_ids}
+
         for bus_id, thd in thd_voltage.items():
             if not compliance.get(str(bus_id), True):
                 violations.append(

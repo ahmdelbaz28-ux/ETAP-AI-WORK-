@@ -44,11 +44,13 @@ class PSOOptimalPowerFlow:
         max_iter: int = 70,
         seed: int = 42,
         enable_reanalysis: bool = True,
+        bus_types: Optional[Dict[int, str]] = None,
     ) -> None:
         self.Ybus = np.asarray(ybus, dtype=complex)
         self.bus_ids = list(bus_ids)
         self.n_buses = len(bus_ids)
         self.bus_index = {bid: idx for idx, bid in enumerate(bus_ids)}
+        self.bus_types = dict(bus_types) if bus_types is not None else {}
 
         self.generator_costs = {gc.generator_id: gc for gc in generator_costs}
         self.gen_ids = sorted(self.generator_costs.keys())
@@ -72,6 +74,22 @@ class PSOOptimalPowerFlow:
             seed=self.seed,
             tol=1e-5,
             patience=15,
+        )
+
+    def set_bus_types(self, bus_types: Dict[int, str]) -> None:
+        """Set bus types (slack, pv, pq) for each bus."""
+        self.bus_types = dict(bus_types)
+
+    def _get_slack_bus_id_and_index(self) -> Tuple[int, int]:
+        """Find the designated slack bus by bus_type == 'slack'.
+
+        Raises ValueError if no slack bus is designated (fail-closed).
+        """
+        for bid in self.bus_ids:
+            if self.bus_types.get(bid, "").lower() == "slack":
+                return bid, self.bus_index[bid]
+        raise ValueError(
+            "No slack bus found in system for PSO-OPF (fail-closed: select slack by bus_type=='slack', guessing position 0 is forbidden)."
         )
 
     def _evaluate_ac_state(
@@ -103,12 +121,13 @@ class PSOOptimalPowerFlow:
                 p_inj[idx] += float(p_gen_dict.get(gid, 0.0)) / self.base_mva
 
         # Solve polar power flow for voltage profile
+        _slack_bid, slack_idx = self._get_slack_bus_id_and_index()
         pv_indices = [
             self.bus_index[bid]
             for gid, bid in self.gen_buses.items()
-            if bid in self.bus_index and self.bus_index[bid] != 0
+            if bid in self.bus_index and self.bus_index[bid] != slack_idx
         ]
-        pq_indices = [i for i in range(n) if i != 0 and i not in pv_indices]
+        pq_indices = [i for i in range(n) if i != slack_idx and i not in pv_indices]
 
         converged = False
         for _ in range(25):
@@ -267,10 +286,11 @@ class PSOOptimalPowerFlow:
             try:
                 from load_flow.solver import solve_load_flow_sparse
 
+                slack_bid, _slack_idx = self._get_slack_bus_id_and_index()
                 buses = []
                 for bid in self.bus_ids:
                     idx = self.bus_index[bid]
-                    is_slack = (idx == 0)
+                    is_slack = (bid == slack_bid)
                     is_gen = any(self.gen_buses.get(gid) == bid for gid in self.gen_ids)
                     s_load = self.load_data.get(bid, 0.0 + 0.0j)
 

@@ -760,16 +760,41 @@ class StudyExecutor:
                 return method(fault_type, bus_id)
             raise ValueError("bus_id must be provided for fault study")
         if registration.handler == "run_arc_flash":
+            voltage_kv = parameters.get("voltage_kv")
+            if voltage_kv is None and system and hasattr(system, "buses") and system.buses:
+                voltage_kv = getattr(system.buses[0], "base_kv", None)
+
+            missing_af = []
+            if voltage_kv is None:
+                missing_af.append("voltage_kv")
+            if "bolted_fault_current_ka" not in parameters and "fault_current_ka" not in parameters:
+                missing_af.append("bolted_fault_current_ka")
+            if "arc_duration_sec" not in parameters and "clearing_time_s" not in parameters:
+                missing_af.append("arc_duration_sec")
+            if "working_distance_mm" not in parameters:
+                missing_af.append("working_distance_mm")
+
+            if missing_af:
+                raise ValueError(
+                    f"Missing required arc flash parameter(s): {', '.join(missing_af)}. "
+                    "Silent default parameter injection (13.8kV/20kA/0.1s/610mm) is prohibited per life safety rules (fail-closed)."
+                )
+
+            bf_ka = float(parameters.get("bolted_fault_current_ka", parameters.get("fault_current_ka")))
+            arc_dur = float(parameters.get("arc_duration_sec", parameters.get("clearing_time_s")))
+            w_dist = float(parameters["working_distance_mm"])
+
             return method(
-                voltage_kv=float(parameters.get("voltage_kv", 13.8)),
-                bolted_fault_current_ka=float(parameters.get("bolted_fault_current_ka", 20.0)),
-                arc_duration_sec=float(parameters.get("arc_duration_sec", 0.1)),
-                working_distance_mm=float(parameters.get("working_distance_mm", 610.0)),
+                voltage_kv=float(voltage_kv),
+                bolted_fault_current_ka=bf_ka,
+                arc_duration_sec=arc_dur,
+                working_distance_mm=w_dist,
                 electrode_config=str(parameters.get("electrode_config", "VCB")),
                 enclosure_type=str(parameters.get("enclosure_type", "box")),
                 enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
                 enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
                 enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
+                arc_gap_mm=parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm")),
             )
         if registration.handler == "run_protection_coordination":
             upstream = parameters.get("upstream_relay_id", 1)

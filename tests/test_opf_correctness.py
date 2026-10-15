@@ -37,7 +37,7 @@ class TestOptimalPowerFlowCorrectness:
         for i in range(3):
             Ybus[i, i] = -sum(Ybus[i, j] for j in range(3) if j != i)
 
-        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs)
+        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs, bus_types={1: "slack", 2: "pv", 3: "pq"})
         engine.set_generator_locations({1: 1, 2: 2})
         # Load of 80 MW at Bus 3
         engine.set_load_data({1: 0.0, 2: 0.0, 3: 80.0})
@@ -69,7 +69,7 @@ class TestOptimalPowerFlowCorrectness:
         for i in range(3):
             Ybus[i, i] = -sum(Ybus[i, j] for j in range(3) if j != i)
 
-        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs)
+        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs, bus_types={1: "slack", 2: "pv", 3: "pq"})
         engine.set_generator_locations({1: 1, 2: 2})
         # 100 MW load at Bus 3
         engine.set_load_data({1: 0.0, 2: 0.0, 3: 100.0})
@@ -98,7 +98,7 @@ class TestOptimalPowerFlowCorrectness:
             GeneratorCost(generator_id=1, cost_coefficients=[0.0, 20.0, 0.0], p_min=0.0, p_max=100.0, q_min=0.0, q_max=0.0),
         ]
         Ybus = np.array([[ -10j, 10j ], [ 10j, -10j ]], dtype=complex)
-        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs)
+        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs, bus_types={1: "slack", 2: "pq"})
         engine.set_generator_locations({1: 1})
         engine.set_load_data({1: 0.0, 2: 50.0})
         engine.set_branch_reactances({(1, 2): 0.1})
@@ -109,3 +109,14 @@ class TestOptimalPowerFlowCorrectness:
         assert (1, 2) in res.branch_flows or (2, 1) in res.branch_flows
         flow = res.branch_flows[(1, 2)].real if (1, 2) in res.branch_flows else -res.branch_flows[(2, 1)].real
         assert flow == pytest.approx(50.0, abs=1e-3)
+
+    def test_dc_opf_missing_slack_raises_fail_closed(self):
+        """Omitting slack bus in OPF must raise ValueError fail-closed."""
+        bus_ids = [1, 2]
+        costs = [
+            GeneratorCost(generator_id=1, cost_coefficients=[0.0, 20.0, 0.0], p_min=0.0, p_max=100.0, q_min=0.0, q_max=0.0),
+        ]
+        Ybus = np.array([[-10j, 10j], [10j, -10j]], dtype=complex)
+        engine = OptimalPowerFlowEngine(Ybus, bus_ids, costs, bus_types={1: "pq", 2: "pq"})
+        with pytest.raises(ValueError, match="No slack bus found"):
+            engine.solve_dc_opf()

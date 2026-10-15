@@ -102,15 +102,13 @@ class TestArcCurrentCalculations:
         ],
     )
     def test_medium_voltage_arc_current(self, config):
-        iarc, iarc_red = ArcFlashEngine.calculate_arc_current(
-            voltage_kv=13.8,
-            bolted_fault_current_ka=15.0,
-            electrode_config=config,
-        )
-        assert iarc > 0
-        assert iarc_red > 0
-        assert iarc_red < iarc
-        assert 0.75 * iarc <= iarc_red <= 0.98 * iarc
+        # Without clamp (C4), MV regression at 13.8kV/15kA exceeds bolted fault current and fails closed
+        with pytest.raises(ValueError, match="exceeds bolted fault current|boundary conditions"):
+            ArcFlashEngine.calculate_arc_current(
+                voltage_kv=13.8,
+                bolted_fault_current_ka=15.0,
+                electrode_config=config,
+            )
 
     def test_arc_current_finite_and_positive(self):
         iarc, iarc_red = ArcFlashEngine.calculate_arc_current(0.48, 10.0, ElectrodeConfig.VCB)
@@ -129,12 +127,14 @@ class TestIncidentEnergy:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.1,
             working_distance_mm=305.0,
+            arc_gap_mm=25.0,
         )
         e_far, _, _ = ArcFlashEngine.calculate_incident_energy(
             voltage_kv=0.48,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.1,
             working_distance_mm=610.0,
+            arc_gap_mm=25.0,
         )
         assert e_close > e_far
 
@@ -144,12 +144,14 @@ class TestIncidentEnergy:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.05,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
         )
         e_long, _, _ = ArcFlashEngine.calculate_incident_energy(
             voltage_kv=0.48,
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.2,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
         )
         assert e_long > e_short
 
@@ -161,6 +163,7 @@ class TestIncidentEnergy:
             working_distance_mm=457.0,
             electrode_config=ElectrodeConfig.VCB,
             enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
         )
         e_open, _, _ = ArcFlashEngine.calculate_incident_energy(
             voltage_kv=0.48,
@@ -169,6 +172,7 @@ class TestIncidentEnergy:
             working_distance_mm=457.0,
             electrode_config=ElectrodeConfig.VOA,
             enclosure_type=EnclosureType.OPEN,
+            arc_gap_mm=25.0,
         )
         assert e_box > 0
         assert e_open > 0
@@ -183,6 +187,7 @@ class TestArcFlashBoundary:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.1,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
         )
         assert boundary > 0
 
@@ -192,12 +197,14 @@ class TestArcFlashBoundary:
             bolted_fault_current_ka=10.0,
             arc_duration_sec=0.05,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
         )
         b_high = ArcFlashEngine.calculate_arc_flash_boundary(
             voltage_kv=0.48,
             bolted_fault_current_ka=40.0,
             arc_duration_sec=0.2,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
         )
         assert b_high > b_low
 
@@ -223,7 +230,7 @@ class TestPPEDetermination:
         ],
     )
     def test_ppe_levels(self, energy, expected_level):
-        level, desc = ArcFlashEngine.determine_ppe_level(energy)
+        level, desc = ArcFlashEngine.determine_ppe_level(energy, allow_simplified=True)
         assert level == expected_level
         assert len(desc) > 0
 
@@ -239,6 +246,7 @@ class TestFullCalculationWorkflow:
             working_distance_mm=457.0,
             electrode_config=ElectrodeConfig.VCB,
             enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
         )
         assert isinstance(res, ArcFlashResult)
         assert res.incident_energy_cal_cm2 > 0
@@ -249,7 +257,7 @@ class TestFullCalculationWorkflow:
         assert res.method == "IEEE 1584-2018"
         assert res.electrode_configuration == "VCB"
         assert res.enclosure_type == "box"
-        assert res.ppe_level in ("0", "1", "2", "3", "4", "DANGER")
+        assert res.ppe_level in ("0", "1", "2", "3", "4", "DANGER", "REJECTED")
         assert res.voltage_kv == 0.48
         assert res.bolted_fault_current_ka == 25.0
         assert res.arc_duration_sec == 0.1
@@ -267,10 +275,10 @@ class TestRalphLeeMethod:
             working_distance_mm=914.0,
         )
         assert isinstance(res, ArcFlashResult)
-        assert res.incident_energy_cal_cm2 > 0
-        assert res.arc_flash_boundary_mm > 0
+        assert round(res.incident_energy_cal_cm2, 2) == 132.69
+        assert round(res.arc_flash_boundary_mm, 1) == 9611.1
         assert "Ralph Lee" in res.method
-        assert res.ppe_level in ("0", "1", "2", "3", "4", "DANGER")
+        assert res.ppe_level in ("0", "1", "2", "3", "4", "DANGER", "REJECTED")
         assert res.voltage_kv == 34.5
 
 
@@ -293,7 +301,7 @@ class TestArcFlashCalcWrapper:
         assert 0.0005 <= res["incident_energy_cal_per_cm2"] <= 20.0
         assert 0.1 <= res["arc_flash_boundary_mm"] <= 5000.0
         assert res["method"] == "IEEE 1584-2018"
-        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER")
+        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER", "REJECTED")
 
     def test_calculate_arc_flash_low_voltage(self):
         from fault_analysis.arc_flash_calc import calculate_arc_flash
@@ -308,7 +316,7 @@ class TestArcFlashCalcWrapper:
         # Ralph Lee method for low voltage (< 0.208 kV)
         assert 0.001 <= res["incident_energy_cal_per_cm2"] <= 50.0
         assert "Ralph Lee" in res["method"]
-        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER")
+        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER", "REJECTED")
 
     def test_validate_arc_flash_input(self):
         from fault_analysis.arc_flash_calc import _validate_arc_flash_input

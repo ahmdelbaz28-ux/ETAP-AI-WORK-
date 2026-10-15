@@ -14,6 +14,8 @@ Supports:
 - Electrode configuration (VCB, VCBB, HCB, VOA, HOA)
 """
 
+from __future__ import annotations
+
 import math
 from dataclasses import dataclass
 from enum import Enum
@@ -140,7 +142,32 @@ BOUNDARY_COEFFICIENTS = {}
 # The incident energy formula omits: gap distance G, K4 interaction term, and
 # uses t as linear multiplier instead of log10(t). Results are NOT compliant
 # with IEEE 1584-2018. Do NOT use for PPE selection or arc flash labeling.
-ENGINE_IS_SIMPLIFIED = False
+ENGINE_IS_SIMPLIFIED = True
+
+
+def classify_nfpa70e_ppe(incident_energy: float) -> tuple[int, str]:
+    """
+    Classify required PPE category and description per NFPA 70E boundaries:
+    - E <= 1.2 cal/cm²: Category 0 (No PPE required)
+    - 1.2 < E <= 4.0 cal/cm²: Category 1 (4 cal/cm² minimum)
+    - 4.0 < E <= 8.0 cal/cm²: Category 2 (8 cal/cm² minimum)
+    - 8.0 < E <= 25.0 cal/cm²: Category 3 (25 cal/cm² minimum)
+    - 25.0 < E <= 40.0 cal/cm²: Category 4 (40 cal/cm² minimum)
+    - E > 40.0 cal/cm²: Category -1 (Dangerous — no PPE adequate)
+    """
+    ie = float(incident_energy)
+    if ie <= 1.2:
+        return 0, "No PPE required (E <= 1.2 cal/cm^2)"
+    elif ie <= 4.0:
+        return 1, "Arc-Rated Shirt and Pants, Arc-Rated Face Shield (4 cal/cm^2 minimum)"
+    elif ie <= 8.0:
+        return 2, "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 minimum)"
+    elif ie <= 25.0:
+        return 3, "Arc-Rated Shirt and Pants, Arc Flash Suit (25 cal/cm^2 minimum)"
+    elif ie <= 40.0:
+        return 4, "Arc-Rated Shirt and Pants, Arc Flash Suit (40 cal/cm^2 minimum)"
+    else:
+        return -1, "Dangerous — no PPE adequate (E > 40 cal/cm^2); de-energize before working"
 
 
 class ArcFlashEngine:
@@ -359,9 +386,23 @@ class ArcFlashEngine:
 
         # Determine gap distance G
         if arc_gap_mm is None:
-            G = 25.0 if voltage_kv <= 1.0 else 13.0  # mm, per IEEE 1584-2018 default
+            raise ValueError(
+                "arc_gap_mm is required (fail-closed: missing gap distance). "
+                "IEEE 1584-2018 requires an explicit conductor gap."
+            )
+        G = float(arc_gap_mm)
+        if voltage_kv <= 1.0:
+            if G < 6.35 or G > 76.2:
+                raise ValueError(
+                    f"arc_gap_mm={G} mm is outside IEEE 1584-2018 valid range [6.35, 76.2] mm "
+                    f"for low-voltage systems ({voltage_kv} kV)."
+                )
         else:
-            G = max(1.0, float(arc_gap_mm))  # prevent log10(0) or negative
+            if G < 19.05 or G > 254.0:
+                raise ValueError(
+                    f"arc_gap_mm={G} mm is outside IEEE 1584-2018 valid range [19.05, 254.0] mm "
+                    f"for medium-voltage systems ({voltage_kv} kV)."
+                )
 
         log10_g = np.log10(G)
         t = max(0.01, float(arc_duration_sec))  # prevent log10(0)
@@ -415,6 +456,7 @@ class ArcFlashEngine:
         enclosure_width_mm=508.0,
         enclosure_height_mm=508.0,
         enclosure_depth_mm=508.0,
+        arc_gap_mm=None,
     ):
         """
         Calculate the arc flash boundary distance using IEEE 1584-2018.
@@ -483,6 +525,7 @@ class ArcFlashEngine:
             enclosure_width_mm=enclosure_width_mm,
             enclosure_height_mm=enclosure_height_mm,
             enclosure_depth_mm=enclosure_depth_mm,
+            arc_gap_mm=arc_gap_mm,
         )
 
         if e_final <= 0 or x_factor_num == 0:
@@ -497,31 +540,25 @@ class ArcFlashEngine:
         return max(d_boundary, 0.1)
 
     @staticmethod
-    def determine_ppe_level(incident_energy):
+    def determine_ppe_level(incident_energy, allow_simplified=False):
         """
         Determine the PPE level based on incident energy per NFPA 70E / IEEE 1584.
 
         Parameters:
         incident_energy (float): Incident energy in cal/cm^2.
+        allow_simplified (bool): If True, permit mapping even when ENGINE_IS_SIMPLIFIED is True.
 
         Returns:
         tuple: (ppe_level, ppe_description)
         """
-        if incident_energy <= 1.2:
-            return "0", "No PPE required (E <= 1.2 cal/cm^2)"
-        elif incident_energy <= 4.0:
-            return "1", "Arc-Rated Shirt and Pants, Arc-Rated Face Shield (4 cal/cm^2 minimum)"
-        elif incident_energy <= 8.0:
-            return (
-                "2",
-                "Arc-Rated Shirt and Pants, Arc-Rated Face Shield, Arc-Rated Jacket (8 cal/cm^2 minimum)",
+        if ENGINE_IS_SIMPLIFIED and not allow_simplified:
+            raise ValueError(
+                "ENGINE_IS_SIMPLIFIED is True: ArcFlashEngine uses a simplified model "
+                "not compliant with IEEE 1584-2018. Cannot determine PPE level. "
+                "Production PPE selection requires certified software (ETAP, SKM, EasyPower)."
             )
-        elif incident_energy <= 25.0:
-            return "3", "Arc-Rated Shirt and Pants, Arc Flash Suit (25 cal/cm^2 minimum)"
-        elif incident_energy <= 40.0:
-            return "4", "Arc-Rated Shirt and Pants, Arc Flash Suit (40 cal/cm^2 minimum)"
-        else:
-            return "DANGER", "E > 40 cal/cm^2 - De-energize before working"
+        cat_int, desc = classify_nfpa70e_ppe(incident_energy)
+        return ("DANGER" if cat_int == -1 else str(cat_int)), desc
 
     def calculate(
         self,
@@ -534,6 +571,7 @@ class ArcFlashEngine:
         enclosure_width_mm=508.0,
         enclosure_height_mm=508.0,
         enclosure_depth_mm=508.0,
+        arc_gap_mm=None,
     ) -> ArcFlashResult:
         """
         Perform a complete arc flash analysis per IEEE 1584-2018.
@@ -548,6 +586,7 @@ class ArcFlashEngine:
         enclosure_width_mm (float): Enclosure width in mm.
         enclosure_height_mm (float): Enclosure height in mm.
         enclosure_depth_mm (float): Enclosure depth in mm.
+        arc_gap_mm (float): Conductor gap distance in mm (required).
 
         Returns:
         ArcFlashResult: Complete arc flash analysis result.
@@ -581,6 +620,7 @@ class ArcFlashEngine:
             enclosure_width_mm,
             enclosure_height_mm,
             enclosure_depth_mm,
+            arc_gap_mm=arc_gap_mm,
         )
 
         # Calculate arc flash boundary
@@ -594,10 +634,15 @@ class ArcFlashEngine:
             enclosure_width_mm,
             enclosure_height_mm,
             enclosure_depth_mm,
+            arc_gap_mm=arc_gap_mm,
         )
 
         # Determine PPE level
-        ppe_level, ppe_description = self.determine_ppe_level(e_final)
+        try:
+            ppe_level, ppe_description = self.determine_ppe_level(e_final)
+        except ValueError as err:
+            ppe_level = "REJECTED"
+            ppe_description = str(err)
 
         return ArcFlashResult(
             incident_energy_cal_cm2=round(e_final, 4),
@@ -644,19 +689,24 @@ class ArcFlashEngine:
         t = arc_duration_sec
         D = working_distance_mm
 
-        # Ralph Lee method for incident energy (cal/cm^2)
-        E = (5.12e5 * V * Ibf * t) / (D**2)
+        # Ralph Lee method for incident energy (cal/cm^2) per IEEE 1584 Annex D
+        E = (2.142e6 * V * Ibf * t) / (D**2)
 
         # Arc flash boundary (mm) where incident energy = 1.2 cal/cm^2
         d_boundary = (
-            ((5.12e5 * V * Ibf * t) / 1.2) ** 0.5
+            ((2.142e6 * V * Ibf * t) / 1.2) ** 0.5
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        ppe_level, ppe_description = ArcFlashEngine.determine_ppe_level(E)
+        try:
+            ppe_level, ppe_description = ArcFlashEngine.determine_ppe_level(E)
+        except ValueError as err:
+            ppe_level = "REJECTED"
+            ppe_description = str(err)
 
-        iarc, iarc_reduced = ArcFlashEngine.calculate_arc_current(
-            voltage_kv, bolted_fault_current_ka, ElectrodeConfig.VOA
-        )
+        # Ralph Lee method applies outside IEEE 1584 range (V > 15 kV or V < 0.208 kV).
+        # Arcing current is taken conservatively as bolted fault current per Lee (1982).
+        iarc = float(bolted_fault_current_ka)
+        iarc_reduced = float(bolted_fault_current_ka)
 
         return ArcFlashResult(
             incident_energy_cal_cm2=round(E, 4),

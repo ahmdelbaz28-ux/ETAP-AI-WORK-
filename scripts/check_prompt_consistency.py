@@ -79,7 +79,12 @@ def main() -> int:
     referenced = {str(p.relative_to(ROOT)).replace("\\", "/") for p in resolved.values()}
     # Kept on disk for history only: unreachable via manifest-first loading
     # and excluded from Langfuse sync — must never re-enter the manifest.
-    LOCAL_ONLY_FILES = frozenset({"prompts/etap_engineer_agent.yaml"})
+    LOCAL_ONLY_FILES = frozenset(
+        {
+            "prompts/weather_activity_planner.prompt.yaml",
+            "prompts/qgis_agent.prompt.yaml",
+        }
+    )
     for yaml_file in PROMPTS_DIR.glob("*.yaml"):
         rel = str(yaml_file.relative_to(ROOT)).replace("\\", "/")
         if rel not in referenced and rel not in LOCAL_ONLY_FILES:

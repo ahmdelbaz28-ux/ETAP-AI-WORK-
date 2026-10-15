@@ -22,6 +22,7 @@ import os
 import re
 import subprocess
 import textwrap
+import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -33,27 +34,50 @@ from unittest.mock import MagicMock, patch
 class TestArcFlashE01E02:
     """Verify arc flash incident energy formula and distance exponent fixes."""
 
-    def test_e01_simplified_flag_present(self):
-        """E-01: ENGINE_IS_SIMPLIFIED flag must be False (standard compliance achieved)."""
-        from fault_analysis.arc_flash_engine import ENGINE_IS_SIMPLIFIED
+    def test_e01_simplified_flag_and_ppe_rejection(self):
+        """E-01: ENGINE_IS_SIMPLIFIED must be True and determine_ppe_level must fail-closed."""
+        from fault_analysis.arc_flash_engine import ArcFlashEngine, ENGINE_IS_SIMPLIFIED
 
-        assert ENGINE_IS_SIMPLIFIED is False
+        assert ENGINE_IS_SIMPLIFIED is True
+        with pytest.raises(ValueError, match="ENGINE_IS_SIMPLIFIED is True"):
+            ArcFlashEngine.determine_ppe_level(10.0)
 
-    def test_e01_non_compliance_warning_in_source(self):
-        """E-01: Source must document the formula and its compliance status."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding="utf-8")
-        # Must reference IEEE 1584
-        assert "IEEE 1584" in src
-        # Must contain the full equation with log10(t)
-        assert "log10_t" in src or "log10(t)" in src, (
-            "E-01: Formula must include log10(t) time term"
+    def test_e01_ralph_lee_annex_d_constant_numerical(self):
+        """E-01: Ralph Lee constant 2.142e6 must yield 132.69 cal/cm2 for 34.5kV/15kA/0.1s/914mm."""
+        from fault_analysis.arc_flash_engine import ArcFlashEngine
+
+        res = ArcFlashEngine.ralph_lee_method(
+            voltage_kv=34.5,
+            bolted_fault_current_ka=15.0,
+            arc_duration_sec=0.1,
+            working_distance_mm=914.0,
         )
-        # Must include gap distance G
-        assert "log10_G" in src or "gap" in src.lower(), (
-            "E-01: Formula must include gap distance G term"
-        )
-        # Must include K4 interaction term
-        assert "k4" in src.lower(), "E-01: Formula must include K4 interaction term"
+        assert round(res.incident_energy_cal_cm2, 2) == 132.69
+        assert round(res.arc_flash_boundary_mm, 1) == 9611.1
+
+    def test_e01_gap_distance_numerical_and_fail_closed(self):
+        """E-01: Numerical verification of gap distance: out-of-range or missing gap rejected."""
+        from fault_analysis.arc_flash_engine import ArcFlashEngine
+
+        # Missing gap raises ValueError (fail-closed)
+        with pytest.raises(ValueError, match="arc_gap_mm is required"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.1,
+                working_distance_mm=457.0,
+                arc_gap_mm=None,
+            )
+
+        # 152mm is out-of-range for 0.48kV (<76.2mm max), must explicitly reject
+        with pytest.raises(ValueError, match="outside IEEE 1584-2018 valid range"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.1,
+                working_distance_mm=457.0,
+                arc_gap_mm=152.0,
+            )
 
     def test_e02_x_factor_from_table(self):
         """E-02: x_factor must be unpacked from coefficients (not discarded)."""

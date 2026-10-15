@@ -370,12 +370,15 @@ class PowerSystemEngine:
         if getattr(self.system, "base_mva", None) is not None:
             base_mva = float(self.system.base_mva)
 
-        base_kv = 115.0
         bus_obj = self.system.buses.get(bus_id) if hasattr(self.system, "buses") else None
         if bus_obj and getattr(bus_obj, "base_kv", None) is not None:
             base_kv = float(bus_obj.base_kv)
         elif getattr(self.system, "base_kv", None) is not None:
             base_kv = float(self.system.base_kv)
+        else:
+            raise ValueError(
+                f"base_kv missing for bus '{bus_id}' and system (fail-closed: no default base voltage permitted per IEC 60909)"
+            )
 
         # Create fault analyzer
         fault_analyzer = FaultAnalyzer(
@@ -427,6 +430,7 @@ class PowerSystemEngine:
         enclosure_width_mm: float = 508.0,
         enclosure_height_mm: float = 508.0,
         enclosure_depth_mm: float = 508.0,
+        arc_gap_mm: float | None = None,
     ) -> dict[str, Any]:
         """
         Run arc flash analysis per IEEE 1584-2018.
@@ -481,6 +485,7 @@ class PowerSystemEngine:
             enclosure_width_mm=enclosure_width_mm,
             enclosure_height_mm=enclosure_height_mm,
             enclosure_depth_mm=enclosure_depth_mm,
+            arc_gap_mm=arc_gap_mm,
         )
 
         return {
@@ -669,6 +674,7 @@ class PowerSystemEngine:
                 enclosure_width_mm=kwargs.get("enclosure_width_mm", 508.0),
                 enclosure_height_mm=kwargs.get("enclosure_height_mm", 508.0),
                 enclosure_depth_mm=kwargs.get("enclosure_depth_mm", 508.0),
+                arc_gap_mm=kwargs.get("arc_gap_mm"),
             )
         else:
             try:

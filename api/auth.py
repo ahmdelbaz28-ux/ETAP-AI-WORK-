@@ -484,6 +484,15 @@ class LoginRequest(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_email_as_username(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("username") and data.get("email"):
+                data = dict(data)
+                data["username"] = data["email"]
+        return data
+
     username: str
     # password is required for leg-1 (normal login) but optional for leg-2
     # (MFA completion), where mfa_challenge_token proves password was already

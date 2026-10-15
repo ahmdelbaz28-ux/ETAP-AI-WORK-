@@ -38,11 +38,14 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
         self.bus_index = {bid: idx for idx, bid in enumerate(self.bus_ids)}
 
         # Find slack bus
-        self.slack_index = 0
+        slack_found = False
         for idx, b in enumerate(self.buses):
             if getattr(b, "bus_type", "pq").lower() == "slack":
                 self.slack_index = idx
+                slack_found = True
                 break
+        if not slack_found:
+            raise ValueError("No slack bus found in system for DC load flow analysis (fail-closed).")
 
         self.non_slack_indices = [i for i in range(self.n) if i != self.slack_index]
 

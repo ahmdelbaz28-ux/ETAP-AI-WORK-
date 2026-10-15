@@ -839,7 +839,7 @@ class TestOptimalPowerFlow:
             q_max=50.0,
         )
 
-        opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen_cost])
+        opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen_cost], bus_types={1: "slack", 2: "pq"})
         opf.set_load_data({2: complex(50.0, 20.0)})  # 50 MW load at bus 2
         opf.set_generator_locations({1: 2})  # Generator 1 at bus 2 (same bus as load)
 
@@ -875,7 +875,7 @@ class TestOptimalPowerFlow:
             q_max=50.0,
         )
 
-        opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen1, gen2])
+        opf = OptimalPowerFlowEngine(Ybus, [1, 2], [gen1, gen2], bus_types={1: "slack", 2: "pq"})
         opf.set_load_data({2: complex(50.0, 0)})
         opf.set_generator_locations({1: 1, 2: 1})
 

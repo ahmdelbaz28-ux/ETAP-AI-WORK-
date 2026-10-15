@@ -35,7 +35,7 @@ def test_optimal_power_flow_uses_A_eq():
         ),
     ]
 
-    opf_engine = OptimalPowerFlowEngine(ybus, bus_ids, generator_costs)
+    opf_engine = OptimalPowerFlowEngine(ybus, bus_ids, generator_costs, bus_types={0: "slack", 1: "pq"})
     opf_engine.set_load_data({0: 150.0 + 0j, 1: 50.0 + 0j})
     opf_engine.set_generator_locations({0: 0, 1: 1})  # Map generator_id -> bus_id
 

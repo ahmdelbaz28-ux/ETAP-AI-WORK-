@@ -32,26 +32,45 @@ class System:
         self._include_gen_impedance_pos = False  # True for fault analysis, False for load flow
 
     def add_bus(self, bus):
-        """Add a bus to the system."""
+        """Add a bus to the system and invalidate cached Ybus."""
         self.buses[bus.bus_id] = bus
+        self.Ybus_seq.clear()
 
     def add_line(self, line):
-        """Add a line to the system."""
+        """Add a line to the system, validate voltage base compatibility, and invalidate cached Ybus."""
+        if line.from_bus.base_kv is not None and line.to_bus.base_kv is not None:
+            if abs(line.from_bus.base_kv - line.to_bus.base_kv) > 1e-4:
+                raise ValueError(
+                    f"Line {line.line_id} connects buses with mismatched base_kv: "
+                    f"{line.from_bus.base_kv} kV vs {line.to_bus.base_kv} kV. "
+                    "Use a Transformer for connections between different voltage levels."
+                )
         self.lines.append(line)
+        self.Ybus_seq.clear()
 
     def add_transformer(self, transformer):
-        """Add a transformer to the system."""
+        """Add a transformer to the system and invalidate cached Ybus."""
         self.transformers.append(transformer)
+        self.Ybus_seq.clear()
 
     def add_generator(self, generator):
-        """Add a generator to the system."""
+        """Add a generator to the system and invalidate cached Ybus."""
         self.generators.append(generator)
+        self.Ybus_seq.clear()
 
     def add_load(self, load):
-        """Add a load to the system and accumulate its power at the connected bus."""
+        """Add a load to the system, accumulate its power, and invalidate cached Ybus."""
         self.loads.append(load)
-        # Accumulate load power at the connected bus (was previously in Load.__init__)
-        load.bus.load_power += load.load_power  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
+        load.bus.load_power += load.load_power
+        self.Ybus_seq.clear()
+
+    def convert_impedance_to_pu(self, z_ohms, bus_id):
+        """Convert impedance in ohms to per-unit using the bus base_kv and system base_mva."""
+        from network_solver.per_unit import impedance_to_per_unit
+        bus = self.buses.get(bus_id)
+        if bus is None or bus.base_kv is None or bus.base_kv <= 0:
+            raise ValueError(f"Cannot convert ohms to per-unit: bus {bus_id} has invalid or missing base_kv.")
+        return impedance_to_per_unit(z_ohms, bus.base_kv, self.base_mva)
 
     def build_ybus(self, seq="1"):  # NOSONAR cognitive complexity; refactoring sprint
         """

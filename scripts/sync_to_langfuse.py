@@ -69,12 +69,13 @@ if manifest_path.is_file():
             continue
         if full.is_file():
             handles[handle] = full
-for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(PROMPTS_DIR.glob("*.prompt.yaml")):
-    handle = yaml_file.stem
-    if handle.endswith(".prompt"):
-        handle = handle[:-7]
-    if handle not in handles or str(yaml_file).endswith(".prompt.yaml"):
-        handles[handle] = yaml_file
+else:
+    for yaml_file in sorted(PROMPTS_DIR.glob("*.yaml")) + sorted(PROMPTS_DIR.glob("*.prompt.yaml")):
+        handle = yaml_file.stem
+        if handle.endswith(".prompt"):
+            handle = handle[:-7]
+        if handle not in handles or str(yaml_file).endswith(".prompt.yaml"):
+            handles[handle] = yaml_file
 
 print(f"Endpoint: {BASE_URL}")
 print(f"Found {len(handles)} unique prompts to sync.\n")
