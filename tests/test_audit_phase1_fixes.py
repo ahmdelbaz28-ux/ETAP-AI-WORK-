@@ -22,9 +22,10 @@ import os
 import re
 import subprocess
 import textwrap
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # E-01 & E-02: Arc Flash Engine
@@ -36,7 +37,7 @@ class TestArcFlashE01E02:
 
     def test_e01_simplified_flag_and_ppe_rejection(self):
         """E-01: ENGINE_IS_SIMPLIFIED must be True and determine_ppe_level must fail-closed."""
-        from fault_analysis.arc_flash_engine import ArcFlashEngine, ENGINE_IS_SIMPLIFIED
+        from fault_analysis.arc_flash_engine import ENGINE_IS_SIMPLIFIED, ArcFlashEngine
 
         assert ENGINE_IS_SIMPLIFIED is True
         with pytest.raises(ValueError, match="ENGINE_IS_SIMPLIFIED is True"):
