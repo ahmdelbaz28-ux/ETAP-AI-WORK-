@@ -64,7 +64,7 @@
 
 5. **Optimal Power Flow Agent**
    - DC-OPF باستخدام البرمجة الخطية (LP)
-   - AC-OPF باستخدام Interior Point Method (SLSQP)
+   - AC-OPF باستخدام SLSQP Unconstrained OPF (No AC Network Constraints)
    - تقليل تكلفة التوليد
    - تقليل الفقد
    - تحسين ملف الجهد

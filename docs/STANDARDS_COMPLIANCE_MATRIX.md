@@ -35,7 +35,7 @@ Pursuant to the **AhmedETAP Zero-Fabrication Rule (R3)**:
 
 | Standard | Full Title & Scope | Primary Implementation Source Files | Primary Test Files | Declared Constraints & Assumptions | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **IEEE 1584** | IEEE Guide for Performing Arc-Flash Hazard Calculations (2018) | `fault_analysis/arc_flash_calc.py`<br>`fault_analysis/arc_flash_engine.py`<br>`fault_analysis/ieee1584_database.py`<br>`agents/arc_flash_agent.py` | `tests/test_arcflash_1584_st_cases.py`<br>`tests/test_arc_flash_ieee1584_deep.py`<br>`tests/gold_cases/ieee1584_st_published.json` | Requires valid electrode configuration (VCB, VCBB, HCB, VOA, HOA) and bus gap; raises error on missing gap. | **VERIFIED** |
+| **IEEE 1584** | IEEE Guide for Performing Arc-Flash Hazard Calculations (2018) | `fault_analysis/arc_flash_calc.py`<br>`fault_analysis/arc_flash_engine.py`<br>`fault_analysis/ieee1584_database.py`<br>`agents/arc_flash_agent.py` | `tests/test_arcflash_1584_st_cases.py`<br>`tests/test_arc_flash_ieee1584_deep.py`<br>`tests/gold_cases/ieee1584_st_published.json` | Simplified empirical model evaluated against Annex D ST cases; requires valid electrode configuration and bus gap (missing gap rejected). Automated PPE labeling rejected fail-closed. | **VERIFIED (Simplified Model)** |
 | **IEC 60909** | Short-circuit currents in three-phase a.c. systems | `fault_analysis/fault.py`<br>`fault_analysis/short_circuit.py`<br>`agents/short_circuit_agent.py` | `tests/test_fault_analysis_iec60909.py`<br>`tests/test_ieee_benchmarks.py`<br>`tests/scenarios/test_short_circuit_scenario.py` | Evaluates $I_k''$, $i_p$, $I_b$, and $i_{dc}$ using voltage factor $c_{max}$ / $c_{min}$ per IEC tables. | **VERIFIED** |
 | **IEEE 3002.7** | Conducting Load-Flow Studies and Analysis of Industrial and Commercial Power Systems | `load_flow/load_flow.py`<br>`core/study_engine.py`<br>`agents/load_flow_agent.py` | `tests/test_load_flow_deep.py`<br>`tests/test_ieee_benchmarks.py`<br>`tests/test_study_engine_deep.py` | Full Newton-Raphson Jacobian solver. Requires generator reactive limits $Q_{min}, Q_{max}$. | **VERIFIED** |
 | **IEEE 3002** | Recommended Practice for Conducting System Studies | `engine/optimizers/placement_pso.py` | `tests/test_standards_compliance_audit.py` | Feeder optimization constraints bounded by thermal capacity and voltage bands ($0.95 \le V \le 1.05\text{ p.u.}$). | **VERIFIED** |
@@ -49,7 +49,7 @@ Pursuant to the **AhmedETAP Zero-Fabrication Rule (R3)**:
 | **IEC 60364** | Low-voltage electrical installations (Cable Sizing) | `agents/cable_sizing_agent.py` | `tests/scenarios/test_cable_sizing_scenario.py` | Current carrying capacity, thermal insulation ratings, and voltage drop limits per installation method. | **VERIFIED** |
 | **IEEE 141** | Electric Power Distribution for Industrial Plants (Red Book) | `agents/etap_expert/simulator.py` | `tests/test_standards_compliance_audit.py` | Radial and loop feeder distribution topologies and voltage regulation criteria. | **VERIFIED** |
 | **IEEE 242** | Protection and Coordination of Industrial Power Systems (Buff Book) | `coordination/chain_coordinator.py`<br>`agents/coordination_agent.py` | `tests/test_standards_compliance_audit.py` | Coordination time intervals (CTI) minimum 0.2s for electromechanical and 0.15s for numerical relays. | **VERIFIED** |
-| **NFPA 70E** | Standard for Electrical Safety in the Workplace | `fault_analysis/arc_flash_labels.py`<br>`fault_analysis/arc_flash_engine.py` | `tests/test_arcflash_1584_st_cases.py`<br>`tests/test_standards_compliance_audit.py` | PPE Category determination (Categories 1–4) and safe approach boundaries ($1.2\text{ cal/cm}^2$). | **VERIFIED** |
+| **NFPA 70E** | Standard for Electrical Safety in the Workplace | `fault_analysis/arc_flash_labels.py`<br>`fault_analysis/arc_flash_engine.py` | `tests/test_arcflash_1584_st_cases.py`<br>`tests/test_standards_compliance_audit.py` | PPE Category determination is REJECTED fail-closed per task hazard analysis rules; safe approach boundaries ($1.2\text{ cal/cm}^2$) evaluated. | **VERIFIED (Fail-Closed PPE)** |
 | **ANSI Z535** | Product Safety Signs and Labels | `fault_analysis/arc_flash_labels.py` | `tests/test_standards_compliance_audit.py` | Safety warning header colors (Orange WARNING, Red DANGER) and typographic layout rules for labels. | **VERIFIED** |
 
 ---
@@ -57,10 +57,10 @@ Pursuant to the **AhmedETAP Zero-Fabrication Rule (R3)**:
 ## 3. Declared Algorithm Constraints & Approximations
 
 ### AC Optimal Power Flow (`load_flow/optimal_power_flow.py`)
-- **Method**: Interior Point Method / Primal-Dual formulation (`solve_ac_opf_interior_point`).
+- **Method**: SLSQP Unconstrained OPF (No AC Network Constraints) (`solve_ac_opf_interior_point`).
 - **Declared Constraint**: 
-  > `Planning-grade approximation — requires voltage-magnitude update loop (planned).`
-- **Scope of Validity**: Suitable for preliminary generation dispatch, loss minimization, and transmission feasibility analysis. Detailed sub-transmission distribution networks requiring fine reactive tap coordination must be validated with full AC load flow.
+  > `Planning-grade unconstrained economic dispatch via SLSQP — AC power flow network constraints, line flow limits, and voltage bounds are omitted in this solver.`
+- **Scope of Validity**: Suitable for unconstrained generator cost dispatch and unconstrained loss approximations. Transmission-constrained dispatch must be verified with DC-OPF (PTDF) or full Newton-Raphson power flow.
 
 ### Motor Acceleration under Extreme Dynamics
 - **Method**: Static-impedance and dynamic differential equation solving (`motor_starting/engine.py`).

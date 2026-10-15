@@ -55,7 +55,7 @@ The AhmedETAP has undergone a comprehensive end-to-end technical audit, security
 - **Capability:** Economic dispatch and system optimization
 - **Features:**
   - DC-OPF using Linear Programming (fast, scalable)
-  - AC-OPF using Interior Point Method (accurate)
+  - AC-OPF using SLSQP Unconstrained OPF (No AC Network Constraints)
   - Generator cost minimization
   - Loss minimization mode
   - Voltage profile optimization

@@ -334,8 +334,10 @@ def generate_pdf_export(
                     ppe_cat = f"Category {_ppe_lvl}" if _ppe_lvl not in ("DANGER", "0") else (
                         "DANGER — De-energize before working" if _ppe_lvl == "DANGER" else "Category 0 (No arc-rated PPE required)"
                     )
+                except ValueError as err:
+                    ppe_cat = f"REJECTED: {err}"
                 except Exception:
-                    ppe_cat = "See NFPA 70E Table 130.7(C)(15)(c)"
+                    ppe_cat = "REJECTED: Simplified engine model requires certified software"
             else:
                 ie = "N/A — Engine data required"
                 afb = "N/A"

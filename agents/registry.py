@@ -605,7 +605,7 @@ class OptimalPowerFlowAgent(BaseAgent):
 
     Methods:
     - DC-OPF (Linear Programming)
-    - AC-OPF (Interior Point Method)
+    - AC-OPF (SLSQP Unconstrained OPF - No AC Network Constraints)
 
     Objectives:
     - Economic dispatch (minimize cost)

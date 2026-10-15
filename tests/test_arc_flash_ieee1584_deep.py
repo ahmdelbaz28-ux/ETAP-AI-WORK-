@@ -102,13 +102,14 @@ class TestArcCurrentCalculations:
         ],
     )
     def test_medium_voltage_arc_current(self, config):
-        # Without clamp (C4), MV regression at 13.8kV/15kA exceeds bolted fault current and fails closed
-        with pytest.raises(ValueError, match="exceeds bolted fault current|boundary conditions"):
-            ArcFlashEngine.calculate_arc_current(
-                voltage_kv=13.8,
-                bolted_fault_current_ka=15.0,
-                electrode_config=config,
-            )
+        # MV arcing current at 13.8kV/15kA is clamped to bolted fault current per physical boundary
+        iarc, iarc_red = ArcFlashEngine.calculate_arc_current(
+            voltage_kv=13.8,
+            bolted_fault_current_ka=15.0,
+            electrode_config=config,
+        )
+        assert 0 < iarc <= 15.0
+        assert 0 < iarc_red < iarc
 
     def test_arc_current_finite_and_positive(self):
         iarc, iarc_red = ArcFlashEngine.calculate_arc_current(0.48, 10.0, ElectrodeConfig.VCB)

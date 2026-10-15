@@ -762,7 +762,8 @@ class StudyExecutor:
         if registration.handler == "run_arc_flash":
             voltage_kv = parameters.get("voltage_kv")
             if voltage_kv is None and system and hasattr(system, "buses") and system.buses:
-                voltage_kv = getattr(system.buses[0], "base_kv", None)
+                first_bus = next(iter(system.buses.values())) if isinstance(system.buses, dict) else system.buses[0]
+                voltage_kv = getattr(first_bus, "base_kv", None)
 
             missing_af = []
             if voltage_kv is None:
@@ -797,15 +798,26 @@ class StudyExecutor:
                 arc_gap_mm=parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm")),
             )
         if registration.handler == "run_protection_coordination":
-            upstream = parameters.get("upstream_relay_id", 1)
-            downstream = parameters.get("downstream_relay_id", 2)
-            fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
-            relays_config = parameters.get("relays_config")
-            if not relays_config:
-                relays_config = {
-                    "upstream": {"name": f"Relay_{upstream}", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
-                    "downstream": {"name": f"Relay_{downstream}", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
-                }
+            missing_pc = []
+            if "upstream_relay_id" not in parameters:
+                missing_pc.append("upstream_relay_id")
+            if "downstream_relay_id" not in parameters:
+                missing_pc.append("downstream_relay_id")
+            if "fault_currents" not in parameters:
+                missing_pc.append("fault_currents")
+            if not parameters.get("relays_config"):
+                missing_pc.append("relays_config")
+
+            if missing_pc:
+                raise ValueError(
+                    f"Missing required protection coordination parameter(s): {', '.join(missing_pc)}. "
+                    "Silent default relay configuration injection is prohibited (fail-closed)."
+                )
+
+            upstream = parameters["upstream_relay_id"]
+            downstream = parameters["downstream_relay_id"]
+            fault_currents = parameters["fault_currents"]
+            relays_config = parameters["relays_config"]
             return method(upstream, downstream, fault_currents, relays_config=relays_config)
         # Generic fallback for any future native handler
         return method(**parameters)

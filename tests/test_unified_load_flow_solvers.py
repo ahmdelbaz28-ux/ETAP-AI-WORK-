@@ -76,8 +76,8 @@ class TestUnifiedLoadFlowSolvers:
         for bid, v_mag in results["voltage_magnitudes"].items():
             assert v_mag == 1.0, f"DC flow bus {bid} voltage magnitude must be 1.0 pu"
 
-        # Active power generation must balance load
-        total_gen_p = sum(b.generation_power.real for b in sys.buses.values())
+        # Active power generation must balance load (from results without in-place system mutation)
+        total_gen_p = sum(results["bus_generation"].values())
         total_load_p = sum(b.load_power.real for b in sys.buses.values())
         # In DC flow, losses are 0, so gen = load
         assert total_gen_p == pytest.approx(total_load_p, rel=1e-3)
@@ -106,3 +106,13 @@ class TestUnifiedLoadFlowSolvers:
         res_dc = engine.run_load_flow(solver_type="dc_flow")
         assert res_dc["converged"] is True
         assert "DC Linearized" in res_dc.get("method", "")
+
+    def test_fast_decoupled_phase_shift_rejected(self):
+        """Fast Decoupled Load Flow rejects non-zero phase-shifting transformers fail-closed."""
+        sys = build_ieee_9bus_system()
+        # Set non-zero phase shift on a transformer in the system
+        sys.transformers[0].phase_shift = 0.05
+        engine = PowerSystemEngine(sys)
+        with pytest.raises(ValueError, match="does not model phase-shifting transformers"):
+            engine.run_load_flow(solver_type="fast_decoupled")
+

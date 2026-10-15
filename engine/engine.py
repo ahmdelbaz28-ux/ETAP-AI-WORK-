@@ -15,6 +15,7 @@ from engine.interfaces import (
 )
 from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
 from fault_analysis.fault import FaultAnalyzer
+from fault_analysis.iec60909_engine import IEC60909Engine
 from load_flow.load_flow import LoadFlowSolver
 from relays.relay import OvercurrentRelay
 from visualization.visualization import Visualizer
@@ -417,6 +418,83 @@ class PowerSystemEngine:
             result = fault_analyzer.double_line_to_ground_fault(bus_index)
         else:
             raise ValueError(f"Unsupported fault type: {fault_type}")
+
+        # Wire branch contributions and generator contributions via IEC60909Engine
+        branches = []
+        if hasattr(self.system, "lines"):
+            for line in self.system.lines:
+                fb_id = getattr(line.from_bus, "bus_id", line.from_bus)
+                tb_id = getattr(line.to_bus, "bus_id", line.to_bus)
+                fb = self.load_flow_solver.bus_index.get(fb_id)
+                tb = self.load_flow_solver.bus_index.get(tb_id)
+                if fb is not None and tb is not None:
+                    branches.append({
+                        "from_bus": fb,
+                        "to_bus": tb,
+                        "z1": line.z1,
+                        "is_transformer": False,
+                    })
+        if hasattr(self.system, "transformers"):
+            for xf in self.system.transformers:
+                fb_id = getattr(xf.from_bus, "bus_id", xf.from_bus)
+                tb_id = getattr(xf.to_bus, "bus_id", xf.to_bus)
+                fb = self.load_flow_solver.bus_index.get(fb_id)
+                tb = self.load_flow_solver.bus_index.get(tb_id)
+                if fb is not None and tb is not None:
+                    branches.append({
+                        "from_bus": fb,
+                        "to_bus": tb,
+                        "z1": xf.z1,
+                        "is_transformer": True,
+                        "xt": float(abs(xf.z1.imag)),
+                    })
+
+        generators = []
+        if hasattr(self.system, "generators"):
+            for g in self.system.generators:
+                gbus_id = getattr(g.bus, "bus_id", g.bus)
+                gbus_idx = self.load_flow_solver.bus_index.get(gbus_id)
+                if gbus_idx is not None:
+                    z_dict = getattr(g, "impedance", {})
+                    xd_val = 0.15
+                    rg_val = 0.0
+                    if isinstance(z_dict, dict) and "1" in z_dict:
+                        xd_val = float(abs(z_dict["1"].imag))
+                        rg_val = float(z_dict["1"].real)
+                    elif hasattr(g, "xd_pp"):
+                        xd_val = float(g.xd_pp)
+                    gid = getattr(g, "generator_id", f"gen_{gbus_idx}")
+                    generators.append(type("GenProxy", (), {
+                        "bus_index": gbus_idx,
+                        "generator_id": str(gid),
+                        "xd_pp": xd_val,
+                        "rg": rg_val,
+                        "urg_kv": base_kv,
+                        "cos_phi": 0.8,
+                    })())
+
+        if branches or generators:
+            iec_engine = IEC60909Engine(
+                ybus_pos=ybus_pos,
+                ybus_neg=ybus_neg,
+                ybus_zero=ybus_zero,
+                base_mva=base_mva,
+                base_kv=base_kv,
+                slack_bus_index=slack_index,
+                branches=branches,
+                generators=generators,
+            )
+            if_pu = result.get("fault_current", complex(0, 0))
+            result["branch_contributions"] = iec_engine.calculate_branch_contributions(
+                bus_index, if_pu, branches=branches, apply_kt=True
+            )
+            result["generator_contributions"] = iec_engine.calculate_generator_contributions(
+                bus_index, apply_kg=True
+            )
+        else:
+            result["branch_contributions"] = []
+            result["generator_contributions"] = []
+
         return result
 
     def run_arc_flash(
@@ -505,6 +583,8 @@ class PowerSystemEngine:
             "bolted_fault_current_ka": result.bolted_fault_current_ka,
             "arc_duration_sec": result.arc_duration_sec,
             "working_distance_mm": result.working_distance_mm,
+            "model_type": "simplified_empirical",
+            "k3_status": "omitted_in_simplified_model",
         }
 
     def run_protection_coordination(

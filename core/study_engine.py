@@ -262,6 +262,13 @@ class StudyEngine:
             }, []
 
         # Analytical IEC 60909 standard computation via canonical IEC60909Engine delegator
+        if not parameters.get("allow_single_bus_synthesis", False):
+            raise ValueError(
+                "Short-circuit calculation requires a system model with admittance matrix (ybus_pos). "
+                "Synthesizing an uncertified single-bus network from target fault current (ik_ss_ka) is circular "
+                "and prohibited by default (fail-closed). Set 'allow_single_bus_synthesis=True' to allow explicit single-bus synthesis."
+            )
+
         from fault_analysis.iec60909_engine import FaultType, IEC60909Engine
 
         raw_fault_type = str(parameters.get("fault_type", "three_phase")).lower()
@@ -348,10 +355,29 @@ class StudyEngine:
             classify_nfpa70e_ppe,
         )
 
-        voltage_kv = float(parameters.get("voltage_kv", 0.48))
-        fault_current_ka = float(parameters.get("fault_current_ka", 20.0))
-        clearing_time_s = float(parameters.get("clearing_time_s", 0.1))
-        working_distance_mm = float(parameters.get("working_distance_mm", 457.2))  # 18 inches
+        missing_af = []
+        if "voltage_kv" not in parameters and "base_kv" not in parameters:
+            missing_af.append("voltage_kv")
+        if "fault_current_ka" not in parameters and "bolted_fault_current_ka" not in parameters:
+            missing_af.append("fault_current_ka")
+        if "clearing_time_s" not in parameters and "arc_duration_sec" not in parameters:
+            missing_af.append("clearing_time_s")
+        if "working_distance_mm" not in parameters:
+            missing_af.append("working_distance_mm")
+        if "arc_gap_mm" not in parameters and "conductor_gap_mm" not in parameters:
+            missing_af.append("arc_gap_mm")
+
+        if missing_af:
+            raise ValueError(
+                f"Missing required arc flash parameter(s): {', '.join(missing_af)}. "
+                "Silent default parameter injection (0.48kV/20kA/0.1s/457.2mm/gap) is prohibited per life safety rules (fail-closed)."
+            )
+
+        voltage_kv = float(parameters.get("voltage_kv", parameters.get("base_kv")))
+        fault_current_ka = float(parameters.get("fault_current_ka", parameters.get("bolted_fault_current_ka")))
+        clearing_time_s = float(parameters.get("clearing_time_s", parameters.get("arc_duration_sec")))
+        working_distance_mm = float(parameters["working_distance_mm"])
+        arc_gap_mm = float(parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm")))
 
         raw_electrode = parameters.get("electrode_config", ElectrodeConfig.VCB)
         if isinstance(raw_electrode, str):
@@ -379,6 +405,7 @@ class StudyEngine:
             working_distance_mm=working_distance_mm,
             electrode_config=electrode_config,
             enclosure_type=enclosure_type,
+            arc_gap_mm=arc_gap_mm,
         )
 
         incident_energy_cal_cm2 = result.incident_energy_cal_cm2

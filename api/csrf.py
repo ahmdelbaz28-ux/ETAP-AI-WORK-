@@ -228,10 +228,23 @@ class CSRFMiddleware(_PureASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        # OAuth2 token exchange endpoint validates user credentials directly in payload
+        # OAuth2 token exchange endpoint validates user credentials directly in payload.
+        # Restrict bypass strictly to credential-grant requests with NO session cookies.
+        # If any session cookie is present, CSRF protection is enforced to prevent session riding.
         if request.url.path.rstrip("/") in ("/api/v1/auth/token", "/api/auth/token"):
-            await self.app(scope, receive, send)
-            return
+            has_session_cookie = any(
+                cookie_name in request.cookies
+                for cookie_name in (
+                    "etap_session_id",
+                    "session",
+                    "session_id",
+                    "access_token",
+                    "token",
+                )
+            )
+            if not has_session_cookie:
+                await self.app(scope, receive, send)
+                return
 
         # Skip CSRF check for API-key-authenticated clients (server-to-server).
         # Re-read from env per-request so TestClient usage and runtime env

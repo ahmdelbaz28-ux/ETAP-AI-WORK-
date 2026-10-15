@@ -170,7 +170,7 @@
 
 #### Optimal Power Flow ✓
 - [x] DC-OPF (Linear Programming)
-- [x] AC-OPF (Interior Point Method)
+- [x] AC-OPF (SLSQP Unconstrained OPF - No AC Network Constraints)
 - [x] Economic Dispatch
 - [x] Generator Cost Minimization
 - [x] Loss Minimization

@@ -6,6 +6,7 @@ import numpy as np
 class System:
     __slots__ = (
         "base_mva",
+        "base_kv",
         "buses",
         "lines",
         "transformers",
@@ -15,14 +16,16 @@ class System:
         "_include_gen_impedance_pos",
     )
 
-    def __init__(self, base_mva=100.0):
+    def __init__(self, base_mva=100.0, base_kv=None):
         """
         Initialize a Power System object.
 
         Parameters:
         base_mva (float): Base MVA for per-unit system (default 100.0).
+        base_kv (float): System-wide base voltage in kV (optional).
         """
         self.base_mva = base_mva
+        self.base_kv = base_kv
         self.buses = {}  # bus_id -> Bus
         self.lines = []  # list of Line
         self.transformers = []  # list of Transformer

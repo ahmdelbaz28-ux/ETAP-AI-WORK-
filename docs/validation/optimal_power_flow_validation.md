@@ -33,7 +33,7 @@
 
 ## 2. Internal Consistency Benchmarks (Non-Certifying)
 
-The internal consistency test suite verifies the internal mathematical harmony and programmatic stability of `OptimalPowerFlowEngine` across DC-OPF merit order and AC-OPF interior point routines.
+The internal consistency test suite verifies the internal mathematical harmony and programmatic stability of `OptimalPowerFlowEngine` across DC-OPF merit order and AC-OPF unconstrained SLSQP routines.
 
 ### Table 1: Case 1 — IEEE 30-Bus DC-OPF Merit-Order Linear Cost Consistency
 *Parameters: Base MVA = 100.0, 30 Buses, 6 Generators (Buses 1, 2, 5, 8, 11, 13), Total Load = 189.20 MW.*

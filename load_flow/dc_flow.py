@@ -68,32 +68,43 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
         B_bus = np.zeros((self.n, self.n), dtype=float)
 
         # Collect branches: lines and transformers
-        branches: List[Tuple[Any, Any, str, float]] = []
+        branches: List[Tuple[Any, Any, str, float, float, float]] = []
         for line in self.system.lines:
             branches.append((
                 line.from_bus.bus_id,
                 line.to_bus.bus_id,
                 str(line.line_id),
                 float(line.z1.imag),
+                1.0,
+                0.0,
             ))
         for xf in self.system.transformers:
             z = xf.get_impedance("1")
+            tap = float(getattr(xf, "tap_ratio", 1.0) or 1.0)
+            shift = float(getattr(xf, "phase_shift", 0.0) or 0.0)
             branches.append((
                 xf.from_bus.bus_id,
                 xf.to_bus.bus_id,
                 f"xfmr_{xf.transformer_id}",
                 float(z.imag),
+                tap,
+                shift,
             ))
 
-        for f_id, t_id, branch_id, x in branches:
+        for f_id, t_id, branch_id, x, tap, shift in branches:
             u = self.bus_index[f_id]
             v = self.bus_index[t_id]
-            if abs(x) > 1e-12:
-                b_val = 1.0 / x
+            x_eff = x * tap
+            if abs(x_eff) > 1e-12:
+                b_val = 1.0 / x_eff
                 B_bus[u, v] -= b_val
                 B_bus[v, u] -= b_val
                 B_bus[u, u] += b_val
                 B_bus[v, v] += b_val
+                if abs(shift) > 1e-12:
+                    p_shift = shift * b_val
+                    self.P_spec[u] -= p_shift
+                    self.P_spec[v] += p_shift
 
         # Extract reduced system without slack bus
         ns_idx = self.non_slack_indices
@@ -102,6 +113,7 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
             self.converged = True
             self.iterations = 1
             self.bus_voltages[self.buses[0].bus_id] = complex(1.0, 0.0)
+            self.bus_generation = {self.buses[0].bus_id: float(getattr(self.buses[0], "load_power", 0j).real)}
             return True
 
         B_red = B_bus[np.ix_(ns_idx, ns_idx)]
@@ -124,12 +136,15 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
             p_slack_calc = float(np.dot(B_bus[self.slack_index, :], self.theta))
             self.P_spec[self.slack_index] = p_slack_calc
 
-            # Update slack bus generation in system model: P_gen = P_inj + P_load
+            # Record generation in results without mutating input system model in-place
             slack_bus = self.buses[self.slack_index]
             p_slack_gen = p_slack_calc + getattr(slack_bus, "load_power", 0j).real
-            slack_bus.generation_power = complex(p_slack_gen, 0.0)
-            if slack_bus.bus_id in self.system.buses:
-                self.system.buses[slack_bus.bus_id].generation_power = complex(p_slack_gen, 0.0)
+            self.bus_generation = {}
+            for b in self.buses:
+                if b.bus_id == slack_bus.bus_id:
+                    self.bus_generation[b.bus_id] = float(p_slack_gen)
+                else:
+                    self.bus_generation[b.bus_id] = float(getattr(b, "generation_power", 0j).real)
 
             self.converged = True
             self.iterations = 1
@@ -145,12 +160,13 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
         # Compute branch flows
         base_mva = getattr(self.system, "base_mva", 100.0)
         self.branch_flows = {}
-        for f_id, t_id, branch_id, x in branches:
+        for f_id, t_id, branch_id, x, tap, shift in branches:
             u = self.bus_index[f_id]
             v = self.bus_index[t_id]
-            if abs(x) > 1e-12:
-                # P_ij = (theta_u - theta_v) / x in pu
-                p_flow_pu = (self.theta[u] - self.theta[v]) / x
+            x_eff = x * tap
+            if abs(x_eff) > 1e-12:
+                # P_ij = (theta_u - theta_v - shift) / x_eff in pu
+                p_flow_pu = (self.theta[u] - self.theta[v] - shift) / x_eff
                 p_flow_mw = p_flow_pu * base_mva
                 self.branch_flows[branch_id] = {
                     "from_bus": f_id,
@@ -177,5 +193,6 @@ class DCLoadFlowSolver(AbstractLoadFlowSolver):
             "voltage_angles_deg": {bid: float(np.degrees(self.theta[self.bus_index[bid]])) for bid in self.bus_ids},
             "branch_flows": self.branch_flows,
             "losses": self.losses,
+            "bus_generation": getattr(self, "bus_generation", {}),
             "iteration_log": [{"iteration": 1, "max_mismatch": 0.0}],
         }

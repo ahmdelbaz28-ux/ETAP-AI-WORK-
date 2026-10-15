@@ -72,6 +72,7 @@ class ShortCircuitResult:
     lambda_factor: float = 1.0
     kappa_factor: float = 1.0
     branch_contributions: List[Dict[str, Any]] = field(default_factory=list)
+    generator_contributions: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def calculate_kg(
@@ -208,6 +209,20 @@ def calculate_ku(
 class IEC60909Engine:
     """
     IEC 60909 Short Circuit Calculation Engine.
+
+    Implements IEC 60909-0:2016 calculations:
+    - Initial symmetrical short-circuit current Ik"
+    - Peak short-circuit current ip
+    - Symmetrical short-circuit breaking current Ib
+    - Steady-state short-circuit current Ik
+    - Thermal equivalent short-circuit current Ith
+
+    Impedance Correction Factors (KT, KG, KU/KS per IEC 60909-0 Clause 3.3.3, 3.6.1, 3.7):
+    - Normative helper functions `calculate_kt`, `calculate_kg`, and `calculate_ku` provide exact standard factors.
+    - Since pre-assembled admittance matrices (Ybus) are supplied at initialization, network-wide correction
+      factors must be applied during network admittance assembly.
+    - Detailed branch flows support `calculate_kt` via `calculate_branch_contributions(..., apply_kt=True)`.
+    - Detailed generator flows support `calculate_kg` via `calculate_generator_contributions(..., apply_kg=True)`.
     """
 
     def __init__(
@@ -397,6 +412,7 @@ class IEC60909Engine:
         if_pu: complex,
         branches: list[dict[str, Any]] | None = None,
         c_factor: float = 1.10,
+        apply_kt: bool = True,
     ) -> list[dict[str, Any]]:
         """
         Calculate individual branch current contributions during a fault at fault_bus_index.
@@ -411,6 +427,8 @@ class IEC60909Engine:
             Branch configurations with from_bus, to_bus, r, x (or z1).
         c_factor : float
             Pre-fault voltage factor.
+        apply_kt : bool
+            Whether to apply transformer correction factor KT per IEC 60909-0 Clause 3.3.3.
 
         Returns
         -------
@@ -432,17 +450,83 @@ class IEC60909Engine:
             tb = br.get("to_bus", br.get("to_bus_id", 0))
             if isinstance(fb, int) and isinstance(tb, int) and fb < self.n_buses and tb < self.n_buses:
                 z = br.get("z1", complex(br.get("r", br.get("r1", 0.0)), br.get("x", br.get("x1", 0.01))))
+                # Connect KT for transformer branches per IEC 60909-0:2016 Clause 3.3.3
+                is_trafo = bool(
+                    br.get("is_transformer", False)
+                    or br.get("branch_type") == "transformer"
+                    or br.get("type") == "transformer"
+                )
+                kt = 1.0
+                kt_applied = False
+                if is_trafo and br.get("apply_kt", apply_kt):
+                    xt_val = float(br.get("xt", abs(z.imag)))
+                    kt = calculate_kt(
+                        c_max=c_factor,
+                        xt=xt_val,
+                        ut_lv_kv=br.get("ut_lv_kv"),
+                        un_kv=br.get("un_kv"),
+                    )
+                    z = z * kt
+                    kt_applied = True
                 if abs(z) > 1e-12:
                     i_branch = (v_fault[fb] - v_fault[tb]) / z
                     i_ka = abs(i_branch) * self.base_i / 1000.0
-                    contributions.append({
+                    entry: dict[str, Any] = {
                         "from_bus": fb,
                         "to_bus": tb,
                         "current_pu": complex(i_branch),
                         "current_magnitude_pu": float(abs(i_branch)),
                         "current_ka": float(i_ka),
                         "angle_deg": float(np.angle(i_branch, deg=True)),
-                    })
+                    }
+                    if is_trafo:
+                        entry["is_transformer"] = True
+                        entry["kt_factor"] = float(kt) if kt_applied else 1.0
+                    contributions.append(entry)
+        return contributions
+
+    def calculate_generator_contributions(
+        self,
+        fault_bus_index: int,
+        c_factor: float = 1.10,
+        apply_kg: bool = True,
+    ) -> list[dict[str, Any]]:
+        """
+        Calculate individual generator current contributions per IEC 60909-0 Clause 3.6 / 3.7.
+        Applies generator impedance correction factor KG (via calculate_kg).
+        """
+        contributions: list[dict[str, Any]] = []
+        if not self.generators:
+            return contributions
+
+        v_pre = complex(c_factor, 0.0)
+        z_col = self.Zbus_pos[:, fault_bus_index]
+        v_fault = np.full(self.n_buses, v_pre, dtype=complex) - z_col * 1.0
+
+        for gen in self.generators:
+            bus_idx = getattr(gen, "bus_index", getattr(gen, "bus_id", None))
+            if bus_idx is None or not (0 <= bus_idx < self.n_buses):
+                continue
+            xd_pp = float(getattr(gen, "xd_pp", getattr(gen, "xd_subtransient", 0.15)))
+            urg_kv = float(getattr(gen, "urg_kv", getattr(gen, "rated_kv", self.get_bus_base_kv(bus_idx))))
+            un_kv = self.get_bus_base_kv(bus_idx)
+            cos_phi = float(getattr(gen, "cos_phi", 0.8))
+            z_gen = complex(float(getattr(gen, "rg", 0.0)), xd_pp)
+            kg_val = 1.0
+            if apply_kg:
+                kg_val = calculate_kg(un_kv=un_kv, urg_kv=urg_kv, c_max=c_factor, xd_pp=xd_pp, cos_phi_rg=cos_phi)
+                z_gen = z_gen * kg_val
+            if abs(z_gen) > 1e-12:
+                i_gen = v_fault[bus_idx] / z_gen
+                i_ka = abs(i_gen) * self.get_bus_base_i(bus_idx) / 1000.0
+                contributions.append({
+                    "bus_index": bus_idx,
+                    "generator_id": getattr(gen, "generator_id", getattr(gen, "id", f"gen_{bus_idx}")),
+                    "current_pu": complex(i_gen),
+                    "current_magnitude_pu": float(abs(i_gen)),
+                    "current_ka": float(i_ka),
+                    "kg_factor": float(kg_val),
+                })
         return contributions
 
     def _get_voltage_factor(self, bus_kv: float, maximum: bool = True) -> float:
@@ -695,10 +779,15 @@ class IEC60909Engine:
             ik_ka, ip, t_k, m_factor=kwargs.get("m_factor"), is_near=is_near, ik_steady=Ik_steady
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # Branch contributions
+        # Branch and generator contributions
+        apply_kt = kwargs.get("apply_kt", True)
+        apply_kg = kwargs.get("apply_kg", True)
         branch_list = kwargs.get("branches", self.branches)
         branch_contribs = self.calculate_branch_contributions(
-            bus_index, ik_pu, branches=branch_list, c_factor=c_factor
+            bus_index, ik_pu, branches=branch_list, c_factor=c_factor, apply_kt=apply_kt
+        )
+        generator_contribs = self.calculate_generator_contributions(
+            bus_index, c_factor=c_factor, apply_kg=apply_kg
         )
 
         # Phase currents (balanced three-phase fault)
@@ -731,6 +820,7 @@ class IEC60909Engine:
             lambda_factor=lambda_factor,
             kappa_factor=kappa,
             branch_contributions=branch_contribs,
+            generator_contributions=generator_contribs,
         )
 
     def calculate_line_to_ground_fault(
@@ -812,10 +902,15 @@ class IEC60909Engine:
             ik_ka, ip, t_k, m_factor=kwargs.get("m_factor"), is_near=is_near, ik_steady=Ik_steady
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # Branch contributions
+        # Branch and generator contributions
+        apply_kt = kwargs.get("apply_kt", True)
+        apply_kg = kwargs.get("apply_kg", True)
         branch_list = kwargs.get("branches", self.branches)
         branch_contribs = self.calculate_branch_contributions(
-            bus_index, ia, branches=branch_list, c_factor=c_factor
+            bus_index, ia, branches=branch_list, c_factor=c_factor, apply_kt=apply_kt
+        )
+        generator_contribs = self.calculate_generator_contributions(
+            bus_index, c_factor=c_factor, apply_kg=apply_kg
         )
 
         # Phase currents
@@ -847,6 +942,7 @@ class IEC60909Engine:
             lambda_factor=lambda_factor,
             kappa_factor=kappa,
             branch_contributions=branch_contribs,
+            generator_contributions=generator_contribs,
         )
 
     def calculate_line_to_line_fault(
@@ -939,10 +1035,15 @@ class IEC60909Engine:
             ik_ka, ip, t_k, m_factor=kwargs.get("m_factor"), is_near=is_near, ik_steady=Ik_steady
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # Branch contributions
+        # Branch and generator contributions
+        apply_kt = kwargs.get("apply_kt", True)
+        apply_kg = kwargs.get("apply_kg", True)
         branch_list = kwargs.get("branches", self.branches)
         branch_contribs = self.calculate_branch_contributions(
-            bus_index, ib_phase, branches=branch_list, c_factor=c_factor
+            bus_index, ib_phase, branches=branch_list, c_factor=c_factor, apply_kt=apply_kt
+        )
+        generator_contribs = self.calculate_generator_contributions(
+            bus_index, c_factor=c_factor, apply_kg=apply_kg
         )
 
         return ShortCircuitResult(
@@ -966,6 +1067,7 @@ class IEC60909Engine:
             lambda_factor=lambda_factor,
             kappa_factor=kappa,
             branch_contributions=branch_contribs,
+            generator_contributions=generator_contribs,
         )
 
     def calculate_double_line_to_ground_fault(
@@ -1059,10 +1161,15 @@ class IEC60909Engine:
             ik_ka, ip, t_k, m_factor=kwargs.get("m_factor"), is_near=is_near, ik_steady=Ik_steady
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
 
-        # Branch contributions
+        # Branch and generator contributions
+        apply_kt = kwargs.get("apply_kt", True)
+        apply_kg = kwargs.get("apply_kg", True)
         branch_list = kwargs.get("branches", self.branches)
         branch_contribs = self.calculate_branch_contributions(
-            bus_index, max(ib_phase, ic_phase, key=abs), branches=branch_list, c_factor=c_factor
+            bus_index, max(ib_phase, ic_phase, key=abs), branches=branch_list, c_factor=c_factor, apply_kt=apply_kt
+        )
+        generator_contribs = self.calculate_generator_contributions(
+            bus_index, c_factor=c_factor, apply_kg=apply_kg
         )
 
         return ShortCircuitResult(
@@ -1086,6 +1193,7 @@ class IEC60909Engine:
             lambda_factor=lambda_factor,
             kappa_factor=kappa,
             branch_contributions=branch_contribs,
+            generator_contributions=generator_contribs,
         )
 
     def calculate(

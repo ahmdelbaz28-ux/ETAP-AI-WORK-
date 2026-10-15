@@ -40,9 +40,12 @@ class LoadFlowSolver:
         for bid in self.bus_ids:
             bus = self.system.buses[bid]
             if bus.bus_type == "pv":
-                qmin = getattr(bus, "q_min", -999.0)
-                qmax = getattr(bus, "q_max", 999.0)
-                self.q_limits[self.bus_index[bid]] = (qmin, qmax)
+                qmin = getattr(bus, "q_min", None)
+                qmax = getattr(bus, "q_max", None)
+                if qmin is None or qmax is None:
+                    logger.warning("PV bus %s missing explicit reactive power limits (q_min/q_max is None); Q-limit enforcement disabled for this bus.", bid)
+                else:
+                    self.q_limits[self.bus_index[bid]] = (float(qmin), float(qmax))
 
         # Original PV indices (indices in bus_ids order)
         self.original_pv_indices = [

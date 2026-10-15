@@ -15,8 +15,8 @@ import pytest
 from fault_analysis.fault import FaultAnalyzer
 
 
-def _simple_3bus_ybus():
-    """3-bus Ybus: each pair connected by z=0.1+0.3j pu."""
+def _simple_3bus_ybus(grounded: bool = True):
+    """3-bus Ybus: each pair connected by z=0.1+0.3j pu, grounded at bus 0 by default."""
     z = complex(0.1, 0.3)
     y = 1.0 / z
     Y = np.zeros((3, 3), dtype=complex)
@@ -25,6 +25,8 @@ def _simple_3bus_ybus():
         Y[j, j] += y
         Y[i, j] -= y
         Y[j, i] -= y
+    if grounded:
+        Y[0, 0] += 1.0 / complex(0.01, 0.05)
     return Y
 
 
@@ -177,21 +179,18 @@ class TestDensePath:
         assert fa.three_phase_fault(1)["fault_current_magnitude"] > 0
 
     def test_invert_ybus_identity_check(self):
-        Y = _simple_3bus_ybus()
-        # Add generator grounding admittance at bus 0 so Y is invertible (not floating)
-        Y[0, 0] += 1.0 / complex(0.01, 0.05)
+        Y = _simple_3bus_ybus(grounded=True)
         fa = FaultAnalyzer(Y, base_mva=100.0, base_kv=11.0)
         Z = fa._invert_ybus(Y)
         product = Y @ Z
         diff = np.max(np.abs(product - np.eye(3)))
         assert diff < 1e-10
 
-    def test_invert_singular_returns_matrix(self):
-        Y_singular = np.zeros((3, 3), dtype=complex)
-        fa = FaultAnalyzer(_simple_3bus_ybus(), base_mva=100.0, base_kv=11.0)
-        Z = fa._invert_ybus(Y_singular)
-        assert Z is not None
-        assert Z.shape == (3, 3)
+    def test_invert_singular_raises_value_error(self):
+        """Singular/ungrounded Ybus without slack bus raises ValueError fail-closed (no pinv)."""
+        Y_singular = _simple_3bus_ybus(grounded=False)
+        with pytest.raises(ValueError, match="singular"):
+            FaultAnalyzer(Y_singular, base_mva=100.0, base_kv=11.0)
 
     def test_zbus_element_direct(self):
         Y = _simple_3bus_ybus()

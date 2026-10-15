@@ -35,7 +35,8 @@ tqdm~=4.66.0
 psutil~=5.9.0
 tenacity>=8.2,<9.2
 ezdxf>=1.1.0,<1.5.0
-pint>=0.21.1
+# Note: Pint >=0.22 dropped Python 3.8 support (requires Python >=3.9); bounded to <0.22 for Python 3.8 runtime compatibility
+pint>=0.21.1,<0.22
 Pillow~=12.3.0
 
 # Security, Cryptography & Auth

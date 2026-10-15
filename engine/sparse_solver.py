@@ -115,8 +115,8 @@ class BusData:
     q_generation: float = 0.0
     p_load: float = 0.0
     q_load: float = 0.0
-    q_min: float = -999.0
-    q_max: float = 999.0
+    q_min: float | None = None
+    q_max: float | None = None
     v_scheduled: float = 1.0
 
 
