@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-14T13:17:28.551157+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-15T09:10:40.625310+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 400 |
 | Python | Classes | 974 |
-| Python | Functions | 876 |
+| Python | Functions | 877 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 297 |
-| Total | Tests | 4073 |
+| Total | Tests | 4078 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 457 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -634,12 +634,12 @@ Anomaly detection, classification, and diagnosis in power
 - **Class** `AnomalyAgent` (line 36)
   - Methods: `detect_spc_anomalies()`, `detect_cusum()`, `detect_ewma()`, `detect_threshold_violations()`, `cross_correlation_analysis()`, `detect_ml_anomaly()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/arc_flash_agent.py` _17.0 KB_
+#### 📄 `agents/arc_flash_agent.py` _16.9 KB_
 > AhmedETAP - Arc Flash Analysis Agent
 =======================================================
 Arc flash incident energy and boundary calculations per I
 
-- **Class** `ArcFlashAgent` (line 95)
+- **Class** `ArcFlashAgent` (line 96)
   - Methods: `calculate_arc_current()`, `calculate_incident_energy()`, `execute()`, `validate_result()`
 
 #### 📄 `agents/base.py` _7.3 KB_
@@ -690,7 +690,7 @@ Integrates the guard-skills quality gates into
 - **Class** `CodeGuardAgent` (line 24)
   - Methods: `execute()`, `review_code()`, `detect_ai_failure_modes()`
 
-#### 📄 `agents/coordination_agent.py` _21.0 KB_
+#### 📄 `agents/coordination_agent.py` _21.2 KB_
 > AhmedETAP - Protection Coordination Agent
 =============================================================
 Protection system coordination analysis per IE
@@ -813,7 +813,7 @@ ChiefEngineeringOr
 - **Class** `PlanningIntent` (line 103)
 - **Class** `PlanningPlan` (line 121)
 
-#### 📄 `agents/motor_starting_agent.py` _35.3 KB_
+#### 📄 `agents/motor_starting_agent.py` _36.2 KB_
 > AhmedETAP - Motor Starting Analysis Agent
 =============================================================
 Motor starting current, voltage dip, torque, a
@@ -874,7 +874,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _65.1 KB_
+#### 📄 `agents/registry.py` _65.3 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -888,20 +888,20 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `OptimalPowerFlowAgent` (line 601)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 739)
+- **Class** `ProtectionCoordinationAgent` (line 741)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 842)
+- **Class** `ETAPExecutionAgent` (line 844)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 956)
+- **Class** `ValidationAgent` (line 958)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1289)
+- **Class** `ReportGenerationAgent` (line 1291)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 129)
 - **def** `resolve_agent_key()` (line 134)
 - **def** `validate_agent_keys()` (line 139)
-- **def** `get_study_type_mapping()` (line 1592)
-- **def** `get_agent_for_study()` (line 1597)
-- **def** `create_agent_registry()` (line 1608)
+- **def** `get_study_type_mapping()` (line 1594)
+- **def** `get_agent_for_study()` (line 1599)
+- **def** `create_agent_registry()` (line 1610)
 
 #### 📄 `agents/renewable_agent.py` _39.6 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -1192,7 +1192,7 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _44.1 KB_
+#### 📄 `api/approvals.py` _43.5 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
@@ -1202,19 +1202,19 @@ pass before execution. Provides:
 - **Class** `PendingAction` (line 144)
 - **Class** `IdempotencyKey` (line 182)
 - **Class** `CreateApprovalRequest` (line 206)
-- **Class** `ResolveRequest` (line 571)
-- **Class** `AutoApproveRequest` (line 586)
-- **Class** `ApprovalResponse` (line 593)
+- **Class** `ResolveRequest` (line 558)
+- **Class** `AutoApproveRequest` (line 573)
+- **Class** `ApprovalResponse` (line 580)
 - **def** `compute_args_hash()` (line 123)
 - **def** `classify_tool()` (line 129)
 - **def** `validate_server_control_action()` (line 218)
-- **def** `set_session_auto_approve()` (line 624)
-- **def** `get_session_auto_approve()` (line 629)
-- **async def** `expire_stale_actions()` (line 718)
-- **async def** `transition_status()` (line 745)
-- **async def** `create_approval()` (line 803)
-- **async def** `list_pending()` (line 884)
-- **async def** `resolve_action()` (line 913)
+- **def** `set_session_auto_approve()` (line 611)
+- **def** `get_session_auto_approve()` (line 616)
+- **async def** `expire_stale_actions()` (line 705)
+- **async def** `transition_status()` (line 732)
+- **async def** `create_approval()` (line 790)
+- **async def** `list_pending()` (line 871)
+- **async def** `resolve_action()` (line 900)
 
   **API Routes:**
   - `GET /pending`
@@ -1264,7 +1264,7 @@ log entries generated
   - `GET /`
   - `GET /stats`
 
-#### 📄 `api/auth.py` _76.8 KB_
+#### 📄 `api/auth.py` _77.1 KB_
 > api/auth.py — Authentication & user-management router.
 
 Exposes the following endpoints under the ``/api/v1/auth`` prefix:
@@ -1275,33 +1275,33 @@ Exposes the following endpoints under the ``/api/v1/auth`` prefix:
 - **Class** `RegisterRequest` (line 443)
   - Methods: `validate_password_strength()`
 - **Class** `LoginRequest` (line 469)
-- **Class** `LoginResponse` (line 503)
-- **Class** `TokenResponse` (line 522)
-- **Class** `RefreshRequest` (line 533)
-- **Class** `ChangePasswordRequest` (line 542)
+- **Class** `LoginResponse` (line 512)
+- **Class** `TokenResponse` (line 531)
+- **Class** `RefreshRequest` (line 542)
+- **Class** `ChangePasswordRequest` (line 551)
   - Methods: `validate_new_password()`
-- **Class** `ForgotPasswordRequest` (line 557)
-- **Class** `ResetPasswordRequest` (line 565)
+- **Class** `ForgotPasswordRequest` (line 566)
+- **Class** `ResetPasswordRequest` (line 574)
   - Methods: `validate_new_password()`
-- **Class** `UpdateProfileRequest` (line 580)
-- **Class** `UserResponse` (line 607)
-- **Class** `UserListResponse` (line 623)
-- **Class** `MfaService` (line 1064)
+- **Class** `UpdateProfileRequest` (line 589)
+- **Class** `UserResponse` (line 616)
+- **Class** `UserListResponse` (line 632)
+- **Class** `MfaService` (line 1073)
   - Methods: `issue_challenge()`, `verify_challenge()`, `verify_and_issue_tokens()`
-- **Class** `AuthService` (line 1085)
+- **Class** `AuthService` (line 1094)
   - Methods: `hash_password()`, `verify_password()`, `create_access_token()`, `create_refresh_token()`, `verify_credentials()`
-- **Class** `UserService` (line 1119)
+- **Class** `UserService` (line 1128)
   - Methods: `create()`
 - **def** `validate_email_app_url()` (line 275)
-- **async def** `register()` (line 1245)
-- **async def** `login()` (line 1382)
-- **async def** `refresh()` (line 1515)
-- **async def** `logout()` (line 1599)
-- **async def** `get_me()` (line 1681)
-- **async def** `update_me()` (line 1718)
-- **async def** `change_password()` (line 1803)
-- **async def** `forgot_password()` (line 1916)
-- **async def** `reset_password()` (line 2024)
+- **async def** `register()` (line 1254)
+- **async def** `login()` (line 1391)
+- **async def** `refresh()` (line 1524)
+- **async def** `logout()` (line 1608)
+- **async def** `get_me()` (line 1690)
+- **async def** `update_me()` (line 1727)
+- **async def** `change_password()` (line 1812)
+- **async def** `forgot_password()` (line 1925)
+- **async def** `reset_password()` (line 2033)
 
 #### 📄 `api/autodesk_connectors.py` _12.9 KB_
 > Autodesk Connector Health & Test API Router
@@ -1447,7 +1447,7 @@ corresp
 - **Class** `CoverageAnalyzer` (line 364)
   - Methods: `run()`
 
-#### 📄 `api/csrf.py` _11.2 KB_
+#### 📄 `api/csrf.py` _11.4 KB_
 > CSRF Protection for AhmedETAP Engineering Service API.
 
 Provides token-based CSRF protection for state-changing endpoints.
@@ -1460,7 +1460,7 @@ Architecture
 - **Class** `CSRFMiddleware` (line 196)
 - **def** `generate_csrf_token()` (line 126)
 - **def** `validate_csrf_token()` (line 144)
-- **async def** `get_csrf_token()` (line 282)
+- **async def** `get_csrf_token()` (line 287)
 
   **API Routes:**
   - `GET /api/v1/csrf/token`
@@ -2710,7 +2710,7 @@ Patterns drawn from Tenacity/tenacity:
 - **def** `configure_log_rotation()` (line 254)
 - **def** `configure_timed_rotation()` (line 271)
 
-#### 📄 `core/study_engine.py` _16.3 KB_
+#### 📄 `core/study_engine.py` _17.4 KB_
 > Unified Study Engine for AhmedETAP
 ===================================
 Deep domain engine orchestrating power system computational studies.
@@ -2863,7 +2863,7 @@ Authoritative projection and adapter over Canonical CapabilityRegistry (ADR-0002
 
 - **Class** `StudyRegistration` (line 38)
 
-#### 📄 `engine/engine.py` _30.3 KB_
+#### 📄 `engine/engine.py` _30.6 KB_
 - **Class** `PowerSystemEngine` (line 91)
   - Methods: `run_load_flow()`, `run_fault_analysis()`, `run_arc_flash()`, `run_protection_coordination()`, `run_study()`, `visualize_tcc()`, `visualize_coordination()`
 
@@ -2990,7 +2990,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _107.4 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _107.6 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -3000,12 +3000,12 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_14bus_system()` (line 166)
 - **def** `build_iec60909_benchmark_system()` (line 309)
 - **def** `build_ieee_30bus_system()` (line 560)
-- **def** `calculate_iec_60909_theoretical_fault()` (line 706)
-- **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 713)
-- **def** `build_ieee_13bus_harmonic_system()` (line 736)
-- **def** `build_industrial_4bus_harmonic_system()` (line 769)
-- **def** `build_commercial_480v_harmonic_system()` (line 806)
-- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 841)
+- **def** `calculate_iec_60909_theoretical_fault()` (line 712)
+- **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 719)
+- **def** `build_ieee_13bus_harmonic_system()` (line 742)
+- **def** `build_industrial_4bus_harmonic_system()` (line 775)
+- **def** `build_commercial_480v_harmonic_system()` (line 812)
+- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 847)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -3080,7 +3080,7 @@ Provides fault analysis capabilities including IEC 60909 short-circuit
 calculations, IE
 
 
-#### 📄 `fault_analysis/arc_flash_calc.py` _6.3 KB_
+#### 📄 `fault_analysis/arc_flash_calc.py` _6.5 KB_
 > IEEE 1584-2018 Arc Flash Calculation Utility
 =============================================
 Thin convenience wrapper around ``ArcFlashEngine`` from
@@ -3088,17 +3088,18 @@ Thin convenience wrapper around ``ArcFlashEngine`` from
 
 - **def** `calculate_arc_flash()` (line 36)
 
-#### 📄 `fault_analysis/arc_flash_engine.py` _27.1 KB_
+#### 📄 `fault_analysis/arc_flash_engine.py` _29.4 KB_
 > Arc Flash Analysis Engine - IEEE 1584-2018 Implementation
 
 This module implements arc flash calculations according to IEEE 1584-2018
 "IEEE Guide for P
 
-- **Class** `ElectrodeConfig` (line 24)
-- **Class** `EnclosureType` (line 34)
-- **Class** `ArcFlashResult` (line 42)
-- **Class** `ArcFlashEngine` (line 146)
+- **Class** `ElectrodeConfig` (line 26)
+- **Class** `EnclosureType` (line 36)
+- **Class** `ArcFlashResult` (line 44)
+- **Class** `ArcFlashEngine` (line 173)
   - Methods: `calculate_arc_current()`, `calculate_incident_energy()`, `calculate_arc_flash_boundary()`, `determine_ppe_level()`, `calculate()`, `ralph_lee_method()`
+- **def** `classify_nfpa70e_ppe()` (line 148)
 
 #### 📄 `fault_analysis/arc_flash_labels.py` _5.8 KB_
 > Arc Flash Warning Label Generator per NFPA 70E and ANSI Z535
@@ -3109,11 +3110,11 @@ Generates industrial-grade
 - **Class** `ArcFlashLabelSpec` (line 22)
   - Methods: `from_calculation_result()`, `to_svg()`, `to_dict()`
 
-#### 📄 `fault_analysis/fault.py` _13.0 KB_
+#### 📄 `fault_analysis/fault.py` _13.1 KB_
 - **Class** `FaultAnalyzer` (line 12)
   - Methods: `three_phase_fault()`, `line_to_ground_fault()`, `line_to_line_fault()`, `double_line_to_ground_fault()`
 
-#### 📄 `fault_analysis/harmonic_analysis.py` _27.1 KB_
+#### 📄 `fault_analysis/harmonic_analysis.py` _30.0 KB_
 > Harmonic Analysis Engine
 =========================
 Implements harmonic power flow analysis per IEEE 519-2022.
@@ -3129,7 +3130,7 @@ Supports:
 - **Class** `HarmonicAnalysisEngine` (line 83)
   - Methods: `set_system_data()`, `add_harmonic_source()`, `set_system()`, `calculate_harmonic_impedance()`, `solve_harmonic_power_flow()`, `calculate_thd()`, `calculate_tdd()`, `detect_resonance()`
 
-#### 📄 `fault_analysis/iec60909_engine.py` _40.1 KB_
+#### 📄 `fault_analysis/iec60909_engine.py` _44.0 KB_
 > IEC 60909 Short Circuit Calculation Engine
 
 Implements IEC 60909-0:2016 "Short-circuit currents in three-phase AC systems"
@@ -3139,13 +3140,13 @@ Supports:
 - **Class** `FaultType` (line 29)
 - **Class** `VoltageFactorC` (line 36)
 - **Class** `ShortCircuitResult` (line 48)
-- **Class** `IEC60909Engine` (line 212)
-  - Methods: `is_near_generator()`, `calculate_branch_contributions()`, `calculate_three_phase_fault()`, `calculate_line_to_ground_fault()`, `calculate_line_to_line_fault()`, `calculate_double_line_to_ground_fault()`, `calculate()`
+- **Class** `IEC60909Engine` (line 208)
+  - Methods: `get_bus_base_kv()`, `get_bus_base_i()`, `is_near_generator()`, `calculate_branch_contributions()`, `calculate_three_phase_fault()`, `calculate_line_to_ground_fault()`, `calculate_line_to_line_fault()`, `calculate_double_line_to_ground_fault()`
 - **def** `calculate_kg()` (line 77)
 - **def** `calculate_kt()` (line 114)
 - **def** `calculate_ku()` (line 148)
 
-#### 📄 `fault_analysis/ieee1584_database.py` _13.3 KB_
+#### 📄 `fault_analysis/ieee1584_database.py` _13.6 KB_
 > IEEE 1584-2018 Complete Arc Flash Database and Calculation Engine
 ==================================================================
 
@@ -3157,7 +3158,7 @@ Full coefficient
 - **Class** `IEEE1584Database` (line 55)
   - Methods: `calculate_arc_current()`
 - **def** `calculate_arcing_current_ieee1584()` (line 224)
-- **def** `calculate_enclosure_correction_factor()` (line 296)
+- **def** `calculate_enclosure_correction_factor()` (line 300)
 
 ### 📦 `load_flow/`
 
@@ -3185,7 +3186,7 @@ This module provides backward-compatibility re-exports from the canonical
 `load_flow.load
 
 
-#### 📄 `load_flow/dc_flow.py` _6.7 KB_
+#### 📄 `load_flow/dc_flow.py` _6.8 KB_
 > load_flow/dc_flow.py — Linearized DC Power Flow Solver.
 
 Provides rapid, non-iterative, guaranteed solution of active power flow:
@@ -3204,7 +3205,7 @@ Implements both canonical formulations:
 - **Class** `FastDecoupledSolver` (line 35)
   - Methods: `solve()`, `get_results()`
 
-#### 📄 `load_flow/load_flow.py` _27.0 KB_
+#### 📄 `load_flow/load_flow.py` _27.2 KB_
 > Newton-Raphson Load Flow Solver
 
 This is the canonical (consolidated) implementation. The previous
@@ -3213,7 +3214,7 @@ load_flow_solver_fixed.py has been merged into this
 - **Class** `LoadFlowSolver` (line 15)
   - Methods: `solve()`
 
-#### 📄 `load_flow/optimal_power_flow.py` _25.3 KB_
+#### 📄 `load_flow/optimal_power_flow.py` _26.9 KB_
 > Optimal Power Flow (OPF) Engine
 =================================
 Implements AC Optimal Power Flow using various optimization methods.
@@ -3226,7 +3227,7 @@ Supports:
   - Methods: `cost()`
 - **Class** `OPFResult` (line 68)
 - **Class** `OptimalPowerFlowEngine` (line 85)
-  - Methods: `set_load_data()`, `set_generator_locations()`, `set_voltage_limits()`, `set_branch_limits()`, `set_branch_reactances()`, `solve_dc_opf()`, `solve_ac_opf_interior_point()`, `solve_opf()`
+  - Methods: `set_bus_types()`, `set_load_data()`, `set_generator_locations()`, `set_voltage_limits()`, `set_branch_limits()`, `set_branch_reactances()`, `solve_dc_opf()`, `solve_ac_opf_interior_point()`
 
 #### 📄 `load_flow/solver.py` _10.8 KB_
 > Load Flow Solver Integration with Sparse Matrix Support.
@@ -3240,13 +3241,13 @@ dense (existing) and s
 > load_flow/optimizers — Metaheuristic and Advanced Solvers for Load Flow & OPF.
 
 
-#### 📄 `load_flow/optimizers/pso_opf.py` _16.7 KB_
+#### 📄 `load_flow/optimizers/pso_opf.py` _17.6 KB_
 > load_flow/optimizers/pso_opf.py — Swarm-Intelligence Hybrid AC-OPF Engine.
 
 Solves the genuine non-convex AC Optimal Power Flow problem with continuou
 
 - **Class** `PSOOptimalPowerFlow` (line 24)
-  - Methods: `solve()`
+  - Methods: `set_bus_types()`, `solve()`
 
 ### 📦 `services/`
 
@@ -3422,7 +3423,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _74.2 KB_
+#### 📄 `services/study_executor.py` _75.4 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -3885,14 +3886,14 @@ Provides relay coordination analysis and time-current grading studies
 for electrical power sy
 
 
-#### 📄 `coordination/chain_coordinator.py` _11.6 KB_
+#### 📄 `coordination/chain_coordinator.py` _12.5 KB_
 > coordination/chain_coordinator.py — Automated Multi-Relay Coordination Chain Grading.
 
 Implements automated relay grading along distribution feeders a
 
 - **Class** `RelayNode` (line 23)
-- **Class** `ChainGradingResult` (line 37)
-- **Class** `ChainCoordinator` (line 48)
+- **Class** `ChainGradingResult` (line 51)
+- **Class** `ChainCoordinator` (line 62)
   - Methods: `grade_chain()`, `verify_coordination()`, `generate_report()`
 
 #### 📄 `coordination/coordination.py` _8.2 KB_
@@ -4558,7 +4559,7 @@ The ETAP Windows worker runs as
 
 #### 📄 `core_model/__init__.py` _0.3 KB_
 
-#### 📄 `core_model/bus.py` _2.2 KB_
+#### 📄 `core_model/bus.py` _2.5 KB_
 - **Class** `Bus` (line 4)
   - Methods: `voltage()`, `voltage()`
 
@@ -4612,9 +4613,9 @@ Both `api/studies.py` (HT
 - **Class** `StudyResult` (line 553)
   - Methods: `sync_data_and_results()`, `to_canonical_dict()`
 
-#### 📄 `core_model/system.py` _7.6 KB_
+#### 📄 `core_model/system.py` _8.6 KB_
 - **Class** `System` (line 6)
-  - Methods: `add_bus()`, `add_line()`, `add_transformer()`, `add_generator()`, `add_load()`, `build_ybus()`, `get_ybus()`, `build_sequence_networks()`
+  - Methods: `add_bus()`, `add_line()`, `add_transformer()`, `add_generator()`, `add_load()`, `convert_impedance_to_pu()`, `build_ybus()`, `get_ybus()`
 
 #### 📄 `core_model/transformer.py` _3.1 KB_
 - **Class** `Transformer` (line 1)
@@ -5904,10 +5905,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| ui-component | 280 |
 | api-route | 92 |
+| python-module | 41 |
 | ui-page | 61 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -5919,15 +5920,15 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
-| `core_model` | — | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
+| `core_model` | `network_solver` | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
 | `digital_twin` | `coordination`, `core_model`, `engine`, `fault_analysis`, `gis_integration`, `gis_model`, `load_flow`, `relays`, `scada_model` | `agents`, `copilot`, `core` |
-| `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `network_solver`, `relays`, `visualization` | `agents`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
+| `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `network_solver`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
 | `etap_integration` | `core`, `core_model`, `engine`, `security` | `agents`, `api`, `copilot`, `core`, `integrations`, `services`, `worker` |
 | `etap_user_guide` | — | — |
 | `fault_analysis` | — | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5942,7 +5943,7 @@ Provides
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
-| `network_solver` | — | `engine` |
+| `network_solver` | — | `core_model`, `engine` |
 | `relays` | `curves` | `agents`, `coordination`, `digital_twin`, `engine`, `visualization` |
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
@@ -5987,7 +5988,7 @@ Provides
 | `test_audit_phase0_fixes.py` | 3 | 0 | **3** |
 | `test_audit_phase10_round7_fixes.py` | 0 | 5 | **8** |
 | `test_audit_phase11_consolidated_fixes.py` | 11 | 0 | **11** |
-| `test_audit_phase1_fixes.py` | 0 | 8 | **23** |
+| `test_audit_phase1_fixes.py` | 0 | 8 | **24** |
 | `test_audit_phase2_fixes.py` | 0 | 10 | **38** |
 | `test_audit_phase3_fixes.py` | 0 | 4 | **22** |
 | `test_audit_phase4_fixes.py` | 0 | 3 | **16** |
@@ -6080,7 +6081,7 @@ Provides
 | `test_hf_space_production.py` | 12 | 0 | **12** |
 | `test_hf_space_prometheus.py` | 4 | 0 | **4** |
 | `test_hf_space_skill.py` | 14 | 0 | **14** |
-| `test_iec60909_published_cases.py` | 0 | 4 | **15** |
+| `test_iec60909_published_cases.py` | 0 | 4 | **17** |
 | `test_ieee14_30_published.py` | 0 | 2 | **4** |
 | `test_ieee_benchmarks.py` | 1 | 5 | **14** |
 | `test_ieee_gold_standard_benchmarks.py` | 6 | 0 | **6** |
@@ -6121,7 +6122,7 @@ Provides
 | `test_notification_config.py` | 2 | 0 | **2** |
 | `test_notifications_endpoint.py` | 2 | 0 | **2** |
 | `test_opencv_resilience.py` | 25 | 0 | **25** |
-| `test_opf_correctness.py` | 0 | 1 | **3** |
+| `test_opf_correctness.py` | 0 | 1 | **4** |
 | `test_optimal_power_flow_acceptance.py` | 6 | 0 | **6** |
 | `test_optimization_agent_construct.py` | 6 | 0 | **6** |
 | `test_optimization_agent_m3.py` | 4 | 0 | **4** |
@@ -6149,7 +6150,7 @@ Provides
 | `test_prompt_registry_deep.py` | 4 | 0 | **4** |
 | `test_pso_coordinator.py` | 7 | 0 | **7** |
 | `test_pso_core.py` | 6 | 0 | **6** |
-| `test_pso_opf.py` | 4 | 0 | **4** |
+| `test_pso_opf.py` | 5 | 0 | **5** |
 | `test_quiz_l3_golden.py` | 2 | 0 | **2** |
 | `test_r2_storage.py` | 3 | 0 | **3** |
 | `test_rag_blueprint_adapter.py` | 4 | 0 | **4** |
@@ -6286,7 +6287,7 @@ Provides
 | `scripts/check_metadata.ps1` | ps1 | 3.7 KB |  |
 | `scripts/check_metadata.py` | py | 3.9 KB | Check Metadata and Markdown Standards across AhmedETAP Docum |
 | `scripts/check_metadata.sh` | sh | 0.3 KB | !/usr/bin/env bash |
-| `scripts/check_prompt_consistency.py` | py | 5.8 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
+| `scripts/check_prompt_consistency.py` | py | 5.9 KB | Check prompt-manifest consistency (Operation Iron Loop\, WP5 |
 | `scripts/check_registry_integrity.py` | py | 10.9 KB | scripts/check_registry_integrity.py — M2.4 Unified Registry  |
 | `scripts/check_results.py` | py | 0.6 KB |  |
 | `scripts/check_workflows_meta.py` | py | 11.9 KB | scripts/check_workflows_meta.py — Authoritative GitHub Workf |
@@ -6340,7 +6341,7 @@ Provides
 | `scripts/maintenance/fix_agent_structures.py` | py | 6.6 KB | Script to identify and fix agent structural issues. |
 | `scripts/maintenance/fix_eol_strings.py` | py | 3.9 KB | Fix broken EOL string literals in validation_campaign.py. |
 | `scripts/maintenance/modify_scada.py` | py | 0.9 KB |  |
-| `scripts/maintenance/run_complete_setup.py` | py | 14.0 KB | AhmedETAP Platform - Complete Setup and Test Script |
+| `scripts/maintenance/run_complete_setup.py` | py | 14.1 KB | AhmedETAP Platform - Complete Setup and Test Script |
 | `scripts/maintenance/run_loop.py` | py | 1.0 KB |  |
 | `scripts/maintenance/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
 | `scripts/maintenance/validate_syntax.py` | py | 5.9 KB | Syntax and dependency validation script for the entire codeb |
@@ -6450,7 +6451,7 @@ Provides
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
-| `requirements.txt` | 11.2 KB | `19b083462bc8` |
+| `requirements.txt` | 11.2 KB | `94f7f95e73d1` |
 | `requirements-prod.txt` | 3.2 KB | `783687e79569` |
 | `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
