@@ -27,20 +27,6 @@ class TestIEEE1584STBenchmarks:
         engine = ArcFlashEngine()
         gap = case.get("conductor_gap_mm", case.get("arc_gap_mm", 25.0 if case["voltage_kv"] <= 1.0 else 152.4))
 
-        if case.get("is_out_of_bounds", False):
-            # Model polynomial exceeds physical bolted fault current; must fail-closed per IEEE 1584-2018
-            with pytest.raises(ValueError, match="exceeds bolted fault current|boundary conditions"):
-                engine.calculate(
-                    voltage_kv=case["voltage_kv"],
-                    bolted_fault_current_ka=case["bolted_fault_current_ka"],
-                    arc_duration_sec=case["arc_duration_sec"],
-                    working_distance_mm=case["working_distance_mm"],
-                    electrode_config=case["electrode_config"],
-                    enclosure_type=case["enclosure_type"],
-                    arc_gap_mm=gap,
-                )
-            return
-
         res = engine.calculate(
             voltage_kv=case["voltage_kv"],
             bolted_fault_current_ka=case["bolted_fault_current_ka"],

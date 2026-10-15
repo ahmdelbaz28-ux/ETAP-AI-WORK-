@@ -102,7 +102,7 @@ class FastDecoupledSolver(AbstractLoadFlowSolver):
         q_map = {orig_idx: sub_idx for sub_idx, orig_idx in enumerate(self.q_v_indices)}
 
         # Collect branches: lines and transformers
-        branches: List[Tuple[Any, Any, float, float, float]] = []
+        branches: List[Tuple[Any, Any, float, float, float, float, float]] = []
         for line in self.system.lines:
             branches.append((
                 line.from_bus.bus_id,
@@ -110,28 +110,40 @@ class FastDecoupledSolver(AbstractLoadFlowSolver):
                 float(line.z1.real),
                 float(line.z1.imag),
                 float(getattr(line, "yshunt1", 0j).imag) if hasattr(line, "yshunt1") else 0.0,
+                1.0,
+                0.0,
             ))
         for xf in self.system.transformers:
             z = xf.get_impedance("1")
             y_sh = xf.get_shunt_admittance("1")
+            tap = float(getattr(xf, "tap_ratio", 1.0) or 1.0)
+            shift = float(getattr(xf, "phase_shift", 0.0) or 0.0)
             branches.append((
                 xf.from_bus.bus_id,
                 xf.to_bus.bus_id,
                 float(z.real),
                 float(z.imag),
                 float(y_sh.imag),
+                tap,
+                shift,
             ))
 
-        for f_id, t_id, r, x, b_shunt in branches:
+        for f_id, t_id, r, x, b_shunt, tap, shift in branches:
+            if abs(shift) > 1e-6:
+                raise ValueError(
+                    f"Transformer between bus {f_id} and bus {t_id} has non-zero phase_shift={shift} rad. "
+                    "Fast Decoupled Load Flow (Stott & Alsac 1974) does not model phase-shifting transformers; "
+                    "use standard Newton-Raphson load flow solver (LoadFlowSolver) instead."
+                )
             u_orig = self.bus_index[f_id]
             v_orig = self.bus_index[t_id]
             z2 = r**2 + x**2
             if z2 <= 1e-12:
                 continue
 
-            # Invert reactances / susceptances
-            b_line = x / z2
-            b_inv_x = 1.0 / x if abs(x) > 1e-12 else b_line
+            # Invert reactances / susceptances incorporating tap ratio (Stott & Alsac 1974)
+            b_line = x / (z2 * tap)
+            b_inv_x = 1.0 / (x * tap) if abs(x * tap) > 1e-12 else b_line
 
             # 1. B' matrix (P-theta)
             # XB formulation neglects r (b_inv_x); BX uses b_line
@@ -150,20 +162,21 @@ class FastDecoupledSolver(AbstractLoadFlowSolver):
                 B_prime[vi, vi] += b_p_elem
 
             # 2. B'' matrix (Q-V, PQ buses only)
-            # XB uses b_line + shunt; BX uses b_inv_x + shunt
+            # XB uses b_line + shunt; BX uses b_inv_x + shunt, scaled by tap
             b_q_elem = b_line if self.formulation == FDLFFormulation.XB else b_inv_x
+            b_q_eff = b_q_elem / max(1e-6, tap)
             if u_orig in q_map and v_orig in q_map:
                 ui, vi = q_map[u_orig], q_map[v_orig]
-                B_double_prime[ui, vi] -= b_q_elem
-                B_double_prime[vi, ui] -= b_q_elem
-                B_double_prime[ui, ui] += b_q_elem + 0.5 * b_shunt
-                B_double_prime[vi, vi] += b_q_elem + 0.5 * b_shunt
+                B_double_prime[ui, vi] -= b_q_eff
+                B_double_prime[vi, ui] -= b_q_eff
+                B_double_prime[ui, ui] += b_q_eff / max(1e-6, tap) + 0.5 * b_shunt
+                B_double_prime[vi, vi] += b_q_eff + 0.5 * b_shunt
             elif u_orig in q_map:
                 ui = q_map[u_orig]
-                B_double_prime[ui, ui] += b_q_elem + 0.5 * b_shunt
+                B_double_prime[ui, ui] += b_q_eff / max(1e-6, tap) + 0.5 * b_shunt
             elif v_orig in q_map:
                 vi = q_map[v_orig]
-                B_double_prime[vi, vi] += b_q_elem + 0.5 * b_shunt
+                B_double_prime[vi, vi] += b_q_eff + 0.5 * b_shunt
 
         # Regularize to guarantee positive definiteness on isolated or small test cases
         for i in range(n_p):

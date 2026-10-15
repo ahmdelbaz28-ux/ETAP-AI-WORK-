@@ -87,11 +87,16 @@ DEFAULT_PARAMS: dict[str, dict] = {
         "bolted_fault_current_ka": 20.0,
         "arc_duration_sec": 0.1,
         "working_distance_mm": 457.0,
+        "arc_gap_mm": 25.0,
     },
     "protection_coordination": {
         "upstream_relay_id": 1,
         "downstream_relay_id": 2,
         "fault_currents": [2.0, 5.0, 10.0, 20.0],
+        "relays_config": {
+            "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+            "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+        },
     },
     "etap_expert": {"question": "What is IEEE 1584 standard for arc flash?"},
     "etap_gui": {"question": "How to create a bus in ETAP?"},
@@ -243,6 +248,7 @@ class TestNativeFourStudiesPreservation:
             "bolted_fault_current_ka": 20.0,
             "arc_duration_sec": 0.1,
             "working_distance_mm": 457.0,
+            "arc_gap_mm": 25.0,
         }
         executor = StudyExecutor(cache=None)
         res_executor = executor._dispatch("arc_flash", built_system, params)
@@ -261,6 +267,10 @@ class TestNativeFourStudiesPreservation:
             "upstream_relay_id": 1,
             "downstream_relay_id": 2,
             "fault_currents": [2.0, 5.0, 10.0, 20.0],
+            "relays_config": {
+                "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+                "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+            },
         }
         executor = StudyExecutor(cache=None)
         res_executor = executor._dispatch("protection_coordination", built_system, params)
@@ -272,6 +282,16 @@ class TestNativeFourStudiesPreservation:
         engine = PowerSystemEngine(built_system)
         res_engine = engine.run_study("protection_coordination", **params)
         assert isinstance(res_engine, dict)
+
+    def test_legacy_quarantine_arc_flash_missing_param_fails_closed(self, built_system):
+        """Ensure _run_native_study fails closed when required arc flash params are omitted."""
+        with pytest.raises(ValueError, match="Missing required arc flash parameter"):
+            _run_native_study("arc_flash", built_system, {})
+
+    def test_legacy_quarantine_coordination_missing_param_fails_closed(self, built_system):
+        """Ensure _run_native_study fails closed when required coordination params are omitted."""
+        with pytest.raises(ValueError, match="Missing required protection coordination parameter"):
+            _run_native_study("protection_coordination", built_system, {})
 
 
 class TestUnregisteredAndSpecialStudies:

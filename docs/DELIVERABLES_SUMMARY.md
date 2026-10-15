@@ -68,7 +68,7 @@ This document provides a comprehensive list of all deliverables created during t
 
 **Features:**
 - DC-OPF using Linear Programming
-- AC-OPF using Interior Point Method (SLSQP)
+- AC-OPF using SLSQP Unconstrained OPF (No AC Network Constraints)
 - Economic dispatch optimization
 - Loss minimization mode
 - Constraint handling

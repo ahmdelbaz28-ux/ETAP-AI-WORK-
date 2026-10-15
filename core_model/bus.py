@@ -25,8 +25,8 @@ class Bus:
         generation_power=0 + 0j,
         base_kv=None,
         bus_type="pq",
-        q_min=-999.0,
-        q_max=999.0,
+        q_min=None,
+        q_max=None,
     ):
         """
         Initialize a Bus object.

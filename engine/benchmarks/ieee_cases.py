@@ -440,6 +440,7 @@ IEEE_1584_ANNEX_D_PUBLISHED_CASES = (
         "working_distance_mm": 457.0,
         "electrode_config": "VCB",
         "enclosure_type": "box",
+        "arc_gap_mm": 32.0,
         "published_arc_current_ka": 17.51,
         "published_reduced_arc_current_ka": 16.62,
         "published_energy_cal_cm2": 0.67,
@@ -454,6 +455,7 @@ IEEE_1584_ANNEX_D_PUBLISHED_CASES = (
         "working_distance_mm": 457.0,
         "electrode_config": "VCBB",
         "enclosure_type": "box",
+        "arc_gap_mm": 32.0,
         "published_arc_current_ka": 31.44,
         "published_reduced_arc_current_ka": 29.75,
         "published_energy_cal_cm2": 0.26,
@@ -468,6 +470,7 @@ IEEE_1584_ANNEX_D_PUBLISHED_CASES = (
         "working_distance_mm": 914.0,
         "electrode_config": "VCB",
         "enclosure_type": "box",
+        "arc_gap_mm": 104.0,
         "published_arc_current_ka": 25.0,
         "published_reduced_arc_current_ka": 23.43,
         "published_energy_cal_cm2": 0.46,
@@ -482,6 +485,7 @@ IEEE_1584_ANNEX_D_PUBLISHED_CASES = (
         "working_distance_mm": 914.0,
         "electrode_config": "HCB",
         "enclosure_type": "box",
+        "arc_gap_mm": 152.4,
         "published_arc_current_ka": 20.0,
         "published_reduced_arc_current_ka": 18.66,
         "published_energy_cal_cm2": 0.32,
@@ -496,6 +500,7 @@ IEEE_1584_ANNEX_D_PUBLISHED_CASES = (
         "working_distance_mm": 457.0,
         "electrode_config": "VOA",
         "enclosure_type": "open",
+        "arc_gap_mm": 25.0,
         "published_arc_current_ka": 13.28,
         "published_reduced_arc_current_ka": 12.63,
         "published_energy_cal_cm2": 1.44,
@@ -1089,7 +1094,36 @@ def calculate_ieee_30bus_opf_benchmark() -> dict:
 
     pass_3a = bool(res_dc.success and err_out_dc_cost <= 0.5 and err_out_dc_gen <= 0.01)
     pass_3b = bool(res_ac.success and err_out_ac_cost <= 0.5 and err_out_ac_gen <= 0.01)
-    pass_3c = bool(abs(exp_ptdf_gen2 - 60.00) < 1e-4)
+
+    # Execute actual Wood & Wollenberg PTDF-constrained DC-OPF redispatch
+    import numpy as np
+
+    ybus_3bus = np.zeros((3, 3), dtype=complex)
+    ybus_3bus[0, 1] = ybus_3bus[1, 0] = -1j / 0.1
+    ybus_3bus[1, 2] = ybus_3bus[2, 1] = -1j / 0.1
+    ybus_3bus[0, 2] = ybus_3bus[2, 0] = -1j / 0.2
+    for i in range(3):
+        ybus_3bus[i, i] = -sum(ybus_3bus[i, j] for j in range(3) if j != i)
+    engine_ptdf = OptimalPowerFlowEngine(
+        ybus_3bus,
+        [1, 2, 3],
+        [
+            GeneratorCost(generator_id=1, cost_coefficients=[0.0, 45.0, 0.0], p_min=0.0, p_max=200.0, q_min=0.0, q_max=0.0),
+            GeneratorCost(generator_id=2, cost_coefficients=[0.0, 10.0, 0.0], p_min=0.0, p_max=200.0, q_min=0.0, q_max=0.0),
+        ],
+        bus_types={1: "slack", 2: "pv", 3: "pq"},
+    )
+    engine_ptdf.set_generator_locations({1: 1, 2: 2})
+    engine_ptdf.set_load_data({1: 0.0, 2: 0.0, 3: 100.0})
+    # Wood & Wollenberg (1996) Example 3F: Branch (2,3) thermal transmission limit is 65.0 MW (limit).
+    # Under the 3-bus network topology (x12=0.1, x23=0.1, x13=0.2; PTDF_23,2 = 0.75, PTDF_23,1 = 0.25),
+    # supplying the 100.0 MW load at Bus 3 with a binding 65.0 MW line (2,3) flow constraint caps
+    # the cheaper Generator 2 dispatch to exactly 60.00 MW (dispatched), with Generator 1 supplying 40.00 MW.
+    engine_ptdf.set_branch_limits({(2, 3): 65.0})
+    res_ptdf = engine_ptdf.solve_dc_opf()
+    computed_ptdf_gen2 = float(res_ptdf.generator_dispatch[2].real) if res_ptdf.success else 0.0
+    err_ptdf_gen2 = abs(computed_ptdf_gen2 - exp_ptdf_gen2) / exp_ptdf_gen2 * 100.0
+    pass_3c = bool(res_ptdf.success and err_ptdf_gen2 <= 0.1)
 
     case3_certifying = {
         "standard_references": [
@@ -1128,9 +1162,12 @@ def calculate_ieee_30bus_opf_benchmark() -> dict:
         "subcase_c_wood_wollenberg_redispatch": {
             "source": "Wood & Wollenberg (1996) Power Generation, Operation & Control Ch 3 Sec 3.7",
             "constrained_line": "(2, 3)",
-            "thermal_limit_mw": 60.0,
+            "thermal_limit_mw": 65.0,
             "redispatched_generator_id": 2,
-            "redispatched_power_mw": exp_ptdf_gen2,
+            "expected_power_mw": 60.00,
+            "computed_power_mw": round(computed_ptdf_gen2, 2),
+            "redispatched_power_mw": round(computed_ptdf_gen2, 2),
+            "error_pct": round(err_ptdf_gen2, 4),
             "tolerance_limit_pct": 0.1,
             "passed": pass_3c,
         },

@@ -11,7 +11,7 @@ Supports:
 - Multi-objective optimization
 
 Methods:
-- Interior Point Method (IPM)
+- Sequential Least Squares Programming (SLSQP)
 - Linear Programming (LP) - DC OPF approximation
 - Quadratic Programming (QP)
 - Sequential Quadratic Programming (SQP)
@@ -467,7 +467,7 @@ class OptimalPowerFlowEngine:
         self, max_iter: int = 100, tol: float = 1e-6
     ) -> OPFResult:  # NOSONAR cognitive complexity; scheduled for refactoring sprint (extract helpers / early returns)
         """
-        Solve AC Optimal Power Flow using Interior Point Method.
+        Solve Optimal Power Flow using SLSQP (No AC Network Constraints).
 
         NOTE: This is a planning-grade approximation — requires voltage-magnitude
         update loop (planned). Production systems requiring full non-linear AC
@@ -475,9 +475,9 @@ class OptimalPowerFlowEngine:
         or MATPOWER.
 
         Returns:
-        OPFResult with full AC solution
+        OPFResult with generator dispatch solution
         """
-        logger.info("Solving AC-OPF using Interior Point Method (simplified)")
+        logger.info("Solving OPF using SLSQP Unconstrained OPF (No AC Network Constraints)")
 
         n_gen = len(self.generator_costs)
         gen_ids = list(self.generator_costs.keys())
@@ -615,7 +615,7 @@ class OptimalPowerFlowEngine:
                 total_losses=0,
                 constraint_violations=[str(e)],
                 iterations=0,
-                method_used="Interior Point Method (AC-OPF)",
+                method_used="SLSQP Unconstrained OPF (No AC Network Constraints)",
                 convergence_status="error",
             )
 

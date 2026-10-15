@@ -24,3 +24,8 @@ Tested via full empirical coefficient equations (`fault_analysis/arc_flash_engin
   python scripts/run_ieee_benchmarks.py
   ```
 - **Execution Result**: **CERTIFIED PASS** (All Annex D published benchmark points verified within declared tolerances).
+
+## 4. Modeling Scope & Safety Disclaimers
+- **Simplified Empirical Model**: The native engine implements a simplified empirical calculation calibrated against IEEE 1584-2018 Annex D standard test cases.
+- **NFPA 70E PPE Category Gated**: Automated assignment of PPE Category (1–4) is rejected (`REJECTED`) fail-closed. NFPA 70E Annex H table-lookup requires on-site task hazard analysis (THA) and equipment condition evaluation.
+- **Engineering Stamp Required**: Calculations are provided for engineering screening; final electrical warning labels and arc flash boundary markers require licensed professional engineer verification.

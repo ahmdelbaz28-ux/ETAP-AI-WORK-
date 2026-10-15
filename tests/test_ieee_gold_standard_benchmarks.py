@@ -148,6 +148,7 @@ def test_ieee_1584_published_reference_cases(case):
         working_distance_mm=case["working_distance_mm"],
         electrode_config=case["electrode_config"],
         enclosure_type=case["enclosure_type"],
+        arc_gap_mm=case.get("arc_gap_mm"),
     )
 
     # 1. Full arc current must match published Annex D value within 5%

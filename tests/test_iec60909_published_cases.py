@@ -372,7 +372,74 @@ class TestIEC60909MethodEvidence:
         # High impedance -> low fault current (< 2 IrG)
         engine = self._create_single_bus_engine(r=1.0, x=2.0)
         res = engine.calculate_three_phase_fault(0, bus_kv=11.0)
-        assert res.is_near_generator is False
+        assert bool(res.is_near_generator) is False
         assert res.mu_factor == 1.0
         assert math.isclose(res.Ib_breaking, res.Ik_initial_magnitude, rel_tol=1e-5)
+
+    def test_branch_contributions_with_kt_applied(self):
+        """Branch contributions with KT applied reduce through-fault current proportionally."""
+        from types import SimpleNamespace
+        Y = np.array([[ -10j, 10j ], [ 10j, -10j ]], dtype=complex)
+        branches_raw = [
+            {"from_bus": 0, "to_bus": 1, "z1": complex(0.01, 0.10), "is_transformer": True, "apply_kt": False, "xt": 0.10},
+        ]
+        engine_no_kt = IEC60909Engine(Y, Y, Y, base_mva=100.0, base_kv=11.0, slack_bus_index=0, branches=branches_raw)
+        cont_no_kt = engine_no_kt.calculate_branch_contributions(fault_bus_index=1, if_pu=complex(0, -10.0), c_factor=1.10)
+
+        branches_kt = [
+            {"from_bus": 0, "to_bus": 1, "z1": complex(0.01, 0.10), "is_transformer": True, "apply_kt": True, "xt": 0.10},
+        ]
+        engine_kt = IEC60909Engine(Y, Y, Y, base_mva=100.0, base_kv=11.0, slack_bus_index=0, branches=branches_kt)
+        cont_kt = engine_kt.calculate_branch_contributions(fault_bus_index=1, if_pu=complex(0, -10.0), c_factor=1.10)
+
+        # KT = 0.95 * (1.10 / (1 + 0.6 * 0.10)) = 0.9858 < 1.0 -> impedance lower -> current higher
+        assert cont_kt[0]["current_magnitude_pu"] != cont_no_kt[0]["current_magnitude_pu"]
+
+    def test_generator_contributions_with_kg_applied(self):
+        """Generator contributions apply KG factor."""
+        from types import SimpleNamespace
+        Y = np.array([[ -10j, 10j ], [ 10j, -10j ]], dtype=complex)
+        gen = SimpleNamespace(bus_index=0, generator_id="G1", xd_pp=0.15, urg_kv=11.0, rg=0.01, cos_phi=0.85)
+        engine = IEC60909Engine(Y, Y, Y, base_mva=100.0, base_kv=11.0, slack_bus_index=0, generators=[gen])
+        gen_conts = engine.calculate_generator_contributions(fault_bus_index=1, c_factor=1.10, apply_kg=True)
+        assert len(gen_conts) == 1
+        assert gen_conts[0]["generator_id"] == "G1"
+        assert gen_conts[0]["kg_factor"] > 1.0
+
+    def test_production_kt_default_and_generator_contributions_in_result(self):
+        """
+        Validate production activation of KT and KG per IEC 60909-0:2016:
+        1. Transformer correction factor KT defaults to active without explicit apply_kt flag.
+           c_max = 1.10, xt = 0.1333 -> KT = 0.95 * 1.10 / (1 + 0.6 * 0.1333) = 0.96761 (~0.97x).
+        2. ShortCircuitResult contains populated generator_contributions with KG factor.
+        """
+        from types import SimpleNamespace
+        Y = np.array([[-10j, 10j], [10j, -10j]], dtype=complex)
+        branches = [
+            {"from_bus": 0, "to_bus": 1, "z1": complex(0.01, 0.1333), "is_transformer": True, "xt": 0.1333},
+        ]
+        gen = SimpleNamespace(bus_index=0, generator_id="G1", xd_pp=0.15, urg_kv=11.0, rg=0.01, cos_phi=0.85)
+        engine = IEC60909Engine(
+            ybus_pos=Y,
+            ybus_neg=Y,
+            ybus_zero=Y,
+            base_mva=100.0,
+            base_kv=11.0,
+            slack_bus_index=0,
+            branches=branches,
+            generators=[gen],
+        )
+        res = engine.calculate_three_phase_fault(bus_index=1)
+        assert len(res.branch_contributions) == 1
+        b_entry = res.branch_contributions[0]
+        assert b_entry["is_transformer"] is True
+        expected_kt = 0.95 * (1.10 / (1.0 + 0.6 * 0.1333))  # 0.9676105
+        assert math.isclose(b_entry["kt_factor"], expected_kt, rel_tol=1e-4)
+
+        assert hasattr(res, "generator_contributions")
+        assert len(res.generator_contributions) == 1
+        g_entry = res.generator_contributions[0]
+        assert g_entry["generator_id"] == "G1"
+        assert g_entry["kg_factor"] > 1.0
+
 

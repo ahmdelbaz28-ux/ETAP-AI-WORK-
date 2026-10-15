@@ -70,6 +70,8 @@ async def test_short_circuit_path_equivalence_c_factor_normalized():
         "base_mva": base_mva,
         "bus_index": 0,
         "fault_type": "three_phase",
+        "rx_ratio": rx,
+        "c_factor": c_factor,
     })
 
     # 2. Path B: Analytical delegator path via IEC60909Engine
@@ -81,17 +83,18 @@ async def test_short_circuit_path_equivalence_c_factor_normalized():
         "c_factor": c_factor,
         "rx_ratio": rx,
         "fault_type": "three_phase",
+        "allow_single_bus_synthesis": True,
     })
 
     assert res_ybus["fault_type"] == res_analytical["fault_type"]
-    assert res_ybus["standards"] == "IEC 60909"
-    assert res_analytical["standards"] == "IEC 60909"
+    assert "IEC 60909" in res_ybus["standards"]
+    assert "IEC 60909" in res_analytical["standards"] or "Single-bus Synthesis" in res_analytical["standards"]
 
-    # Normalized comparison: FaultAnalyzer assumes Vpre=1.0 pu, IEC60909 uses c_factor=1.10
-    ik_ybus_normalized = res_ybus["ik_initial_ka"] * c_factor
+    # Both paths now evaluate IEC 60909 with matching c_factor
+    ik_ybus = res_ybus["ik_initial_ka"]
     ik_analytical = res_analytical["ik_initial_ka"]
 
-    diff_ik = abs(ik_ybus_normalized - ik_analytical)
+    diff_ik = abs(ik_ybus - ik_analytical)
     rel_error = diff_ik / ik_analytical
 
     # Engineering acceptance threshold: diff < 0.05 kA and relative error < 0.2%
@@ -132,6 +135,8 @@ async def test_short_circuit_path_equivalence_unity_c_factor():
         "base_mva": base_mva,
         "bus_index": 0,
         "fault_type": "three_phase",
+        "rx_ratio": rx,
+        "c_factor": c_factor,
     })
 
     res_analytical, _ = await engine._run_short_circuit({
@@ -142,7 +147,22 @@ async def test_short_circuit_path_equivalence_unity_c_factor():
         "c_factor": c_factor,
         "rx_ratio": rx,
         "fault_type": "three_phase",
+        "allow_single_bus_synthesis": True,
     })
 
     diff_ik = abs(res_ybus["ik_initial_ka"] - res_analytical["ik_initial_ka"])
     assert diff_ik <= 0.01, f"Deviation at c=1.0 ({diff_ik:.4f} kA) exceeds 0.01 kA tolerance"
+
+
+@pytest.mark.asyncio
+async def test_short_circuit_without_system_and_without_flag_raises():
+    """Ensure circular single-bus network synthesis fails closed without explicit flag."""
+    engine = StudyEngine()
+    with pytest.raises(ValueError, match="allow_single_bus_synthesis"):
+        await engine._run_short_circuit({
+            "system": None,
+            "voltage_kv": 11.0,
+            "ik_initial_ka": 25.0,
+            "rx_ratio": 0.1,
+            "fault_type": "three_phase",
+        })

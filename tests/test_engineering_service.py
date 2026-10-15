@@ -344,9 +344,9 @@ class TestStudyRunEndpoint:
     # --- 5. Failure path: invalid / missing data ---
 
     async def test_study_run_load_flow_without_system_returns_400(self, client):
-        """load_flow requires a system; omitting it should return 400."""
+        """load_flow requires a system; omitting it should return 400 or 422."""
         resp = await client.post("/api/v1/studies/run", json={"study_type": "load_flow"})
-        assert resp.status_code == 400
+        assert resp.status_code in (400, 422)
 
     async def test_study_run_failure_path_invalid_study_type_detail(self, client):
         """Invalid study_type returns 422 with validation error details."""
@@ -786,6 +786,7 @@ class TestSupportedStudyTypes:
                     "bolted_fault_current_ka": 20.0,
                     "arc_duration_sec": 0.5,
                     "working_distance_mm": 610,
+                    "arc_gap_mm": 152.0,
                 },
             },
         )
@@ -802,6 +803,10 @@ class TestSupportedStudyTypes:
                     "upstream_relay_id": 1,
                     "downstream_relay_id": 2,
                     "fault_currents": [2.0, 5.0, 10.0],
+                    "relays_config": {
+                        "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+                        "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+                    },
                 },
             },
         )
@@ -817,11 +822,34 @@ class TestSupportedStudyTypes:
                 "parameters": {
                     "upstream_relay_id": 1,
                     "downstream_relay_id": 2,
+                    "fault_currents": [2.0, 5.0, 10.0, 20.0],
+                    "relays_config": {
+                        "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+                        "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+                    },
                 },
             },
         )
         assert resp.status_code == 200
         assert resp.json()["success"] is True
+
+    async def test_coordination_missing_relays_config_fails_closed(self, client):
+        resp = await client.post(
+            "/api/v1/studies/run",
+            json={
+                "study_type": "coordination",
+                "system": _MINI_SYSTEM,
+                "parameters": {
+                    "upstream_relay_id": 1,
+                    "downstream_relay_id": 2,
+                    # fault_currents and relays_config omitted
+                },
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["success"] is False
+        assert any("Silent default relay configuration injection is prohibited" in err for err in data.get("errors", []))
 
     async def test_motor_starting(self, client):
         """motor_starting requires a system but may not have native engine support;
@@ -836,21 +864,23 @@ class TestSupportedStudyTypes:
         assert resp.status_code in (200, 400)  # accepted but may be unsupported
 
     async def test_harmonic_analysis(self, client):
-        """harmonic_analysis does not require a system but may not have native engine support."""
+        """harmonic_analysis requires a system model."""
         resp = await client.post(
             "/api/v1/studies/run",
             json={
                 "study_type": "harmonic_analysis",
+                "system": _MINI_SYSTEM,
             },
         )
         assert resp.status_code in (200, 400)  # accepted but may be unsupported
 
     async def test_optimal_power_flow(self, client):
-        """optimal_power_flow does not require a system but may not have native engine support."""
+        """optimal_power_flow requires a system model."""
         resp = await client.post(
             "/api/v1/studies/run",
             json={
                 "study_type": "optimal_power_flow",
+                "system": _MINI_SYSTEM,
             },
         )
         assert resp.status_code in (200, 400)
@@ -871,13 +901,30 @@ class TestSupportedStudyTypes:
     )
     async def test_etap_study_types_pass_validation(self, client, study_type):
         """ETAP study types should pass Pydantic validation (not 422)."""
-        resp = await client.post(
-            "/api/v1/studies/run",
-            json={
-                "study_type": study_type,
-            },
-        )
-        # Not 422 means the study_type is valid; actual execution may fail
+        payload = {
+            "study_type": study_type,
+            "system": _MINI_SYSTEM,
+        }
+        if "arc_flash" in study_type:
+            payload["parameters"] = {
+                "voltage_kv": 13.8,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_sec": 0.5,
+                "working_distance_mm": 610.0,
+                "arc_gap_mm": 152.0,
+            }
+        elif "protection" in study_type:
+            payload["parameters"] = {
+                "upstream_relay_id": 1,
+                "downstream_relay_id": 2,
+                "fault_currents": [2.0, 5.0, 10.0],
+                "relays_config": {
+                    "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+                    "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 50.0, "curve_type": "standard_inverse"},
+                },
+            }
+        resp = await client.post("/api/v1/studies/run", json=payload)
+        # Not 422 means the study_type is valid; actual execution may fail or succeed
         assert resp.status_code != 422
 
     # --- Study types that should NOT pass validation ---

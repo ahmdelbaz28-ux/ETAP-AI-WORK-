@@ -102,35 +102,8 @@ ARC_CURRENT_COEFFICIENTS = {
 # IEEE 1584-2018 Table 3/4 coefficients for incident energy.
 # SECURITY AUDIT 2026-07-25 — Fix E-01: Full equation implementation.
 # Format: (k1, k2, k3, k4, x_factor)
-# where: log10(En) = K1 + K2*log10(Iarc) + K3*log10(G) + K4*log10(Iarc)*log10(G)
-# K4 = 0 for all configurations per IEEE 1584-2018 (interaction term included in K2/K3).
-# x_factor per IEEE Table 4 (distance exponent, typically 1.0-2.0 for box enclosures).
-INCIDENT_ENERGY_COEFFICIENTS = {
-    ElectrodeConfig.VCB.value: {
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 0.0, 1.0),
-    },
-    ElectrodeConfig.VCBB.value: {
-        # VCBB (vertical conductors with insulating barrier) — lower energy than VCB
-        EnclosureType.BOX.value: (0.370, -0.245, 0.0, 0.0, 0.91),
-        EnclosureType.OPEN.value: (0.370, -0.245, 0.0, 0.0, 0.91),
-    },
-    ElectrodeConfig.HCB.value: {
-        # HCB (horizontal conductors in box) — intermediate energy
-        EnclosureType.BOX.value: (0.400, -0.255, 0.0, 0.0, 0.95),
-        EnclosureType.OPEN.value: (0.400, -0.255, 0.0, 0.0, 0.95),
-    },
-    ElectrodeConfig.VOA.value: {
-        # VOA (vertical open-air) — same as VCB per IEEE 1584-2018 empirical data
-        EnclosureType.BOX.value: (0.434, -0.262, 0.0, 0.0, 1.0),
-        EnclosureType.OPEN.value: (0.434, -0.262, 0.0, 0.0, 1.0),
-    },
-    ElectrodeConfig.HOA.value: {
-        # HOA (horizontal open-air) — slightly lower than HCB
-        EnclosureType.BOX.value: (0.380, -0.248, 0.0, 0.0, 0.93),
-        EnclosureType.OPEN.value: (0.380, -0.248, 0.0, 0.0, 0.93),
-    },
-}
+# Unified canonical incident energy coefficients per IEEE 1584-2018 (single source in ieee1584_database.py)
+from fault_analysis.ieee1584_database import INCIDENT_ENERGY_COEFFICIENTS
 
 # IEEE 1584-2018 Coefficients for arc flash boundary calculation
 # Kept for completeness; boundary is computed via incident-energy inversion in this file.

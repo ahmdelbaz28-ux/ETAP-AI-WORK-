@@ -259,7 +259,8 @@ Pillow~=12.3.0
 hypothesis>=6.100.0
 
 # Physical units and dimensions registry
-pint>=0.21.1
+# Note: Pint >=0.22 dropped Python 3.8 support (requires Python >=3.9); bounded to <0.22 for Python 3.8 runtime compatibility
+pint>=0.21.1,<0.22
 
 # RAG embedding model & vector database — FIX-RC4 / FIX-RC10
 # SECURITY: CVE-2026-68770 (CRITICAL code injection bypass) fixed in >=5.6.0

@@ -18,6 +18,7 @@ Run: pytest tests/test_audit_phase1_fixes.py -v
 from __future__ import annotations
 
 import ast
+import math
 import os
 import re
 import subprocess
@@ -81,12 +82,51 @@ class TestArcFlashE01E02:
             )
 
     def test_e02_x_factor_from_table(self):
-        """E-02: x_factor must be unpacked from coefficients (not discarded)."""
-        src = Path("fault_analysis/arc_flash_engine.py").read_text(encoding="utf-8")
-        # The unpack line must use x_factor, not _ (now 5-tuple: k1,k2,k3,k4,x_factor)
-        assert re.search(r"k1,\s*k2,\s*k3,\s*k4,\s*x_factor\s*=", src), (
-            "x_factor must be unpacked from INCIDENT_ENERGY_COEFFICIENTS (5-tuple), not discarded"
+        """E-02: Numerical confirmation that x_factor from coefficients governs distance scaling."""
+        from fault_analysis.arc_flash_engine import ArcFlashEngine, ElectrodeConfig, EnclosureType
+
+        # VCB has x_factor=1.0; doubling distance from 457mm to 914mm halves incident energy (ratio 0.5)
+        e_vcb_457, _, _ = ArcFlashEngine.calculate_incident_energy(
+            voltage_kv=0.48,
+            bolted_fault_current_ka=20.0,
+            arc_duration_sec=0.1,
+            working_distance_mm=457.0,
+            electrode_config=ElectrodeConfig.VCB,
+            enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
         )
+        e_vcb_914, _, _ = ArcFlashEngine.calculate_incident_energy(
+            voltage_kv=0.48,
+            bolted_fault_current_ka=20.0,
+            arc_duration_sec=0.1,
+            working_distance_mm=914.0,
+            electrode_config=ElectrodeConfig.VCB,
+            enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
+        )
+        assert abs((e_vcb_914 / e_vcb_457) - 0.5) < 1e-4
+
+        # VCBB has x_factor=0.91; doubling distance scales by (457/914)^0.91 ≈ 0.5322
+        e_vcbb_457, _, _ = ArcFlashEngine.calculate_incident_energy(
+            voltage_kv=0.48,
+            bolted_fault_current_ka=20.0,
+            arc_duration_sec=0.1,
+            working_distance_mm=457.0,
+            electrode_config=ElectrodeConfig.VCBB,
+            enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
+        )
+        e_vcbb_914, _, _ = ArcFlashEngine.calculate_incident_energy(
+            voltage_kv=0.48,
+            bolted_fault_current_ka=20.0,
+            arc_duration_sec=0.1,
+            working_distance_mm=914.0,
+            electrode_config=ElectrodeConfig.VCBB,
+            enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=25.0,
+        )
+        expected_ratio = math.pow(457.0 / 914.0, 0.91)
+        assert abs((e_vcbb_914 / e_vcbb_457) - expected_ratio) < 1e-4
 
     def test_e02_x_power_not_hardcoded(self):
         """E-02: x_power must NOT be hardcoded to 1.0."""
@@ -243,6 +283,34 @@ class TestCSRFS01:
         assert "token == _BYPASS_VALUE" not in src.replace("#", ""), (
             "S-01: No active code should reference _BYPASS_VALUE"
         )
+
+    def test_s01_token_endpoint_rejects_session_cookie(self):
+        """S-01: Requests to /auth/token with session cookies must NOT bypass CSRF validation."""
+        from starlette.applications import Starlette
+        from starlette.responses import JSONResponse
+        from starlette.routing import Route
+        from starlette.testclient import TestClient
+
+        from api.csrf import CSRFMiddleware
+
+        async def _dummy_endpoint(req):
+            return JSONResponse({"status": "ok"})
+
+        app = Starlette(
+            routes=[Route("/api/v1/auth/token", _dummy_endpoint, methods=["POST"])]
+        )
+        app.add_middleware(CSRFMiddleware)
+
+        with patch.dict(os.environ, {"ENGINEERING_SERVICE_AUTH_DISABLED": "0"}):
+            client = TestClient(app)
+            # Without session cookie, initial credential-grant succeeds
+            res_no_cookie = client.post("/api/v1/auth/token")
+            assert res_no_cookie.status_code == 200
+
+            # With session cookie, must be rejected with 403 Forbidden
+            client.cookies.set("etap_session_id", "active_session_token_xyz")
+            res_with_cookie = client.post("/api/v1/auth/token")
+            assert res_with_cookie.status_code == 403
 
 
 # ---------------------------------------------------------------------------

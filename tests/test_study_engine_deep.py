@@ -35,9 +35,11 @@ async def test_arc_flash_calculation(engine):
     res = await engine.execute(
         study_type="arc_flash",
         parameters={
+            "voltage_kv": 0.48,
             "fault_current_ka": 25.0,
             "clearing_time_s": 0.08,
             "working_distance_mm": 457.2,
+            "arc_gap_mm": 25.0,
         },
     )
     assert res.success is True
@@ -69,11 +71,51 @@ async def test_cable_sizing_calculation(engine):
 async def test_short_circuit_fallback(engine):
     res = await engine.execute(
         study_type="short_circuit",
-        parameters={"ik_ss_ka": 31.5, "fault_bus": "SWBD_MAIN"},
+        parameters={
+            "voltage_kv": 11.0,
+            "ik_ss_ka": 31.5,
+            "fault_bus": "SWBD_MAIN",
+            "rx_ratio": 0.1,
+            "allow_single_bus_synthesis": True,
+        },
     )
     assert res.success is True
     assert res.data["ik_initial_ka"] == 31.5
     assert res.data["ip_peak_ka"] > 31.5
+
+
+@pytest.mark.asyncio
+async def test_arc_flash_missing_param_fails_closed(engine):
+    """Ensure silent injection of default voltage/current/distance/gap is rejected."""
+    res = await engine.execute(
+        study_type="arc_flash",
+        parameters={
+            "fault_current_ka": 25.0,
+            "clearing_time_s": 0.08,
+            # voltage_kv, working_distance_mm, arc_gap_mm omitted
+        },
+    )
+    assert res.success is False
+    assert res.status == StudyStatus.FAILED
+    assert "Missing required arc flash parameter" in res.data["error"]
+
+
+@pytest.mark.asyncio
+async def test_short_circuit_unflagged_synthesis_fails_closed(engine):
+    """Ensure synthesizing a single-bus network without allow_single_bus_synthesis flag is rejected."""
+    res = await engine.execute(
+        study_type="short_circuit",
+        parameters={
+            "voltage_kv": 11.0,
+            "ik_ss_ka": 31.5,
+            "fault_bus": "SWBD_MAIN",
+            "rx_ratio": 0.1,
+            # allow_single_bus_synthesis omitted
+        },
+    )
+    assert res.success is False
+    assert res.status == StudyStatus.FAILED
+    assert "allow_single_bus_synthesis" in res.data["error"]
 
 
 @pytest.mark.asyncio

@@ -27,7 +27,11 @@ from typing import Any
 import numpy as np
 
 from agents.orchestrator import AgentResult, AgentStatus, BaseAgent, EngineeringTask, StudyType
-from fault_analysis.arc_flash_engine import classify_nfpa70e_ppe
+from fault_analysis.arc_flash_engine import (
+    ArcFlashEngine,
+    ElectrodeConfig,
+    EnclosureType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -239,38 +243,37 @@ class ArcFlashAgent(BaseAgent):
         D = working_distance_mm
         G = gap_mm
 
-        if voltage_kv <= 0.6:
-            # Low voltage IEEE 1584 model
-            if electrode_config == "VCB":
-                c1, c2, c3, c4, c5 = (-0.055, -0.802, -0.642, 0.067, 0.000)
-            elif electrode_config == "VCBB":
-                c1, c2, c3, c4, c5 = (0.089, -0.803, -0.642, 0.067, 0.000)
-            else:  # HCB
-                c1, c2, c3, c4, c5 = (0.215, -0.803, -0.642, 0.067, 0.000)
-            x = 1.0
-        elif voltage_kv <= 15.0:
-            # Medium / high voltage IEEE 1584 model
-            if electrode_config == "VCB":
-                c1, c2, c3, c4, c5 = (0.045, -0.921, -0.642, 0.067, 0.000)
-            elif electrode_config == "VCBB":
-                c1, c2, c3, c4, c5 = (0.076, -0.921, -0.642, 0.067, 0.000)
-            else:  # HCB
-                c1, c2, c3, c4, c5 = (0.198, -0.921, -0.642, 0.067, 0.000)
-            x = 1.0
-        else:
-            # Lee method for > 15 kV
-            # E = 2.142 * 10^6 * V * Iarc * t / D^2
-            e_lee = 2.142e6 * voltage_kv * iarc * t / (D**2)  # NOSONAR
-            return self._format_ie_result(e_lee, D, arc_current_ka, voltage_kv, "Lee")
+        iarc = arc_current_ka  # NOSONAR
+        t = arc_duration_s
+        D = working_distance_mm
+        G = gap_mm
 
-        # IEEE 1584-2018 empirical model
-        log_E = (  # NOSONAR
-            c1 + c2 * np.log10(iarc) + c3 * np.log10(G) + c4 * np.log10(iarc) * G + c5 * np.log10(D)
+        if voltage_kv > 15.0 or voltage_kv < 0.208:
+            res = ArcFlashEngine.ralph_lee_method(
+                voltage_kv=voltage_kv,
+                bolted_fault_current_ka=iarc,
+                arc_duration_sec=t,
+                working_distance_mm=D,
+            )
+            return self._format_ie_result(res.incident_energy_cal_cm2, D, arc_current_ka, voltage_kv, "Lee")
+
+        try:
+            cfg = ElectrodeConfig(str(electrode_config).strip().upper())
+        except (ValueError, AttributeError):
+            cfg = ElectrodeConfig.VCB
+
+        # Clamp gap to valid IEEE 1584-2018 range per voltage tier
+        g_clamped = max(6.35, min(76.2, G)) if voltage_kv <= 1.0 else max(19.05, min(254.0, G))
+
+        E, _, _ = ArcFlashEngine.calculate_incident_energy(
+            voltage_kv=voltage_kv,
+            bolted_fault_current_ka=iarc,
+            arc_duration_sec=t,
+            working_distance_mm=D,
+            electrode_config=cfg,
+            enclosure_type=EnclosureType.BOX,
+            arc_gap_mm=g_clamped,
         )
-        e_normalization = 10.0**log_E  # NOSONAR
-
-        # Apply duration scaling: E = E_0.2 * (t / 0.2)
-        E = e_normalization * (t / 0.2) ** x
 
         return self._format_ie_result(E, D, arc_current_ka, voltage_kv, "IEEE 1584-2018")
 
@@ -290,8 +293,12 @@ class ArcFlashAgent(BaseAgent):
         else:
             boundary_mm = 0.0
 
-        # PPE category
-        ppe_cat, ppe_desc = self._classify_ppe(E_cal_cm2)
+        # PPE category: fail-closed with REJECTED if simplified model is active
+        try:
+            ppe_cat, ppe_desc = self._classify_ppe(E_cal_cm2, allow_simplified=False)
+        except ValueError as err:
+            ppe_cat = "REJECTED"
+            ppe_desc = str(err)
 
         return {
             "incident_energy_cal_cm2": round(float(E_cal_cm2), 2),
@@ -306,7 +313,7 @@ class ArcFlashAgent(BaseAgent):
             "ppe_description": ppe_desc,
         }
 
-    def _classify_ppe(self, ie: float) -> tuple:
+    def _classify_ppe(self, ie: float, allow_simplified: bool = True) -> tuple[str, str]:
         """
         Classify required PPE category based on incident energy per NFPA 70E.
 
@@ -314,13 +321,15 @@ class ArcFlashAgent(BaseAgent):
         ----------
         ie : float
             Incident energy in cal/cm².
+        allow_simplified : bool
+            Whether to permit classification under simplified engine model.
 
         Returns
         -------
         tuple
-            (category: int, description: str)
+            (category: str, description: str)
         """
-        return classify_nfpa70e_ppe(ie)
+        return ArcFlashEngine.determine_ppe_level(ie, allow_simplified=allow_simplified)
 
     # ------------------------------------------------------------------
     # Agent execute method

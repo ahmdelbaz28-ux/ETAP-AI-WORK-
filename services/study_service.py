@@ -285,31 +285,61 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
                 raise ValueError("bus_id is required for fault analysis")
         raw_res = engine.run_fault_analysis(fault_type, bus_id)
     elif study_type == "arc_flash":
-        # Provide fallback defaults for missing parameters to allow basic execution/testing
-        if "voltage_kv" not in parameters:
-            parameters["voltage_kv"] = 13.8
-        if "bolted_fault_current_ka" not in parameters:
-            parameters["bolted_fault_current_ka"] = 20.0
-        if "arc_duration_sec" not in parameters:
-            parameters["arc_duration_sec"] = 0.1
+        voltage_kv = parameters.get("voltage_kv")
+        if voltage_kv is None and system and hasattr(system, "buses") and system.buses:
+            first_bus = next(iter(system.buses.values())) if isinstance(system.buses, dict) else system.buses[0]
+            voltage_kv = getattr(first_bus, "base_kv", None)
+
+        missing_af = []
+        if voltage_kv is None:
+            missing_af.append("voltage_kv")
+        if "bolted_fault_current_ka" not in parameters and "fault_current_ka" not in parameters:
+            missing_af.append("bolted_fault_current_ka")
+        if "arc_duration_sec" not in parameters and "clearing_time_s" not in parameters:
+            missing_af.append("arc_duration_sec")
         if "working_distance_mm" not in parameters:
-            parameters["working_distance_mm"] = 610.0
+            missing_af.append("working_distance_mm")
+        if "arc_gap_mm" not in parameters and "conductor_gap_mm" not in parameters:
+            missing_af.append("arc_gap_mm")
+
+        if missing_af:
+            raise ValueError(
+                f"Missing required arc flash parameter(s): {', '.join(missing_af)}. "
+                "Silent default parameter injection (13.8kV/20kA/0.1s/610mm) is prohibited per life safety rules (fail-closed)."
+            )
+
         raw_res = engine.run_arc_flash(
-            voltage_kv=float(parameters["voltage_kv"]),
-            bolted_fault_current_ka=float(parameters["bolted_fault_current_ka"]),
-            arc_duration_sec=float(parameters["arc_duration_sec"]),
+            voltage_kv=float(voltage_kv),
+            bolted_fault_current_ka=float(parameters.get("bolted_fault_current_ka", parameters.get("fault_current_ka"))),
+            arc_duration_sec=float(parameters.get("arc_duration_sec", parameters.get("clearing_time_s"))),
             working_distance_mm=float(parameters["working_distance_mm"]),
             electrode_config=str(parameters.get("electrode_config", "VCB")),
             enclosure_type=str(parameters.get("enclosure_type", "box")),
             enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
             enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
             enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
+            arc_gap_mm=float(parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm"))),
         )
     elif study_type in ("protection_coordination", "coordination"):
-        upstream = parameters.get("upstream_relay_id", 1)
-        downstream = parameters.get("downstream_relay_id", 2)
-        fault_currents = parameters.get("fault_currents", [2.0, 5.0, 10.0, 20.0])
-        raw_res = engine.run_protection_coordination(upstream, downstream, fault_currents)
+        missing_pc = []
+        if "upstream_relay_id" not in parameters:
+            missing_pc.append("upstream_relay_id")
+        if "downstream_relay_id" not in parameters:
+            missing_pc.append("downstream_relay_id")
+        if "fault_currents" not in parameters:
+            missing_pc.append("fault_currents")
+
+        if missing_pc:
+            raise ValueError(
+                f"Missing required protection coordination parameter(s): {', '.join(missing_pc)}. "
+                "Silent default relay configuration injection is prohibited (fail-closed)."
+            )
+
+        upstream = parameters["upstream_relay_id"]
+        downstream = parameters["downstream_relay_id"]
+        fault_currents = parameters["fault_currents"]
+        relays_config = parameters.get("relays_config")
+        raw_res = engine.run_protection_coordination(upstream, downstream, fault_currents, relays_config=relays_config)
     else:
         raise SpecializedExecutionUnavailableError(
             study_type, f"Unsupported native study type: {study_type}"

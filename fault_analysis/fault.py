@@ -1,4 +1,8 @@
+import logging
+
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 try:
     from scipy.sparse import issparse
@@ -109,19 +113,28 @@ class FaultAnalyzer:
                 y_rem = ybus[np.ix_(rem_idx, rem_idx)]
                 try:
                     z_rem = np.linalg.inv(y_rem)
-                except Exception:
-                    z_rem = np.linalg.pinv(y_rem)
+                except Exception as err:
+                    raise ValueError(f"Reduced Ybus (without slack bus {s}) is singular and cannot be inverted: {err}") from err
                 zbus = np.zeros((self.n, self.n), dtype=complex)
                 for i_new, i_orig in enumerate(rem_idx):
                     for j_new, j_orig in enumerate(rem_idx):
                         zbus[i_orig, j_orig] = z_rem[i_new, j_new]
                 return zbus
-            return np.linalg.pinv(ybus)
+            # Reject silent pseudo-inverse on degenerate all-zero matrix
+            if np.all(np.abs(ybus) < 1e-12):
+                raise ValueError("Cannot invert all-zero Ybus matrix (unconnected/degenerate network per fault analysis rules).")
+            raise ValueError(
+                "Ybus matrix is singular (condition number > 1e12) and no valid slack_bus_index specified; "
+                "cannot invert singular admittance matrix (fail-closed: pseudo-inverse fallback rejected per power engineering standards)."
+            )
 
         try:
             return np.linalg.inv(ybus)
-        except np.linalg.LinAlgError:
-            return np.linalg.pinv(ybus)
+        except np.linalg.LinAlgError as err:
+            raise ValueError(
+                f"Singular Ybus matrix inversion failed with LinAlgError: {err} "
+                "(fail-closed: pseudo-inverse fallback rejected per power engineering standards)."
+            ) from err
 
     def _pu_to_ka(self, current_pu):
         """Convert per-unit current to kA."""
@@ -168,9 +181,9 @@ class FaultAnalyzer:
         zth = self._z(
             bus_index, "pos"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        if_ = (
-            complex(float("inf"), 0) if abs(zth) < 1e-12 else vpre / zth
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        if abs(zth) < 1e-12:
+            raise ValueError(f"Thevenin positive-sequence impedance at bus {bus_index} is zero (|Zth| < 1e-12); fault current is undefined.")
+        if_ = vpre / zth
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),
@@ -197,9 +210,9 @@ class FaultAnalyzer:
         Z2 = self._z(bus_index, "neg")
         Z0 = self._z(bus_index, "zero")
         denominator = Z1 + Z2 + Z0
-        if_ = (
-            complex(float("inf"), 0) if abs(denominator) < 1e-12 else 3 * vpre / denominator
-        )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        if abs(denominator) < 1e-12:
+            raise ValueError(f"Zero sequence impedance denominator (Z1+Z2+Z0) at bus {bus_index}; SLG fault current is undefined.")
+        if_ = 3 * vpre / denominator
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),
@@ -226,11 +239,8 @@ class FaultAnalyzer:
         Z2 = self._z(bus_index, "neg")
         denominator = Z1 + Z2
         if abs(denominator) < 1e-12:
-            if_ = complex(
-                float("inf"), 0
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        else:
-            if_ = vpre * np.sqrt(3) / denominator
+            raise ValueError(f"Zero sequence impedance denominator (Z1+Z2) at bus {bus_index}; LL fault current is undefined.")
+        if_ = vpre * np.sqrt(3) / denominator
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),

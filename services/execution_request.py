@@ -141,6 +141,13 @@ class ExecutionRequest(BaseModel):
             "harmonic": "harmonic_analysis",
             "opf": "optimal_power_flow",
             "protection": "protection_coordination",
+            "etap_load_flow": "load_flow",
+            "etap_short_circuit": "short_circuit",
+            "etap_arc_flash": "arc_flash",
+            "etap_harmonic_analysis": "harmonic_analysis",
+            "etap_optimal_power_flow": "optimal_power_flow",
+            "etap_motor_starting": "motor_starting",
+            "etap_protection_coordination": "protection_coordination",
         }
         capability_id = alias_map.get(raw_capability_id, raw_capability_id)
         params = dict(getattr(study_request, "parameters", {}) or {})
