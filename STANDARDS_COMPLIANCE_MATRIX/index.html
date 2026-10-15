@@ -668,8 +668,8 @@
 <td style="text-align: left;">IEEE Guide for Performing Arc-Flash Hazard Calculations (2018)</td>
 <td style="text-align: left;"><code>fault_analysis/arc_flash_calc.py</code><br><code>fault_analysis/arc_flash_engine.py</code><br><code>fault_analysis/ieee1584_database.py</code><br><code>agents/arc_flash_agent.py</code></td>
 <td style="text-align: left;"><code>tests/test_arcflash_1584_st_cases.py</code><br><code>tests/test_arc_flash_ieee1584_deep.py</code><br><code>tests/gold_cases/ieee1584_st_published.json</code></td>
-<td style="text-align: left;">Requires valid electrode configuration (VCB, VCBB, HCB, VOA, HOA) and bus gap; raises error on missing gap.</td>
-<td style="text-align: left;"><strong>VERIFIED</strong></td>
+<td style="text-align: left;">Simplified empirical model evaluated against Annex D ST cases; requires valid electrode configuration and bus gap (missing gap rejected). Automated PPE labeling rejected fail-closed.</td>
+<td style="text-align: left;"><strong>VERIFIED (Simplified Model)</strong></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>IEC 60909</strong></td>
@@ -780,8 +780,8 @@
 <td style="text-align: left;">Standard for Electrical Safety in the Workplace</td>
 <td style="text-align: left;"><code>fault_analysis/arc_flash_labels.py</code><br><code>fault_analysis/arc_flash_engine.py</code></td>
 <td style="text-align: left;"><code>tests/test_arcflash_1584_st_cases.py</code><br><code>tests/test_standards_compliance_audit.py</code></td>
-<td style="text-align: left;">PPE Category determination (Categories 1–4) and safe approach boundaries ($1.2\text{ cal/cm}^2$).</td>
-<td style="text-align: left;"><strong>VERIFIED</strong></td>
+<td style="text-align: left;">PPE Category determination is REJECTED fail-closed per task hazard analysis rules; safe approach boundaries ($1.2\text{ cal/cm}^2$) evaluated.</td>
+<td style="text-align: left;"><strong>VERIFIED (Fail-Closed PPE)</strong></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ANSI Z535</strong></td>
@@ -797,12 +797,12 @@
 <h2 id="3-declared-algorithm-constraints-approximations">3. Declared Algorithm Constraints &amp; Approximations</h2>
 <h3 id="ac-optimal-power-flow-load_flowoptimal_power_flowpy">AC Optimal Power Flow (<code>load_flow/optimal_power_flow.py</code>)</h3>
 <ul>
-<li><strong>Method</strong>: Interior Point Method / Primal-Dual formulation (<code>solve_ac_opf_interior_point</code>).</li>
+<li><strong>Method</strong>: SLSQP Unconstrained OPF (No AC Network Constraints) (<code>solve_ac_opf_interior_point</code>).</li>
 <li><strong>Declared Constraint</strong>: <blockquote>
-<p><code>Planning-grade approximation — requires voltage-magnitude update loop (planned).</code></p>
+<p><code>Planning-grade unconstrained economic dispatch via SLSQP — AC power flow network constraints, line flow limits, and voltage bounds are omitted in this solver.</code></p>
 </blockquote>
 </li>
-<li><strong>Scope of Validity</strong>: Suitable for preliminary generation dispatch, loss minimization, and transmission feasibility analysis. Detailed sub-transmission distribution networks requiring fine reactive tap coordination must be validated with full AC load flow.</li>
+<li><strong>Scope of Validity</strong>: Suitable for unconstrained generator cost dispatch and unconstrained loss approximations. Transmission-constrained dispatch must be verified with DC-OPF (PTDF) or full Newton-Raphson power flow.</li>
 </ul>
 <h3 id="motor-acceleration-under-extreme-dynamics">Motor Acceleration under Extreme Dynamics</h3>
 <ul>
