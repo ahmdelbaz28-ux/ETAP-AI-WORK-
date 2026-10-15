@@ -207,12 +207,6 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     capabilities: ['generative_design', 'sld_synthesis', 'substation_design'],
     promptHandle: 'design_agent',
   },
-  'qgis-agent': {
-    id: 'qgis-agent',
-    name: 'GIS & Geospatial Agent',
-    description: 'Integrates geospatial electrical network layers across ArcGIS and QGIS.',
-    capabilities: ['qgis', 'gis', 'geospatial', 'network_mapping'],
-  },
   'validation-agent': {
     id: 'validation-agent',
     name: 'Engineering Validation Agent',
