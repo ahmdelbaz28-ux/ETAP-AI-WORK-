@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T13:28:39.593383+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T14:18:40.043944+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
-| api-route | 92 |
 | python-module | 41 |
+| ui-page | 61 |
 | ui-component | 280 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -6357,7 +6357,7 @@ Provides
 | `scripts/maintenance/start_worker.py` | py | 0.7 KB | Script to start the Celery worker for the Engineering Servic |
 | `scripts/maintenance/validate_syntax.py` | py | 5.9 KB | Syntax and dependency validation script for the entire codeb |
 | `scripts/maintenance/validation_suite.py` | py | 2.8 KB | Validation Suite for the ETAP AI Engineering Platform. |
-| `scripts/maintenance/verify_agents.py` | py | 19.2 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
+| `scripts/maintenance/verify_agents.py` | py | 19.5 KB | scripts/maintenance/verify_agents.py — Authoritative Agent R |
 | `scripts/merge_all_remote_branches.ps1` | ps1 | 6.3 KB |  |
 | `scripts/modify_scada.py` | py | 0.9 KB |  |
 | `scripts/monitor_hf.py` | py | 1.5 KB | Monitor HF Space build status. |
