@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T14:38:20.487266+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T15:19:17.928204+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -2745,22 +2745,22 @@ Patterns drawn from open-telemetry/opentelemetry-python:
 - **def** `record_canonical_execution_attributes()` (line 413)
 - **def** `format_operator_audit_record()` (line 488)
 
-#### 📄 `core/units.py` _13.9 KB_
+#### 📄 `core/units.py` _14.5 KB_
 > Physical units and dimensions registry for electrical power engineering.
 
 Provides Pint-based UnitRegistry and dimensionality verification for
 enginee
 
-- **def** `parse_quantity()` (line 155)
-- **def** `validate_parameter_dimension()` (line 215)
-- **def** `normalize_quantity()` (line 246)
-- **def** `deg_to_rad()` (line 347)
-- **def** `rad_to_deg()` (line 352)
-- **def** `normalize_angle()` (line 357)
-- **def** `awg_to_mm2()` (line 375)
-- **def** `mm2_to_nearest_awg()` (line 381)
-- **def** `ft_to_m()` (line 390)
-- **def** `m_to_ft()` (line 395)
+- **def** `parse_quantity()` (line 173)
+- **def** `validate_parameter_dimension()` (line 233)
+- **def** `normalize_quantity()` (line 264)
+- **def** `deg_to_rad()` (line 365)
+- **def** `rad_to_deg()` (line 370)
+- **def** `normalize_angle()` (line 375)
+- **def** `awg_to_mm2()` (line 393)
+- **def** `mm2_to_nearest_awg()` (line 399)
+- **def** `ft_to_m()` (line 408)
+- **def** `m_to_ft()` (line 413)
 
 #### 📄 `core/utils.py` _1.4 KB_
 > core/utils.py — Shared utility functions used across the ETAP-AI-WORK codebase.
@@ -2995,7 +2995,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _109.5 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _109.9 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -3004,13 +3004,13 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_9bus_system()` (line 23)
 - **def** `build_ieee_14bus_system()` (line 166)
 - **def** `build_iec60909_benchmark_system()` (line 309)
-- **def** `build_ieee_30bus_system()` (line 565)
-- **def** `calculate_iec_60909_theoretical_fault()` (line 717)
-- **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 724)
-- **def** `build_ieee_13bus_harmonic_system()` (line 747)
-- **def** `build_industrial_4bus_harmonic_system()` (line 780)
-- **def** `build_commercial_480v_harmonic_system()` (line 817)
-- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 852)
+- **def** `build_ieee_30bus_system()` (line 577)
+- **def** `calculate_iec_60909_theoretical_fault()` (line 729)
+- **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 736)
+- **def** `build_ieee_13bus_harmonic_system()` (line 759)
+- **def** `build_industrial_4bus_harmonic_system()` (line 792)
+- **def** `build_commercial_480v_harmonic_system()` (line 829)
+- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 864)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -3330,7 +3330,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _111.4 KB_
+#### 📄 `services/execution_orchestrator.py` _113.2 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3357,7 +3357,7 @@ Coo
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `verify_server_approval()`, `execute()`
 - **def** `get_execution_state_store()` (line 257)
 - **def** `set_execution_state_store()` (line 276)
-- **def** `get_execution_orchestrator()` (line 2587)
+- **def** `get_execution_orchestrator()` (line 2624)
 
 #### 📄 `services/execution_request.py` _18.3 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
 | ui-page | 61 |
 | python-module | 41 |
 | ui-component | 280 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -5926,10 +5926,10 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
-| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
+| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
 | `core_model` | `network_solver` | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
@@ -5943,10 +5943,10 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | `core_model`, `engine` |
@@ -5954,7 +5954,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
