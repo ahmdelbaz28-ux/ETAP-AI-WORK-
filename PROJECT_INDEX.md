@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T17:03:51.147782+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T17:24:08.594884+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -5943,7 +5943,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5954,7 +5954,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
