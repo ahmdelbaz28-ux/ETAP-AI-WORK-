@@ -108,16 +108,6 @@ class FaultAnalyzer:
 
         if is_singular:
             s = self.slack_bus_index
-            if s is None and self.n > 1:
-                # If slack_bus_index was not explicitly specified, inspect candidate reference bus 0
-                rem_idx = [i for i in range(self.n) if i != 0]
-                y_rem = ybus[np.ix_(rem_idx, rem_idx)]
-                try:
-                    cond_rem = np.linalg.cond(y_rem)
-                    if cond_rem <= 1e12 and not np.isnan(cond_rem) and not np.isinf(cond_rem):
-                        s = 0
-                except Exception:
-                    pass
             if s is not None and 0 <= s < self.n:
                 rem_idx = [i for i in range(self.n) if i != s]
                 y_rem = ybus[np.ix_(rem_idx, rem_idx)]

@@ -27,10 +27,11 @@ from engine.engine import PowerSystemEngine
 def _build_test_system():
     system = System()
     system.base_mva = 100.0
+    system.base_kv = 11.0
 
-    b1 = Bus(bus_id=1, voltage_magnitude=1.05, bus_type="slack")
-    b2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq")
-    b3 = Bus(bus_id=3, voltage_magnitude=1.0, bus_type="pq")
+    b1 = Bus(bus_id=1, voltage_magnitude=1.05, bus_type="slack", base_kv=11.0)
+    b2 = Bus(bus_id=2, voltage_magnitude=1.0, bus_type="pq", base_kv=11.0)
+    b3 = Bus(bus_id=3, voltage_magnitude=1.0, bus_type="pq", base_kv=11.0)
 
     system.add_bus(b1)
     system.add_bus(b2)
@@ -144,18 +145,38 @@ class TestEngineArcFlash:
             working_distance_mm=457.0,
             electrode_config="VCB",
             enclosure_type="box",
+            arc_gap_mm=25.0,
+            enclosure_width_mm=508.0,
+            enclosure_height_mm=508.0,
+            enclosure_depth_mm=508.0,
         )
         assert res["incident_energy_cal_per_cm2"] > 0
         assert res["arc_flash_boundary_mm"] > 0
-        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER")
+        assert res["ppe_level"] in ("0", "1", "2", "3", "4", "DANGER", "REJECTED")
 
     def test_run_arc_flash_invalid_electrode_raises(self, engine):
         with pytest.raises(ValueError, match="Invalid electrode_config"):
-            engine.run_arc_flash(0.48, 25.0, 0.1, 457.0, electrode_config="XYZ")
+            engine.run_arc_flash(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.1,
+                working_distance_mm=457.0,
+                electrode_config="XYZ",
+                enclosure_type="open",
+                arc_gap_mm=25.0,
+            )
 
     def test_run_arc_flash_invalid_enclosure_raises(self, engine):
         with pytest.raises(ValueError, match="Invalid enclosure_type"):
-            engine.run_arc_flash(0.48, 25.0, 0.1, 457.0, enclosure_type="dome")
+            engine.run_arc_flash(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.1,
+                working_distance_mm=457.0,
+                electrode_config="VCB",
+                enclosure_type="dome",
+                arc_gap_mm=25.0,
+            )
 
     def test_run_study_arc_flash(self, engine):
         res = engine.run_study(
@@ -164,6 +185,9 @@ class TestEngineArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.1,
             working_distance_mm=457.0,
+            arc_gap_mm=25.0,
+            electrode_config="VCB",
+            enclosure_type="open",
         )
         assert res["incident_energy_cal_per_cm2"] > 0
 

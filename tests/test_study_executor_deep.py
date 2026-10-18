@@ -222,6 +222,8 @@ class TestExecutionPipeline:
                 "arc_duration_sec": 0.1,
                 "working_distance_mm": 457.0,
                 "arc_gap_mm": 25.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "open",
             },
         )
         res = await executor.execute(req)

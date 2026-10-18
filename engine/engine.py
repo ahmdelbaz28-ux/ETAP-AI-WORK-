@@ -340,6 +340,20 @@ class PowerSystemEngine:
         Returns:
         dict: Fault analysis results.
         """
+        # Normalize and validate fault type fail-closed before expensive matrix operations
+        ft = str(fault_type).lower().strip()
+        alias_ft = {
+            "slg": "line_to_ground",
+            "ll": "line_to_line",
+            "llg": "double_line_to_ground",
+            "3phase": "three_phase",
+            "3p": "three_phase",
+        }
+        fault_type = alias_ft.get(ft, ft)
+        valid_fault_types = {"three_phase", "line_to_ground", "line_to_line", "double_line_to_ground"}
+        if fault_type not in valid_fault_types:
+            raise ValueError(f"Unsupported fault type: {fault_type}")
+
         if self.load_flow_solver is None:
             if self.system is not None:
                 self.load_flow_solver = LoadFlowSolver(self.system)
@@ -397,16 +411,6 @@ class PowerSystemEngine:
                 f"bus_id {bus_id} not found in system buses {valid_buses} for fault analysis"
             )
         bus_index = self.load_flow_solver.bus_index[bus_id]
-        # Normalize and validate fault type
-        ft = str(fault_type).lower().strip()
-        alias_ft = {
-            "slg": "line_to_ground",
-            "ll": "line_to_line",
-            "llg": "double_line_to_ground",
-            "3phase": "three_phase",
-            "3p": "three_phase",
-        }
-        fault_type = alias_ft.get(ft, ft)
         # Calculate fault
         if fault_type == "three_phase":
             result = fault_analyzer.three_phase_fault(bus_index)
@@ -503,8 +507,8 @@ class PowerSystemEngine:
         bolted_fault_current_ka: float,
         arc_duration_sec: float,
         working_distance_mm: float,
-        electrode_config: str,
-        enclosure_type: str,
+        electrode_config: str | None = None,
+        enclosure_type: str | None = None,
         enclosure_width_mm: float | None = None,
         enclosure_height_mm: float | None = None,
         enclosure_depth_mm: float | None = None,
@@ -515,12 +519,26 @@ class PowerSystemEngine:
         """
         if electrode_config is None:
             raise ValueError("electrode_config is required for arc flash calculation")
+        try:
+            electrode_enum = ElectrodeConfig(str(electrode_config).strip().upper())
+        except ValueError:
+            valid_configs = [e.value for e in ElectrodeConfig]
+            raise ValueError(
+                f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
+            )
         if enclosure_type is None:
             raise ValueError("enclosure_type is required for arc flash calculation")
+        raw_enc = str(enclosure_type).strip().lower()
+        try:
+            enclosure_enum = EnclosureType(raw_enc)
+        except ValueError:
+            valid_types = [e.value for e in EnclosureType]
+            raise ValueError(
+                f"Invalid enclosure_type '{enclosure_type}'. Allowed values: {valid_types}"
+            )
         if arc_gap_mm is None:
             raise ValueError("arc_gap_mm is required for arc flash calculation")
 
-        raw_enc = str(enclosure_type).strip().lower()
         if raw_enc == "box":
             for d_name, d_val in [
                 ("enclosure_width_mm", enclosure_width_mm),
@@ -529,21 +547,6 @@ class PowerSystemEngine:
             ]:
                 if d_val is None:
                     raise ValueError(f"{d_name} is required for box enclosure (no silent defaults)")
-
-        try:
-            electrode_enum = ElectrodeConfig(str(electrode_config).strip().upper())
-        except ValueError:
-            valid_configs = [e.value for e in ElectrodeConfig]
-            raise ValueError(
-                f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
-            )
-        try:
-            enclosure_enum = EnclosureType(raw_enc)
-        except ValueError:
-            valid_types = [e.value for e in EnclosureType]
-            raise ValueError(
-                f"Invalid enclosure_type '{enclosure_type}'. Allowed values: {valid_types}"
-            )
 
         result = self.arc_flash_engine.calculate(
             voltage_kv=voltage_kv,

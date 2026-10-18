@@ -197,11 +197,18 @@ DEFAULT_PARAMS: dict[str, dict[str, Any]] = {
         "bolted_fault_current_ka": 20.0,
         "arc_duration_sec": 0.1,
         "working_distance_mm": 457.0,
+        "arc_gap_mm": 25.0,
+        "electrode_config": "VCB",
+        "enclosure_type": "open",
     },
     "protection_coordination": {
         "upstream_relay_id": 1,
         "downstream_relay_id": 2,
         "fault_currents": [2.0, 5.0, 10.0, 20.0],
+        "relays_config": {
+            "upstream": {"name": "Relay_1", "tms": 0.5, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+            "downstream": {"name": "Relay_2", "tms": 0.2, "pickup_current_a": 100.0, "curve_type": "standard_inverse"},
+        },
     },
     "etap_expert": {"question": "What is IEEE 1584 standard for arc flash?"},
     "etap_gui": {"question": "How to create a bus in ETAP?"},

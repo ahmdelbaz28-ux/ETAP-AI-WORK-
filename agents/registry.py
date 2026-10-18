@@ -355,8 +355,8 @@ class ShortCircuitAgent(BaseAgent):
                     _SYSTEM_DATA_NOT_PROVIDED_MSG  # NOSONAR
                 )  # NOSONAR
 
-            # Build sequence networks
-            system_data.build_sequence_networks()
+            # Build sequence networks with generator impedances for fault analysis
+            system_data.build_sequence_networks(for_fault=True)
 
             ybus_pos = system_data.get_ybus(  # S117 engineering-notation variable names (e.g. Iarc, delta_V); snake_case would harm domain readability
                 seq="1"
@@ -371,6 +371,16 @@ class ShortCircuitAgent(BaseAgent):
             # Create fault analyzer
             base_mva = system_data.base_mva
             base_kv = task.parameters.get("base_kv", 115.0)
+
+            # Determine slack bus index
+            slack_index = None
+            if hasattr(system_data, "buses"):
+                for idx, (bid, b) in enumerate(system_data.buses.items()):
+                    if getattr(b, "bus_type", "") == "slack":
+                        slack_index = idx
+                        break
+            if slack_index is None:
+                slack_index = task.parameters.get("slack_bus_index")
 
             if self._analyzer_factory is not None:
                 analyzer = self._analyzer_factory(
@@ -387,6 +397,7 @@ class ShortCircuitAgent(BaseAgent):
                     ybus_zero,
                     base_mva=base_mva,
                     base_kv=base_kv,
+                    slack_bus_index=slack_index,
                 )
 
             # Execute all fault types at specified buses
