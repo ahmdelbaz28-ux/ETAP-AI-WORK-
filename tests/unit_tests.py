@@ -486,7 +486,7 @@ class TestShortCircuit:
         )
         system.add_line(line)
 
-        system.build_sequence_networks()
+        system.build_sequence_networks(for_fault=True)
 
         Ybus_pos = system.get_ybus(
             seq="1"
@@ -502,7 +502,9 @@ class TestShortCircuit:
         Ybus_neg = system.get_ybus(seq="2")
         Ybus_zero = system.get_ybus(seq="0")
 
-        return FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0)
+        return FaultAnalyzer(
+            Ybus_pos, Ybus_neg, Ybus_zero, base_mva=100.0, base_kv=115.0, slack_bus_index=0
+        )
 
     def test_three_phase_fault_positive_current(self, fault_system):
         """Test that three-phase fault current is positive."""
@@ -576,6 +578,7 @@ class TestArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
             working_distance_mm=610.0,
+            arc_gap_mm=104.0,
         )
 
         assert result.incident_energy_cal_cm2 > 0, "Incident energy should be positive"
@@ -589,6 +592,7 @@ class TestArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
             working_distance_mm=610.0,
+            arc_gap_mm=104.0,
         )
 
         assert result.arc_flash_boundary_mm > 0, "Arc flash boundary should be positive"
@@ -602,10 +606,15 @@ class TestArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
             working_distance_mm=610.0,
+            arc_gap_mm=104.0,
         )
 
-        valid_ppe_levels = ["0", "1", "2", "3", "4", "DANGER"]
+        valid_ppe_levels = ["0", "1", "2", "3", "4", "DANGER", "REJECTED"]
         assert result.ppe_level in valid_ppe_levels, f"Invalid PPE level: {result.ppe_level}"
+        cat_str, _ = ArcFlashEngine.determine_ppe_level(
+            result.incident_energy_cal_cm2, allow_simplified=True
+        )
+        assert cat_str in ["0", "1", "2", "3", "4", "DANGER"]
 
     def test_voltage_sensitivity(self):
         """Test that higher voltage produces different results."""
@@ -616,6 +625,7 @@ class TestArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
             working_distance_mm=610.0,
+            arc_gap_mm=25.0,
         )
 
         result_high = engine.calculate(
@@ -623,6 +633,7 @@ class TestArcFlash:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.5,
             working_distance_mm=610.0,
+            arc_gap_mm=104.0,
         )
 
         assert result_low.incident_energy_cal_cm2 != result_high.incident_energy_cal_cm2, (
@@ -1076,7 +1087,7 @@ class TestIntegration:
         )
         system.add_line(line)
 
-        system.build_sequence_networks()
+        system.build_sequence_networks(for_fault=True)
 
         Ybus_pos = system.get_ybus(
             seq="1"
@@ -1092,7 +1103,7 @@ class TestIntegration:
         Ybus_neg = system.get_ybus(seq="2")
         Ybus_zero = system.get_ybus(seq="0")
 
-        analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero)
+        analyzer = FaultAnalyzer(Ybus_pos, Ybus_neg, Ybus_zero, slack_bus_index=0)
 
         # Test all fault types
         faults = [

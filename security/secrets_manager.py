@@ -17,6 +17,7 @@ Features:
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import logging
 import os
@@ -667,13 +668,28 @@ class EnvironmentValidator:
         ]
         root = Path.cwd()
         findings: list[dict] = []
-        for pattern in file_patterns:
-            for fpath in root.rglob(pattern):
-                if (
-                    ".git" in fpath.parts
-                    or "node_modules" in fpath.parts
-                    or "__pycache__" in fpath.parts
-                ):
+        excluded_dirs = {".git", "node_modules", "__pycache__", ".venv", "venv", ".pytest_cache", ".hypothesis"}
+
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in excluded_dirs]
+            for fname in filenames:
+                fpath = Path(dirpath) / fname
+                try:
+                    rel_fpath = fpath.relative_to(root)
+                except ValueError:
+                    continue
+                rel_fpath_str = str(rel_fpath).replace("\\", "/")
+                matches = False
+                for pattern in file_patterns:
+                    clean_pattern = pattern.replace("\\", "/")
+                    if (
+                        fnmatch.fnmatch(fname, clean_pattern)
+                        or fnmatch.fnmatch(rel_fpath_str, clean_pattern)
+                        or fnmatch.fnmatch(rel_fpath_str, f"*/{clean_pattern}")
+                    ):
+                        matches = True
+                        break
+                if not matches:
                     continue
                 try:
                     content = fpath.read_text(encoding="utf-8", errors="ignore")
@@ -681,7 +697,7 @@ class EnvironmentValidator:
                         for match in re.finditer(regex, content):
                             findings.append(
                                 {
-                                    "file": str(fpath.relative_to(root)),
+                                    "file": str(rel_fpath),
                                     "line": content[: match.start()].count("\n") + 1,
                                     "type": label,
                                     "match_preview": match.group(0)[:60],
