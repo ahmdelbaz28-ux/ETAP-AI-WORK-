@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T15:39:56.497242+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T16:03:49.968475+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEC60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -3116,7 +3116,7 @@ Generates industrial-grade
 - **Class** `ArcFlashLabelSpec` (line 22)
   - Methods: `from_calculation_result()`, `to_svg()`, `to_dict()`
 
-#### 📄 `fault_analysis/fault.py` _13.7 KB_
+#### 📄 `fault_analysis/fault.py` _14.2 KB_
 - **Class** `FaultAnalyzer` (line 16)
   - Methods: `three_phase_fault()`, `line_to_ground_fault()`, `line_to_line_fault()`, `double_line_to_ground_fault()`
 
@@ -3557,20 +3557,20 @@ Provides runtime a
   - Methods: `enabled()`, `enabled()`, `inspect()`, `get_stats()`, `add_rule()`, `remove_rule()`
 - **def** `create_default_rasp_engine()` (line 263)
 
-#### 📄 `security/secrets_manager.py` _30.8 KB_
+#### 📄 `security/secrets_manager.py` _31.5 KB_
 > Secrets Manager for AhmedETAP Engineering Platform
 =================================================
 Production-grade secrets management with HashiCor
 
-- **Class** `VaultSecretsManager` (line 101)
+- **Class** `VaultSecretsManager` (line 102)
   - Methods: `vault_token()`, `get_secret()`, `set_secret()`, `delete_secret()`, `list_secrets()`
-- **Class** `LocalSecretsManager` (line 288)
+- **Class** `LocalSecretsManager` (line 289)
   - Methods: `set_api_key()`, `get_api_key()`, `rotate_key()`, `delete_api_key()`, `list_services()`
-- **Class** `KeyAccessAuditor` (line 449)
+- **Class** `KeyAccessAuditor` (line 450)
   - Methods: `log_access()`, `get_access_logs()`, `get_recent_access()`
-- **Class** `EnvironmentValidator` (line 571)
+- **Class** `EnvironmentValidator` (line 572)
   - Methods: `check_missing_secrets()`, `check_file_permissions()`, `check_for_hardcoded_secrets()`, `generate_env_template()`
-- **def** `get_secrets_manager()` (line 737)
+- **def** `get_secrets_manager()` (line 753)
 
 #### 📄 `security/secure_executor.py` _24.8 KB_
 > Secure Python Executor
@@ -5912,9 +5912,9 @@ Provides
 | Type | Count |
 |:---|---:|
 | python-module | 41 |
+| ui-page | 61 |
 | ui-component | 280 |
 | api-route | 92 |
-| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
