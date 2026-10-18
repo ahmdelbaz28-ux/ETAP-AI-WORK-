@@ -468,6 +468,27 @@ class MathGuard:
                 units_message=units_msg,
             )
 
+        is_independent = bool(getattr(recompute, "is_independent", False))
+        provenance = getattr(recompute, "_provenance", None)
+        is_trusted = is_independent and provenance in (
+            "domain_engine",
+            "trusted_registry",
+            "reference_calculator",
+        )
+        if not is_independent or not is_trusted:
+            return MathGuardResult(
+                passed=False,
+                reason=(
+                    "NON_INDEPENDENT_VERIFICATION: Recomputation lacks authenticated independent provenance "
+                    "(must have _provenance in ('domain_engine', 'trusted_registry'); certification refused)"
+                ),
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=units_ok,
+                units_message=units_msg,
+                is_independent=False,
+            )
+
         try:
             recomputed = float(recompute())
         except Exception as exc:
@@ -483,11 +504,8 @@ class MathGuard:
         # Step 3 — tolerance check
         tolerance_ok, tolerance_msg = self._check_tolerance(claim_value, recomputed)
 
-        is_independent = bool(getattr(recompute, "is_independent", False))
-        passed = units_ok and tolerance_ok and is_independent
-        if not is_independent:
-            _reason = "NON_INDEPENDENT_VERIFICATION: Recomputation is not an independent calculation (self-consistency check only; certification refused)"
-        elif not tolerance_ok:
+        passed = units_ok and tolerance_ok and is_trusted
+        if not tolerance_ok:
             _reason = tolerance_msg
         elif not units_ok:
             _reason = units_msg
@@ -1239,7 +1257,14 @@ class AhmedETAPSkillAgent(BaseAgent):
                         validation_errors=[f"Canonical execution failed: {exec_err}"],
                     )
             else:
-                res = await lead_agent.execute(t)
+                res = AgentResult(
+                    agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                    study_type=st_enum,
+                    status=AgentStatus.FAILED,
+                    data={},
+                    validation_status=False,
+                    validation_errors=[f"Unregistered or non-canonical study capability: '{canonical_study}'"],
+                )
 
             lead_result.append(res)
             return res
@@ -1251,23 +1276,7 @@ class AhmedETAPSkillAgent(BaseAgent):
         domain_recompute = self._build_domain_recompute(study_type, params, project) if recompute_fn is None else None
 
         if recompute_fn is None:
-            def _derived_recompute() -> float:
-                if domain_recompute is not None:
-                    _derived_recompute.is_independent = True
-                    return domain_recompute()
-                if lead_result and lead_result[0].data:
-                    _derived_recompute.is_independent = False
-                    val = self._extract_result_quantity(
-                        lead_result[0].data, str(params.get("quantity_kind", "voltage"))
-                    )
-                    if val is not None:
-                        return val
-                raise ValueError(
-                    f"No deterministic recomputation available for study_type '{study_type}'"
-                )
-
-            _derived_recompute.is_independent = bool(getattr(domain_recompute, "is_independent", False))
-            recompute_fn = _derived_recompute
+            recompute_fn = domain_recompute
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
@@ -1367,34 +1376,53 @@ class AhmedETAPSkillAgent(BaseAgent):
         if canonical in ("short_circuit", "fault"):
             v_kv = float(lead_params.get("voltage_kv") or project.base_kv or 0.0)
             z_ohm = float(lead_params.get("z_ohm") or lead_params.get("impedance_ohm") or 0.0)
-            if v_kv > 0.0 and z_ohm > 0.0:
+            if v_kv > 0.0 and z_ohm > 0.0 and math.isfinite(v_kv) and math.isfinite(z_ohm):
                 def _calc_sc() -> float:
                     return (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0
 
                 _calc_sc.is_independent = True
+                _calc_sc._provenance = "domain_engine"
                 return _calc_sc
 
         # 2. Cable Sizing / Full Load Current: I = P / (sqrt(3) * V * pf)
         if canonical == "cable_sizing":
             p_kw = float(lead_params.get("power_kw") or (float(lead_params.get("p_mw", 0.0)) * 1000.0) or 0.0)
             v_v = float(lead_params.get("voltage_v") or (float(lead_params.get("voltage_kv", 0.0)) * 1000.0) or 0.0)
-            pf = float(lead_params.get("power_factor", 0.85))
-            if p_kw > 0.0 and v_v > 0.0 and pf > 0.0:
+            raw_pf = lead_params.get("power_factor")
+            if raw_pf is not None:
+                try:
+                    pf = float(raw_pf)
+                except (ValueError, TypeError):
+                    pf = 0.0
+            else:
+                pf = 0.0
+
+            if p_kw > 0.0 and v_v > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw) and math.isfinite(v_v):
                 def _calc_cable() -> float:
                     return (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf)
 
                 _calc_cable.is_independent = True
+                _calc_cable._provenance = "domain_engine"
                 return _calc_cable
 
         # 3. Transformer Sizing: S_kVA = P_kW / pf
         if canonical in ("transformer_sizing", "substation_design"):
             p_kw = float(lead_params.get("load_kw") or lead_params.get("power_kw") or 0.0)
-            pf = float(lead_params.get("power_factor", 0.85))
-            if p_kw > 0.0 and pf > 0.0:
+            raw_pf = lead_params.get("power_factor")
+            if raw_pf is not None:
+                try:
+                    pf = float(raw_pf)
+                except (ValueError, TypeError):
+                    pf = 0.0
+            else:
+                pf = 0.0
+
+            if p_kw > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw):
                 def _calc_xfmr() -> float:
                     return p_kw / pf
 
                 _calc_xfmr.is_independent = True
+                _calc_xfmr._provenance = "domain_engine"
                 return _calc_xfmr
 
         return None

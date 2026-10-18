@@ -879,3 +879,38 @@ class TestPostDrawVerifierFailClosed:
         res = await dispatch_load_flow_verification(project_path="dummy/path.etap", baseline_model={})
         assert res.passed is False
         assert res.status == "baseline_missing"
+
+    def test_nonfinite_nan_and_inf_in_expected_baseline_fails_closed(self):
+        """NaN, +inf, -inf in expected baseline must fail closed with baseline_missing."""
+        import math
+
+        for bad_val in (float("nan"), float("inf"), float("-inf")):
+            res = verify_bus_results(expected_buses={"B1": bad_val}, calculated_buses={"B1": 1.0})
+            assert res.passed is False
+            assert res.status == "baseline_missing"
+            assert res.bus_comparisons["B1"].passed is False
+            assert "baseline voltage missing or invalid" in res.bus_comparisons["B1"].message.lower()
+
+    def test_nonfinite_nan_and_inf_in_calculated_voltages_fails_closed(self):
+        """NaN, +inf, -inf in calculated results must fail closed."""
+        for bad_val in (float("nan"), float("inf"), float("-inf")):
+            res = verify_bus_results(expected_buses={"B1": 1.0}, calculated_buses={"B1": bad_val})
+            assert res.passed is False
+            assert res.bus_comparisons["B1"].passed is False
+            assert "invalid, non-finite, or non-positive" in res.bus_comparisons["B1"].message
+
+    def test_nonnumeric_in_expected_and_calculated_fails_closed(self):
+        """Nonnumeric strings or objects in expected or calculated buses must not raise unhandled exception."""
+        res_exp = verify_bus_results(expected_buses={"B1": "not_a_number"}, calculated_buses={"B1": 1.0})
+        assert res_exp.passed is False
+        assert res_exp.status == "baseline_missing"
+
+        res_calc = verify_bus_results(expected_buses={"B1": 1.0}, calculated_buses={"B1": "malformed_voltage"})
+        assert res_calc.passed is False
+        assert res_calc.bus_comparisons["B1"].passed is False
+
+    def test_baseline_with_no_valid_numerical_comparison_fails(self):
+        """A baseline where require_baseline=False but no comparison could be made fails closed."""
+        res = verify_bus_results(expected_buses={"B1": None}, calculated_buses={"B1": 1.0}, require_baseline=False)
+        assert res.passed is False
+        assert res.status == "baseline_missing"

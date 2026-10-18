@@ -65,6 +65,7 @@ async def test_ahmed_etap_routes_system_through_execution_orchestrator():
         return 1.01
 
     independent_recompute.is_independent = True
+    independent_recompute._provenance = "domain_engine"
 
     task = EngineeringTask(
         task_id="test_canonical",
@@ -91,14 +92,15 @@ async def test_ahmed_etap_routes_system_through_execution_orchestrator():
 
 
 def test_math_guard_flags_non_independent_recomputation():
-    """When recomputation is extracted from lead agent, is_independent must be False and MathGuard must FAIL."""
+    """When recomputation lacks domain_engine provenance, MathGuard must FAIL."""
     mg = MathGuard(tolerance_pct=0.01)
 
-    # 1. Independent callable with proven independence
+    # 1. Independent callable with proven domain_engine provenance
     def independent_fn():
         return 1.05
 
     independent_fn.is_independent = True
+    independent_fn._provenance = "domain_engine"
 
     res_indep = mg.validate(
         claim_value=1.05,
@@ -124,11 +126,11 @@ def test_math_guard_flags_non_independent_recomputation():
     )
     assert res_extracted.passed is False
     assert res_extracted.is_independent is False
-    assert "not an independent" in res_extracted.reason.lower()
+    assert "lacks authenticated independent provenance" in res_extracted.reason or "not an independent" in res_extracted.reason.lower()
 
 
 def test_math_guard_unverified_provenance_fails():
-    """A callable with no provenance attribute defaults to is_independent=False and fails."""
+    """A callable with no or untrusted provenance attribute fails."""
     mg = MathGuard(tolerance_pct=0.01)
 
     def plain_fn():
@@ -142,7 +144,66 @@ def test_math_guard_unverified_provenance_fails():
     )
     assert res.passed is False
     assert res.is_independent is False
-    assert "not an independent" in res.reason.lower()
+    assert "lacks authenticated independent provenance" in res.reason or "not an independent" in res.reason.lower()
+
+    # Client-injected provenance spoofing
+    def spoofed_fn():
+        return 1.05
+
+    spoofed_fn.is_independent = True
+    spoofed_fn._provenance = "client_untrusted"
+
+    res_spoofed = mg.validate(
+        claim_value=1.05,
+        recompute=spoofed_fn,
+        quantity_kind="voltage",
+        claim_unit="pu",
+    )
+    assert res_spoofed.passed is False
+    assert res_spoofed.is_independent is False
+
+
+def test_build_domain_recompute_requires_explicit_power_factor():
+    """_build_domain_recompute must require explicit power factor and reject silent defaults (0.85)."""
+    from agents.ahmed_etap_orchestrator import ProjectRef
+
+    proj = ProjectRef(name="Test", base_mva=100.0, base_kv=13.8)
+
+    # Cable sizing missing power factor -> returns None
+    recompute_no_pf = AhmedETAPSkillAgent._build_domain_recompute(
+        "cable_sizing",
+        {"power_kw": 500.0, "voltage_v": 400.0},
+        proj,
+    )
+    assert recompute_no_pf is None
+
+    # Cable sizing with explicit valid power factor -> returns valid independent callback
+    recompute_with_pf = AhmedETAPSkillAgent._build_domain_recompute(
+        "cable_sizing",
+        {"power_kw": 500.0, "voltage_v": 400.0, "power_factor": 0.88},
+        proj,
+    )
+    assert recompute_with_pf is not None
+    assert recompute_with_pf.is_independent is True
+    assert getattr(recompute_with_pf, "_provenance", None) == "domain_engine"
+
+    # Transformer sizing missing power factor -> returns None
+    recompute_xfmr_no_pf = AhmedETAPSkillAgent._build_domain_recompute(
+        "transformer_sizing",
+        {"load_kw": 800.0},
+        proj,
+    )
+    assert recompute_xfmr_no_pf is None
+
+    # Transformer sizing with explicit valid power factor -> returns valid callback
+    recompute_xfmr_pf = AhmedETAPSkillAgent._build_domain_recompute(
+        "transformer_sizing",
+        {"load_kw": 800.0, "power_factor": 0.90},
+        proj,
+    )
+    assert recompute_xfmr_pf is not None
+    assert recompute_xfmr_pf.is_independent is True
+    assert getattr(recompute_xfmr_pf, "_provenance", None) == "domain_engine"
 
 
 @pytest.mark.asyncio

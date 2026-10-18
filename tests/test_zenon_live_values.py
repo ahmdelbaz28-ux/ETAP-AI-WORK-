@@ -225,3 +225,78 @@ async def test_malformed_readings_zero_updates_does_not_label_enriched(
     assert res.extra_elements.get("zenon_live_enrichment") == "NO_MATCHING_TAGS"
     assert res.extra_elements.get("zenon_live_enrichment") != "ENRICHED"
     assert res.system.buses["BUS_1"].voltage_magnitude == 1.0
+
+
+@pytest.mark.asyncio
+async def test_nonfinite_numeric_values_rejected(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """NaN, +inf, -inf, and non-positive voltages/loads are rejected and not applied."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_nonfinite = {
+        "voltages": {
+            "BUS_1": float("nan"),
+            "BUS_2": float("inf"),
+        },
+        "loads": {
+            "LOAD_1": float("-inf"),
+        },
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_nonfinite,
+    )
+    # Neither bus voltage was mutated
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.0
+    assert res.system.buses["BUS_2"].voltage_magnitude == 1.0
+    # Load was not mutated
+    assert res.system.loads[0].load_power.real == 10.0
+    assert res.extra_elements.get("zenon_live_enrichment") == "NO_MATCHING_TAGS"
+
+
+@pytest.mark.asyncio
+async def test_fractional_switch_states_rejected_without_truncation(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Fractional switch floats like 1.5 must NOT be truncated to 1; must be rejected."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_fractional = {
+        "status": {
+            "BRK_1": 1.5,   # Must NOT truncate to 1
+            "SW_1": 0.7,    # Must NOT truncate to 0
+        },
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_fractional,
+    )
+    # Breaker and switch statuses remain at their original static values (0)
+    assert res.extra_elements["breakers"][0]["status"] == 0
+    assert res.extra_elements["switches"][0]["status"] == 0
+    counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
+    assert counts.get("switches_updated") == 0
+
+
+@pytest.mark.asyncio
+async def test_valid_discrete_switch_states_succeed(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Discrete values (0, 1, 'closed', 'open', True, False) correctly update status."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_discrete = {
+        "status": {
+            "BRK_1": "closed",
+            "SW_1": 1.0,  # Exact integer float
+        },
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_discrete,
+    )
+    assert res.extra_elements["breakers"][0]["status"] == 1
+    assert res.extra_elements["switches"][0]["status"] == 1
+    counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
+    assert counts.get("switches_updated") == 2

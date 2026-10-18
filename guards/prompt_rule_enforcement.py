@@ -240,31 +240,48 @@ def validate_agent_response(
 
     # ── Check 1: Mandatory tool calls ─────────────────────────────────
     if agent_id in ENGINEERING_COMPUTATION_AGENTS:
-        # Engineering agents must call either request_canonical_execution (authoritative study)
-        # or run_python (advisory calculation). Calling either fulfills the tool requirement.
-        has_computational_tool = bool(
-            {"request_canonical_execution", "run_python"} & normalized_tool_calls
-        )
-        if not has_computational_tool:
-            is_life_safety = agent_id in {
-                "arcflash-agent",
-                "short-circuit-agent",
-                "protection-agent",
-            }
-            violations.append(
-                PromptRuleViolation(
-                    rule_id="F03-TOOL-computational-tool",
-                    agent_id=agent_id,
-                    rule_type="tool_call",
-                    description=(
-                        f"Agent '{agent_id}' did not invoke a required computational tool. "
-                        "Authoritative studies must call request_canonical_execution, "
-                        "and advisory calculations must call run_python."
-                    ),
-                    severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
-                    evidence=f"tool_calls_made={sorted(tool_calls)}, required=['request_canonical_execution' or 'run_python']",
+        # Engineering agents must call request_canonical_execution for authoritative studies,
+        # or either request_canonical_execution / run_python for advisory calculations.
+        if study_type:
+            has_canonical_tool = "request_canonical_execution" in normalized_tool_calls
+            if not has_canonical_tool:
+                violations.append(
+                    PromptRuleViolation(
+                        rule_id="F03-TOOL-canonical-execution",
+                        agent_id=agent_id,
+                        rule_type="tool_call",
+                        description=(
+                            f"Agent '{agent_id}' executed authoritative study '{study_type}' without calling "
+                            "'request_canonical_execution'. Authoritative studies must execute via the canonical gateway."
+                        ),
+                        severity=GuardSeverity.MUST_FIX,
+                        evidence=f"tool_calls_made={sorted(tool_calls)}, required=['request_canonical_execution']",
+                    )
                 )
+        else:
+            has_computational_tool = bool(
+                {"request_canonical_execution", "run_python"} & normalized_tool_calls
             )
+            if not has_computational_tool:
+                is_life_safety = agent_id in {
+                    "arcflash-agent",
+                    "short-circuit-agent",
+                    "protection-agent",
+                }
+                violations.append(
+                    PromptRuleViolation(
+                        rule_id="F03-TOOL-computational-tool",
+                        agent_id=agent_id,
+                        rule_type="tool_call",
+                        description=(
+                            f"Agent '{agent_id}' did not invoke a required computational tool. "
+                            "Authoritative studies must call request_canonical_execution, "
+                            "and advisory calculations must call run_python."
+                        ),
+                        severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
+                        evidence=f"tool_calls_made={sorted(tool_calls)}, required=['request_canonical_execution' or 'run_python']",
+                    )
+                )
     else:
         required_tools = MANDATORY_TOOL_RULES.get(agent_id, [])
         for tool_name in required_tools:

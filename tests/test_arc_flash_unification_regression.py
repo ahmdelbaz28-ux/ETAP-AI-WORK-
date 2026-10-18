@@ -97,6 +97,10 @@ class TestArcFlashUnification:
             "arc_duration_s": 0.15,
             "working_distance_mm": 457.0,
             "electrode_config": "VCB",
+            "enclosure_type": "box",
+            "enclosure_width_mm": 508.0,
+            "enclosure_height_mm": 508.0,
+            "enclosure_depth_mm": 508.0,
             "gap_mm": 25.0,
             "arc_gap_mm": 25.0,
         }
@@ -109,6 +113,10 @@ class TestArcFlashUnification:
             arc_duration_sec=params["arc_duration_s"],
             working_distance_mm=params["working_distance_mm"],
             electrode_config=params["electrode_config"],
+            enclosure_type=params["enclosure_type"],
+            enclosure_width_mm=params["enclosure_width_mm"],
+            enclosure_height_mm=params["enclosure_height_mm"],
+            enclosure_depth_mm=params["enclosure_depth_mm"],
             arc_gap_mm=params["arc_gap_mm"],
         )
 
@@ -225,3 +233,116 @@ class TestArcFlashUnification:
         res = await agent.execute(task)
         assert res.status == AgentStatus.FAILED
         assert any("enclosure_type" in err for err in res.validation_errors)
+
+    async def test_missing_electrode_config_fails_closed(self):
+        """Missing electrode_config must not silently default to VCB."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_no_elec",
+            description="Arc flash missing electrode_config",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "arc_gap_mm": 25.0,
+                "enclosure_type": "box",
+                "enclosure_width_mm": 508.0,
+                "enclosure_height_mm": 508.0,
+                "enclosure_depth_mm": 508.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("electrode_config" in err for err in res.validation_errors)
+
+    async def test_missing_box_dimensions_fails_closed(self):
+        """Missing enclosure dimensions when enclosure_type=box must not silently default to 508mm."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_no_dims",
+            description="Arc flash missing box dims",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "box",
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("enclosure_width_mm" in err for err in res.validation_errors)
+
+    async def test_nonfinite_parameter_fails_closed(self):
+        """Nonfinite parameters (NaN, inf) must fail closed."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_nan",
+            description="Arc flash NaN parameter",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": float("nan"),
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "box",
+                "enclosure_width_mm": 508.0,
+                "enclosure_height_mm": 508.0,
+                "enclosure_depth_mm": 508.0,
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("voltage_kv" in err for err in res.validation_errors)
+
+    async def test_invalid_analysis_type_fails_closed(self):
+        """Invalid analysis_type must be rejected."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_bad_type",
+            description="Arc flash bad analysis type",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "analysis_type": "speculative_estimate",
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "box",
+                "enclosure_width_mm": 508.0,
+                "enclosure_height_mm": 508.0,
+                "enclosure_depth_mm": 508.0,
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("analysis_type" in err for err in res.validation_errors)
+
+    async def test_arc_current_only_analysis_succeeds_without_duration_or_distance(self):
+        """When analysis_type='arc_current', calculation succeeds without duration or distance."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_current_only",
+            description="Arc flash arc_current only",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "analysis_type": "arc_current",
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 25.0,
+                "electrode_config": "VCB",
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.COMPLETED
+        assert res.data["arc_current_ka"] > 0
+        assert "incident_energy" not in res.data

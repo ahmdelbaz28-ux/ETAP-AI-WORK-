@@ -187,8 +187,8 @@ class TestPilotCapabilityGating:
         assert req.approval_context.get("approved") is False
         assert req.approval_context.get("pe_stamp") == {"engineer": "Eng. John", "license": "PE-12345"}
 
-    async def test_forged_approval_context_without_distinct_approver_is_rejected(self):
-        """Self-approval or missing distinct approver must be rejected with anti-self-approval."""
+    async def test_client_synthesized_approval_rejected_as_unverified_assertion(self):
+        """Client-synthesized approval dict without server approval record is rejected."""
         orchestrator = ExecutionOrchestrator()
         req = ExecutionRequest(
             capability_id="scada",
@@ -202,17 +202,51 @@ class TestPilotCapabilityGating:
             res = await orchestrator.execute(req)
             assert res.success is False
             assert res.status == "rejected"
-            assert any("MAKER_CHECKER_VIOLATION" in err or "Approver cannot be" in err for err in res.errors)
+            assert any("UNVERIFIED_APPROVAL_ASSERTION" in err for err in res.errors)
 
-    async def test_forged_approval_context_missing_approver_fails_closed(self):
-        """Approval context without verified approver identity fails closed."""
+    async def test_forged_approval_context_without_distinct_approver_is_rejected(self):
+        """Self-approval or missing distinct approver in server record must be rejected with MAKER_CHECKER_VIOLATION."""
         orchestrator = ExecutionOrchestrator()
+        approval_rec = {
+            "id": "appr_self_1",
+            "status": "approved",
+            "requested_by_user_id": "user_attacker",
+            "decided_by_user_id": "user_attacker",
+            "decided_by_role": "admin",
+            "tenant_id": "tenant_pilot_test",
+            "tool": "scada",
+        }
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_attacker",
             user_role="lead_engineer",
-            approval_context={"approved": True},
+            approval_context={"approved": True, "approval_record": approval_rec},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("MAKER_CHECKER_VIOLATION" in err for err in res.errors)
+
+    async def test_forged_approval_context_missing_approver_fails_closed(self):
+        """Approval record without verified approver identity fails closed with APPROVAL_REQUIRED."""
+        orchestrator = ExecutionOrchestrator()
+        approval_rec = {
+            "id": "appr_no_decider_1",
+            "status": "approved",
+            "requested_by_user_id": "user_eng",
+            "decided_by_user_id": "",
+            "tenant_id": "tenant_pilot_test",
+            "tool": "scada",
+        }
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approved": True, "approval_record": approval_rec},
             input={"system": _MOCK_SYSTEM},
         )
         with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
@@ -221,17 +255,79 @@ class TestPilotCapabilityGating:
             assert res.status == "rejected"
             assert any("APPROVAL_REQUIRED" in err or "approver" in err.lower() for err in res.errors)
 
-    async def test_valid_dual_control_with_independent_approver_succeeds(self):
-        """Valid approval record from an authorized independent approver passes gate."""
-        from services.execution_orchestrator import CanonicalExecutionResult
-
+    async def test_expired_approval_record_fails_closed(self):
+        """Approval record past expiration timestamp is rejected."""
         orchestrator = ExecutionOrchestrator()
+        approval_rec = {
+            "id": "appr_exp_1",
+            "status": "approved",
+            "requested_by_user_id": "user_eng",
+            "decided_by_user_id": "admin_other",
+            "decided_by_role": "admin",
+            "tenant_id": "tenant_pilot_test",
+            "tool": "scada",
+            "expires_at": "2020-01-01T00:00:00Z",
+        }
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_eng",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approver_id": "admin_other", "decided_by_user_id": "admin_other"},
+            approval_context={"approved": True, "approval_record": approval_rec},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("APPROVAL_EXPIRED" in err for err in res.errors)
+
+    async def test_cross_tenant_approval_record_fails_closed(self):
+        """Approval record from different tenant is rejected."""
+        orchestrator = ExecutionOrchestrator()
+        approval_rec = {
+            "id": "appr_cross_1",
+            "status": "approved",
+            "requested_by_user_id": "user_eng",
+            "decided_by_user_id": "admin_other",
+            "decided_by_role": "admin",
+            "tenant_id": "other_tenant",
+            "tool": "scada",
+        }
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approved": True, "approval_record": approval_rec},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("CROSS_TENANT_FORBIDDEN" in err for err in res.errors)
+
+    async def test_valid_dual_control_with_independent_approver_succeeds(self):
+        """Valid server approval record from an authorized independent approver passes gate."""
+        from services.execution_orchestrator import CanonicalExecutionResult
+
+        orchestrator = ExecutionOrchestrator()
+        approval_rec = {
+            "id": "appr_ok_1",
+            "status": "approved",
+            "requested_by_user_id": "user_eng",
+            "decided_by_user_id": "admin_other",
+            "decided_by_role": "admin",
+            "tenant_id": "tenant_pilot_test",
+            "tool": "scada",
+        }
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approved": True, "approval_record": approval_rec},
             input={"system": _MOCK_SYSTEM},
         )
         mock_res = CanonicalExecutionResult(

@@ -357,6 +357,14 @@ class ArcFlashAgent(BaseAgent):
             missing_af: list[str] = []
             invalid_af: list[str] = []
 
+            # 0. Validate analysis_type
+            raw_analysis = task.parameters.get("analysis_type", "full")
+            if raw_analysis not in ("full", "incident_energy", "arc_current"):
+                invalid_af.append(
+                    f"Invalid analysis_type '{raw_analysis}'. Must be one of ('full', 'incident_energy', 'arc_current')"
+                )
+            analysis_type = str(raw_analysis).strip().lower()
+
             # 1. Voltage
             if "voltage_kv" not in task.parameters or task.parameters["voltage_kv"] is None:
                 missing_af.append("voltage_kv")
@@ -400,21 +408,36 @@ class ArcFlashAgent(BaseAgent):
                 except (ValueError, TypeError):
                     invalid_af.append("arc_gap_mm is not a valid number")
 
-            # 4. Electrode config validation if present
+            # 4. Electrode config validation (mandatory - zero silent default)
             raw_cfg = task.parameters.get("electrode_config")
-            if raw_cfg is not None:
+            cfg_enum: ElectrodeConfig | None = None
+            if raw_cfg is None:
+                missing_af.append("electrode_config")
+            else:
                 try:
                     cfg_enum = ElectrodeConfig(str(raw_cfg).strip().upper())
                 except (ValueError, AttributeError):
                     invalid_af.append(
                         f"Invalid electrode_config '{raw_cfg}'. Must be one of {[e.value for e in ElectrodeConfig]}"
                     )
-            else:
-                cfg_enum = ElectrodeConfig.VCB
 
-            # 5. Enclosure type validation if present
+            # 5. Enclosure type validation (mandatory for enclosed configs when computing incident energy, zero silent default)
             raw_enc = task.parameters.get("enclosure_type")
-            if raw_enc is not None:
+            enc_type: EnclosureType | None = None
+            if cfg_enum in (ElectrodeConfig.VOA, ElectrodeConfig.HOA):
+                enc_type = EnclosureType.OPEN
+            elif analysis_type in ("incident_energy", "full"):
+                if raw_enc is None:
+                    missing_af.append("enclosure_type")
+                else:
+                    enc_clean = str(raw_enc).strip().lower()
+                    if enc_clean in ("box", "enclosed"):
+                        enc_type = EnclosureType.BOX
+                    elif enc_clean in ("open", "open_air", "air"):
+                        enc_type = EnclosureType.OPEN
+                    else:
+                        invalid_af.append(f"Invalid enclosure_type '{raw_enc}'. Must be 'box' or 'open'")
+            elif raw_enc is not None:
                 enc_clean = str(raw_enc).strip().lower()
                 if enc_clean in ("box", "enclosed"):
                     enc_type = EnclosureType.BOX
@@ -422,11 +445,22 @@ class ArcFlashAgent(BaseAgent):
                     enc_type = EnclosureType.OPEN
                 else:
                     invalid_af.append(f"Invalid enclosure_type '{raw_enc}'. Must be 'box' or 'open'")
-            else:
-                enc_type = EnclosureType.BOX
 
-            # 6. Analysis type parameters
-            analysis_type = task.parameters.get("analysis_type", "full")
+            # 6. Enclosure dimensions if box and computing incident energy
+            if enc_type == EnclosureType.BOX and analysis_type in ("incident_energy", "full"):
+                for dim_key in ("enclosure_width_mm", "enclosure_height_mm", "enclosure_depth_mm"):
+                    raw_dim = task.parameters.get(dim_key)
+                    if raw_dim is None:
+                        missing_af.append(dim_key)
+                    else:
+                        try:
+                            dim_val = float(raw_dim)
+                            if dim_val <= 0 or not math.isfinite(dim_val):
+                                invalid_af.append(f"{dim_key} must be positive and finite (got {dim_val})")
+                        except (ValueError, TypeError):
+                            invalid_af.append(f"{dim_key} is not a valid number: {raw_dim}")
+
+            # 7. Analysis type parameters (duration & working distance mandatory for incident_energy / full)
             raw_duration = None
             raw_wd = None
             if analysis_type in ("incident_energy", "full"):
@@ -468,7 +502,7 @@ class ArcFlashAgent(BaseAgent):
                     errors_list.append(f"Invalid parameter value(s): {'; '.join(invalid_af)}")
                 err_msg = (
                     f"{'; '.join(errors_list)}. "
-                    "Silent default parameter injection (0.48kV/20kA/0.2s/457mm) is strictly prohibited per life-safety requirements (fail-closed)."
+                    "Silent default parameter injection (0.48kV/20kA/0.2s/457mm/VCB/BOX/508mm) is strictly prohibited per life-safety requirements (fail-closed)."
                 )
                 self.log_execution(err_msg, "ERROR")
                 return AgentResult(
@@ -482,37 +516,56 @@ class ArcFlashAgent(BaseAgent):
             voltage_kv = float(task.parameters["voltage_kv"])
             bolted_fault_ka = float(raw_fault)
             gap_val = float(raw_gap)
-            arc_duration_s = float(raw_duration) if raw_duration is not None else 0.2
-            working_distance_mm = float(raw_wd) if raw_wd is not None else 457.0
-
             results: dict[str, Any] = {}
 
-            af_res = ArcFlashEngine().calculate(
-                voltage_kv=voltage_kv,
-                bolted_fault_current_ka=bolted_fault_ka,
-                arc_duration_sec=arc_duration_s,
-                working_distance_mm=working_distance_mm,
-                electrode_config=cfg_enum,
-                enclosure_type=enc_type,
-                enclosure_width_mm=float(task.parameters.get("enclosure_width_mm", 508.0)),
-                enclosure_height_mm=float(task.parameters.get("enclosure_height_mm", 508.0)),
-                enclosure_depth_mm=float(task.parameters.get("enclosure_depth_mm", 508.0)),
-                arc_gap_mm=gap_val,
-            )
+            if analysis_type == "arc_current":
+                iarc, iarc_red = ArcFlashEngine.calculate_arc_current(
+                    voltage_kv=voltage_kv,
+                    bolted_fault_current_ka=bolted_fault_ka,
+                    electrode_config=cfg_enum,
+                )
+                results["arc_current"] = {
+                    "arc_current_ka": float(iarc),
+                    "reduced_arc_current_ka": float(iarc_red),
+                    "voltage_kv": voltage_kv,
+                    "bolted_fault_current_ka": bolted_fault_ka,
+                    "electrode_config": cfg_enum.value,
+                    "gap_mm": gap_val,
+                }
+                results["arc_current_ka"] = float(iarc)
+                results["reduced_arc_current_ka"] = float(iarc_red)
+            else:
+                arc_duration_s = float(raw_duration)
+                working_distance_mm = float(raw_wd)
+                enc_w = float(task.parameters.get("enclosure_width_mm", 0.0))
+                enc_h = float(task.parameters.get("enclosure_height_mm", 0.0))
+                enc_d = float(task.parameters.get("enclosure_depth_mm", 0.0))
 
-            # --- Arc current calculation result ---
-            arc_result = {
-                "arc_current_ka": af_res.arc_current_ka,
-                "reduced_arc_current_ka": af_res.reduced_arc_current_ka,
-                "voltage_kv": voltage_kv,
-                "bolted_fault_current_ka": bolted_fault_ka,
-                "electrode_config": cfg_enum.value,
-                "gap_mm": gap_val,
-            }
-            results["arc_current"] = arc_result
+                af_res = ArcFlashEngine().calculate(
+                    voltage_kv=voltage_kv,
+                    bolted_fault_current_ka=bolted_fault_ka,
+                    arc_duration_sec=arc_duration_s,
+                    working_distance_mm=working_distance_mm,
+                    electrode_config=cfg_enum,
+                    enclosure_type=enc_type,
+                    enclosure_width_mm=enc_w,
+                    enclosure_height_mm=enc_h,
+                    enclosure_depth_mm=enc_d,
+                    arc_gap_mm=gap_val,
+                )
 
-            # --- Incident energy calculation result ---
-            if analysis_type in ("incident_energy", "full"):
+                # --- Arc current calculation result ---
+                arc_result = {
+                    "arc_current_ka": af_res.arc_current_ka,
+                    "reduced_arc_current_ka": af_res.reduced_arc_current_ka,
+                    "voltage_kv": voltage_kv,
+                    "bolted_fault_current_ka": bolted_fault_ka,
+                    "electrode_config": cfg_enum.value,
+                    "gap_mm": gap_val,
+                }
+                results["arc_current"] = arc_result
+
+                # --- Incident energy calculation result ---
                 ie_result = {
                     "incident_energy_cal_cm2": af_res.incident_energy_cal_cm2,
                     "arc_flash_boundary_mm": af_res.arc_flash_boundary_mm,
@@ -532,17 +585,17 @@ class ArcFlashAgent(BaseAgent):
                     "arc_current_ka": af_res.reduced_arc_current_ka,
                 }
 
-            # Top-level unified fields matching PowerSystemEngine.run_arc_flash
-            results["incident_energy_cal_per_cm2"] = af_res.incident_energy_cal_cm2
-            results["incident_energy_at_full_arc_current"] = af_res.incident_energy_at_full_arc_current
-            results["incident_energy_at_reduced_arc_current"] = af_res.incident_energy_at_reduced_arc_current
-            results["arc_flash_boundary_mm"] = af_res.arc_flash_boundary_mm
-            results["arc_flash_boundary_in"] = af_res.arc_flash_boundary_in
-            results["arc_current_ka"] = af_res.arc_current_ka
-            results["reduced_arc_current_ka"] = af_res.reduced_arc_current_ka
-            results["ppe_level"] = af_res.ppe_level
-            results["ppe_description"] = af_res.ppe_description
-            results["method"] = af_res.method
+                # Top-level unified fields matching PowerSystemEngine.run_arc_flash
+                results["incident_energy_cal_per_cm2"] = af_res.incident_energy_cal_cm2
+                results["incident_energy_at_full_arc_current"] = af_res.incident_energy_at_full_arc_current
+                results["incident_energy_at_reduced_arc_current"] = af_res.incident_energy_at_reduced_arc_current
+                results["arc_flash_boundary_mm"] = af_res.arc_flash_boundary_mm
+                results["arc_flash_boundary_in"] = af_res.arc_flash_boundary_in
+                results["arc_current_ka"] = af_res.arc_current_ka
+                results["reduced_arc_current_ka"] = af_res.reduced_arc_current_ka
+                results["ppe_level"] = af_res.ppe_level
+                results["ppe_description"] = af_res.ppe_description
+                results["method"] = af_res.method
 
             result = AgentResult(
                 agent_name=self.agent_name,
