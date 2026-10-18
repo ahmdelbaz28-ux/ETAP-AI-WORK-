@@ -1911,22 +1911,6 @@ class ExecutionOrchestrator:
                 )
 
         if system is not None:
-            if cap.required_system_data:
-                missing_components = self._validate_required_system_data(
-                    system, cap.required_system_data
-                )
-                if missing_components:
-                    return self._build_rejection(
-                        request,
-                        reason="MISSING_REQUIRED_SYSTEM_DATA",
-                        message=(
-                            f"Capability '{request.capability_id}' requires system components: "
-                            f"{missing_components}. System model is missing or empty for these components."
-                        ),
-                        cap=cap,
-                        raise_on_error=raise_on_error,
-                    )
-
             try:
                 _validate_canonical_system(system)
             except Exception as model_err:
@@ -1942,6 +1926,22 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
+
+            if cap.required_system_data:
+                missing_components = self._validate_required_system_data(
+                    system, cap.required_system_data
+                )
+                if missing_components:
+                    return self._build_rejection(
+                        request,
+                        reason="MISSING_REQUIRED_SYSTEM_DATA",
+                        message=(
+                            f"Capability '{request.capability_id}' requires system components: "
+                            f"{missing_components}. System model is missing or empty for these components."
+                        ),
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
 
         # ── 7b. Dry-Run Short-Circuit (Guaranteed Zero Solver Invocation) ─────
         is_dry_run = bool(

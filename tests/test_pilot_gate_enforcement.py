@@ -42,8 +42,8 @@ async def _seed_pending_action(
     action_id: str | None = None,
     expires_at: datetime | None = None,
 ):
-    from api.approvals import PendingAction, compute_args_hash, _utc_now
-    from api.database import async_session, engine, Base
+    from api.approvals import PendingAction, _utc_now, compute_args_hash
+    from api.database import Base, async_session, engine
 
     now = _utc_now()
     exp = expires_at if expires_at is not None else (now + timedelta(seconds=expires_in_seconds))

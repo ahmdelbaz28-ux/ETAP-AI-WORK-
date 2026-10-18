@@ -337,8 +337,8 @@ class TestCanonicalExecutionOrchestratorTopologyRejection:
         """DomainSystem with dangling transformer or generator fails closed."""
         from core_model.bus import Bus
         from core_model.generator import Generator
-        from core_model.transformer import Transformer
         from core_model.system import System as DomainSystem
+        from core_model.transformer import Transformer
         from services.execution_orchestrator import ExecutionOrchestrator
         from services.execution_request import ExecutionRequest
 
@@ -423,6 +423,7 @@ class TestCanonicalExecutionOrchestratorTopologyRejection:
     async def test_canonical_orchestrator_prevents_engine_dispatch_on_validation_failure(self):
         """A topology validation failure aborts execution before the engine or study service is dispatched."""
         from unittest.mock import patch
+
         from core_model.bus import Bus
         from core_model.line import Line
         from core_model.system import System as DomainSystem

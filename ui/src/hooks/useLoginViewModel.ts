@@ -29,10 +29,7 @@ export function useLoginViewModel() {
   // Interactive Simulation State
   const [isBreakerOpen, setIsBreakerOpen] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    "[SYS-INIT] Core Engineering engine loaded in memory.",
-    "[SYS-INIT] Connected to Supabase DB: active session pool ready.",
-    "[SYS-INIT] Autonomous Specialist Agents loaded (polling /info for count).",
-    "[SYS-INIT] Standby. Waiting for engineer authentication...",
+    "[BOOT] Checking backend connectivity...",
   ]);
 
   const appendLog = useCallback((msg: string) => {

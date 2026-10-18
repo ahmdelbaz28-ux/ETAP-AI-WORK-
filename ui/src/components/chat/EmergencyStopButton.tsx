@@ -4,9 +4,10 @@
  * The button performs TWO distinct actions and reports BOTH honestly:
  *
  *   1. LOCAL STREAM ABORT (immediate, client-side):
- *      Calls abortStream() first — cancels the active SSE/fetch stream and
- *      marks all in-progress activity entries as "failed" in the UI.
- *      This always succeeds instantly regardless of server reachability.
+ *      Calls abortStream() first — cancels the active SSE/fetch stream locally
+ *      via activeChatAbort.abort(USER_ABORT) and marks all in-progress activity
+ *      entries as "failed" in the UI. This always succeeds instantly regardless of
+ *      server reachability.
  *      NOTE: This does NOT cancel a background Python study — api/studies.py
  *      has no cancel endpoint. A running Python computation continues until
  *      it finishes naturally.
@@ -21,7 +22,7 @@
  *
  * Both results are shown as separate status indicators.
  *
- * Backend contracts (both calls delegated to chatStore.activateEmergencyStop):
+ * Backend contracts:
  *   GET  /admin/cua/kill-switch          (status check on mount)
  *   POST /admin/cua/kill-switch/activate (activate kill-switch)
  */
@@ -36,6 +37,7 @@ export function EmergencyStopButton() {
   const { active, activating, lastResult, error } = useChatStore((s) => s.emergencyStop);
   const activate = useChatStore((s) => s.activateEmergencyStop);
   const checkStatus = useChatStore((s) => s.checkEmergencyStop);
+  const abortStream = useChatStore((s) => s.abortStream);
 
   // Track whether stream was locally aborted (set to true the moment button is pressed,
   // independently of the server outcome).
@@ -54,6 +56,7 @@ export function EmergencyStopButton() {
 
   const handleClick = () => {
     streamAbortedRef.current = true;
+    abortStream();
     void activate("chat_workspace_ui");
   };
 

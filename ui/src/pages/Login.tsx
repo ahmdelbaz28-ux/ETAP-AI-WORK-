@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Terminal,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { BrandLogo } from "../components/BrandLogo";
@@ -80,10 +80,7 @@ export default function Login() {
   // Interactive Simulation State
   const [isBreakerOpen, setIsBreakerOpen] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    "[SYS-INIT] Core Engineering engine loaded in memory.",
-    "[SYS-INIT] Connected to Supabase DB: active session pool ready.",
-    "[SYS-INIT] Autonomous Specialist Agents loaded (polling /info for count).",
-    "[SYS-INIT] Standby. Waiting for engineer authentication...",
+    "[BOOT] Checking backend connectivity...",
   ]);
 
   // Live Telemetry State
@@ -100,6 +97,8 @@ export default function Login() {
     setTerminalLogs((prev) => [...prev.slice(-8), `[${timestamp}] ${msg}`]);
   }, []);
 
+  const loggedHealthStatusRef = useRef<"online" | "offline" | null>(null);
+
   // Health and Telemetry Polling
   const checkHealth = useCallback(async () => {
     const start = performance.now();
@@ -112,6 +111,10 @@ export default function Login() {
       if (res.ok) {
         setServerStatus("online");
         setLatency(Math.round(end - start));
+        if (loggedHealthStatusRef.current !== "online") {
+          loggedHealthStatusRef.current = "online";
+          appendLog("[SYS-INIT] Core Engineering engine online and connected.");
+        }
 
         // Lazy fetch platform details once online
         try {
@@ -129,12 +132,20 @@ export default function Login() {
       } else {
         setServerStatus("offline");
         setLatency(null);
+        if (loggedHealthStatusRef.current !== "offline") {
+          loggedHealthStatusRef.current = "offline";
+          appendLog("Backend unreachable — showing cached UI only");
+        }
       }
     } catch {
       setServerStatus("offline");
       setLatency(null);
+      if (loggedHealthStatusRef.current !== "offline") {
+        loggedHealthStatusRef.current = "offline";
+        appendLog("Backend unreachable — showing cached UI only");
+      }
     }
-  }, []);
+  }, [appendLog]);
 
   // Poll health status
   useEffect(() => {

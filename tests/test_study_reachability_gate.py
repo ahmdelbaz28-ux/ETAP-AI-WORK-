@@ -88,6 +88,8 @@ DEFAULT_PARAMS: dict[str, dict] = {
         "arc_duration_sec": 0.1,
         "working_distance_mm": 457.0,
         "arc_gap_mm": 25.0,
+        "electrode_config": "VCB",
+        "enclosure_type": "open",
     },
     "protection_coordination": {
         "upstream_relay_id": 1,
@@ -249,6 +251,8 @@ class TestNativeFourStudiesPreservation:
             "arc_duration_sec": 0.1,
             "working_distance_mm": 457.0,
             "arc_gap_mm": 25.0,
+            "electrode_config": "VCB",
+            "enclosure_type": "open",
         }
         executor = StudyExecutor(cache=None)
         res_executor = executor._dispatch("arc_flash", built_system, params)

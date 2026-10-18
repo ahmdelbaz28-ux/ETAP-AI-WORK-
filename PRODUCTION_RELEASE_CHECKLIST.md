@@ -38,6 +38,8 @@
 - [x] Database migrations applied and verified
 - [x] Monitoring/alerting configured for new endpoints
 - [x] Rollback plan documented
+- [x] جميع Feature Flags رُوجعت من .feature-flags.json الفعلي
+- [x] لا أسرار واضحة في git (راجع .env.example فقط، لا تلمس .env)
 
-**Signed off for production deployment:** ☑ YES / ☐ NO
+**Signed off for production deployment:** ☐ NO
 
