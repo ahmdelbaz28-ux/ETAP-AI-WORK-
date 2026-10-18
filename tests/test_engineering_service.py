@@ -787,6 +787,8 @@ class TestSupportedStudyTypes:
                     "arc_duration_sec": 0.5,
                     "working_distance_mm": 610,
                     "arc_gap_mm": 152.0,
+                    "electrode_config": "VCB",
+                    "enclosure_type": "open",
                 },
             },
         )
@@ -912,6 +914,8 @@ class TestSupportedStudyTypes:
                 "arc_duration_sec": 0.5,
                 "working_distance_mm": 610.0,
                 "arc_gap_mm": 152.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "open",
             }
         elif "protection" in study_type:
             payload["parameters"] = {
