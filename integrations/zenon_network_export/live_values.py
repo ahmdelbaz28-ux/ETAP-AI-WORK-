@@ -84,7 +84,27 @@ async def enrich_zenon_live_values(
             )
             writer.close()
             await writer.wait_closed()
-            measurements = {}
+
+            # TCP connection succeeded, but opening a raw TCP socket does not acquire telemetry.
+            # No live Zenon binary stream / OPC UA client protocol is active to pull measurements.
+            logger.warning(
+                "Zenon gateway reachable via TCP at %s, but live telemetry data reader is unavailable. "
+                "No live telemetry data stream acquired; continuing with static import.",
+                target_endpoint,
+            )
+            import_result.warnings.append(
+                f"Zenon gateway at {target_endpoint} reachable via TCP, but live telemetry data reading is unavailable (not supported/no data stream). "
+                "Continuing with static import."
+            )
+            import_result.incomplete.append(
+                {
+                    "element": "zenon_live_values",
+                    "status": "TELEMETRY_UNAVAILABLE",
+                    "endpoint": target_endpoint,
+                    "reason": "TCP socket connected but live telemetry protocol reader is unavailable or unsupported; no telemetry stream acquired.",
+                }
+            )
+            return import_result
         except Exception as exc:
             logger.warning(
                 "Zenon live values server unreachable at %s (%s). Continuing with static import.",
@@ -104,42 +124,89 @@ async def enrich_zenon_live_values(
             )
             return import_result
 
-    # Enrich model elements with live values
-    if measurements:
-        # 1. Update buses
-        for bus_id, v_val in measurements.get("voltages", {}).items():
-            if bus_id in import_result.system.buses:
-                try:
-                    import_result.system.buses[bus_id].voltage_magnitude = float(v_val)
-                except (ValueError, TypeError):
-                    pass
+    # Handle explicitly provided live data
+    if not measurements:
+        import_result.warnings.append("Zenon live telemetry payload is empty; no operational measurements updated.")
+        import_result.incomplete.append(
+            {
+                "element": "zenon_live_values",
+                "status": "EMPTY_TELEMETRY",
+                "reason": "Telemetry payload contained no variables.",
+            }
+        )
+        return import_result
 
-        # 2. Update loads
-        load_measurements = measurements.get("loads", {})
-        for load_obj in import_result.system.loads:
-            lid = getattr(load_obj, "load_id", None)
-            if lid and lid in load_measurements:
-                p_val = load_measurements[lid]
-                try:
-                    current_q = load_obj.load_power.imag if load_obj.load_power else 0.0
-                    new_power = complex(float(p_val), current_q)
-                    if getattr(load_obj, "bus", None) and hasattr(load_obj.bus, "load_power"):
-                        diff = new_power - (load_obj.load_power or 0j)
-                        load_obj.bus.load_power += diff
-                    load_obj.load_power = new_power
-                except (ValueError, TypeError):
-                    pass
+    has_readings = any(
+        bool(measurements.get(k)) for k in ("voltages", "loads", "status")
+    )
+    if not has_readings:
+        import_result.warnings.append(
+            "Zenon live telemetry payload contained no voltage, load, or status readings; no measurements updated."
+        )
+        import_result.incomplete.append(
+            {
+                "element": "zenon_live_values",
+                "status": "EMPTY_TELEMETRY",
+                "reason": "Telemetry payload contained no operational readings (voltages, loads, or status).",
+            }
+        )
+        return import_result
 
-        # 3. Update breakers/switches in extra_elements
-        switch_states = measurements.get("status", {})
-        for brk in import_result.extra_elements.get("breakers", []):
-            bid = brk.get("id") or brk.get("name")
-            if bid in switch_states:
+    # Enrich model elements with authentic live values
+    voltages_updated = 0
+    loads_updated = 0
+    switches_updated = 0
+
+    # 1. Update buses
+    for bus_id, v_val in measurements.get("voltages", {}).items():
+        if bus_id in import_result.system.buses:
+            try:
+                import_result.system.buses[bus_id].voltage_magnitude = float(v_val)
+                voltages_updated += 1
+            except (ValueError, TypeError):
+                pass
+
+    # 2. Update loads
+    load_measurements = measurements.get("loads", {})
+    for load_obj in import_result.system.loads:
+        lid = getattr(load_obj, "load_id", None)
+        if lid and lid in load_measurements:
+            p_val = load_measurements[lid]
+            try:
+                current_q = load_obj.load_power.imag if load_obj.load_power else 0.0
+                new_power = complex(float(p_val), current_q)
+                if getattr(load_obj, "bus", None) and hasattr(load_obj.bus, "load_power"):
+                    diff = new_power - (load_obj.load_power or 0j)
+                    load_obj.bus.load_power += diff
+                load_obj.load_power = new_power
+                loads_updated += 1
+            except (ValueError, TypeError):
+                pass
+
+    # 3. Update breakers/switches in extra_elements
+    switch_states = measurements.get("status", {})
+    for brk in import_result.extra_elements.get("breakers", []):
+        bid = brk.get("id") or brk.get("name")
+        if bid in switch_states:
+            try:
                 brk["status"] = int(switch_states[bid])
+                switches_updated += 1
+            except (ValueError, TypeError):
+                pass
 
-        for sw in import_result.extra_elements.get("switches", []):
-            sid = sw.get("id") or sw.get("name")
-            if sid in switch_states:
+    for sw in import_result.extra_elements.get("switches", []):
+        sid = sw.get("id") or sw.get("name")
+        if sid in switch_states:
+            try:
                 sw["status"] = int(switch_states[sid])
+                switches_updated += 1
+            except (ValueError, TypeError):
+                pass
 
+    import_result.extra_elements["zenon_live_enrichment"] = "ENRICHED"
+    import_result.extra_elements["zenon_live_telemetry_counts"] = {
+        "voltages_updated": voltages_updated,
+        "loads_updated": loads_updated,
+        "switches_updated": switches_updated,
+    }
     return import_result

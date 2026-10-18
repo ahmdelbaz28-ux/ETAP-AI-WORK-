@@ -177,6 +177,33 @@ class PromptRuleResult:
         )
 
 
+def _normalize_tool_name(tool: str) -> str:
+    cleaned = str(tool).replace("-", "_").lower().strip()
+    if cleaned in ("request_canonical_execution", "canonical_orchestrator", "execution_orchestrator"):
+        return "request_canonical_execution"
+    if cleaned in ("run_python", "runpython"):
+        return "run_python"
+    return str(tool).strip()
+
+
+ENGINEERING_COMPUTATION_AGENTS = frozenset({
+    "arcflash-agent",
+    "short-circuit-agent",
+    "protection-agent",
+    "motorstarting-agent",
+    "load-flow-agent",
+    "harmonic-agent",
+    "opf-agent",
+    "cable-sizing-agent",
+    "earth-grid-agent",
+    "battery-storage-agent",
+    "stability-agent",
+    "etap-engineer-agent",
+    "etap-expert-agent",
+    "code-guard-agent",
+})
+
+
 # ─── Core Validation Function ───────────────────────────────────────────
 
 
@@ -209,11 +236,16 @@ def validate_agent_response(
     """
     violations: list[PromptRuleViolation] = []
     tool_calls = set(tool_calls_made or [])
+    normalized_tool_calls = {_normalize_tool_name(t) for t in tool_calls}
 
     # ── Check 1: Mandatory tool calls ─────────────────────────────────
-    required_tools = MANDATORY_TOOL_RULES.get(agent_id, [])
-    for tool_name in required_tools:
-        if tool_name not in tool_calls:
+    if agent_id in ENGINEERING_COMPUTATION_AGENTS:
+        # Engineering agents must call either request_canonical_execution (authoritative study)
+        # or run_python (advisory calculation). Calling either fulfills the tool requirement.
+        has_computational_tool = bool(
+            {"request_canonical_execution", "run_python"} & normalized_tool_calls
+        )
+        if not has_computational_tool:
             is_life_safety = agent_id in {
                 "arcflash-agent",
                 "short-circuit-agent",
@@ -221,20 +253,35 @@ def validate_agent_response(
             }
             violations.append(
                 PromptRuleViolation(
-                    rule_id=f"F03-TOOL-{tool_name}",
+                    rule_id="F03-TOOL-computational-tool",
                     agent_id=agent_id,
                     rule_type="tool_call",
                     description=(
-                        f"Agent '{agent_id}' did not call required tool '{tool_name}'. "
-                        f"This violates the MANDATORY RULE in the agent's prompt that "
-                        f"requires using {tool_name} for all numerical computations. "
-                        f"Per SKILL.md Fix Strategy #1: 'Code-gate tool requirements — "
-                        f"enforce in code, not just prompt text.'"
+                        f"Agent '{agent_id}' did not invoke a required computational tool. "
+                        "Authoritative studies must call request_canonical_execution, "
+                        "and advisory calculations must call run_python."
                     ),
                     severity=GuardSeverity.MUST_FIX if is_life_safety else GuardSeverity.SHOULD_FIX,
-                    evidence=f"tool_calls_made={sorted(tool_calls)}, required={sorted(required_tools)}",
+                    evidence=f"tool_calls_made={sorted(tool_calls)}, required=['request_canonical_execution' or 'run_python']",
                 )
             )
+    else:
+        required_tools = MANDATORY_TOOL_RULES.get(agent_id, [])
+        for tool_name in required_tools:
+            norm_req = _normalize_tool_name(tool_name)
+            if tool_name not in tool_calls and norm_req not in normalized_tool_calls:
+                violations.append(
+                    PromptRuleViolation(
+                        rule_id=f"F03-TOOL-{tool_name}",
+                        agent_id=agent_id,
+                        rule_type="tool_call",
+                        description=(
+                            f"Agent '{agent_id}' did not call required tool '{tool_name}'."
+                        ),
+                        severity=GuardSeverity.SHOULD_FIX,
+                        evidence=f"tool_calls_made={sorted(tool_calls)}, required={sorted(required_tools)}",
+                    )
+                )
 
     # ── Check 2: Mandatory format fields ──────────────────────────────
     format_rules = MANDATORY_FORMAT_RULES.get(agent_id, [])

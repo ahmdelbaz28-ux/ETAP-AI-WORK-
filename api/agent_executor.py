@@ -890,6 +890,24 @@ async def _run_python_executor(args: Dict[str, Any], ctx: Dict[str, Any]) -> Dic
         )
 
     # Reject authoritative engineering studies attempting to bypass canonical gateway
+    if args.get("capability_id") or args.get("study_type"):
+        st = args.get("capability_id") or args.get("study_type")
+        raise ValueError(
+            f"Reference engineering study '{st}' cannot be executed via advisory run_python. "
+            "Authoritative studies must route through the canonical ExecutionOrchestrator gateway "
+            "with a formal ExecutionRequest."
+        )
+
+    code = str(args.get("code") or "")
+    if code:
+        import re
+        for eng in ("engine", "load_flow", "fault_analysis", "relays", "coordination", "PowerSystemEngine"):
+            if re.search(r"\b" + eng + r"\b", code):
+                raise ValueError(
+                    f"Canonical calculation engine '{eng}' cannot be imported or executed via advisory run_python. "
+                    "Authoritative studies must route through the canonical ExecutionOrchestrator gateway."
+                )
+
     goal = str(args.get("goal") or "").strip()
     goal_lower = goal.lower()
     is_authoritative = bool(args.get("authoritative", False))

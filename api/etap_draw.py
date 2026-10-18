@@ -61,6 +61,7 @@ from etap_integration.etap_rest import (
     _tenant_allowed,
     get_rest_client_from_env,
 )
+from etap_integration.post_draw_verifier import dispatch_load_flow_verification
 
 logger = logging.getLogger("engineering_service.etap_draw")
 
@@ -451,7 +452,6 @@ async def resolve_draw(
 
         # Post-draw Load Flow verification
         from api.projects import Project
-        from etap_integration.post_draw_verifier import dispatch_load_flow_verification
 
         project_id = str((action.args or {}).get("project_id") or "")
         proj_res = await db.execute(select(Project).where(Project.id == project_id))
@@ -465,27 +465,66 @@ async def resolve_draw(
 
         curr = dict(action.args or {})
         curr["verification"] = verification_result.model_dump()
+        curr["drawing_completed"] = True
+        curr["verification_passed"] = bool(verification_result.passed)
+
+        if verification_result.passed:
+            action.status = "completed"
+            action_success = True
+        else:
+            action.status = "failed"
+            action_success = False
+            curr["error"] = {
+                "code": f"VERIFICATION_{verification_result.status.upper()}",
+                "message": verification_result.reason or f"Verification status: {verification_result.status}",
+                "status": verification_result.status,
+                "verification_status": verification_result.status,
+            }
+            record_approval_event(
+                "VERIFICATION_FAILED",
+                action.id,
+                user.user_id,
+                {
+                    "status": verification_result.status,
+                    "reason": verification_result.reason,
+                },
+            )
+
         action.args = curr
-        action.status = "completed"
 
         response_data = {
-            "success": True,
+            "success": action_success,
             "action_id": action.id,
             "status": action.status,
             "plan_kind": "full_network",
             "project_id": project_id,
             "total_chunks": len(plans),
             "executed_chunks": len(executed),
+            "drawing_completed": True,
+            "verification_passed": bool(verification_result.passed),
             "verification": verification_result.model_dump(),
         }
+        if not action_success:
+            response_data["error"] = curr["error"]
 
         await _store_idempotent(
             db, idempotency_key, resolve_endpoint, user.tenant_id, response_data
         )
         await db.commit()
-        logger.info(
-            "ETAP full network draw completed: action_id=%s project=%s", action.id, project_id
-        )
+        if action_success:
+            logger.info(
+                "ETAP full network draw completed and verified: action_id=%s project=%s",
+                action.id,
+                project_id,
+            )
+        else:
+            logger.warning(
+                "ETAP full network draw executed but verification failed: action_id=%s project=%s status=%s reason=%s",
+                action.id,
+                project_id,
+                verification_result.status,
+                verification_result.reason,
+            )
         return response_data
 
     try:
@@ -510,13 +549,36 @@ async def resolve_draw(
             detail={"code": exc.code, "message": exc.message, "details": exc.details},
         )
 
-    action.status = "completed"
+    action.status = "completed" if draw_res.readback_verified else "failed"
+    action_success = bool(draw_res.readback_verified)
+    curr = dict(action.args or {})
+    curr["drawing_completed"] = True
+    curr["verification_passed"] = action_success
+    if not action_success:
+        curr["error"] = {
+            "code": "VERIFICATION_READBACK_FAILED",
+            "message": "Readback verification failed: elements created but could not be verified by readback",
+            "status": "readback_failed",
+            "verification_status": "readback_failed",
+        }
+        record_approval_event(
+            "VERIFICATION_FAILED",
+            action.id,
+            user.user_id,
+            {"status": "readback_failed", "drawing_id": draw_res.drawing_id},
+        )
+    action.args = curr
+
     response_data = {
-        "success": draw_res.readback_verified,
+        "success": action_success,
         "action_id": action.id,
         "status": action.status,
+        "drawing_completed": True,
+        "verification_passed": action_success,
         "result": draw_res.model_dump(),
     }
+    if not action_success:
+        response_data["error"] = curr["error"]
 
     await _store_idempotent(db, idempotency_key, resolve_endpoint, user.tenant_id, response_data)
     await db.commit()

@@ -63,6 +63,9 @@ def _build_system_from_spec(  # NOSONAR
     from core_model.system import System
     from core_model.transformer import Transformer
 
+    if hasattr(spec, "validate_references"):
+        spec.validate_references()
+
     system = System(base_mva=spec.base_mva)
     bus_map: dict[int, Any] = {}
 
@@ -86,23 +89,13 @@ def _build_system_from_spec(  # NOSONAR
 
     for l in spec.lines:
         if l.from_bus_id not in bus_map:
-            logger.warning(
-                "Line %s references unknown from_bus %s, creating default PQ bus",
-                l.line_id,
-                l.from_bus_id,
+            raise ValueError(
+                f"Line {l.line_id} references unknown bus {l.from_bus_id} (from_bus_id)"
             )
-            bus = Bus(bus_id=l.from_bus_id, bus_type="pq")
-            system.add_bus(bus)
-            bus_map[l.from_bus_id] = bus
         if l.to_bus_id not in bus_map:
-            logger.warning(
-                "Line %s references unknown to_bus %s, creating default PQ bus",
-                l.line_id,
-                l.to_bus_id,
+            raise ValueError(
+                f"Line {l.line_id} references unknown bus {l.to_bus_id} (to_bus_id)"
             )
-            bus = Bus(bus_id=l.to_bus_id, bus_type="pq")
-            system.add_bus(bus)
-            bus_map[l.to_bus_id] = bus
         line = Line(
             line_id=l.line_id,
             from_bus=bus_map[l.from_bus_id],
@@ -116,23 +109,13 @@ def _build_system_from_spec(  # NOSONAR
 
     for t in spec.transformers:
         if t.from_bus_id not in bus_map:
-            logger.warning(
-                "Transformer %s references unknown from_bus %s, creating default PQ bus",
-                t.transformer_id,
-                t.from_bus_id,
+            raise ValueError(
+                f"Transformer {t.transformer_id} references unknown bus {t.from_bus_id} (from_bus_id)"
             )
-            bus = Bus(bus_id=t.from_bus_id, bus_type="pq")
-            system.add_bus(bus)
-            bus_map[t.from_bus_id] = bus
         if t.to_bus_id not in bus_map:
-            logger.warning(
-                "Transformer %s references unknown to_bus %s, creating default PQ bus",
-                t.transformer_id,
-                t.to_bus_id,
+            raise ValueError(
+                f"Transformer {t.transformer_id} references unknown bus {t.to_bus_id} (to_bus_id)"
             )
-            bus = Bus(bus_id=t.to_bus_id, bus_type="pq")
-            system.add_bus(bus)
-            bus_map[t.to_bus_id] = bus
         xf = Transformer(
             transformer_id=t.transformer_id,
             from_bus=bus_map[t.from_bus_id],
@@ -145,14 +128,9 @@ def _build_system_from_spec(  # NOSONAR
 
     for g in spec.generators:
         if g.bus_id not in bus_map:
-            logger.warning(
-                "Generator %s references unknown bus %s, creating default PV bus",
-                g.generator_id,
-                g.bus_id,
+            raise ValueError(
+                f"Generator {g.generator_id} references unknown bus {g.bus_id}"
             )
-            bus = Bus(bus_id=g.bus_id, bus_type="pv")
-            system.add_bus(bus)
-            bus_map[g.bus_id] = bus
         gen = Generator(
             generator_id=g.generator_id,
             bus=bus_map[g.bus_id],
@@ -177,14 +155,9 @@ def _build_system_from_spec(  # NOSONAR
 
     for ld in spec.loads:
         if ld.bus_id not in bus_map:
-            logger.warning(
-                "Load %s references unknown bus %s, creating default PQ bus",
-                ld.load_id,
-                ld.bus_id,
+            raise ValueError(
+                f"Load {ld.load_id} references unknown bus {ld.bus_id}"
             )
-            bus = Bus(bus_id=ld.bus_id, bus_type="pq")
-            system.add_bus(bus)
-            bus_map[ld.bus_id] = bus
         target_bus = bus_map[ld.bus_id]
         if target_bus.load_power != complex(0, 0):
             raise ValueError(

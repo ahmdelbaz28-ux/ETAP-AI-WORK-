@@ -468,7 +468,43 @@ class TestEtapDrawFromProjectEndpoint:
         )
         monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
 
-        # 3. Approve as admin_2 (different user)
+        # 3. Mock post-draw load flow verification to succeed
+        from etap_integration.post_draw_verifier import (
+            BusVerificationDetail,
+            NetworkVerificationResult,
+        )
+
+        mock_verification = NetworkVerificationResult(
+            passed=True,
+            status="verified",
+            max_voltage_diff_pct=0.45,
+            bus_comparisons={
+                "BUS_A": BusVerificationDetail(
+                    bus_id="BUS_A",
+                    expected_v_pu=1.0,
+                    calculated_v_pu=1.002,
+                    diff_pct=0.2,
+                    passed=True,
+                    message="Within tolerance",
+                ),
+                "BUS_B": BusVerificationDetail(
+                    bus_id="BUS_B",
+                    expected_v_pu=0.98,
+                    calculated_v_pu=0.975,
+                    diff_pct=0.45,
+                    passed=True,
+                    message="Within tolerance",
+                ),
+            },
+            details={"study": "load_flow", "iterations": 3},
+        )
+        monkeypatch.setattr(
+            draw_mod,
+            "dispatch_load_flow_verification",
+            AsyncMock(return_value=mock_verification),
+        )
+
+        # 4. Approve as admin_2 (different user)
         draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
             lambda: CurrentUser(
                 user_id="user_admin_2",
@@ -489,4 +525,302 @@ class TestEtapDrawFromProjectEndpoint:
         assert data["plan_kind"] == "full_network"
         assert data["total_chunks"] >= 1
         assert data["executed_chunks"] >= 1
+        assert data["drawing_completed"] is True
+        assert data["verification_passed"] is True
         assert "verification" in data
+        assert data["verification"]["status"] == "verified"
+
+    def test_resolve_full_network_verification_out_of_tolerance_marks_failed(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Draw succeeds but load-flow verification exceeds tolerance -> must mark action failed."""
+        # 1. Propose
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        assert resp.status_code == 202
+        action_id = resp.json()["action_id"]
+
+        # 2. Mock ETAP REST client to succeed
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["elem_1", "elem_2", "elem_3"],
+            drawing_id="DRW_FULL_TEST",
+            readback_verified=True,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        # 3. Mock verification to report tolerance exceeded
+        from etap_integration.post_draw_verifier import (
+            BusVerificationDetail,
+            NetworkVerificationResult,
+        )
+
+        mock_fail = NetworkVerificationResult(
+            passed=False,
+            status="tolerance_exceeded",
+            max_voltage_diff_pct=8.4,
+            bus_comparisons={
+                "BUS_B": BusVerificationDetail(
+                    bus_id="BUS_B",
+                    expected_v_pu=0.98,
+                    calculated_v_pu=0.898,
+                    diff_pct=8.4,
+                    passed=False,
+                    message="Voltage diff 8.40% exceeds tolerance 2.0%",
+                )
+            },
+            reason="Bus BUS_B voltage variation 8.40% exceeds allowable 2.0%",
+        )
+        monkeypatch.setattr(
+            draw_mod,
+            "dispatch_load_flow_verification",
+            AsyncMock(return_value=mock_fail),
+        )
+
+        # 4. Approve as admin_2
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approved for live test"},
+        )
+        assert res.status_code == 200, res.text
+        data = res.json()
+        assert data["success"] is False
+        assert data["status"] == "failed"
+        assert data["drawing_completed"] is True
+        assert data["verification_passed"] is False
+        assert data["error"]["code"] == "VERIFICATION_TOLERANCE_EXCEEDED"
+        assert data["error"]["verification_status"] == "tolerance_exceeded"
+        assert "BUS_B" in data["error"]["message"]
+
+    def test_resolve_full_network_worker_unreachable_blocked_marks_failed(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """When calculation worker is offline/unreachable, result is BLOCKED and marked failed."""
+        # 1. Propose
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        assert resp.status_code == 202
+        action_id = resp.json()["action_id"]
+
+        # 2. Mock ETAP REST client to succeed
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["elem_1", "elem_2", "elem_3"],
+            drawing_id="DRW_FULL_TEST",
+            readback_verified=True,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        # 3. Verification unmocked -> worker at localhost:8001 is unreachable -> returns BLOCKED
+
+        # 4. Approve as admin_2
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approved for live test"},
+        )
+        assert res.status_code == 200, res.text
+        data = res.json()
+        assert data["success"] is False
+        assert data["status"] == "failed"
+        assert data["drawing_completed"] is True
+        assert data["verification_passed"] is False
+        assert data["error"]["code"] == "VERIFICATION_BLOCKED"
+        assert data["error"]["verification_status"] == "blocked"
+
+    def test_resolve_full_network_missing_baseline_marks_failed(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """When baseline voltages are missing, verification cannot pass -> must fail."""
+        # 1. Propose
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        action_id = resp.json()["action_id"]
+
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["elem_1"],
+            drawing_id="DRW_FULL_TEST",
+            readback_verified=True,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        from etap_integration.post_draw_verifier import NetworkVerificationResult
+
+        mock_missing = NetworkVerificationResult(
+            passed=False,
+            status="baseline_missing",
+            reason="Missing baseline voltages for all buses",
+        )
+        monkeypatch.setattr(
+            draw_mod,
+            "dispatch_load_flow_verification",
+            AsyncMock(return_value=mock_missing),
+        )
+
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approve"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is False
+        assert data["status"] == "failed"
+        assert data["verification_passed"] is False
+        assert data["error"]["verification_status"] == "baseline_missing"
+
+    def test_resolve_full_network_idempotency_replay_preserves_failure(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Replaying with Idempotency-Key returns stored failed verification response, never cached success."""
+        resp = draw_test_client.post(
+            "/api/v1/etap/draw/from-project",
+            json={"project_id": "PROJ_LIVE_1", "reason": "Deploy live drawing to ETAP"},
+        )
+        action_id = resp.json()["action_id"]
+
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["elem_1"],
+            drawing_id="DRW_FULL_TEST",
+            readback_verified=True,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        from etap_integration.post_draw_verifier import NetworkVerificationResult
+
+        mock_fail = NetworkVerificationResult(
+            passed=False,
+            status="tolerance_exceeded",
+            reason="Bus voltage drift > 5%",
+        )
+        monkeypatch.setattr(
+            draw_mod,
+            "dispatch_load_flow_verification",
+            AsyncMock(return_value=mock_fail),
+        )
+
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        headers = {"Idempotency-Key": "test-idem-full-draw-fail-123"}
+        res1 = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approve"},
+            headers=headers,
+        )
+        assert res1.status_code == 200
+        data1 = res1.json()
+        assert data1["success"] is False
+        assert data1["status"] == "failed"
+
+        # Replay with same idempotency key
+        res2 = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approve"},
+            headers=headers,
+        )
+        assert res2.status_code == 200
+        data2 = res2.json()
+        assert data2["success"] is False
+        assert data2["status"] == "failed"
+        assert data2["error"]["verification_status"] == "tolerance_exceeded"
+
+    def test_resolve_single_draw_readback_failed_marks_failed(
+        self, draw_test_client: TestClient, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Single-draw proposal approved, but readback_verified=False -> marks failed."""
+        # 1. Propose single draw with correct schema
+        plan = {
+            "project_id": "PROJ_LIVE_1",
+            "items": [
+                {
+                    "element_type": "bus",
+                    "name": "B_SINGLE",
+                    "properties": {"name": "B_SINGLE", "base_kv": 11.0},
+                }
+            ],
+            "reason": "Add single bus for test",
+        }
+        resp = draw_test_client.post("/api/v1/etap/draw/propose", json=plan)
+        assert resp.status_code == 202
+        action_id = resp.json()["action_id"]
+
+        # 2. Mock REST client with readback_verified=False
+        import api.etap_draw as draw_mod
+
+        mock_rest = AsyncMock(spec=EtapRestClient)
+        mock_rest.apply_draw.return_value = DrawResult(
+            created_ids=["B_SINGLE"],
+            drawing_id="DRW_SINGLE_1",
+            readback_verified=False,
+        )
+        monkeypatch.setattr(draw_mod, "get_rest_client_from_env", lambda: mock_rest)
+
+        # 3. Approve as admin_2
+        draw_test_client.app.dependency_overrides[get_current_user_from_header] = (
+            lambda: CurrentUser(
+                user_id="user_admin_2",
+                username="admin2",
+                email="admin2@test.local",
+                role="admin",
+                tenant_id=TENANT_ID,
+            )
+        )
+        res = draw_test_client.post(
+            f"/api/v1/etap/draw/{action_id}/resolve",
+            json={"decision": "approve", "reason": "Approve single draw"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is False
+        assert data["status"] == "failed"
+        assert data["drawing_completed"] is True
+        assert data["verification_passed"] is False
+        assert data["error"]["code"] == "VERIFICATION_READBACK_FAILED"

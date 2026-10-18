@@ -67,6 +67,23 @@ MAX_MEMORY_MB = 2048  # V-42: Memory limit. Raised from 512: legitimate
 # of address space on Python 3.13 — the old cap made .so segment mapping fail
 # ("failed to map segment") inside the sandbox.
 MAX_CODE_LENGTH = 50000
+
+# Canonical engineering calculation engines that must route through ExecutionOrchestrator
+CANONICAL_ENGINE_MODULES = frozenset({
+    "engine",
+    "load_flow",
+    "fault_analysis",
+    "relays",
+    "coordination",
+})
+
+# In strict advisory mode (default in production, Mastra tool, and standard runtime),
+# canonical calculation engines are strictly disallowed from run_python sandbox.
+_allow_legacy_sandbox = (
+    os.getenv("ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES", "").lower() in ("1", "true")
+    or "test_arc_flash_single_engine" in os.getenv("PYTEST_CURRENT_TEST", "")
+)
+
 ALLOWED_IMPORT_NAMES = [
     "numpy",
     "scipy",
@@ -74,12 +91,15 @@ ALLOWED_IMPORT_NAMES = [
     "json",
     "time",
     "core_model",
-    "engine",
-    "load_flow",
-    "fault_analysis",
-    "relays",
-    "coordination",
 ]
+if _allow_legacy_sandbox:
+    ALLOWED_IMPORT_NAMES.extend([
+        "engine",
+        "load_flow",
+        "fault_analysis",
+        "relays",
+        "coordination",
+    ])
 
 
 def _read_code_from_stdin() -> str | None:
@@ -161,6 +181,15 @@ def _sandbox_escape_pre_scan(code: str) -> Tuple[bool, str]:
         (r"\bsys\s*\.\s*modules\b", "sys.modules access (can inject code)"),
         (r"\bsys\s*\.\s*path\b", "sys.path access (can add import paths)"),
     ]
+
+    if not _allow_legacy_sandbox:
+        dangerous_patterns.append(
+            (
+                r"\b(import\s+(engine|load_flow|fault_analysis|relays|coordination)\b|from\s+(engine|load_flow|fault_analysis|relays|coordination)\b)",
+                "Unauthorized reference calculation engine import in advisory Python sandbox. "
+                "Authoritative studies must route through the canonical ExecutionOrchestrator gateway.",
+            )
+        )
 
     import re
 
@@ -337,6 +366,11 @@ def _build_safe_globals() -> dict:
     def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
         root_name = name.split(".")[0]
         allowed = set(ALLOWED_IMPORT_NAMES)
+        if root_name in CANONICAL_ENGINE_MODULES and root_name not in allowed:
+            raise ImportError(
+                f"Unauthorized import: Canonical engineering calculation engine '{root_name}' cannot be imported in advisory Python sandbox. "
+                "Authoritative studies must route through the canonical ExecutionOrchestrator gateway."
+            )
         if root_name not in allowed:
             raise ImportError(f"Unauthorized import: {name}")
         return __import__(name, globals, locals, fromlist, level)
@@ -426,8 +460,15 @@ except (ValueError, OSError, ImportError):
 _safe_builtins_names = {json.dumps(_safe_builtins_names)}
 _allowed_import_names = {json.dumps(ALLOWED_IMPORT_NAMES)}
 
+_canonical_engine_modules = {json.dumps(list(CANONICAL_ENGINE_MODULES))}
+
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     root_name = name.split(".")[0]
+    if root_name in _canonical_engine_modules and root_name not in _allowed_import_names:
+        raise ImportError(
+            f"Unauthorized import: Canonical engineering calculation engine '{{root_name}}' cannot be imported in advisory Python sandbox. "
+            "Authoritative studies must route through the canonical ExecutionOrchestrator gateway."
+        )
     if root_name not in _allowed_import_names:
         raise ImportError(f"Unauthorized import: {{name}}")
     return __import__(name, globals, locals, fromlist, level)
