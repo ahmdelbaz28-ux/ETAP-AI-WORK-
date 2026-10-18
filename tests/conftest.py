@@ -15,6 +15,24 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# NumPy 2.0+ compatibility: Pint < 0.24 binds legacy NumPy 1.x aliases removed in NumPy 2.0
+try:
+    import numpy as _np
+
+    _np_compat_aliases = {
+        "cumproduct": "cumprod",
+        "product": "prod",
+        "alltrue": "all",
+        "sometrue": "any",
+        "trapz": "trapezoid",
+        "round_": "round",
+    }
+    for _alias, _target in _np_compat_aliases.items():
+        if not hasattr(_np, _alias) and hasattr(_np, _target):
+            setattr(_np, _alias, getattr(_np, _target))
+except ImportError:
+    pass
+
 # Set test environment variables
 os.environ.setdefault("APP_ENV", "development")
 os.environ.setdefault("ENVIRONMENT", "development")

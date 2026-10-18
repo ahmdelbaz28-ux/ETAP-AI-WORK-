@@ -1911,22 +1911,41 @@ class ExecutionOrchestrator:
                 )
 
         if system is not None:
-            try:
-                _validate_canonical_system(system)
-            except Exception as model_err:
-                logger.error(
-                    "Topology/model validation rejected before execution for %s: %s",
-                    request.capability_id,
-                    model_err,
-                )
+            from core_model.specs import SystemSpec
+            from core_model.system import System as DomainSystem
+
+            # 1. Reject invalid system types early
+            if not isinstance(system, (dict, SystemSpec, DomainSystem)):
                 return self._build_rejection(
                     request,
                     reason="TOPOLOGY_VALIDATION_FAILED",
-                    message=f"Model validation error: {model_err}",
+                    message=(
+                        f"Unsupported or unvalidated system model type: '{type(system).__name__}'. "
+                        "Only SystemSpec, validated dictionary, or core_model.system.System instances are permitted."
+                    ),
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
 
+            # 2. DomainSystem instances undergo domain topology validation
+            if isinstance(system, DomainSystem):
+                try:
+                    _validate_canonical_system(system)
+                except Exception as model_err:
+                    logger.error(
+                        "Topology/model validation rejected before execution for %s: %s",
+                        request.capability_id,
+                        model_err,
+                    )
+                    return self._build_rejection(
+                        request,
+                        reason="TOPOLOGY_VALIDATION_FAILED",
+                        message=f"Model validation error: {model_err}",
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
+
+            # 3. Required system components check (buses, lines, base_mva)
             if cap.required_system_data:
                 missing_components = self._validate_required_system_data(
                     system, cap.required_system_data
@@ -1939,6 +1958,24 @@ class ExecutionOrchestrator:
                             f"Capability '{request.capability_id}' requires system components: "
                             f"{missing_components}. System model is missing or empty for these components."
                         ),
+                        cap=cap,
+                        raise_on_error=raise_on_error,
+                    )
+
+            # 4. Canonical SystemSpec / dictionary reference validation
+            if not isinstance(system, DomainSystem):
+                try:
+                    _validate_canonical_system(system)
+                except Exception as model_err:
+                    logger.error(
+                        "Topology/model validation rejected before execution for %s: %s",
+                        request.capability_id,
+                        model_err,
+                    )
+                    return self._build_rejection(
+                        request,
+                        reason="TOPOLOGY_VALIDATION_FAILED",
+                        message=f"Model validation error: {model_err}",
                         cap=cap,
                         raise_on_error=raise_on_error,
                     )

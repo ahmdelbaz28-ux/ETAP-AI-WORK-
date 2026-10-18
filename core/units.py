@@ -12,6 +12,24 @@ import math
 import re
 from typing import Any, Dict, Optional, Tuple
 
+try:
+    import numpy as _np
+
+    # NumPy 2.0+ compatibility: Pint < 0.24 binds legacy NumPy 1.x aliases removed in NumPy 2.0
+    _np_compat_aliases = {
+        "cumproduct": "cumprod",
+        "product": "prod",
+        "alltrue": "all",
+        "sometrue": "any",
+        "trapz": "trapezoid",
+        "round_": "round",
+    }
+    for _alias, _target in _np_compat_aliases.items():
+        if not hasattr(_np, _alias) and hasattr(_np, _target):
+            setattr(_np, _alias, getattr(_np, _target))
+except ImportError:
+    pass
+
 import pint
 
 # Initialize central unit registry

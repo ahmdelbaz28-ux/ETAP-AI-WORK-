@@ -210,13 +210,23 @@ class TestStructuralAntiBypassRegressions(unittest.TestCase):
         assert "VERIFICATION_UNAVAILABLE" in res_none.reason
         assert res_none.recomputed_value is None
 
+        from agents.ahmed_etap_orchestrator import TrustedCalculatorRegistry
+
         # Invariant 4B: Recompute callback raises exception -> MUST FAIL CLOSED
         def faulty_recompute():
             raise ValueError("Numerical divergence in solver")
 
+        calc_faulty = TrustedCalculatorRegistry.create(
+            calculator_id="calc_faulty",
+            study_type="load_flow",
+            quantity_kind="voltage",
+            unit="pu",
+            fn=faulty_recompute,
+        )
+
         res_exc = guard.validate(
             claim_value=1.024,
-            recompute=faulty_recompute,
+            recompute=calc_faulty,
             quantity_kind="voltage",
             claim_unit="pu",
         )
@@ -224,9 +234,16 @@ class TestStructuralAntiBypassRegressions(unittest.TestCase):
         assert "recompute callback raised" in res_exc.reason
 
         # Invariant 4C: Divergent claim vs independent recompute (>0.01%) -> MUST BLOCK
+        calc_mismatch = TrustedCalculatorRegistry.create(
+            calculator_id="calc_mismatch",
+            study_type="load_flow",
+            quantity_kind="voltage",
+            unit="pu",
+            fn=lambda: 1.024,
+        )
         res_mismatch = guard.validate(
             claim_value=1.025,  # ~0.097% off
-            recompute=lambda: 1.024,
+            recompute=calc_mismatch,
             quantity_kind="voltage",
             claim_unit="pu",
         )
@@ -234,9 +251,16 @@ class TestStructuralAntiBypassRegressions(unittest.TestCase):
         assert "value mismatch" in res_mismatch.reason
 
         # Invariant 4D: True deterministic match passes
+        calc_ok = TrustedCalculatorRegistry.create(
+            calculator_id="calc_ok",
+            study_type="load_flow",
+            quantity_kind="voltage",
+            unit="pu",
+            fn=lambda: 1.024,
+        )
         res_ok = guard.validate(
             claim_value=1.024,
-            recompute=lambda: 1.024,
+            recompute=calc_ok,
             quantity_kind="voltage",
             claim_unit="pu",
         )
