@@ -33,6 +33,33 @@ try:
 except ImportError:
     pass
 
+# Python 3.13+ compatibility: Pint < 0.24 uses @dataclass(frozen=True) inheriting from non-frozen classes
+if sys.version_info >= (3, 13):
+    try:
+        import dataclasses as _dc
+
+        if hasattr(_dc, "_process_class"):
+            _orig_process_class = _dc._process_class
+
+            def _compat_process_class(*args, **kwargs):
+                try:
+                    return _orig_process_class(*args, **kwargs)
+                except TypeError as err:
+                    if "cannot inherit frozen dataclass from a non-frozen one" in str(err):
+                        if len(args) > 6:
+                            args_list = list(args)
+                            args_list[6] = False
+                            return _orig_process_class(*args_list, **kwargs)
+                        elif "frozen" in kwargs:
+                            kwargs_copy = dict(kwargs)
+                            kwargs_copy["frozen"] = False
+                            return _orig_process_class(*args, **kwargs_copy)
+                    raise
+
+            _dc._process_class = _compat_process_class
+    except Exception:
+        pass
+
 # Set test environment variables
 os.environ.setdefault("APP_ENV", "development")
 os.environ.setdefault("ENVIRONMENT", "development")
