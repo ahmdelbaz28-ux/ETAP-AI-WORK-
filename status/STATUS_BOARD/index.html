@@ -740,8 +740,8 @@
 <tr>
 <td><strong>S4</strong></td>
 <td>الطوارئ الحقيقي + Stop لكل عملية</td>
-<td>✅ <strong>مغلقة بتصريح (S4 + S4.1)</strong></td>
-<td><code>pnpm p6/</code>: <strong>27 passed (4 files)</strong> (أعدت التشغيل بنفسي: 7+9+2+9) · EmergencyStopButton: حقيقتان منفصلتان · <strong>زر Stop مسبق الوجود</strong> (72c1024ee — لا جديد) · لا مسار cancel لدراسات Python (موثق) · chatStore/ActivityDrawer بلا diff</td>
+<td>✅ <strong>مغلقة بتصريح (S4 + S4.1 + S4.2)</strong></td>
+<td><code>pnpm p6/</code>: <strong>30 passed (5 files)</strong> (تأكيد استدعاء abort قبل activate + غياب الادعاء الكاذب + تعطيل الزر عند التنشيط) · EmergencyStopButton: حقيقتان منفصلتان صادقتان ومختبرتان · لا مسار cancel لدراسات Python (موثق بـ 0 نتائج في api/studies.py) · HEAD: <code>c88ee18dd</code></td>
 <td>لا شيء</td>
 <td>kill-switch CUA يُوقف عند الفحص التالي فقط — دراسة Python خلفية لا تُوقَف</td>
 </tr>
@@ -757,7 +757,7 @@
 <td><strong>S6</strong></td>
 <td>القياس النهائي الشامل (تجميد كامل)</td>
 <td>✅ <strong>مغلقة بتصريح المستشار (2026-09-21)</strong></td>
-<td>البوابة الكاملة: 3774 passed تسلسلياً · ruff 0 · syntax 822/822 · validation_suite 31/31 · claims 16/16 · test_engineering_service 74/74 · coverage 69% · UI (typecheck + 202 tests + build) خضراء · HEAD ثابت c7cf56e6c · تجميد 2h08m بلا تعديل</td>
+<td>البوابة الكاملة: 3774 passed تسلسلياً · ruff 0 · syntax 822/822 · validation_suite 31/31 · claims 16/16 · test_engineering_service 74/74 · coverage 69% · UI (typecheck + 202 tests + build) خضراء · HEAD <code>c88ee18dd</code> · تجميد 2h08m بلا تعديل</td>
 <td>لا شيء</td>
 <td>استثناء بيئي معتمد: اختبار p95 latency (#19 من خط الأساس) تجاوز العتبة 2.3ms تحت حمل 128 دقيقة ومرّ منفرداً 3 passed — مسجّل بلا أي تغيير كود</td>
 </tr>
