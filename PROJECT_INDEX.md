@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T16:36:03.518712+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T17:03:51.147782+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -1756,25 +1756,25 @@ Provides:
   - `GET /history`
   - `GET /{project_id}/history`
 
-#### 📄 `api/feature_flags.py` _20.4 KB_
+#### 📄 `api/feature_flags.py` _20.6 KB_
 > api/feature_flags.py — Feature Flags Management API.
 
 Exposes endpoints for listing, viewing, and toggling runtime feature flags
 for AhmedETAP modules
 
-- **Class** `FeatureFlagOut` (line 457)
-- **Class** `FeatureFlagListOut` (line 466)
-- **Class** `FeatureFlagPatch` (line 474)
+- **Class** `FeatureFlagOut` (line 463)
+- **Class** `FeatureFlagListOut` (line 472)
+- **Class** `FeatureFlagPatch` (line 480)
   - Methods: `validate_at_least_one_field()`
-- **def** `is_enabled()` (line 343)
-- **def** `is_feature_enabled()` (line 348)
-- **def** `is_strict_feature_enabled()` (line 368)
-- **def** `get_disabled_studies()` (line 388)
-- **def** `get_flag_metadata()` (line 405)
-- **def** `evaluate_flag_with_rollout()` (line 436)
-- **async def** `list_feature_flags()` (line 529)
-- **async def** `get_feature_flag()` (line 548)
-- **async def** `update_feature_flag()` (line 571)
+- **def** `is_enabled()` (line 349)
+- **def** `is_feature_enabled()` (line 354)
+- **def** `is_strict_feature_enabled()` (line 374)
+- **def** `get_disabled_studies()` (line 394)
+- **def** `get_flag_metadata()` (line 411)
+- **def** `evaluate_flag_with_rollout()` (line 442)
+- **async def** `list_feature_flags()` (line 535)
+- **async def** `get_feature_flag()` (line 554)
+- **async def** `update_feature_flag()` (line 577)
 
   **API Routes:**
   - `GET /{key}`
@@ -2339,21 +2339,21 @@ Provides endpoints for monitoring storage usage, purging temporary/old fi
 - **async def** `update_retention_policy()` (line 558)
 - **async def** `clear_cad_artifacts()` (line 605)
 
-#### 📄 `api/studies.py` _23.2 KB_
+#### 📄 `api/studies.py` _23.6 KB_
 > Study Execution API Router
 ==========================
 Handles all power system study execution endpoints.
 
 Per the C3 refactoring: all execution logic
 
-- **Class** `StudyReRunRequest` (line 613)
+- **Class** `StudyReRunRequest` (line 620)
 - **def** `pre_flight_check()` (line 160)
 - **async def** `run_study()` (line 283)
-- **def** `get_celery_components()` (line 416)
-- **async def** `run_study_async()` (line 459)
-- **async def** `get_task_status()` (line 533)
-- **async def** `get_study_types()` (line 602)
-- **async def** `re_run_study()` (line 620)
+- **def** `get_celery_components()` (line 423)
+- **async def** `run_study_async()` (line 466)
+- **async def** `get_task_status()` (line 540)
+- **async def** `get_study_types()` (line 609)
+- **async def** `re_run_study()` (line 627)
 
   **API Routes:**
   - `GET /types`
@@ -2829,7 +2829,7 @@ Provides an async Redis-backed caching layer for repeated study
   - Methods: `get()`, `set()`, `invalidate()`, `invalidate_study_type()`, `get_stats()`, `clear()`, `close()`
 - **def** `get_study_cache()` (line 529)
 
-#### 📄 `engine/capability_registry.py` _41.9 KB_
+#### 📄 `engine/capability_registry.py` _42.0 KB_
 > engine/capability_registry.py — Canonical Capability Contract & Unified Registry.
 
 Phase 2 & Phase 3 authoritative implementation.
@@ -2841,8 +2841,8 @@ Single source of tr
   - Methods: `is_production_eligible()`
 - **Class** `CapabilityRegistry` (line 169)
   - Methods: `register()`, `get_capability_definition()`, `get()`, `get_by_study_type()`, `get_by_agent_key()`, `list_capabilities()`, `all_capabilities()`, `get_dispatch_capabilities()`
-- **def** `get_capability_registry()` (line 919)
-- **def** `get_capability_definition()` (line 929)
+- **def** `get_capability_registry()` (line 920)
+- **def** `get_capability_definition()` (line 930)
 
 #### 📄 `engine/data_optimizer.py` _31.2 KB_
 > Memory-efficient data structures and optimization for large power system models.
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
 | ui-component | 280 |
-| python-module | 41 |
+| ui-page | 61 |
 | api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
