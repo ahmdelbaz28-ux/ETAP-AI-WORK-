@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T17:24:08.594884+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T18:09:55.566130+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -879,7 +879,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _65.5 KB_
+#### 📄 `agents/registry.py` _66.0 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -889,24 +889,24 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `ShortCircuitAgent` (line 311)
   - Methods: `execute()`, `validate_result()`
-- **Class** `HarmonicAnalysisAgent` (line 474)
+- **Class** `HarmonicAnalysisAgent` (line 485)
   - Methods: `execute()`, `validate_result()`
-- **Class** `OptimalPowerFlowAgent` (line 605)
+- **Class** `OptimalPowerFlowAgent` (line 616)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 745)
+- **Class** `ProtectionCoordinationAgent` (line 756)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 848)
+- **Class** `ETAPExecutionAgent` (line 859)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 962)
+- **Class** `ValidationAgent` (line 973)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1295)
+- **Class** `ReportGenerationAgent` (line 1306)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 129)
 - **def** `resolve_agent_key()` (line 134)
 - **def** `validate_agent_keys()` (line 139)
-- **def** `get_study_type_mapping()` (line 1598)
-- **def** `get_agent_for_study()` (line 1603)
-- **def** `create_agent_registry()` (line 1614)
+- **def** `get_study_type_mapping()` (line 1609)
+- **def** `get_agent_for_study()` (line 1614)
+- **def** `create_agent_registry()` (line 1625)
 
 #### 📄 `agents/renewable_agent.py` _39.6 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -2868,7 +2868,7 @@ Authoritative projection and adapter over Canonical CapabilityRegistry (ADR-0002
 
 - **Class** `StudyRegistration` (line 38)
 
-#### 📄 `engine/engine.py` _33.9 KB_
+#### 📄 `engine/engine.py` _34.2 KB_
 - **Class** `PowerSystemEngine` (line 92)
   - Methods: `run_load_flow()`, `run_fault_analysis()`, `run_arc_flash()`, `run_protection_coordination()`, `run_study()`, `visualize_tcc()`, `visualize_coordination()`
 
@@ -3116,7 +3116,7 @@ Generates industrial-grade
 - **Class** `ArcFlashLabelSpec` (line 22)
   - Methods: `from_calculation_result()`, `to_svg()`, `to_dict()`
 
-#### 📄 `fault_analysis/fault.py` _14.2 KB_
+#### 📄 `fault_analysis/fault.py` _13.7 KB_
 - **Class** `FaultAnalyzer` (line 16)
   - Methods: `three_phase_fault()`, `line_to_ground_fault()`, `line_to_line_fault()`, `double_line_to_ground_fault()`
 
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 280 |
 | ui-page | 61 |
 | api-route | 92 |
 | python-module | 41 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
