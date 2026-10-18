@@ -41,6 +41,8 @@ from agents.ahmed_etap_orchestrator import (  # noqa: E402
     SharedContext,
     TaskRecord,
     TokenBudget,
+    TrustedCalculator,
+    TrustedCalculatorRegistry,
     canonicalize_study_type,
     load_skill_text,
 )
@@ -295,12 +297,29 @@ async def test_shared_context_concurrent_writes_safe():
 # ---------------------------------------------------------------------------
 
 
+def _make_trusted_calc(
+    fn: Any,
+    quantity_kind: str = "voltage",
+    unit: str = "pu",
+    study_type: str = "load_flow",
+    calc_id: str = "test_calc",
+) -> TrustedCalculator:
+    return TrustedCalculatorRegistry.create(
+        calculator_id=calc_id,
+        study_type=study_type,
+        quantity_kind=quantity_kind,
+        unit=unit,
+        fn=fn,
+    )
+
+
 def test_math_guard_passes_when_values_match():
     """A correct claim within tolerance passes."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=1.024,
-        recompute=lambda: 1.024,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -312,9 +331,10 @@ def test_math_guard_passes_when_values_match():
 def test_math_guard_blocks_on_value_mismatch():
     """A claim that deviates > 0.01 % is blocked."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=1.05,  # 2.6 % off
-        recompute=lambda: 1.024,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -326,9 +346,10 @@ def test_math_guard_blocks_on_value_mismatch():
 def test_math_guard_blocks_on_unit_mismatch():
     """kV ≠ V: a wrong unit blocks even if the number is right."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 115.0, quantity_kind="voltage", unit="kV")
     result = guard.validate(
         claim_value=115.0,
-        recompute=lambda: 115.0,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="V",  # should be kV
         expected_unit="kV",
@@ -341,9 +362,10 @@ def test_math_guard_blocks_on_unit_mismatch():
 def test_math_guard_rejects_invalid_unit_for_kind():
     """A unit not in the allowed set for the quantity kind is blocked."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 20.0, quantity_kind="current", unit="kA")
     result = guard.validate(
         claim_value=20.0,
-        recompute=lambda: 20.0,
+        recompute=calc,
         quantity_kind="current",
         claim_unit="kg",  # nonsense
     )
@@ -358,9 +380,10 @@ def test_math_guard_blocks_on_callback_exception():
     def boom() -> float:
         raise ZeroDivisionError("simulated engine failure")
 
+    calc = _make_trusted_calc(boom, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=1.0,
-        recompute=boom,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -371,9 +394,10 @@ def test_math_guard_blocks_on_callback_exception():
 def test_math_guard_blocks_nan():
     """NaN claims are blocked."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 1.0, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=float("nan"),
-        recompute=lambda: 1.0,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -384,9 +408,10 @@ def test_math_guard_blocks_nan():
 def test_math_guard_blocks_infinity():
     """Infinite claims are blocked."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 1.0, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=float("inf"),
-        recompute=lambda: 1.0,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -397,9 +422,10 @@ def test_math_guard_blocks_infinity():
 def test_math_guard_handles_zero_recomputed():
     """When the recomputed value is 0, use absolute tolerance (avoid div by 0)."""
     guard = MathGuard()
+    calc_zero = _make_trusted_calc(lambda: 0.0, quantity_kind="voltage", unit="pu")
     result_ok = guard.validate(
         claim_value=0.0,
-        recompute=lambda: 0.0,
+        recompute=calc_zero,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -407,7 +433,7 @@ def test_math_guard_handles_zero_recomputed():
 
     result_bad = guard.validate(
         claim_value=0.5,
-        recompute=lambda: 0.0,
+        recompute=calc_zero,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -417,9 +443,10 @@ def test_math_guard_handles_zero_recomputed():
 def test_math_guard_tolerance_within_0_01_pct():
     """A 0.005 % deviation is within tolerance and passes."""
     guard = MathGuard()
+    calc = _make_trusted_calc(lambda: 1.00000, quantity_kind="voltage", unit="pu")
     result = guard.validate(
         claim_value=1.00005,
-        recompute=lambda: 1.00000,
+        recompute=calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
@@ -578,12 +605,13 @@ def _fake_lead_factory(status: AgentStatus = AgentStatus.COMPLETED, data: dict |
 async def test_orchestrator_approves_when_all_checks_pass():
     """Happy path: MathGuard passes, PeerReview passes → verdict APPROVED."""
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=lambda: 1.024,  # matches the agent's data
+        recompute_fn=calc,  # matches the agent's data
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -603,12 +631,13 @@ async def test_orchestrator_approves_when_all_checks_pass():
 async def test_orchestrator_blocks_on_math_guard_mismatch():
     """MathGuard mismatch → blocked after exhausting retries."""
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.000, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=lambda: 1.000,  # 2.4 % off from claim
+        recompute_fn=calc,  # 2.4 % off from claim
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -628,12 +657,13 @@ async def test_orchestrator_blocks_on_peer_review_rejection():
     We use a custom reviewer_fn that always rejects.
     """
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=lambda: 1.024,
+        recompute_fn=calc,
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -659,13 +689,14 @@ async def test_orchestrator_recovers_after_one_failure():
         call_count["n"] += 1
         return 1.000 if call_count["n"] == 1 else 1.024
 
+    calc = _make_trusted_calc(recompute, quantity_kind="voltage", unit="pu")
     orch = AhmedETAPOrchestrator()
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=recompute,
+        recompute_fn=calc,
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -679,12 +710,13 @@ async def test_orchestrator_recovers_after_one_failure():
 async def test_orchestrator_unknown_study_type_fails_cleanly():
     """An uncanonicalisable study_type returns FAILED, not a crash."""
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.0, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=lambda: 1.0,
+        recompute_fn=calc,
         claim_value=1.0,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -702,12 +734,13 @@ async def test_orchestrator_handles_lead_agent_exception():
         raise RuntimeError("engine offline")
 
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.0, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="TestProj"),
         parameters={},
         lead_agent_fn=raising_lead,
-        recompute_fn=lambda: 1.0,
+        recompute_fn=calc,
         claim_value=1.0,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -721,12 +754,13 @@ async def test_orchestrator_handles_lead_agent_exception():
 async def test_orchestrator_records_shared_context_snapshot():
     """The result must include a shared-context snapshot for auditability."""
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
     result = await orch.run_study(
         study_type="load_flow",
         project=ProjectRef(name="AuditProj", base_mva=200, base_kv=138),
         parameters={},
         lead_agent_fn=_fake_lead_factory(),
-        recompute_fn=lambda: 1.024,
+        recompute_fn=calc,
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -745,6 +779,7 @@ async def test_orchestrator_records_shared_context_snapshot():
 async def test_orchestrator_compression_fires_under_tight_budget():
     """A tight budget triggers compression during the workflow."""
     orch = AhmedETAPOrchestrator()
+    calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu")
 
     # Tiny budget (50 tokens) so any prompt-load + data record pushes us
     # past 70 % (= 35 tokens). The initial shared-context load alone is
@@ -761,7 +796,7 @@ async def test_orchestrator_compression_fires_under_tight_budget():
                 "intermediate_reasoning": "scratch",
             },
         ),
-        recompute_fn=lambda: 1.024,
+        recompute_fn=calc,
         claim_value=1.024,
         claim_unit="pu",
         quantity_kind="voltage",
@@ -836,6 +871,8 @@ async def test_skill_agent_routes_to_load_flow_lead():
     orch = ChiefEngineeringOrchestrator()
     orch.agents["load_flow"] = StubLoadFlowAgent()
 
+    trusted_calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu", calc_id="e2e_lf_calc")
+
     skill_agent = AhmedETAPSkillAgent(orchestrator=orch)
     task = EngineeringTask(
         task_id="e2e_load_flow",
@@ -844,7 +881,8 @@ async def test_skill_agent_routes_to_load_flow_lead():
         parameters={
             "study_type": "load_flow",
             "project": {"name": "E2E", "base_mva": 100, "base_kv": 115},
-            "parameters": {},
+            "parameters": {"v_slack_pu": 1.024},
+            "recompute_fn": trusted_calc,
             "claim_value": 1.024,
             "claim_unit": "pu",
             "quantity_kind": "voltage",
