@@ -176,3 +176,52 @@ async def test_distinct_statuses_for_connection_fail_vs_no_telemetry_vs_empty(
     assert "EMPTY_TELEMETRY" in statuses_b
 
     assert statuses_a != statuses_b
+
+
+@pytest.mark.asyncio
+async def test_non_empty_payload_with_unknown_tags_does_not_label_enriched(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Payload with non-matching tags must return NO_MATCHING_TAGS, never ENRICHED."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_unmatched = {
+        "voltages": {"UNKNOWN_BUS_999": 1.05},
+        "loads": {"UNKNOWN_LOAD_888": 50.0},
+        "status": {"UNKNOWN_SW_777": 1},
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_unmatched,
+    )
+
+    assert res.extra_elements.get("zenon_live_enrichment") == "NO_MATCHING_TAGS"
+    assert res.extra_elements.get("zenon_live_enrichment") != "ENRICHED"
+    counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
+    assert counts.get("voltages_updated") == 0
+    assert counts.get("loads_updated") == 0
+    assert counts.get("switches_updated") == 0
+    assert any(inc.get("status") == "NO_MATCHING_TAGS" for inc in res.incomplete)
+    # Bus 1 untouched
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.0
+
+
+@pytest.mark.asyncio
+async def test_malformed_readings_zero_updates_does_not_label_enriched(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Payload with invalid/unparseable values resulting in 0 updates returns NO_MATCHING_TAGS."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_malformed = {
+        "voltages": {"BUS_1": "not-a-number"},
+        "loads": {"LOAD_1": "corrupt_data"},
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_malformed,
+    )
+
+    assert res.extra_elements.get("zenon_live_enrichment") == "NO_MATCHING_TAGS"
+    assert res.extra_elements.get("zenon_live_enrichment") != "ENRICHED"
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.0

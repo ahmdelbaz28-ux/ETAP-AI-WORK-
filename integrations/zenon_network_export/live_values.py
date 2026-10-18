@@ -203,7 +203,22 @@ async def enrich_zenon_live_values(
             except (ValueError, TypeError):
                 pass
 
-    import_result.extra_elements["zenon_live_enrichment"] = "ENRICHED"
+    total_updated = voltages_updated + loads_updated + switches_updated
+    if total_updated == 0:
+        import_result.extra_elements["zenon_live_enrichment"] = "NO_MATCHING_TAGS"
+        import_result.warnings.append(
+            "Zenon live telemetry payload contained readings, but no measurement tags matched any model elements or all values were malformed."
+        )
+        import_result.incomplete.append(
+            {
+                "element": "zenon_live_values",
+                "status": "NO_MATCHING_TAGS",
+                "reason": "No valid telemetry measurements could be applied to any model element (zero tags matched or valid).",
+            }
+        )
+    else:
+        import_result.extra_elements["zenon_live_enrichment"] = "ENRICHED"
+
     import_result.extra_elements["zenon_live_telemetry_counts"] = {
         "voltages_updated": voltages_updated,
         "loads_updated": loads_updated,

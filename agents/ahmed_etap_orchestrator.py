@@ -483,16 +483,16 @@ class MathGuard:
         # Step 3 — tolerance check
         tolerance_ok, tolerance_msg = self._check_tolerance(claim_value, recomputed)
 
-        is_independent = getattr(recompute, "is_independent", True)
-        passed = units_ok and tolerance_ok
-        if passed and not is_independent:
-            _reason = "Self-consistency verification only (extracted from lead agent output; NOT an independent recomputation)"
-        elif passed:
-            _reason = ""
+        is_independent = bool(getattr(recompute, "is_independent", False))
+        passed = units_ok and tolerance_ok and is_independent
+        if not is_independent:
+            _reason = "NON_INDEPENDENT_VERIFICATION: Recomputation is not an independent calculation (self-consistency check only; certification refused)"
         elif not tolerance_ok:
             _reason = tolerance_msg
-        else:
+        elif not units_ok:
             _reason = units_msg
+        else:
+            _reason = ""
         return MathGuardResult(
             passed=passed,
             reason=_reason,
@@ -554,7 +554,7 @@ class MathGuardResult:
     recomputed_value: float | None
     units_ok: bool
     units_message: str
-    is_independent: bool = True
+    is_independent: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1121,7 +1121,23 @@ class AhmedETAPSkillAgent(BaseAgent):
             metadata=proj_dict.get("metadata", {}),
         )
 
-        # Identify Lead Agent
+        # Identify Lead Agent and validate capability
+        canonical_study = canonicalize_study_type(study_type)
+        from engine.capability_registry import get_capability_registry
+        cap_reg = get_capability_registry()
+        cap_def = cap_reg.get(canonical_study) or cap_reg.get_by_study_type(canonical_study)
+
+        if not self._default_lead_for(study_type) and cap_def is None:
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
+                status=AgentStatus.FAILED,
+                data={},
+                validation_errors=[
+                    f"Unknown or unsupported study_type: '{study_type}'",
+                ],
+            )
+
         lead_key = params.get("lead_agent") or self._default_lead_for(study_type)
         if not lead_key:
             return AgentResult(
@@ -1146,11 +1162,13 @@ class AhmedETAPSkillAgent(BaseAgent):
                 ],
             )
 
+        st_enum = self._skill_orch._study_type_enum(canonical_study)
+
         # Build the lead-agent task
         lead_task = EngineeringTask(
             task_id=f"{task.task_id}_lead",
             description=f"Skill-driven {study_type}",
-            study_types=[self._skill_orch._study_type_enum(canonicalize_study_type(study_type))],
+            study_types=[st_enum],
             parameters=dict(params.get("parameters", {}).items()),
         )
 
@@ -1159,12 +1177,27 @@ class AhmedETAPSkillAgent(BaseAgent):
         async def _lead_fn(t: EngineeringTask) -> AgentResult:
             # Route reference study execution through the canonical ExecutionOrchestrator gateway
             system_input = t.parameters.get("system")
-            if system_input and isinstance(system_input, dict):
+
+            # Validate required system model before execution: fail closed if required but missing
+            if cap_def is not None and getattr(cap_def, "requires_system", False) and not system_input:
+                res = AgentResult(
+                    agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                    study_type=st_enum,
+                    status=AgentStatus.FAILED,
+                    data={},
+                    validation_status=False,
+                    validation_errors=[
+                        f"Capability '{canonical_study}' requires a system model ('system'), but none was provided",
+                    ],
+                )
+                lead_result.append(res)
+                return res
+
+            if cap_def is not None or system_input:
                 try:
                     from services.execution_orchestrator import get_execution_orchestrator
                     from services.execution_request import ExecutionRequest
 
-                    canonical_study = canonicalize_study_type(study_type)
                     req = ExecutionRequest(
                         capability_id=canonical_study,
                         tenant_id=params.get("tenant_id") or "default_tenant",
@@ -1180,7 +1213,7 @@ class AhmedETAPSkillAgent(BaseAgent):
                     if canonical_res.success:
                         res = AgentResult(
                             agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
-                            study_type=self._skill_orch._study_type_enum(canonical_study),
+                            study_type=st_enum,
                             status=AgentStatus.COMPLETED,
                             data=canonical_res.data,
                             validation_status=canonical_res.validation_status in ("passed", "warning"),
@@ -1189,15 +1222,22 @@ class AhmedETAPSkillAgent(BaseAgent):
                     else:
                         res = AgentResult(
                             agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
-                            study_type=self._skill_orch._study_type_enum(canonical_study),
+                            study_type=st_enum,
                             status=AgentStatus.FAILED,
                             data=canonical_res.data or {},
                             validation_status=False,
                             validation_errors=list(canonical_res.errors or [f"Canonical execution failed: {canonical_res.status}"]),
                         )
                 except Exception as exec_err:
-                    logger.debug("Canonical orchestrator dispatch bypassed or unavailable for %s: %s; using lead agent", study_type, exec_err)
-                    res = await lead_agent.execute(t)
+                    logger.error("Canonical orchestrator dispatch failed for %s: %s; fail-closed enforcement active", study_type, exec_err)
+                    res = AgentResult(
+                        agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                        study_type=st_enum,
+                        status=AgentStatus.FAILED,
+                        data={},
+                        validation_status=False,
+                        validation_errors=[f"Canonical execution failed: {exec_err}"],
+                    )
             else:
                 res = await lead_agent.execute(t)
 
@@ -1226,6 +1266,7 @@ class AhmedETAPSkillAgent(BaseAgent):
                     f"No deterministic recomputation available for study_type '{study_type}'"
                 )
 
+            _derived_recompute.is_independent = bool(getattr(domain_recompute, "is_independent", False))
             recompute_fn = _derived_recompute
 
         result = await self._skill_orch.run_study(
@@ -1248,17 +1289,19 @@ class AhmedETAPSkillAgent(BaseAgent):
             if result.verdict == OrchestrationVerdict.APPROVED
             else AgentStatus.FAILED
         )
+        errors: list[str] = []
+        if status != AgentStatus.COMPLETED:
+            errors.append(f"verdict={result.verdict.value}")
+            if lead_result and lead_result[-1].validation_errors:
+                errors.extend(lead_result[-1].validation_errors)
+
         return AgentResult(
             agent_name=self.agent_name,
             study_type=self._skill_orch._study_type_enum(canonicalize_study_type(study_type)),
             status=status,
             data=result.to_dict(),
             validation_status=result.verdict == OrchestrationVerdict.APPROVED,
-            validation_errors=[]
-            if status == AgentStatus.COMPLETED
-            else [
-                f"verdict={result.verdict.value}",
-            ],
+            validation_errors=errors,
             execution_time=elapsed,
         )
 
@@ -1325,7 +1368,11 @@ class AhmedETAPSkillAgent(BaseAgent):
             v_kv = float(lead_params.get("voltage_kv") or project.base_kv or 0.0)
             z_ohm = float(lead_params.get("z_ohm") or lead_params.get("impedance_ohm") or 0.0)
             if v_kv > 0.0 and z_ohm > 0.0:
-                return lambda: (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0
+                def _calc_sc() -> float:
+                    return (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0
+
+                _calc_sc.is_independent = True
+                return _calc_sc
 
         # 2. Cable Sizing / Full Load Current: I = P / (sqrt(3) * V * pf)
         if canonical == "cable_sizing":
@@ -1333,14 +1380,22 @@ class AhmedETAPSkillAgent(BaseAgent):
             v_v = float(lead_params.get("voltage_v") or (float(lead_params.get("voltage_kv", 0.0)) * 1000.0) or 0.0)
             pf = float(lead_params.get("power_factor", 0.85))
             if p_kw > 0.0 and v_v > 0.0 and pf > 0.0:
-                return lambda: (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf)
+                def _calc_cable() -> float:
+                    return (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf)
+
+                _calc_cable.is_independent = True
+                return _calc_cable
 
         # 3. Transformer Sizing: S_kVA = P_kW / pf
         if canonical in ("transformer_sizing", "substation_design"):
             p_kw = float(lead_params.get("load_kw") or lead_params.get("power_kw") or 0.0)
             pf = float(lead_params.get("power_factor", 0.85))
             if p_kw > 0.0 and pf > 0.0:
-                return lambda: p_kw / pf
+                def _calc_xfmr() -> float:
+                    return p_kw / pf
+
+                _calc_xfmr.is_independent = True
+                return _calc_xfmr
 
         return None
 

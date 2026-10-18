@@ -490,27 +490,51 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                     )
                 if cap.approval_policy in ("maker_checker", "dual_control"):
                     approval = request.approval_context or {}
-                    if not approval.get("approved"):
+                    approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
+                    if not approval.get("approved") or not approver_id or approver_id == request.user_id:
                         raise SpecializedExecutionUnavailableError(
                             request.capability_id,
-                            f"Capability '{request.capability_id}' is in PILOT status and requires server-side approval",
+                            f"Capability '{request.capability_id}' requires verified dual-control server-side approval with distinct approver identity",
                         )
 
         params = request.get_parameters()
         system = request.get_system()
         built_system = None
         if system is not None:
-            if isinstance(system, dict):
-                try:
-                    from core_model.specs import SystemSpec
-                    from services.study_executor import StudyExecutor
+            from core_model.specs import SystemSpec
+            from services.study_executor import StudyExecutor
 
+            try:
+                if isinstance(system, SystemSpec):
+                    system.validate_references()
+                    built_system = StudyExecutor()._build_system_from_spec(system)
+                elif isinstance(system, dict):
                     spec = SystemSpec.model_validate(system)
+                    spec.validate_references()
                     built_system = StudyExecutor()._build_system_from_spec(spec)
-                except Exception:
+                elif hasattr(system, "buses"):
                     built_system = system
-            else:
-                built_system = system
+                else:
+                    built_system = system
+            except Exception as exc:
+                logger.error("Topology/model validation failed for %s: %s", request.capability_id, exc)
+                return CanonicalExecutionResult(
+                    execution_id=request.execution_id,
+                    request_id=request.request_id,
+                    capability_id=request.capability_id,
+                    capability_version=cap.version if cap else "1.0.0",
+                    tenant_id=request.tenant_id,
+                    user_id=request.user_id,
+                    executor_kind="agent",
+                    provider="agent",
+                    solver=type(agent).__name__,
+                    status="failed",
+                    success=False,
+                    data={},
+                    errors=[f"Model validation error: {exc}"],
+                    warnings=[],
+                    trace_id=request.trace_id,
+                )
             params["system"] = built_system or system
 
         study_types: list[Any] = []
@@ -1332,7 +1356,16 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
-            if approval.get("approver_id") == request.user_id:
+            approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
+            if not approver_id:
+                return self._build_rejection(
+                    request,
+                    reason="APPROVAL_REQUIRED",
+                    message="Capability requires approved dual-control maker-checker authorization with verified approver identity",
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
+            if approver_id == request.user_id:
                 return self._build_rejection(
                     request,
                     reason="MAKER_CHECKER_VIOLATION",
@@ -1431,7 +1464,8 @@ class ExecutionOrchestrator:
 
             if cap.approval_policy in ("maker_checker", "dual_control"):
                 approval = request.approval_context or {}
-                if not approval.get("approved"):
+                approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
+                if not approval.get("approved") or not approver_id or approver_id == request.user_id:
                     pilot_allowed = False
 
             if not cap.feature_flag and cap.approval_policy not in ("maker_checker", "dual_control"):

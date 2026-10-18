@@ -61,7 +61,10 @@ from etap_integration.etap_rest import (
     _tenant_allowed,
     get_rest_client_from_env,
 )
-from etap_integration.post_draw_verifier import dispatch_load_flow_verification
+from etap_integration.post_draw_verifier import (
+    NetworkVerificationResult,
+    dispatch_load_flow_verification,
+)
 
 logger = logging.getLogger("engineering_service.etap_draw")
 
@@ -458,10 +461,18 @@ async def resolve_draw(
         proj = proj_res.scalar_one_or_none()
         baseline_model = (proj.system_config or {}) if proj else {}
 
-        verification_result = await dispatch_load_flow_verification(
-            project_path=project_id,
-            baseline_model=baseline_model,
-        )
+        if not proj or not proj.system_config:
+            verification_result = NetworkVerificationResult(
+                passed=False,
+                status="baseline_missing",
+                reason=f"Project '{project_id}' baseline topology missing or empty in project database.",
+                details={"project_id": project_id},
+            )
+        else:
+            verification_result = await dispatch_load_flow_verification(
+                project_path=project_id,
+                baseline_model=baseline_model,
+            )
 
         curr = dict(action.args or {})
         curr["verification"] = verification_result.model_dump()

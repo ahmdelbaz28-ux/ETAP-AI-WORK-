@@ -189,7 +189,9 @@ class ExecutionRequest(BaseModel):
 
         approval = None
         if pe_stamp:
-            approval = {"pe_stamp": pe_stamp, "approved": True}
+            # SECURITY: A client-provided PE stamp is data/evidence, NOT maker-checker approval.
+            # Do not synthesize approved=True.
+            approval = {"pe_stamp": pe_stamp, "approved": False}
 
         req_meta = getattr(study_request, "metadata", None)
         exec_metadata = dict(req_meta or {}) if isinstance(req_meta, dict) else {}

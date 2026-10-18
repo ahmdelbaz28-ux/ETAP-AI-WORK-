@@ -13,8 +13,8 @@ import pytest
 
 from agents.arc_flash_agent import ArcFlashAgent
 from agents.orchestrator import AgentStatus, EngineeringTask, StudyType
-from fault_analysis.arc_flash_engine import ArcFlashEngine
 from engine.engine import PowerSystemEngine
+from fault_analysis.arc_flash_engine import ArcFlashEngine
 
 
 @pytest.mark.asyncio
@@ -145,3 +145,83 @@ class TestArcFlashUnification:
 
         assert abs(agent_arc["arc_current_ka"] - central_iarc) < 1e-4
         assert abs(agent_arc["reduced_arc_current_ka"] - central_reduced) < 1e-4
+
+    async def test_missing_arc_gap_fails_closed(self):
+        """Missing arc_gap_mm must fail closed without fallback to silent default 32.0 mm."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_missing_gap",
+            description="Arc flash missing gap",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.2,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("arc_gap_mm" in err for err in res.validation_errors)
+
+    async def test_zero_or_negative_arc_duration_fails_closed(self):
+        """Zero duration must not be silently replaced by a default duration."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_zero_dur",
+            description="Arc flash zero duration",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.0,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("arc_duration_s" in err for err in res.validation_errors)
+
+    async def test_invalid_electrode_config_fails_closed(self):
+        """Invalid electrode configuration must not silently coerce to VCB."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_bad_elec",
+            description="Arc flash invalid electrode",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "electrode_config": "NON_EXISTENT_CFG",
+                "arc_gap_mm": 25.0,
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("electrode_config" in err for err in res.validation_errors)
+
+    async def test_invalid_enclosure_type_fails_closed(self):
+        """Invalid enclosure type must not silently coerce to BOX."""
+        agent = ArcFlashAgent()
+        task = EngineeringTask(
+            task_id="task_af_bad_enc",
+            description="Arc flash invalid enclosure",
+            study_types=[StudyType.ARC_FLASH],
+            parameters={
+                "voltage_kv": 0.48,
+                "bolted_fault_current_ka": 20.0,
+                "arc_duration_s": 0.1,
+                "working_distance_mm": 457.0,
+                "electrode_config": "VCB",
+                "arc_gap_mm": 25.0,
+                "enclosure_type": "MY_FANCY_ENCLOSURE",
+            },
+        )
+        res = await agent.execute(task)
+        assert res.status == AgentStatus.FAILED
+        assert any("enclosure_type" in err for err in res.validation_errors)

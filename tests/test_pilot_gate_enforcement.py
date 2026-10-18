@@ -164,3 +164,92 @@ class TestPilotCapabilityGating:
             assert res.success is False
             assert res.status == "rejected"
             assert "CAPABILITY_DISABLED" in res.errors[0] or "disabled" in res.errors[0].lower()
+
+    async def test_pe_stamp_in_study_request_does_not_synthesize_approved_true(self):
+        """Presence of pe_stamp in client request must NOT synthesize approved=True."""
+        from unittest.mock import MagicMock
+
+        from services.execution_request import ExecutionRequest
+
+        mock_sr = MagicMock()
+        mock_sr.task_id = "test_sr_1"
+        mock_sr.study_type = "load_flow"
+        mock_sr.parameters = {"param1": "val1"}
+        mock_sr.system = {"buses": []}
+        mock_sr.pe_stamp = {"engineer": "Eng. John", "license": "PE-12345"}
+
+        req = ExecutionRequest.from_study_request(
+            study_request=mock_sr,
+            tenant_id="tenant_1",
+            user_id="user_1",
+        )
+        assert req.approval_context is not None
+        assert req.approval_context.get("approved") is False
+        assert req.approval_context.get("pe_stamp") == {"engineer": "Eng. John", "license": "PE-12345"}
+
+    async def test_forged_approval_context_without_distinct_approver_is_rejected(self):
+        """Self-approval or missing distinct approver must be rejected with anti-self-approval."""
+        orchestrator = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_attacker",
+            user_role="lead_engineer",
+            approval_context={"approved": True, "approver_id": "user_attacker"},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("MAKER_CHECKER_VIOLATION" in err or "Approver cannot be" in err for err in res.errors)
+
+    async def test_forged_approval_context_missing_approver_fails_closed(self):
+        """Approval context without verified approver identity fails closed."""
+        orchestrator = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_attacker",
+            user_role="lead_engineer",
+            approval_context={"approved": True},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("APPROVAL_REQUIRED" in err or "approver" in err.lower() for err in res.errors)
+
+    async def test_valid_dual_control_with_independent_approver_succeeds(self):
+        """Valid approval record from an authorized independent approver passes gate."""
+        from services.execution_orchestrator import CanonicalExecutionResult
+
+        orchestrator = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approved": True, "approver_id": "admin_other", "decided_by_user_id": "admin_other"},
+            input={"system": _MOCK_SYSTEM},
+        )
+        mock_res = CanonicalExecutionResult(
+            execution_id=req.execution_id,
+            request_id=req.request_id,
+            capability_id=req.capability_id,
+            capability_version="1.0.0",
+            tenant_id=req.tenant_id,
+            user_id=req.user_id,
+            executor_kind="agent",
+            provider="agent",
+            solver="SCADAAgent",
+            status="completed",
+            success=True,
+            data={"scada_ok": True},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            with patch.object(orchestrator.get_executor("agent"), "execute", return_value=mock_res):
+                res = await orchestrator.execute(req)
+                assert res.success is True
+                assert res.status == "completed"
