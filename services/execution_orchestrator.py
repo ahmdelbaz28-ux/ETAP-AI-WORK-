@@ -279,6 +279,253 @@ def set_execution_state_store(store: IExecutionStateStore) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Canonical Validation & Server-Side Governance Helpers (Phase 5)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _validate_canonical_system(system_input: Any) -> None:
+    """Validate model required fields, structure, and element references under strict canonical contract."""
+    if system_input is None:
+        return
+
+    from core_model.specs import SystemSpec
+    from core_model.system import System as DomainSystem
+
+    if isinstance(system_input, SystemSpec):
+        system_input.validate_references()
+        return
+
+    if isinstance(system_input, dict):
+        spec = SystemSpec.model_validate(system_input)
+        spec.validate_references()
+        return
+
+    if isinstance(system_input, DomainSystem):
+        if not isinstance(system_input.buses, dict):
+            raise ValueError("Domain System model has invalid or non-dictionary buses collection")
+        known_bus_ids = set(system_input.buses.keys())
+        for line in getattr(system_input, "lines", []):
+            from_id = getattr(getattr(line, "from_bus", None), "bus_id", None)
+            to_id = getattr(getattr(line, "to_bus", None), "bus_id", None)
+            if from_id not in known_bus_ids or to_id not in known_bus_ids:
+                raise ValueError(
+                    f"Line '{getattr(line, 'line_id', '')}' references unknown bus: "
+                    f"from_bus={from_id}, to_bus={to_id}"
+                )
+        for xf in getattr(system_input, "transformers", []):
+            from_id = getattr(getattr(xf, "from_bus", None), "bus_id", None)
+            to_id = getattr(getattr(xf, "to_bus", None), "bus_id", None)
+            if from_id not in known_bus_ids or to_id not in known_bus_ids:
+                raise ValueError(
+                    f"Transformer '{getattr(xf, 'transformer_id', '')}' references unknown bus: "
+                    f"from_bus={from_id}, to_bus={to_id}"
+                )
+        for gen in getattr(system_input, "generators", []):
+            b_id = getattr(getattr(gen, "bus", None), "bus_id", None)
+            if b_id not in known_bus_ids:
+                raise ValueError(
+                    f"Generator '{getattr(gen, 'generator_id', '')}' references unknown bus: {b_id}"
+                )
+        for ld in getattr(system_input, "loads", []):
+            b_id = getattr(getattr(ld, "bus", None), "bus_id", None)
+            if b_id not in known_bus_ids:
+                raise ValueError(
+                    f"Load '{getattr(ld, 'load_id', '')}' references unknown bus: {b_id}"
+                )
+        return
+
+    # Any other object, including fake objects with a 'buses' attribute or unvalidated mocks
+    raise ValueError(
+        f"Unsupported or unvalidated system model type: '{type(system_input).__name__}'. "
+        "Only SystemSpec, validated dictionary, or core_model.system.System instances are permitted."
+    )
+
+
+def _validate_and_build_system(system_input: Any, executor: Any = None) -> Any:
+    """Validate topology references and build executable power system model."""
+    if system_input is None:
+        return None
+
+    _validate_canonical_system(system_input)
+
+    from core_model.specs import SystemSpec
+    from core_model.system import System as DomainSystem
+    from services.study_executor import StudyExecutor
+
+    exec_builder = executor if executor is not None else StudyExecutor(cache=None)
+
+    if isinstance(system_input, SystemSpec):
+        return exec_builder._build_system_from_spec(system_input)
+    if isinstance(system_input, dict):
+        spec = SystemSpec.model_validate(system_input)
+        return exec_builder._build_system_from_spec(spec)
+    if isinstance(system_input, DomainSystem):
+        return system_input
+
+    raise ValueError(f"Cannot build system from type '{type(system_input).__name__}'")
+
+
+def _verify_server_approval(
+    request: ExecutionRequest, cap: CapabilityDefinition
+) -> tuple[bool, str, str]:
+    """Verify authoritative server-side approval record for maker-checker / dual-control capabilities."""
+    approval_ctx = request.approval_context
+    if not approval_ctx or not isinstance(approval_ctx, dict):
+        return (
+            False,
+            "APPROVAL_REQUIRED",
+            f"Capability '{request.capability_id}' requires approved dual-control maker-checker authorization record",
+        )
+
+    server_record = approval_ctx.get("approval_record") or approval_ctx.get("pending_action")
+
+    if not server_record:
+        # Check if approval_ctx itself is structured as an authoritative server-side approval record
+        if (
+            "id" in approval_ctx
+            and "status" in approval_ctx
+            and "requested_by_user_id" in approval_ctx
+            and "decided_by_user_id" in approval_ctx
+        ):
+            server_record = approval_ctx
+        else:
+            return (
+                False,
+                "UNVERIFIED_APPROVAL_ASSERTION",
+                "Client-supplied approval dictionary lacks verified server-side approval record provenance. Authoritative approval required.",
+            )
+
+    # 1. State check
+    rec_status = (
+        getattr(server_record, "status", None)
+        or server_record.get("status")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if rec_status != "approved":
+        return (
+            False,
+            "APPROVAL_NOT_APPROVED",
+            f"Approval record status is '{rec_status}' (must be 'approved')",
+        )
+
+    # 2. Requester identity check
+    req_user = (
+        getattr(server_record, "requested_by_user_id", None)
+        or server_record.get("requested_by_user_id")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if req_user and req_user != request.user_id:
+        return (
+            False,
+            "REQUESTER_MISMATCH",
+            f"Approval was requested by '{req_user}', but execution was requested by '{request.user_id}'",
+        )
+
+    # 3. Approver identity and distinctness (maker-checker)
+    decider = (
+        getattr(server_record, "decided_by_user_id", None)
+        or server_record.get("decided_by_user_id")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if not decider:
+        return (
+            False,
+            "APPROVAL_REQUIRED",
+            "Approval record missing authenticated approver identity (decided_by_user_id)",
+        )
+    if decider == request.user_id:
+        return (
+            False,
+            "MAKER_CHECKER_VIOLATION",
+            "Approver must be strictly distinct from the requesting user (self-approval prohibited)",
+        )
+
+    # 4. Approver role check
+    decider_role = (
+        getattr(server_record, "decided_by_role", None)
+        or server_record.get("decided_by_role")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if decider_role and decider_role not in ("admin", "lead_engineer", "checker", "supervisor"):
+        return (
+            False,
+            "UNAUTHORIZED_APPROVER_ROLE",
+            f"Approver role '{decider_role}' is not authorized to grant dual-control approval",
+        )
+
+    # 5. Tenant isolation check
+    rec_tenant = (
+        getattr(server_record, "tenant_id", None)
+        or server_record.get("tenant_id")
+        if isinstance(server_record, dict)
+        else None
+    )
+    from api.approvals import _norm_tenant
+
+    if _norm_tenant(rec_tenant) != _norm_tenant(request.tenant_id):
+        return (
+            False,
+            "CROSS_TENANT_FORBIDDEN",
+            f"Approval record tenant '{rec_tenant}' does not match execution request tenant '{request.tenant_id}'",
+        )
+
+    # 6. Expiry check
+    expires_at = (
+        getattr(server_record, "expires_at", None)
+        or server_record.get("expires_at")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if expires_at:
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        if isinstance(expires_at, str):
+            clean_str = expires_at.strip()
+            if clean_str.endswith("Z"):
+                clean_str = clean_str[:-1] + "+00:00"
+            try:
+                expires_at = datetime.fromisoformat(clean_str)
+            except ValueError:
+                pass
+        if getattr(expires_at, "tzinfo", None) is None and isinstance(expires_at, datetime):
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if isinstance(expires_at, datetime) and expires_at <= now:
+            return (
+                False,
+                "APPROVAL_EXPIRED",
+                f"Approval record expired at {expires_at.isoformat()} (current time {now.isoformat()})",
+            )
+
+    # 7. Capability / tool binding
+    rec_tool = (
+        getattr(server_record, "tool", None)
+        or server_record.get("tool")
+        if isinstance(server_record, dict)
+        else None
+    )
+    if rec_tool:
+        try:
+            from agents.ahmed_etap_orchestrator import canonicalize_study_type
+            match_tool = canonicalize_study_type(rec_tool) == canonicalize_study_type(request.capability_id)
+        except Exception:
+            match_tool = str(rec_tool).lower().strip() == str(request.capability_id).lower().strip()
+
+        if not match_tool:
+            return (
+                False,
+                "CAPABILITY_MISMATCH",
+                f"Approval was granted for tool '{rec_tool}', but request executes capability '{request.capability_id}'",
+            )
+
+    return (True, "", "")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Concrete Executors (Phase 5 Implementations)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -308,16 +555,7 @@ class NativeEngineeringExecutor(IEngineeringExecutor):
 
         # Deterministic single execution attempt (NO double-execution fallback)
         try:
-            # Build system model if a specification is provided
-            if system_input is not None and not hasattr(system_input, "run_study"):
-                from core_model.specs import SystemSpec
-
-                if isinstance(system_input, (SystemSpec, dict)):
-                    built_system = executor._build_system_from_spec(system_input)
-                else:
-                    built_system = system_input
-            else:
-                built_system = system_input
+            built_system = _validate_and_build_system(system_input, executor)
 
             loop = None
             try:
@@ -489,33 +727,19 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                         f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled",
                     )
                 if cap.approval_policy in ("maker_checker", "dual_control"):
-                    approval = request.approval_context or {}
-                    approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
-                    if not approval.get("approved") or not approver_id or approver_id == request.user_id:
+                    ok, err_code, err_msg = _verify_server_approval(request, cap)
+                    if not ok:
                         raise SpecializedExecutionUnavailableError(
                             request.capability_id,
-                            f"Capability '{request.capability_id}' requires verified dual-control server-side approval with distinct approver identity",
+                            f"Capability '{request.capability_id}' requires verified dual-control server-side approval: {err_msg}",
                         )
 
         params = request.get_parameters()
         system = request.get_system()
         built_system = None
         if system is not None:
-            from core_model.specs import SystemSpec
-            from services.study_executor import StudyExecutor
-
             try:
-                if isinstance(system, SystemSpec):
-                    system.validate_references()
-                    built_system = StudyExecutor()._build_system_from_spec(system)
-                elif isinstance(system, dict):
-                    spec = SystemSpec.model_validate(system)
-                    spec.validate_references()
-                    built_system = StudyExecutor()._build_system_from_spec(spec)
-                elif hasattr(system, "buses"):
-                    built_system = system
-                else:
-                    built_system = system
+                built_system = _validate_and_build_system(system)
             except Exception as exc:
                 logger.error("Topology/model validation failed for %s: %s", request.capability_id, exc)
                 return CanonicalExecutionResult(
@@ -535,7 +759,7 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                     warnings=[],
                     trace_id=request.trace_id,
                 )
-            params["system"] = built_system or system
+            params["system"] = built_system
 
         study_types: list[Any] = []
         if cap and cap.study_type:
@@ -1347,29 +1571,12 @@ class ExecutionOrchestrator:
 
         # ── 5. Validate Approval Requirements ────────────────────────────────
         if cap.approval_policy in ("maker_checker", "dual_control"):
-            approval = request.approval_context or {}
-            if not approval.get("approved"):
+            ok, err_code, err_msg = _verify_server_approval(request, cap)
+            if not ok:
                 return self._build_rejection(
                     request,
-                    reason="APPROVAL_REQUIRED",
-                    message="Capability requires approved dual-control maker-checker authorization",
-                    cap=cap,
-                    raise_on_error=raise_on_error,
-                )
-            approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
-            if not approver_id:
-                return self._build_rejection(
-                    request,
-                    reason="APPROVAL_REQUIRED",
-                    message="Capability requires approved dual-control maker-checker authorization with verified approver identity",
-                    cap=cap,
-                    raise_on_error=raise_on_error,
-                )
-            if approver_id == request.user_id:
-                return self._build_rejection(
-                    request,
-                    reason="MAKER_CHECKER_VIOLATION",
-                    message="Approver must be strictly distinct from the requesting user",
+                    reason=err_code,
+                    message=err_msg,
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
@@ -1463,9 +1670,8 @@ class ExecutionOrchestrator:
                     pilot_allowed = False
 
             if cap.approval_policy in ("maker_checker", "dual_control"):
-                approval = request.approval_context or {}
-                approver_id = approval.get("approver_id") or approval.get("decided_by_user_id") or approval.get("approver")
-                if not approval.get("approved") or not approver_id or approver_id == request.user_id:
+                ok, err_code, err_msg = _verify_server_approval(request, cap)
+                if not ok:
                     pilot_allowed = False
 
             if not cap.feature_flag and cap.approval_policy not in ("maker_checker", "dual_control"):
@@ -1502,7 +1708,7 @@ class ExecutionOrchestrator:
                     raise_on_error=raise_on_error,
                 )
 
-        # ── 7. Validate Request Schema ───────────────────────────────────────
+        # ── 7. Validate Request Schema & Topology ────────────────────────────
         params = request.get_parameters()
         if cap.required_params:
             missing_params = [
@@ -1520,9 +1726,9 @@ class ExecutionOrchestrator:
                     raise_on_error=raise_on_error,
                 )
 
+        system = request.get_system()
         if cap.requires_system or cap.required_system_data:
-            system = request.get_system()
-            if system is None and (cap.requires_system or cap.required_system_data):
+            if system is None:
                 return self._build_rejection(
                     request,
                     reason="SYSTEM_MODEL_REQUIRED",
@@ -1530,7 +1736,25 @@ class ExecutionOrchestrator:
                     cap=cap,
                     raise_on_error=raise_on_error,
                 )
-            if cap.required_system_data and system is not None:
+
+        if system is not None:
+            try:
+                _validate_canonical_system(system)
+            except Exception as model_err:
+                logger.error(
+                    "Topology/model validation rejected before execution for %s: %s",
+                    request.capability_id,
+                    model_err,
+                )
+                return self._build_rejection(
+                    request,
+                    reason="TOPOLOGY_VALIDATION_FAILED",
+                    message=f"Model validation error: {model_err}",
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
+
+            if cap.required_system_data:
                 missing_components = self._validate_required_system_data(
                     system, cap.required_system_data
                 )

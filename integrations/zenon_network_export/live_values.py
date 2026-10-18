@@ -14,6 +14,7 @@ Safety & Security Constraints:
 from __future__ import annotations
 
 import logging
+import math
 import os
 from typing import Any, Optional
 
@@ -157,51 +158,85 @@ async def enrich_zenon_live_values(
     loads_updated = 0
     switches_updated = 0
 
-    # 1. Update buses
+    # Helper to enforce discrete binary states without float truncation
+    def _parse_discrete_switch_state(val: Any) -> Optional[int]:
+        if val is None or isinstance(val, (dict, list, set)):
+            return None
+        if isinstance(val, bool):
+            return 1 if val else 0
+        if isinstance(val, (int, float)):
+            if not math.isfinite(val):
+                return None
+            # Enforce discrete integer state - reject fractional floats like 1.5
+            if float(val) != int(val):
+                return None
+            int_val = int(val)
+            if int_val in (0, 1):
+                return int_val
+            return None
+        if isinstance(val, str):
+            s = val.strip().lower()
+            if s in ("1", "true", "closed", "close", "on"):
+                return 1
+            if s in ("0", "false", "open", "opened", "trip", "tripped", "off"):
+                return 0
+            try:
+                f_val = float(s)
+                if math.isfinite(f_val) and f_val == int(f_val):
+                    int_val = int(f_val)
+                    if int_val in (0, 1):
+                        return int_val
+            except ValueError:
+                pass
+        return None
+
+    # 1. Update buses (must be positive and finite)
     for bus_id, v_val in measurements.get("voltages", {}).items():
         if bus_id in import_result.system.buses:
             try:
-                import_result.system.buses[bus_id].voltage_magnitude = float(v_val)
-                voltages_updated += 1
+                v_float = float(v_val)
+                if math.isfinite(v_float) and v_float > 0.0:
+                    import_result.system.buses[bus_id].voltage_magnitude = v_float
+                    voltages_updated += 1
             except (ValueError, TypeError):
                 pass
 
-    # 2. Update loads
+    # 2. Update loads (must be finite)
     load_measurements = measurements.get("loads", {})
     for load_obj in import_result.system.loads:
         lid = getattr(load_obj, "load_id", None)
         if lid and lid in load_measurements:
             p_val = load_measurements[lid]
             try:
-                current_q = load_obj.load_power.imag if load_obj.load_power else 0.0
-                new_power = complex(float(p_val), current_q)
-                if getattr(load_obj, "bus", None) and hasattr(load_obj.bus, "load_power"):
-                    diff = new_power - (load_obj.load_power or 0j)
-                    load_obj.bus.load_power += diff
-                load_obj.load_power = new_power
-                loads_updated += 1
+                p_float = float(p_val)
+                if math.isfinite(p_float):
+                    current_q = load_obj.load_power.imag if load_obj.load_power else 0.0
+                    new_power = complex(p_float, current_q)
+                    if getattr(load_obj, "bus", None) and hasattr(load_obj.bus, "load_power"):
+                        diff = new_power - (load_obj.load_power or 0j)
+                        load_obj.bus.load_power += diff
+                    load_obj.load_power = new_power
+                    loads_updated += 1
             except (ValueError, TypeError):
                 pass
 
-    # 3. Update breakers/switches in extra_elements
+    # 3. Update breakers/switches in extra_elements (must be discrete 0 or 1)
     switch_states = measurements.get("status", {})
     for brk in import_result.extra_elements.get("breakers", []):
         bid = brk.get("id") or brk.get("name")
         if bid in switch_states:
-            try:
-                brk["status"] = int(switch_states[bid])
+            parsed_st = _parse_discrete_switch_state(switch_states[bid])
+            if parsed_st is not None:
+                brk["status"] = parsed_st
                 switches_updated += 1
-            except (ValueError, TypeError):
-                pass
 
     for sw in import_result.extra_elements.get("switches", []):
         sid = sw.get("id") or sw.get("name")
         if sid in switch_states:
-            try:
-                sw["status"] = int(switch_states[sid])
+            parsed_st = _parse_discrete_switch_state(switch_states[sid])
+            if parsed_st is not None:
+                sw["status"] = parsed_st
                 switches_updated += 1
-            except (ValueError, TypeError):
-                pass
 
     total_updated = voltages_updated + loads_updated + switches_updated
     if total_updated == 0:

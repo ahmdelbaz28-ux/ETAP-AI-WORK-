@@ -161,7 +161,7 @@ class TestCanonicalExecutionOrchestratorTopologyRejection:
         )
         res = await orch.execute(req)
         assert res.success is False
-        assert res.status == "failed"
+        assert res.status in ("failed", "rejected")
         assert any("references unknown bus" in err for err in res.errors)
 
     async def test_canonical_orchestrator_rejects_spec_with_dangling_transformer_bus(self, valid_bus_spec):
@@ -238,3 +238,51 @@ class TestCanonicalExecutionOrchestratorTopologyRejection:
         res = await orch.execute(req)
         assert res.success is True
         assert res.status == "completed"
+
+    async def test_canonical_orchestrator_rejects_fake_object_with_buses_attribute(self):
+        """An arbitrary mock or object with a 'buses' attribute cannot bypass validation."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        class FakeBusesObject:
+            buses = {"b1": "something"}
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": FakeBusesObject()},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("Unsupported or unvalidated system model type" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_validates_domain_system_with_dangling_line(self):
+        """A core_model.system.System instance with dangling line references is rejected."""
+        from core_model.bus import Bus
+        from core_model.line import Line
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=100.0, base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        sys_obj.buses = {"B1": b1}
+
+        b_ghost = Bus(bus_id="B_GHOST", base_kv=132.0, bus_type="pq")
+        line = Line(line_id="L1", from_bus=b1, to_bus=b_ghost, z1=complex(0.01, 0.05))
+        sys_obj.lines = [line]
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("references unknown bus" in err for err in res.errors)

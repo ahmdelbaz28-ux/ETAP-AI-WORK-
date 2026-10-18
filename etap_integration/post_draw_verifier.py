@@ -14,6 +14,7 @@ Conforms to MathGuard principles from agents/ahmed_etap_orchestrator.py:
 from __future__ import annotations
 
 import logging
+import math
 import os
 from typing import Any, Optional
 
@@ -109,12 +110,40 @@ def verify_bus_results(
             failure_reasons.append(msg)
             continue
 
-        calc_v = float(calculated_buses[bus_id])
-        if expected_v is None or expected_v <= 0:
+        calc_raw = calculated_buses[bus_id]
+        try:
+            calc_v = float(calc_raw)
+            calc_valid = math.isfinite(calc_v) and calc_v > 0
+        except (ValueError, TypeError):
+            calc_v = None
+            calc_valid = False
+
+        try:
+            exp_v = float(expected_v) if expected_v is not None else None
+            exp_valid = exp_v is not None and math.isfinite(exp_v) and exp_v > 0
+        except (ValueError, TypeError):
+            exp_v = None
+            exp_valid = False
+
+        if not calc_valid:
+            all_passed = False
+            msg = f"Bus '{bus_id}' calculated voltage is invalid, non-finite, or non-positive ({calc_raw!r})."
+            comparisons[bus_id] = BusVerificationDetail(
+                bus_id=bus_id,
+                expected_v_pu=exp_v if exp_valid else None,
+                calculated_v_pu=None,
+                diff_pct=None,
+                passed=False,
+                message=msg,
+            )
+            failure_reasons.append(msg)
+            continue
+
+        if not exp_valid:
             if require_baseline:
                 all_passed = False
                 baseline_missing = True
-                msg = f"Bus '{bus_id}' baseline voltage missing in source data; not guessed."
+                msg = f"Bus '{bus_id}' baseline voltage missing or invalid in source data ({expected_v!r}); not guessed."
                 comparisons[bus_id] = BusVerificationDetail(
                     bus_id=bus_id,
                     expected_v_pu=None,
@@ -136,23 +165,28 @@ def verify_bus_results(
             continue
 
         valid_comparisons += 1
-        diff_pct = abs(calc_v - expected_v) / expected_v * 100.0
-        if diff_pct > max_diff:
-            max_diff = diff_pct
-
-        is_bus_ok = diff_pct <= tolerance_pct
-        if not is_bus_ok:
+        diff_pct = abs(calc_v - exp_v) / exp_v * 100.0
+        if not math.isfinite(diff_pct):
             all_passed = False
-            msg = f"Voltage error {diff_pct:.3f}% exceeds tolerance {tolerance_pct}% (expected: {expected_v:.3f} pu, got: {calc_v:.3f} pu)"
+            msg = f"Voltage error percentage is non-finite (expected: {exp_v!r}, got: {calc_v!r})"
             failure_reasons.append(f"Bus '{bus_id}': {msg}")
+            is_bus_ok = False
         else:
-            msg = f"Voltage matches within tolerance (error: {diff_pct:.3f}%)"
+            if diff_pct > max_diff:
+                max_diff = diff_pct
+            is_bus_ok = diff_pct <= tolerance_pct
+            if not is_bus_ok:
+                all_passed = False
+                msg = f"Voltage error {diff_pct:.3f}% exceeds tolerance {tolerance_pct}% (expected: {exp_v:.3f} pu, got: {calc_v:.3f} pu)"
+                failure_reasons.append(f"Bus '{bus_id}': {msg}")
+            else:
+                msg = f"Voltage matches within tolerance (error: {diff_pct:.3f}%)"
 
         comparisons[bus_id] = BusVerificationDetail(
             bus_id=bus_id,
-            expected_v_pu=expected_v,
+            expected_v_pu=exp_v,
             calculated_v_pu=calc_v,
-            diff_pct=diff_pct,
+            diff_pct=diff_pct if math.isfinite(diff_pct) else None,
             passed=is_bus_ok,
             message=msg,
         )
