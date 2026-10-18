@@ -129,19 +129,30 @@ class ModbusServerAdapter(ProtocolAdapter):
         # removed the legacy mutators (setValues) and newer 3.x releases made
         # sparse blocks immutable after construction.
         store: Dict[int, int] = {}
+        initial_snapshot: Dict[str, float] = {}
+        if self._provider is not None:
+            try:
+                initial_snapshot = self._provider() or {}
+            except Exception as snap_err:
+                logger.warning("ModbusServerAdapter initial provider snapshot failed: %s", snap_err)
+
         if _USE_SPARSE:
             initial = dict.fromkeys(range(0, max_addr + 10), 0)
             for entry in self._register_map.entries:
-                words = self._register_map.encode_value(entry, 0.0)
+                val = initial_snapshot.get(entry.name, 0.0) if initial_snapshot else 0.0
+                words = self._register_map.encode_value(entry, float(val))
                 for i, w in enumerate(words):
+                    self._register_map.write_registers(entry.address + i, [w])
                     store[entry.address + i] = w
                     initial[entry.address + i] = w
             block = ModbusSparseDataBlock(initial)
         else:  # pragma: no cover - legacy API
             block = ModbusSequentialDataBlock(1, [0] * (max_addr + 10))
             for entry in self._register_map.entries:
-                words = self._register_map.encode_value(entry, 0.0)
+                val = initial_snapshot.get(entry.name, 0.0) if initial_snapshot else 0.0
+                words = self._register_map.encode_value(entry, float(val))
                 for i, w in enumerate(words):
+                    self._register_map.write_registers(entry.address + i, [w])
                     store[entry.address + i + 1] = w
                     # Legacy blocks are mutable lists; seed via setValues.
                     block.setValues(entry.address + i + 1, [w])  # +1 offset
@@ -244,23 +255,22 @@ class ModbusServerAdapter(ProtocolAdapter):
             interval = max(self._cfg.scan_rate_ms / 1000.0, 0.1)
             while True:
                 try:
+                    if self._provider is not None:
+                        snapshot = self._provider() or {}
+                        for entry in self._register_map.entries:
+                            val = snapshot.get(entry.name)
+                            if val is None:
+                                continue
+                            words = self._register_map.encode_value(entry, float(val))
+                            for i, w in enumerate(words):
+                                self._register_map.write_registers(entry.address + i, [w])
+                            # Mirror into the datastore so external readers see it.
+                            try:
+                                _mirror_words(entry.address, words)
+                            except Exception:
+                                pass
+                            self._mark_served()
                     await asyncio.sleep(interval)
-                    if self._provider is None:
-                        continue
-                    snapshot = self._provider() or {}
-                    for entry in self._register_map.entries:
-                        val = snapshot.get(entry.name)
-                        if val is None:
-                            continue
-                        words = self._register_map.encode_value(entry, float(val))
-                        for i, w in enumerate(words):
-                            self._register_map.write_registers(entry.address + i, [w])
-                        # Mirror into the datastore so external readers see it.
-                        try:
-                            _mirror_words(entry.address, words)
-                        except Exception:
-                            pass
-                        self._mark_served()
                 except asyncio.CancelledError:
                     raise
                 except Exception as exc:

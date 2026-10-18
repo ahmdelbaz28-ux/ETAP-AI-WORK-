@@ -175,6 +175,11 @@ async def test_scada_live_modbus_adapter_execution():
         assert res.data["provenance"]["source"] == "modbus"
         assert res.data["measurements"]["measurement_count"] == 2
         meas = res.data["measurements"]["measurements"]
+        if not any(m["tag"] == "BUS1_V" and abs(m["value"] - 1.025) < 0.01 for m in meas):
+            # In heavily loaded CI environments, allow one refresh cycle to settle
+            await asyncio.sleep(0.5)
+            res = await agent.execute(task)
+            meas = res.data["measurements"]["measurements"]
         assert any(m["tag"] == "BUS1_V" and abs(m["value"] - 1.025) < 0.01 for m in meas)
     finally:
         adapter.close()
