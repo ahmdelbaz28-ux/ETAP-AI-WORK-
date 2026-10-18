@@ -54,7 +54,7 @@ async def test_alembic_single_head_consistency() -> None:
 
     assert len(heads) == 1, f"Database migration history must have exactly 1 head, found: {heads}"
     head_rev = heads[0]
-    assert head_rev == "014_fix_notifications_schema"
+    assert head_rev == "016_snapshot_components"
 
     # Verify that the head revision script defines both upgrade and downgrade functions
     rev_script = script.get_revision(head_rev)

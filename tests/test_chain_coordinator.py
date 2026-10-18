@@ -92,10 +92,28 @@ class TestChainCoordinator:
         """Engine flags margin violations when relays are poorly coordinated."""
         # Intentionally give upstream relay a lower TMS than downstream
         r2 = OvercurrentRelay("R2", curve_type="standard_inverse", tms=0.4, ip=1.0)
-        node2 = RelayNode(relay_id="R2", name="R2", location="Bus 2", relay=r2, ct_ratio=20.0, max_fault_current_a=3000.0)
+        node2 = RelayNode(
+            relay_id="R2",
+            name="R2",
+            location="Bus 2",
+            relay=r2,
+            ct_ratio=20.0,
+            load_current_a=100.0,
+            max_fault_current_a=3000.0,
+            min_fault_current_a=1000.0,
+        )
 
         r1 = OvercurrentRelay("R1", curve_type="standard_inverse", tms=0.1, ip=1.0)  # Too fast!
-        node1 = RelayNode(relay_id="R1", name="R1", location="Bus 1", relay=r1, ct_ratio=40.0, max_fault_current_a=5000.0)
+        node1 = RelayNode(
+            relay_id="R1",
+            name="R1",
+            location="Bus 1",
+            relay=r1,
+            ct_ratio=40.0,
+            load_current_a=200.0,
+            max_fault_current_a=5000.0,
+            min_fault_current_a=1500.0,
+        )
 
         coordinator = ChainCoordinator(min_cti_s=0.20)
         verify_res = coordinator.verify_coordination([node1, node2])

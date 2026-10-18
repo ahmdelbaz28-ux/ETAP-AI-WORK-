@@ -16,8 +16,8 @@ from services.study_executor import StudyExecutor
 
 def build_sample_system():
     buses = [
-        BusSpec(bus_id=1, bus_type="slack", voltage_magnitude=1.0, voltage_angle=0.0),
-        BusSpec(bus_id=2, bus_type="pq", voltage_magnitude=1.0, voltage_angle=0.0),
+        BusSpec(bus_id=1, bus_type="slack", voltage_magnitude=1.0, voltage_angle=0.0, base_kv=13.8),
+        BusSpec(bus_id=2, bus_type="pq", voltage_magnitude=1.0, voltage_angle=0.0, base_kv=13.8),
     ]
     lines = [
         LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=0.05, x1=0.2),

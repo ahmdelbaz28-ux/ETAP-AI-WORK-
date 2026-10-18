@@ -29,9 +29,10 @@ def test_execute_study_logic_invalid_network(sample_3bus_network):
     """Test study execution with an invalid network (missing slack bus)."""
     # Create an invalid network without a slack bus
     invalid_network = sample_3bus_network.copy()
-    # Access bus_type via dict key since sample_3bus_network returns dicts
+    # Retain all buses to preserve topology references, but set slack bus to pq
     invalid_network["buses"] = [
-        bus for bus in invalid_network["buses"] if bus.get("bus_type", "pq") != "slack"
+        dict(bus, bus_type="pq") if bus.get("bus_type") == "slack" else bus
+        for bus in invalid_network["buses"]
     ]
 
     # Create a study request with the invalid network
@@ -66,6 +67,12 @@ def test_execute_study_logic_different_types(sample_3bus_network):
                 "bolted_fault_current_ka": 25.0,
                 "arc_duration_sec": 0.1,
                 "working_distance_mm": 455.0,
+                "arc_gap_mm": 32.0,
+                "electrode_config": "VCB",
+                "enclosure_type": "box",
+                "enclosure_width_mm": 508.0,
+                "enclosure_height_mm": 508.0,
+                "enclosure_depth_mm": 508.0,
             }
         else:
             base_request.parameters = {"tolerance": 1e-6, "max_iterations": 50}
