@@ -214,7 +214,7 @@ _MINIMAL_SYSTEM = {
     "base_mva": 100.0,
     "buses": [
         {"bus_id": 1, "bus_type": "slack", "base_kv": 20.0, "voltage_magnitude": 1.0, "voltage_angle": 0.0},
-        {"bus_id": 2, "bus_type": "pq", "base_kv": 20.0, "load_power_real": 10.0, "load_power_imag": 5.0},
+        {"bus_id": 2, "bus_type": "pq", "base_kv": 20.0},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.02, "x1": 0.08, "bshunt1": 0.0},

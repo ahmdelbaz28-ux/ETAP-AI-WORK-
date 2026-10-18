@@ -40,11 +40,12 @@ from engine.engine import PowerSystemEngine
 
 IEEE_4BUS_SYSTEM = {
     "base_mva": 100,
+    "base_kv": 12.47,
     "buses": [
-        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05, "voltage_angle": 0.0},
-        {"bus_id": 2, "bus_type": "pq", "load_power_real": 2.0, "load_power_reactive": 1.6},
-        {"bus_id": 3, "bus_type": "pq", "load_power_real": 0.0, "load_power_reactive": 2.0},
-        {"bus_id": 4, "bus_type": "pq", "load_power_real": 1.0, "load_power_reactive": 0.8},
+        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05, "voltage_angle": 0.0, "base_kv": 12.47},
+        {"bus_id": 2, "bus_type": "pq", "load_power_real": 2.0, "load_power_reactive": 1.6, "base_kv": 12.47},
+        {"bus_id": 3, "bus_type": "pq", "load_power_real": 0.0, "load_power_reactive": 2.0, "base_kv": 12.47},
+        {"bus_id": 4, "bus_type": "pq", "load_power_real": 1.0, "load_power_reactive": 0.8, "base_kv": 12.47},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
@@ -64,12 +65,13 @@ IEEE_4BUS_SYSTEM = {
 
 IEEE_14BUS_SYSTEM = {
     "base_mva": 100,
+    "base_kv": 138.0,
     "buses": [
-        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.06, "voltage_angle": 0.0},
-        {"bus_id": 2, "bus_type": "pv", "voltage_magnitude": 1.045, "active_power": 40.0},
-        {"bus_id": 3, "bus_type": "pq", "load_power_real": 20.0, "load_power_reactive": 5.0},
-        {"bus_id": 4, "bus_type": "pq", "load_power_real": 10.0, "load_power_reactive": -1.0},
-        {"bus_id": 5, "bus_type": "pq", "load_power_real": 2.0, "load_power_reactive": 0.4},
+        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.06, "voltage_angle": 0.0, "base_kv": 138.0},
+        {"bus_id": 2, "bus_type": "pv", "voltage_magnitude": 1.045, "active_power": 40.0, "base_kv": 138.0},
+        {"bus_id": 3, "bus_type": "pq", "load_power_real": 20.0, "load_power_reactive": 5.0, "base_kv": 138.0},
+        {"bus_id": 4, "bus_type": "pq", "load_power_real": 10.0, "load_power_reactive": -1.0, "base_kv": 138.0},
+        {"bus_id": 5, "bus_type": "pq", "load_power_real": 2.0, "load_power_reactive": 0.4, "base_kv": 138.0},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01938, "x1": 0.05917},
@@ -86,13 +88,14 @@ IEEE_14BUS_SYSTEM = {
 
 IEEE_30BUS_SYSTEM = {
     "base_mva": 100,
+    "base_kv": 132.0,
     "buses": [
-        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.06, "voltage_angle": 0.0},
-        {"bus_id": 2, "bus_type": "pv", "voltage_magnitude": 1.043, "active_power": 40.0},
-        {"bus_id": 3, "bus_type": "pq", "load_power_real": 2.4, "load_power_reactive": 1.2},
-        {"bus_id": 4, "bus_type": "pq", "load_power_real": 7.6, "load_power_reactive": 1.6},
-        {"bus_id": 5, "bus_type": "pv", "voltage_magnitude": 1.01, "active_power": 0.0},
-        {"bus_id": 6, "bus_type": "pq", "load_power_real": 0.0, "load_power_reactive": 0.0},
+        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.06, "voltage_angle": 0.0, "base_kv": 132.0},
+        {"bus_id": 2, "bus_type": "pv", "voltage_magnitude": 1.043, "active_power": 40.0, "base_kv": 132.0},
+        {"bus_id": 3, "bus_type": "pq", "load_power_real": 2.4, "load_power_reactive": 1.2, "base_kv": 132.0},
+        {"bus_id": 4, "bus_type": "pq", "load_power_real": 7.6, "load_power_reactive": 1.6, "base_kv": 132.0},
+        {"bus_id": 5, "bus_type": "pv", "voltage_magnitude": 1.01, "active_power": 0.0, "base_kv": 132.0},
+        {"bus_id": 6, "bus_type": "pq", "load_power_real": 0.0, "load_power_reactive": 0.0, "base_kv": 132.0},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.02, "x1": 0.06},
@@ -112,6 +115,8 @@ def build_system(config: dict):
     system = System()
     base_mva = config.get("base_mva", 100)
     system.base_mva = base_mva
+    base_kv = config.get("base_kv", 12.47)
+    system.base_kv = base_kv
 
     # Create a bus lookup for line construction
     bus_objects = {}
@@ -122,6 +127,7 @@ def build_system(config: dict):
             voltage_magnitude=bus_config.get("voltage_magnitude", 1.0),
             voltage_angle=bus_config.get("voltage_angle", 0.0),
             bus_type=bus_config.get("bus_type", "pq"),
+            base_kv=bus_config.get("base_kv", base_kv),
         )
         # Add load if specified (convert from MVA to per-unit)
         p = bus_config.get("load_power_real", 0)
@@ -287,6 +293,10 @@ class TestArcFlashIEEE1584:
             working_distance_mm=610,  # 24 inches
             electrode_config=ElectrodeConfig.VCB,
             enclosure_type=EnclosureType.BOX,
+            enclosure_width_mm=508.0,
+            enclosure_height_mm=508.0,
+            enclosure_depth_mm=508.0,
+            arc_gap_mm=25.0,
         )
         # Returns tuple: (IE_cal_cm2, arc_boundary_m, IE_40cal_cm2)
         ie = result[0]

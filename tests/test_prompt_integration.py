@@ -326,6 +326,8 @@ class TestPromptHandleMapping:
             "sample_prompt": "Template/sample only",
             # Added by commit 7617d30be (generative design scaffold):
             "design_agent": "DesignAgent (agents/design_agent.py) — scaffold, flag=disabled by default",
+            "etap_execution_agent": "ETAPExecutionAgent (agents/orchestrator.py)",
+            "optimization_agent": "OptimalPowerFlowAgent (agents/orchestrator.py) / optimization workflow",
         }
 
         prompts = list_available_prompts()
@@ -333,10 +335,6 @@ class TestPromptHandleMapping:
         for p in prompts:
             if p not in prompt_consumers:
                 unmapped.append(p)
-
-        assert len(unmapped) == 0, (
-            f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."
-        )
 
         assert len(unmapped) == 0, (
             f"Unmapped prompts: {unmapped}. Add them to the consumer mapping."

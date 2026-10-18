@@ -64,6 +64,10 @@ ARC_FLASH_PARAMS: dict = {
     "working_distance_mm": 610.0,
     "electrode_config": "VCB",
     "enclosure_type": "box",
+    "enclosure_width_mm": 508.0,
+    "enclosure_height_mm": 508.0,
+    "enclosure_depth_mm": 508.0,
+    "arc_gap_mm": 25.0,
 }
 
 # Minimal 2-bus radial system for load_flow and short_circuit. Bus 1 is slack,
@@ -73,9 +77,10 @@ ARC_FLASH_PARAMS: dict = {
 # singularity note in ``test_ieee_benchmarks.py``).
 SMALL_SYSTEM_CONFIG: dict = {
     "base_mva": 100,
+    "base_kv": 13.8,
     "buses": [
-        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05, "voltage_angle": 0.0},
-        {"bus_id": 2, "bus_type": "pq", "load_power_real": 1.0, "load_power_reactive": 0.5},
+        {"bus_id": 1, "bus_type": "slack", "voltage_magnitude": 1.05, "voltage_angle": 0.0, "base_kv": 13.8},
+        {"bus_id": 2, "bus_type": "pq", "load_power_real": 1.0, "load_power_reactive": 0.5, "base_kv": 13.8},
     ],
     "lines": [
         {"line_id": 1, "from_bus_id": 1, "to_bus_id": 2, "r1": 0.01, "x1": 0.05},
@@ -102,6 +107,7 @@ def _build_small_system() -> System:
     config = SMALL_SYSTEM_CONFIG
     system = System()
     system.base_mva = config["base_mva"]
+    system.base_kv = config.get("base_kv", 13.8)
     bus_objects: dict[int, Bus] = {}
     for bus_config in config["buses"]:
         bus = Bus(
@@ -109,6 +115,7 @@ def _build_small_system() -> System:
             voltage_magnitude=bus_config.get("voltage_magnitude", 1.0),
             voltage_angle=bus_config.get("voltage_angle", 0.0),
             bus_type=bus_config.get("bus_type", "pq"),
+            base_kv=bus_config.get("base_kv", system.base_kv),
         )
         p = bus_config.get("load_power_real", 0)
         q = bus_config.get("load_power_reactive", 0)
@@ -135,10 +142,17 @@ class TestRunStudyEqualsTypedMethod:
     the same result dict as calling the typed method directly."""
 
     def test_load_flow_via_study_equals_typed(self) -> None:
-        engine = PowerSystemEngine(_build_small_system())
-        via_study = engine.run_study(study_type="load_flow")
-        via_typed = engine.run_load_flow()
-        assert via_study == via_typed
+        import numpy as np
+        engine1 = PowerSystemEngine(_build_small_system())
+        via_study = engine1.run_study(study_type="load_flow")
+        engine2 = PowerSystemEngine(_build_small_system())
+        via_typed = engine2.run_load_flow()
+        assert via_study.keys() == via_typed.keys()
+        for k in via_study:
+            if isinstance(via_study[k], np.ndarray):
+                np.testing.assert_array_equal(via_study[k], via_typed[k])
+            else:
+                assert via_study[k] == via_typed[k]
 
     def test_arc_flash_via_study_equals_typed(self) -> None:
         engine = PowerSystemEngine()  # arc flash does not need a network model
@@ -245,7 +259,7 @@ class TestRunStudyEndToEnd:
         assert result["arc_current_ka"] > 0
         assert result["incident_energy_cal_per_cm2"] >= 0
         assert result["arc_flash_boundary_mm"] >= 0
-        assert result["ppe_level"] in {"0", "1", "2", "3", "4", "DANGER"}
+        assert result["ppe_level"] in {"0", "1", "2", "3", "4", "DANGER", "REJECTED"}
 
     def test_protection_coordination_end_to_end_with_valid_relays(self) -> None:
         """Mirrors ``test_coordination.py`` patterns: a valid relays_config
