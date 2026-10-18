@@ -7,6 +7,7 @@ Regression tests for Defect 5:
 
 from __future__ import annotations
 
+import math
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -15,6 +16,7 @@ from agents.ahmed_etap_orchestrator import (
     AhmedETAPSkillAgent,
     MathGuard,
     MathGuardResult,
+    TrustedCalculatorRegistry,
     canonicalize_study_type,
 )
 from agents.orchestrator import (
@@ -54,33 +56,34 @@ async def test_ahmed_etap_routes_system_through_execution_orchestrator():
     agent = AhmedETAPSkillAgent()
     mock_exec_res = AsyncMock()
     mock_exec_res.success = True
-    mock_exec_res.data = {"bus_results": {"Bus1": {"voltage_magnitude_pu": 1.01}}}
+    mock_exec_res.data = {"fault_current_ka": 20.0}
     mock_exec_res.validation_status = "passed"
     mock_exec_res.errors = []
 
     mock_orch = AsyncMock()
     mock_orch.execute = AsyncMock(return_value=mock_exec_res)
 
-    def independent_recompute():
-        return 1.01
-
-    independent_recompute.is_independent = True
-    independent_recompute._provenance = "domain_engine"
+    # Physical parameters: I_fault = 13.8 kV / (sqrt(3) * 0.3983716857) = 20.0 kA
+    v_kv = 13.8
+    z_ohm = (v_kv * 1000.0) / (math.sqrt(3) * 20.0 * 1000.0)
 
     task = EngineeringTask(
         task_id="test_canonical",
         description="test canonical route",
-        study_types=[StudyType.LOAD_FLOW],
+        study_types=[StudyType.SHORT_CIRCUIT],
         parameters={
-            "study_type": "load_flow",
+            "study_type": "short_circuit",
+            "tenant_id": "tenant-auth-01",
+            "user_id": "usr-eng-01",
             "project": {"name": "TestProj", "base_mva": 100.0, "base_kv": 13.8},
             "parameters": {
                 "system": {"buses": [{"bus_id": "Bus1", "base_kv": 13.8}], "lines": []},
+                "voltage_kv": v_kv,
+                "z_ohm": z_ohm,
             },
-            "recompute_fn": independent_recompute,
-            "claim_value": 1.01,
-            "claim_unit": "pu",
-            "quantity_kind": "voltage",
+            "claim_value": 20.0,
+            "claim_unit": "kA",
+            "quantity_kind": "current",
             "budget_tokens": 8000,
         },
     )
@@ -91,76 +94,144 @@ async def test_ahmed_etap_routes_system_through_execution_orchestrator():
         assert result.status == AgentStatus.COMPLETED
 
 
-def test_math_guard_flags_non_independent_recomputation():
-    """When recomputation lacks domain_engine provenance, MathGuard must FAIL."""
+@pytest.mark.asyncio
+async def test_caller_injected_recompute_fn_ignored():
+    """Caller-injected recompute_fn in task parameters cannot bypass internal trusted calculator."""
+    agent = AhmedETAPSkillAgent()
+    mock_exec_res = AsyncMock()
+    mock_exec_res.success = True
+    mock_exec_res.data = {"bus_results": {"Bus1": {"voltage_magnitude_pu": 1.01}}}
+    mock_exec_res.validation_status = "passed"
+    mock_exec_res.errors = []
+
+    mock_orch = AsyncMock()
+    mock_orch.execute = AsyncMock(return_value=mock_exec_res)
+
+    def malicious_recompute():
+        return 1.01
+
+    malicious_recompute.is_independent = True
+    malicious_recompute._provenance = "domain_engine"
+
+    task = EngineeringTask(
+        task_id="test_unauthorized_recompute",
+        description="test untrusted recompute injection",
+        study_types=[StudyType.LOAD_FLOW],
+        parameters={
+            "study_type": "load_flow",
+            "tenant_id": "tenant-auth-01",
+            "user_id": "usr-eng-01",
+            "project": {"name": "TestProj", "base_mva": 100.0, "base_kv": 13.8},
+            "parameters": {
+                "system": {"buses": [{"bus_id": "Bus1", "base_kv": 13.8}], "lines": []},
+            },
+            # Malicious attempt to inject untrusted callback
+            "recompute_fn": malicious_recompute,
+            "claim_value": 1.01,
+            "claim_unit": "pu",
+            "quantity_kind": "voltage",
+            "budget_tokens": 8000,
+        },
+    )
+
+    with patch("services.execution_orchestrator.get_execution_orchestrator", return_value=mock_orch):
+        result = await agent.execute(task)
+        # Must FAIL closed because load_flow has no registered independent calculator
+        # and malicious_recompute was ignored
+        assert result.status == AgentStatus.FAILED
+
+
+def test_math_guard_self_asserted_provenance_rejected():
+    """A callable that self-asserts is_independent=True and _provenance='domain_engine' MUST STILL FAIL.
+
+    Proof that caller-controlled trust assertions cannot authorize MathGuard validation.
+    """
     mg = MathGuard(tolerance_pct=0.01)
 
-    # 1. Independent callable with proven domain_engine provenance
-    def independent_fn():
+    # 1. Caller-created function asserting domain_engine provenance without registry binding -> FAILS
+    def caller_crafted_fn():
         return 1.05
 
-    independent_fn.is_independent = True
-    independent_fn._provenance = "domain_engine"
+    caller_crafted_fn.is_independent = True
+    caller_crafted_fn._provenance = "domain_engine"
 
-    res_indep = mg.validate(
+    res_crafted = mg.validate(
         claim_value=1.05,
-        recompute=independent_fn,
+        recompute=caller_crafted_fn,
         quantity_kind="voltage",
         claim_unit="pu",
     )
-    assert res_indep.passed is True
-    assert res_indep.is_independent is True
-    assert res_indep.reason == ""
-
-    # 2. Self-consistency extraction (is_independent = False) -> MUST FAIL CLOSED
-    def extracted_fn():
-        return 1.05
-
-    extracted_fn.is_independent = False
-
-    res_extracted = mg.validate(
-        claim_value=1.05,
-        recompute=extracted_fn,
-        quantity_kind="voltage",
-        claim_unit="pu",
-    )
-    assert res_extracted.passed is False
-    assert res_extracted.is_independent is False
-    assert "lacks authenticated independent provenance" in res_extracted.reason or "not an independent" in res_extracted.reason.lower()
+    assert res_crafted.passed is False
+    assert res_crafted.is_independent is False
+    assert "lacks authenticated internal registry provenance" in res_crafted.reason
 
 
-def test_math_guard_unverified_provenance_fails():
-    """A callable with no or untrusted provenance attribute fails."""
+def test_math_guard_registered_trusted_calculator_succeeds():
+    """Only genuine calculators registered in TrustedCalculatorRegistry can pass MathGuard."""
     mg = MathGuard(tolerance_pct=0.01)
 
-    def plain_fn():
-        return 1.05
+    # Trusted calculator registered through internal registry
+    trusted_calc = TrustedCalculatorRegistry.create(
+        calculator_id="test_bus_voltage",
+        study_type="load_flow",
+        quantity_kind="voltage",
+        unit="pu",
+        fn=lambda: 1.05,
+    )
 
-    res = mg.validate(
+    res_trusted = mg.validate(
         claim_value=1.05,
-        recompute=plain_fn,
+        recompute=trusted_calc,
         quantity_kind="voltage",
         claim_unit="pu",
     )
-    assert res.passed is False
-    assert res.is_independent is False
-    assert "lacks authenticated independent provenance" in res.reason or "not an independent" in res.reason.lower()
+    assert res_trusted.passed is True
+    assert res_trusted.is_independent is True
+    assert res_trusted.reason == ""
 
-    # Client-injected provenance spoofing
-    def spoofed_fn():
-        return 1.05
 
-    spoofed_fn.is_independent = True
-    spoofed_fn._provenance = "client_untrusted"
+def test_math_guard_unit_and_tolerance_mismatch_fails():
+    """Mismatched unit, mismatched quantity, or tolerance violation must fail closed."""
+    mg = MathGuard(tolerance_pct=0.01)
 
-    res_spoofed = mg.validate(
-        claim_value=1.05,
-        recompute=spoofed_fn,
-        quantity_kind="voltage",
-        claim_unit="pu",
+    trusted_calc = TrustedCalculatorRegistry.create(
+        calculator_id="test_current_calc",
+        study_type="short_circuit",
+        quantity_kind="current",
+        unit="kA",
+        fn=lambda: 20.0,
     )
-    assert res_spoofed.passed is False
-    assert res_spoofed.is_independent is False
+
+    # 1. Tolerance mismatch: claim=25.0 vs recomputed=20.0
+    res_tol = mg.validate(
+        claim_value=25.0,
+        recompute=trusted_calc,
+        quantity_kind="current",
+        claim_unit="kA",
+    )
+    assert res_tol.passed is False
+    assert "tolerance" in res_tol.reason.lower() or "mismatch" in res_tol.reason.lower()
+
+    # 2. Quantity mismatch: calculator is "current" but validation requested "voltage"
+    res_quant = mg.validate(
+        claim_value=20.0,
+        recompute=trusted_calc,
+        quantity_kind="voltage",
+        claim_unit="kV",
+    )
+    assert res_quant.passed is False
+    assert "QUANTITY_MISMATCH" in res_quant.reason
+
+    # 3. Unit mismatch: expected "A" but calculator is "kA"
+    res_unit = mg.validate(
+        claim_value=20.0,
+        recompute=trusted_calc,
+        quantity_kind="current",
+        claim_unit="kA",
+        expected_unit="A",
+    )
+    assert res_unit.passed is False
+    assert "UNIT_MISMATCH" in res_unit.reason
 
 
 def test_build_domain_recompute_requires_explicit_power_factor():
@@ -223,6 +294,8 @@ async def test_ahmed_etap_canonical_exception_fails_closed_without_lead_agent_fa
         study_types=[StudyType.LOAD_FLOW],
         parameters={
             "study_type": "load_flow",
+            "tenant_id": "tenant-auth-01",
+            "user_id": "usr-eng-01",
             "project": {"name": "TestProj", "base_mva": 100.0, "base_kv": 13.8},
             "parameters": {
                 "system": {"buses": [{"bus_id": "Bus1", "base_kv": 13.8}], "lines": []},

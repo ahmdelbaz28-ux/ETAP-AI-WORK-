@@ -543,7 +543,11 @@ class HarmonicAnalysisAgent(BaseAgent):
                 engine.add_harmonic_source(source)
 
             # Run analysis
-            result_data = engine.run_full_analysis(voltage_kv=voltage_kv)
+            result_data = engine.run_full_analysis(
+                voltage_kv=voltage_kv,
+                fundamental_magnitudes=task.parameters.get("fundamental_magnitudes"),
+                fundamental_currents=task.parameters.get("fundamental_currents"),
+            )
 
             # Generate report
             report = engine.generate_report(result_data)

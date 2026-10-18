@@ -40,9 +40,13 @@ Integration points:
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
 import logging
 import math
+import secrets
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -405,12 +409,118 @@ _UNIT_RULES: dict[str, set[str]] = {
 }
 
 
+class TrustedCalculator:
+    """Internal trusted deterministic calculator for MathGuard independent recomputations.
+
+    Instances are cryptographically registered in TrustedCalculatorRegistry and can only be
+    created internally by approved factory methods. Instances cannot be spoofed by external
+    callables attaching attributes like `_provenance` or `is_independent`.
+    """
+
+    def __init__(
+        self,
+        calculator_id: str,
+        study_type: str,
+        quantity_kind: str,
+        unit: str,
+        fn: Callable[[], float],
+        token: str = "",
+        signature: str = "",
+    ) -> None:
+        self.calculator_id = calculator_id
+        self.study_type = study_type
+        self.quantity_kind = quantity_kind
+        self.unit = unit
+        self._fn = fn
+        self._token = token
+        self._signature = signature
+        self.is_independent = True
+        self._provenance = "domain_engine"
+
+    def __call__(self) -> float:
+        return float(self._fn())
+
+
+_REGISTRY_SECRET: bytes = secrets.token_bytes(32)
+
+
+class TrustedCalculatorRegistry:
+    """Internal cryptographic registry of approved deterministic independent calculators."""
+
+    _registered_tokens: set[str] = set()
+
+    @classmethod
+    def _compute_signature(
+        cls,
+        token: str,
+        calculator_id: str,
+        study_type: str,
+        quantity_kind: str,
+        unit: str,
+    ) -> str:
+        payload = f"{token}:{calculator_id}:{study_type}:{quantity_kind}:{unit}".encode()
+        return hmac.new(_REGISTRY_SECRET, payload, hashlib.sha256).hexdigest()
+
+    @classmethod
+    def register(cls, calc: TrustedCalculator) -> TrustedCalculator:
+        if isinstance(calc, TrustedCalculator):
+            if not getattr(calc, "_token", None):
+                token = uuid.uuid4().hex
+                sig = cls._compute_signature(
+                    token, calc.calculator_id, calc.study_type, calc.quantity_kind, calc.unit
+                )
+                calc._token = token
+                calc._signature = sig
+            cls._registered_tokens.add(calc._token)
+        return calc
+
+    @classmethod
+    def is_trusted(cls, obj: Any) -> bool:
+        if not isinstance(obj, TrustedCalculator):
+            return False
+        token = getattr(obj, "_token", None)
+        sig = getattr(obj, "_signature", None)
+        if not token or not sig or token not in cls._registered_tokens:
+            return False
+        expected_sig = cls._compute_signature(
+            token=token,
+            calculator_id=getattr(obj, "calculator_id", ""),
+            study_type=getattr(obj, "study_type", ""),
+            quantity_kind=getattr(obj, "quantity_kind", ""),
+            unit=getattr(obj, "unit", ""),
+        )
+        return hmac.compare_digest(str(sig), expected_sig)
+
+    @classmethod
+    def create(
+        cls,
+        calculator_id: str,
+        study_type: str,
+        quantity_kind: str,
+        unit: str,
+        fn: Callable[[], float],
+    ) -> TrustedCalculator:
+        token = uuid.uuid4().hex
+        sig = cls._compute_signature(token, calculator_id, study_type, quantity_kind, unit)
+        calc = TrustedCalculator(
+            calculator_id=calculator_id,
+            study_type=study_type,
+            quantity_kind=quantity_kind,
+            unit=unit,
+            fn=fn,
+            token=token,
+            signature=sig,
+        )
+        cls._registered_tokens.add(token)
+        return calc
+
+
 class MathGuard:
     """Deterministic Python validator for numerical agent outputs.
 
     Every numerical claim must:
-      1. Be recomputed by a standalone Python function (the ``recompute``
-         callback supplied by the Lead Agent).
+      1. Be recomputed by an approved, registered standalone Python function
+         resolved internally from the domain engine or benchmark registry.
       2. Match the agent's claim within 0.01 % tolerance.
       3. Pass a units check (kV ≠ V, MVA ≠ kVA, etc.).
 
@@ -466,27 +576,45 @@ class MathGuard:
                 recomputed_value=None,
                 units_ok=units_ok,
                 units_message=units_msg,
+                is_independent=False,
             )
 
-        is_independent = bool(getattr(recompute, "is_independent", False))
-        provenance = getattr(recompute, "_provenance", None)
-        is_trusted = is_independent and provenance in (
-            "domain_engine",
-            "trusted_registry",
-            "reference_calculator",
-        )
-        if not is_independent or not is_trusted:
+        if not TrustedCalculatorRegistry.is_trusted(recompute):
             return MathGuardResult(
                 passed=False,
                 reason=(
-                    "NON_INDEPENDENT_VERIFICATION: Recomputation lacks authenticated independent provenance "
-                    "(must have _provenance in ('domain_engine', 'trusted_registry'); certification refused)"
+                    "NON_INDEPENDENT_VERIFICATION: Recomputation lacks authenticated internal registry provenance "
+                    "(caller-supplied functions or self-asserted attributes are rejected; fail-closed)"
                 ),
                 claim_value=claim_value,
                 recomputed_value=None,
                 units_ok=units_ok,
                 units_message=units_msg,
                 is_independent=False,
+            )
+
+        # Quantity and unit binding check
+        calc_quantity = getattr(recompute, "quantity_kind", None)
+        calc_unit = getattr(recompute, "unit", None)
+        if calc_quantity and calc_quantity != quantity_kind:
+            return MathGuardResult(
+                passed=False,
+                reason=f"QUANTITY_MISMATCH: Calculator produces '{calc_quantity}' but verified quantity is '{quantity_kind}'",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=False,
+                units_message=f"quantity mismatch ({calc_quantity} != {quantity_kind})",
+                is_independent=True,
+            )
+        if calc_unit and expected_unit and calc_unit != expected_unit:
+            return MathGuardResult(
+                passed=False,
+                reason=f"UNIT_MISMATCH: Calculator produces unit '{calc_unit}' but expected unit is '{expected_unit}'",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=False,
+                units_message=f"unit mismatch ({calc_unit} != {expected_unit})",
+                is_independent=True,
             )
 
         try:
@@ -499,12 +627,24 @@ class MathGuard:
                 recomputed_value=None,
                 units_ok=units_ok,
                 units_message=units_msg,
+                is_independent=True,
+            )
+
+        if not math.isfinite(recomputed):
+            return MathGuardResult(
+                passed=False,
+                reason=f"NON_FINITE_RECOMPUTATION: Recomputed value {recomputed} is non-finite",
+                claim_value=claim_value,
+                recomputed_value=recomputed,
+                units_ok=units_ok,
+                units_message=units_msg,
+                is_independent=True,
             )
 
         # Step 3 — tolerance check
         tolerance_ok, tolerance_msg = self._check_tolerance(claim_value, recomputed)
 
-        passed = units_ok and tolerance_ok and is_trusted
+        passed = units_ok and tolerance_ok
         if not tolerance_ok:
             _reason = tolerance_msg
         elif not units_ok:
@@ -518,7 +658,7 @@ class MathGuard:
             recomputed_value=recomputed,
             units_ok=units_ok,
             units_message=units_msg,
-            is_independent=is_independent,
+            is_independent=True,
         )
 
     # ---- Internals ------------------------------------------------------
@@ -1156,7 +1296,19 @@ class AhmedETAPSkillAgent(BaseAgent):
                 ],
             )
 
-        lead_key = params.get("lead_agent") or self._default_lead_for(study_type)
+        requested_lead = params.get("lead_agent")
+        default_lead = self._default_lead_for(study_type)
+        if requested_lead and requested_lead != default_lead:
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
+                status=AgentStatus.FAILED,
+                data={},
+                validation_errors=[
+                    f"lead_agent='{requested_lead}' is incompatible with canonical study_type '{study_type}' (expected '{default_lead}')",
+                ],
+            )
+        lead_key = requested_lead or default_lead
         if not lead_key:
             return AgentResult(
                 agent_name=self.agent_name,
@@ -1216,10 +1368,24 @@ class AhmedETAPSkillAgent(BaseAgent):
                     from services.execution_orchestrator import get_execution_orchestrator
                     from services.execution_request import ExecutionRequest
 
+                    req_tenant = params.get("tenant_id")
+                    req_user = params.get("user_id")
+                    if not req_tenant or not req_user or str(req_tenant).lower() in ("default_tenant", "none", "null") or str(req_user).lower() in ("engineer", "none", "null"):
+                        res = AgentResult(
+                            agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                            study_type=st_enum,
+                            status=AgentStatus.FAILED,
+                            data={},
+                            validation_status=False,
+                            validation_errors=["Missing authenticated user_id or tenant_id context for authoritative execution (fail-closed)"],
+                        )
+                        lead_result.append(res)
+                        return res
+
                     req = ExecutionRequest(
                         capability_id=canonical_study,
-                        tenant_id=params.get("tenant_id") or "default_tenant",
-                        user_id=params.get("user_id") or "engineer",
+                        tenant_id=str(req_tenant),
+                        user_id=str(req_user),
                         input={
                             "system": system_input,
                             "parameters": t.parameters,
@@ -1269,14 +1435,9 @@ class AhmedETAPSkillAgent(BaseAgent):
             lead_result.append(res)
             return res
 
-        # Independent recompute function — must be provided explicitly or derived from domain engine.
-        # Hard Rule (Phase 4): NO independent recomputation = NO MathGuard PASS.
-        # NEVER extract from lead agent's own output (self-referential cheat prohibited).
-        recompute_fn: Optional[Callable[[], float]] = params.get("recompute_fn")
-        domain_recompute = self._build_domain_recompute(study_type, params, project) if recompute_fn is None else None
-
-        if recompute_fn is None:
-            recompute_fn = domain_recompute
+        # Independent recompute function — MUST be resolved internally from domain engine registry.
+        # Caller params['recompute_fn'] injection is strictly prohibited (fail-closed).
+        recompute_fn = self._build_domain_recompute(study_type, params, project)
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
@@ -1374,56 +1535,62 @@ class AhmedETAPSkillAgent(BaseAgent):
 
         # 1. Short Circuit / Fault current: I_fault = V / (sqrt(3) * Z)
         if canonical in ("short_circuit", "fault"):
-            v_kv = float(lead_params.get("voltage_kv") or project.base_kv or 0.0)
-            z_ohm = float(lead_params.get("z_ohm") or lead_params.get("impedance_ohm") or 0.0)
-            if v_kv > 0.0 and z_ohm > 0.0 and math.isfinite(v_kv) and math.isfinite(z_ohm):
-                def _calc_sc() -> float:
-                    return (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0
-
-                _calc_sc.is_independent = True
-                _calc_sc._provenance = "domain_engine"
-                return _calc_sc
+            raw_v = lead_params.get("voltage_kv") or getattr(project, "base_kv", None)
+            raw_z = lead_params.get("z_ohm") or lead_params.get("impedance_ohm")
+            if raw_v is not None and raw_z is not None:
+                try:
+                    v_kv = float(raw_v)
+                    z_ohm = float(raw_z)
+                    if v_kv > 0.0 and z_ohm > 0.0 and math.isfinite(v_kv) and math.isfinite(z_ohm):
+                        return TrustedCalculatorRegistry.create(
+                            calculator_id=f"sc_ohm_{canonical}",
+                            study_type=canonical,
+                            quantity_kind="current",
+                            unit="kA",
+                            fn=lambda: (v_kv * 1000.0) / (math.sqrt(3) * z_ohm) / 1000.0,
+                        )
+                except (ValueError, TypeError):
+                    pass
 
         # 2. Cable Sizing / Full Load Current: I = P / (sqrt(3) * V * pf)
         if canonical == "cable_sizing":
-            p_kw = float(lead_params.get("power_kw") or (float(lead_params.get("p_mw", 0.0)) * 1000.0) or 0.0)
-            v_v = float(lead_params.get("voltage_v") or (float(lead_params.get("voltage_kv", 0.0)) * 1000.0) or 0.0)
+            raw_p = lead_params.get("power_kw") or (float(lead_params.get("p_mw", 0.0)) * 1000.0 if lead_params.get("p_mw") is not None else None)
+            raw_v = lead_params.get("voltage_v") or (float(lead_params.get("voltage_kv", 0.0)) * 1000.0 if lead_params.get("voltage_kv") is not None else None)
             raw_pf = lead_params.get("power_factor")
-            if raw_pf is not None:
+            if raw_p is not None and raw_v is not None and raw_pf is not None:
                 try:
+                    p_kw = float(raw_p)
+                    v_v = float(raw_v)
                     pf = float(raw_pf)
+                    if p_kw > 0.0 and v_v > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw) and math.isfinite(v_v):
+                        return TrustedCalculatorRegistry.create(
+                            calculator_id="cable_fla_sizing",
+                            study_type="cable_sizing",
+                            quantity_kind="current",
+                            unit="A",
+                            fn=lambda: (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf),
+                        )
                 except (ValueError, TypeError):
-                    pf = 0.0
-            else:
-                pf = 0.0
-
-            if p_kw > 0.0 and v_v > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw) and math.isfinite(v_v):
-                def _calc_cable() -> float:
-                    return (p_kw * 1000.0) / (math.sqrt(3) * v_v * pf)
-
-                _calc_cable.is_independent = True
-                _calc_cable._provenance = "domain_engine"
-                return _calc_cable
+                    pass
 
         # 3. Transformer Sizing: S_kVA = P_kW / pf
         if canonical in ("transformer_sizing", "substation_design"):
-            p_kw = float(lead_params.get("load_kw") or lead_params.get("power_kw") or 0.0)
+            raw_p = lead_params.get("load_kw") or lead_params.get("power_kw")
             raw_pf = lead_params.get("power_factor")
-            if raw_pf is not None:
+            if raw_p is not None and raw_pf is not None:
                 try:
+                    p_kw = float(raw_p)
                     pf = float(raw_pf)
+                    if p_kw > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw):
+                        return TrustedCalculatorRegistry.create(
+                            calculator_id=f"xfmr_kva_{canonical}",
+                            study_type=canonical,
+                            quantity_kind="power",
+                            unit="kVA",
+                            fn=lambda: p_kw / pf,
+                        )
                 except (ValueError, TypeError):
-                    pf = 0.0
-            else:
-                pf = 0.0
-
-            if p_kw > 0.0 and 0.0 < pf <= 1.0 and math.isfinite(pf) and math.isfinite(p_kw):
-                def _calc_xfmr() -> float:
-                    return p_kw / pf
-
-                _calc_xfmr.is_independent = True
-                _calc_xfmr._provenance = "domain_engine"
-                return _calc_xfmr
+                    pass
 
         return None
 

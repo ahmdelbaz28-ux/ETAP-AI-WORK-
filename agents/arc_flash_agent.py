@@ -243,10 +243,25 @@ class ArcFlashAgent(BaseAgent):
         try:
             cfg = ElectrodeConfig(str(electrode_config).strip().upper())
         except (ValueError, AttributeError):
-            cfg = ElectrodeConfig.VCB
+            valid_configs = [e.value for e in ElectrodeConfig]
+            raise ValueError(
+                f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
+            )
 
-        # Clamp gap to valid IEEE 1584-2018 range per voltage tier
-        g_clamped = max(6.35, min(76.2, G)) if voltage_kv <= 1.0 else max(19.05, min(254.0, G))
+        if G is None or not math.isfinite(float(G)) or float(G) <= 0:
+            raise ValueError(f"gap_mm must be a positive finite number, got {G}")
+        if voltage_kv <= 1.0:
+            if G < 6.35 or G > 76.2:
+                raise ValueError(
+                    f"gap_mm={G} mm is outside IEEE 1584-2018 valid range [6.35, 76.2] mm "
+                    f"for low-voltage systems ({voltage_kv} kV)."
+                )
+        else:
+            if G < 19.05 or G > 254.0:
+                raise ValueError(
+                    f"gap_mm={G} mm is outside IEEE 1584-2018 valid range [19.05, 254.0] mm "
+                    f"for medium-voltage systems ({voltage_kv} kV)."
+                )
 
         E, _, _ = ArcFlashEngine.calculate_incident_energy(
             voltage_kv=voltage_kv,
@@ -255,7 +270,10 @@ class ArcFlashAgent(BaseAgent):
             working_distance_mm=D,
             electrode_config=cfg,
             enclosure_type=EnclosureType.BOX,
-            arc_gap_mm=g_clamped,
+            enclosure_width_mm=508.0,
+            enclosure_height_mm=508.0,
+            enclosure_depth_mm=508.0,
+            arc_gap_mm=G,
         )
 
         return self._format_ie_result(
@@ -264,8 +282,8 @@ class ArcFlashAgent(BaseAgent):
             arc_current_ka,
             voltage_kv,
             "IEEE 1584-2018",
-            electrode_config=electrode_config,
-            gap_mm=g_clamped,
+            electrode_config=cfg.value,
+            gap_mm=G,
             arc_duration_s=t,
         )
 

@@ -26,6 +26,52 @@ _MOCK_SYSTEM = SystemSpec(
 )
 
 
+import uuid
+from datetime import datetime, timedelta, timezone
+
+
+async def _seed_pending_action(
+    tool: str = "scada",
+    requested_by: str = "user_eng",
+    decided_by: str = "admin_other",
+    decided_by_role: str = "admin",
+    tenant_id: str = "tenant_pilot_test",
+    status: str = "approved",
+    expires_in_seconds: int = 300,
+    args: dict | None = None,
+    action_id: str | None = None,
+    expires_at: datetime | None = None,
+):
+    from api.approvals import PendingAction, compute_args_hash, _utc_now
+    from api.database import async_session, engine, Base
+
+    now = _utc_now()
+    exp = expires_at if expires_at is not None else (now + timedelta(seconds=expires_in_seconds))
+    act_id = action_id or str(uuid.uuid4())
+    act_args = args if args is not None else {"system": _MOCK_SYSTEM.model_dump() if hasattr(_MOCK_SYSTEM, "model_dump") else _MOCK_SYSTEM}
+    action = PendingAction(
+        id=act_id,
+        session_id=f"sess_{uuid.uuid4().hex[:8]}",
+        tool=tool,
+        args=act_args,
+        args_hash=compute_args_hash(act_args),
+        risk_class="critical",
+        status=status,
+        expires_at=exp,
+        requested_by_user_id=requested_by,
+        requested_by_role="engineer",
+        decided_by_user_id=decided_by,
+        decided_by_role=decided_by_role,
+        tenant_id=tenant_id,
+    )
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with async_session() as session:
+        session.add(action)
+        await session.commit()
+    return action
+
+
 @pytest.mark.asyncio
 class TestPilotCapabilityGating:
     """Verifies fail-closed server-side gating for PILOT status."""
@@ -204,24 +250,50 @@ class TestPilotCapabilityGating:
             assert res.status == "rejected"
             assert any("UNVERIFIED_APPROVAL_ASSERTION" in err for err in res.errors)
 
-    async def test_forged_approval_context_without_distinct_approver_is_rejected(self):
-        """Self-approval or missing distinct approver in server record must be rejected with MAKER_CHECKER_VIOLATION."""
+    async def test_fabricated_dictionary_cannot_authorize_without_persisted_record(self):
+        """A fabricated approval_record dictionary without a real persisted DB record fails closed."""
         orchestrator = ExecutionOrchestrator()
-        approval_rec = {
-            "id": "appr_self_1",
-            "status": "approved",
-            "requested_by_user_id": "user_attacker",
-            "decided_by_user_id": "user_attacker",
-            "decided_by_role": "admin",
-            "tenant_id": "tenant_pilot_test",
-            "tool": "scada",
-        }
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_attacker",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approval_record": approval_rec},
+            approval_context={
+                "approved": True,
+                "approval_record": {
+                    "id": "fabricated-uuid-not-in-db",
+                    "status": "approved",
+                    "requested_by_user_id": "user_attacker",
+                    "decided_by_user_id": "admin_other",
+                    "decided_by_role": "admin",
+                    "tenant_id": "tenant_pilot_test",
+                    "tool": "scada",
+                },
+            },
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("APPROVAL_NOT_FOUND" in err for err in res.errors)
+
+    async def test_forged_approval_context_without_distinct_approver_is_rejected(self):
+        """Self-approval in persisted server record must be rejected with MAKER_CHECKER_VIOLATION."""
+        orchestrator = ExecutionOrchestrator()
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_attacker",
+            decided_by="user_attacker",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+        )
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_attacker",
+            user_role="lead_engineer",
+            approval_context={"approval_id": action.id},
             input={"system": _MOCK_SYSTEM},
         )
         with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
@@ -233,20 +305,19 @@ class TestPilotCapabilityGating:
     async def test_forged_approval_context_missing_approver_fails_closed(self):
         """Approval record without verified approver identity fails closed with APPROVAL_REQUIRED."""
         orchestrator = ExecutionOrchestrator()
-        approval_rec = {
-            "id": "appr_no_decider_1",
-            "status": "approved",
-            "requested_by_user_id": "user_eng",
-            "decided_by_user_id": "",
-            "tenant_id": "tenant_pilot_test",
-            "tool": "scada",
-        }
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+        )
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_eng",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approval_record": approval_rec},
+            approval_context={"approval_id": action.id},
             input={"system": _MOCK_SYSTEM},
         )
         with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
@@ -258,22 +329,21 @@ class TestPilotCapabilityGating:
     async def test_expired_approval_record_fails_closed(self):
         """Approval record past expiration timestamp is rejected."""
         orchestrator = ExecutionOrchestrator()
-        approval_rec = {
-            "id": "appr_exp_1",
-            "status": "approved",
-            "requested_by_user_id": "user_eng",
-            "decided_by_user_id": "admin_other",
-            "decided_by_role": "admin",
-            "tenant_id": "tenant_pilot_test",
-            "tool": "scada",
-            "expires_at": "2020-01-01T00:00:00Z",
-        }
+        past_time = datetime(2020, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="admin_other",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+            expires_at=past_time,
+        )
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_eng",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approval_record": approval_rec},
+            approval_context={"approval_id": action.id},
             input={"system": _MOCK_SYSTEM},
         )
         with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
@@ -285,21 +355,19 @@ class TestPilotCapabilityGating:
     async def test_cross_tenant_approval_record_fails_closed(self):
         """Approval record from different tenant is rejected."""
         orchestrator = ExecutionOrchestrator()
-        approval_rec = {
-            "id": "appr_cross_1",
-            "status": "approved",
-            "requested_by_user_id": "user_eng",
-            "decided_by_user_id": "admin_other",
-            "decided_by_role": "admin",
-            "tenant_id": "other_tenant",
-            "tool": "scada",
-        }
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="admin_other",
+            decided_by_role="admin",
+            tenant_id="other_tenant",
+        )
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_eng",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approval_record": approval_rec},
+            approval_context={"approval_id": action.id},
             input={"system": _MOCK_SYSTEM},
         )
         with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
@@ -308,26 +376,101 @@ class TestPilotCapabilityGating:
             assert res.status == "rejected"
             assert any("CROSS_TENANT_FORBIDDEN" in err for err in res.errors)
 
-    async def test_valid_dual_control_with_independent_approver_succeeds(self):
-        """Valid server approval record from an authorized independent approver passes gate."""
-        from services.execution_orchestrator import CanonicalExecutionResult
-
+    async def test_payload_tampering_after_approval_fails_closed(self):
+        """Altering execution arguments after server approval fails closed with PAYLOAD_MISMATCH."""
         orchestrator = ExecutionOrchestrator()
-        approval_rec = {
-            "id": "appr_ok_1",
-            "status": "approved",
-            "requested_by_user_id": "user_eng",
-            "decided_by_user_id": "admin_other",
-            "decided_by_role": "admin",
-            "tenant_id": "tenant_pilot_test",
-            "tool": "scada",
-        }
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="admin_other",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+            args={"system": {"buses": [{"bus_id": 1, "base_kv": 132.0, "bus_type": "slack"}]}},
+        )
+        # Attempt execution with completely different parameters
         req = ExecutionRequest(
             capability_id="scada",
             tenant_id="tenant_pilot_test",
             user_id="user_eng",
             user_role="lead_engineer",
-            approval_context={"approved": True, "approval_record": approval_rec},
+            approval_context={"approval_id": action.id},
+            input={"system": _MOCK_SYSTEM, "tampered_field": "dangerous_override"},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("PAYLOAD_MISMATCH" in err for err in res.errors)
+
+    async def test_replayed_approval_record_fails_closed(self):
+        """Approval record with status 'executing' or 'completed' cannot be replayed."""
+        orchestrator = ExecutionOrchestrator()
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="admin_other",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+            status="completed",
+        )
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approval_id": action.id},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("APPROVAL_ALREADY_CONSUMED" in err for err in res.errors)
+
+    async def test_unauthorized_approver_role_fails_closed(self):
+        """Approver with unauthorized role (e.g. 'viewer') fails closed."""
+        orchestrator = ExecutionOrchestrator()
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="user_viewer",
+            decided_by_role="viewer",
+            tenant_id="tenant_pilot_test",
+        )
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approval_id": action.id},
+            input={"system": _MOCK_SYSTEM},
+        )
+        with patch("api.feature_flags.is_strict_feature_enabled", return_value=True):
+            res = await orchestrator.execute(req)
+            assert res.success is False
+            assert res.status == "rejected"
+            assert any("UNAUTHORIZED_APPROVER_ROLE" in err for err in res.errors)
+
+    async def test_valid_dual_control_with_independent_approver_succeeds(self):
+        """Valid server approval record from an authorized independent approver passes gate."""
+        from services.execution_orchestrator import CanonicalExecutionResult
+
+        orchestrator = ExecutionOrchestrator()
+        mock_input = {"system": _MOCK_SYSTEM.model_dump() if hasattr(_MOCK_SYSTEM, "model_dump") else _MOCK_SYSTEM}
+        action = await _seed_pending_action(
+            tool="scada",
+            requested_by="user_eng",
+            decided_by="admin_other",
+            decided_by_role="admin",
+            tenant_id="tenant_pilot_test",
+            args=mock_input,
+        )
+        req = ExecutionRequest(
+            capability_id="scada",
+            tenant_id="tenant_pilot_test",
+            user_id="user_eng",
+            user_role="lead_engineer",
+            approval_context={"approval_id": action.id},
             input={"system": _MOCK_SYSTEM},
         )
         mock_res = CanonicalExecutionResult(
