@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T14:18:40.043944+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T14:38:20.487266+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -255,6 +255,7 @@ Total: **459** variables
 - `ENGINEERING_SERVICE_URL`
 - `ENGINEERING_SERVICE_VERSION`
 - `ENVIRONMENT`
+- `ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES`
 - `ETAP_DATA_DIR`
 - `ETAP_DEV_API_KEY`
 - `ETAP_DEV_BASE_URL`
@@ -560,7 +561,6 @@ Total: **459** variables
 - `E2E_USER_PASSWORD`
 - `ENGINEERING_SERVICE_AUTH_DISABLED`
 - `ENV`
-- `ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES`
 - `ETAP_REST_ALLOWLIST`
 - `ETAP_REST_TOKEN`
 - `ETAP_REST_URL`
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| python-module | 41 |
-| ui-page | 61 |
-| ui-component | 280 |
 | api-route | 92 |
+| ui-page | 61 |
+| python-module | 41 |
+| ui-component | 280 |
 | **TOTAL** | **474** |
 
 ---
@@ -5926,7 +5926,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5946,7 +5946,7 @@ Provides
 | `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | `core_model`, `engine` |
@@ -6325,7 +6325,7 @@ Provides
 | `scripts/dev/debug_ws_inspect2.py` | py | 0.9 KB |  |
 | `scripts/dev/main.py` | py | 10.6 KB | Main demonstration script for the power_protection_system. |
 | `scripts/dev/validation_campaign.py` | py | 44.2 KB | Full Verification and Validation Campaign for Power Protecti |
-| `scripts/dev/validation_suite.py` | py | 25.6 KB | Engineering Validation Suite for Power Protection System |
+| `scripts/dev/validation_suite.py` | py | 25.7 KB | Engineering Validation Suite for Power Protection System |
 | `scripts/docker_build.sh` | sh | 10.7 KB | !/usr/bin/env bash |
 | `scripts/docker_deploy.sh` | sh | 6.2 KB | !/usr/bin/env bash |
 | `scripts/docker_dev.sh` | sh | 4.3 KB | !/usr/bin/env bash |
