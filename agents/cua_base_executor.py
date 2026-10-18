@@ -992,10 +992,15 @@ class BaseCUAExecutor(abc.ABC):
                             },
                         )
                         steps.append(step_result)
+                        abort_msg = (
+                            "Dual confirmation required but no confirmation callback provided (fail-closed)"
+                            if safety_check.requires_dual_confirmation
+                            else "Missing confirmation callback for confirmed action (fail-closed)"
+                        )
                         return CUAExecutionResult(
                             success=False,
                             steps=steps,
-                            aborted_reason="Missing confirmation callback for confirmed action (fail-closed)",
+                            aborted_reason=abort_msg,
                             total_duration_ms=int((time.monotonic() - start_time) * 1000),
                             execution_id=exec_id,
                             resumed_from_step=resume_from,

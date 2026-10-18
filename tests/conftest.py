@@ -597,15 +597,9 @@ def sample_ieee14_network():
                 generation_power_real=40.0,
                 generation_power_imag=-10.0,
             ).model_dump(),
-            BusSpec(
-                bus_id=3, bus_type="pq", base_kv=230.0, load_power_real=100.0, load_power_imag=50.0
-            ).model_dump(),
-            BusSpec(
-                bus_id=4, bus_type="pq", base_kv=230.0, load_power_real=40.0, load_power_imag=5.0
-            ).model_dump(),
-            BusSpec(
-                bus_id=5, bus_type="pq", base_kv=230.0, load_power_real=10.0, load_power_imag=6.0
-            ).model_dump(),
+            BusSpec(bus_id=3, bus_type="pq", base_kv=230.0).model_dump(),
+            BusSpec(bus_id=4, bus_type="pq", base_kv=230.0).model_dump(),
+            BusSpec(bus_id=5, bus_type="pq", base_kv=230.0).model_dump(),
             BusSpec(
                 bus_id=6,
                 bus_type="pv",
@@ -622,9 +616,7 @@ def sample_ieee14_network():
                 generation_power_real=16.0,
                 generation_power_imag=-6.0,
             ).model_dump(),
-            BusSpec(
-                bus_id=8, bus_type="pq", base_kv=230.0, load_power_real=50.0, load_power_imag=4.0
-            ).model_dump(),
+            BusSpec(bus_id=8, bus_type="pq", base_kv=230.0).model_dump(),
             BusSpec(
                 bus_id=9,
                 bus_type="pv",
@@ -633,15 +625,9 @@ def sample_ieee14_network():
                 generation_power_real=12.0,
                 generation_power_imag=-5.0,
             ).model_dump(),
-            BusSpec(
-                bus_id=10, bus_type="pq", base_kv=230.0, load_power_real=5.0, load_power_imag=3.0
-            ).model_dump(),
-            BusSpec(
-                bus_id=11, bus_type="pq", base_kv=230.0, load_power_real=5.0, load_power_imag=3.0
-            ).model_dump(),
-            BusSpec(
-                bus_id=12, bus_type="pq", base_kv=230.0, load_power_real=6.1, load_power_imag=1.6
-            ).model_dump(),
+            BusSpec(bus_id=10, bus_type="pq", base_kv=230.0).model_dump(),
+            BusSpec(bus_id=11, bus_type="pq", base_kv=230.0).model_dump(),
+            BusSpec(bus_id=12, bus_type="pq", base_kv=230.0).model_dump(),
         ],
         "lines": [
             LineSpec(

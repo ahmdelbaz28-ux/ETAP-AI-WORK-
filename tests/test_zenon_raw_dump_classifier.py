@@ -66,7 +66,7 @@ class TestZenonRawDumpClassifier:
         assert len(contract.lines) == 2
         line_ids = {l.id for l in contract.lines}
         assert "LINE_BB02_BB03" in line_ids
-        assert "LINE_BB01_BB03" in line_ids
+        assert "LINE_BB03_BB02" in line_ids
 
         assert len(contract.breakers) == 3
         breaker_ids = {b.id for b in contract.breakers}

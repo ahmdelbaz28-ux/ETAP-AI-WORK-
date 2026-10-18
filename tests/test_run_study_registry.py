@@ -191,6 +191,7 @@ class TestRunStudyValidationSemantics:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.183,
             working_distance_mm=610.0,
+            arc_gap_mm=25.0,
         )
         assert result["electrode_configuration"] == ARC_FLASH_OPTIONAL_DEFAULTS["electrode_config"]
         assert result["enclosure_type"] == ARC_FLASH_OPTIONAL_DEFAULTS["enclosure_type"]
@@ -208,6 +209,7 @@ class TestRunStudyValidationSemantics:
             bolted_fault_current_ka=20.0,
             arc_duration_sec=0.183,
             working_distance_mm=610.0,
+            arc_gap_mm=25.0,
             electrode_config="VCBB",
             enclosure_type="open",
             enclosure_width_mm=600.0,

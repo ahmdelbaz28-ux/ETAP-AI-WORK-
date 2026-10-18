@@ -560,7 +560,11 @@ class MotorStartingAgent(BaseAgent):
             if "voltage_v" not in p and "rated_voltage_v" not in p and "voltage_V" not in p:
                 missing_inputs.append("voltage_v")
             if analysis_type in ("voltage_dip", "full"):
-                has_sz = ("source_impedance_r_pu" in p and "source_impedance_x_pu" in p) or "source_impedance_pu" in p
+                has_sz = (
+                    ("source_impedance_r_pu" in p and "source_impedance_x_pu" in p)
+                    or "source_impedance_pu" in p
+                    or ("z_source_r_ohms" in p and "z_source_x_ohms" in p)
+                )
                 if not has_sz:
                     missing_inputs.append("source_impedance_r_pu and source_impedance_x_pu")
 
@@ -633,6 +637,18 @@ class MotorStartingAgent(BaseAgent):
                     z_r = float(task.parameters["source_impedance_r_pu"])
                     z_x = float(task.parameters["source_impedance_x_pu"])
                     source_z_pu = complex(z_r, z_x)
+                elif "z_source_r_ohms" in task.parameters and "z_source_x_ohms" in task.parameters:
+                    z_r = float(task.parameters["z_source_r_ohms"])
+                    z_x = float(task.parameters["z_source_x_ohms"])
+                    sys_obj = task.parameters.get("system")
+                    sys_base_mva = float(
+                        task.parameters.get("base_mva")
+                        or task.parameters.get("system_base_mva")
+                        or getattr(sys_obj, "base_mva", 100.0)
+                        or 100.0
+                    )
+                    z_base = (voltage_v**2) / (sys_base_mva * 1e6) if (voltage_v and sys_base_mva) else 1.0
+                    source_z_pu = complex(z_r, z_x) / z_base
                 else:
                     raise ValueError(
                         "Motor starting voltage dip analysis requires explicit source impedance "

@@ -547,6 +547,7 @@ class HarmonicAnalysisAgent(BaseAgent):
                 )  # NOSONAR
                 bus_ids = [str(b) for b in sorted(system_data.buses.keys())]
                 engine.set_system_data(ybus, bus_ids)
+                engine.system = system_data
 
             # Add harmonic sources
             for source_data in harmonic_sources:

@@ -137,6 +137,7 @@ class HarmonicAnalysisEngine:
         Parameters:
         system: System instance containing buses, lines, transformers, and generators.
         """
+        self.system = system
         self.Ybus_fundamental = system.get_ybus(seq="1")
         self.bus_ids = [str(bid) for bid in sorted(system.buses.keys())]
         self.branch_data = {}
@@ -631,7 +632,12 @@ class HarmonicAnalysisEngine:
         fund_mag = fundamental_magnitudes
         if fund_mag is None and hasattr(self, "system") and self.system and hasattr(self.system, "buses"):
             fund_mag = {}
-            for b_id, b_obj in self.system.buses.items():
+            buses_iter = (
+                self.system.buses.items()
+                if isinstance(self.system.buses, dict)
+                else [(getattr(b, "bus_id", i), b) for i, b in enumerate(self.system.buses)]
+            )
+            for b_id, b_obj in buses_iter:
                 vm = getattr(b_obj, "voltage_magnitude", None)
                 if vm is not None and float(vm) > 0:
                     fund_mag[str(b_id)] = float(vm)
@@ -648,7 +654,12 @@ class HarmonicAnalysisEngine:
         fund_curr = fundamental_currents
         if fund_curr is None and hasattr(self, "system") and self.system and hasattr(self.system, "lines"):
             fund_curr = {}
-            for l_id, l_obj in self.system.lines.items():
+            lines_iter = (
+                self.system.lines.items()
+                if isinstance(self.system.lines, dict)
+                else [(getattr(line, "line_id", i), line) for i, line in enumerate(self.system.lines)]
+            )
+            for l_id, l_obj in lines_iter:
                 curr = getattr(l_obj, "current_magnitude", getattr(l_obj, "current", None))
                 if curr is not None and abs(curr) > 0:
                     fund_curr[f"line_{l_id}"] = float(abs(curr))

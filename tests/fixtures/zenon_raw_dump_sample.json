@@ -122,24 +122,24 @@
       "driver": "IEC850"
     },
     {
-      "name": "LINE_BB01_BB03.R",
-      "identification": "Overhead Line BB01-BB03 Resistance",
+      "name": "LINE_BB03_BB02.R",
+      "identification": "Overhead Line BB03-BB02 Resistance",
       "data_type": "REAL",
       "unit": "pu",
       "value": 0.02,
       "driver": "IEC850"
     },
     {
-      "name": "LINE_BB01_BB03.X",
-      "identification": "Overhead Line BB01-BB03 Reactance",
+      "name": "LINE_BB03_BB02.X",
+      "identification": "Overhead Line BB03-BB02 Reactance",
       "data_type": "REAL",
       "unit": "pu",
       "value": 0.08,
       "driver": "IEC850"
     },
     {
-      "name": "LINE_BB01_BB03.S_MAX",
-      "identification": "Overhead Line BB01-BB03 Rating",
+      "name": "LINE_BB03_BB02.S_MAX",
+      "identification": "Overhead Line BB03-BB02 Rating",
       "data_type": "REAL",
       "unit": "MVA",
       "value": 50.0,

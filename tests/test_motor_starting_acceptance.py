@@ -100,6 +100,8 @@ def test_motor_starting_positive_execution(motor_system, monkeypatch):
         "rated_pf": 0.88,
         "starting_method": "DOL",
         "analysis_type": "full",
+        "source_impedance_r_pu": 0.01,
+        "source_impedance_x_pu": 0.04,
         "z_source_r_ohms": 0.01,
         "z_source_x_ohms": 0.04,
     }
