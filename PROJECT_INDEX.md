@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T19:00:52.001295+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T20:15:08.200523+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -703,7 +703,7 @@ Protection system coordination analysis per IE
 - **Class** `CoordinationAgent` (line 53)
   - Methods: `calculate_relay_operating_time()`, `verify_coordination()`, `generate_tcc_data()`, `analyze_selectivity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/cua_base_executor.py` _53.4 KB_
+#### 📄 `agents/cua_base_executor.py` _53.7 KB_
 > agents/cua_base_executor.py — Base CUA Executor (Template Method pattern)
 
 Extracts the shared CUA loop algorithm from DesktopCUAExecutor and
@@ -818,7 +818,7 @@ ChiefEngineeringOr
 - **Class** `PlanningIntent` (line 103)
 - **Class** `PlanningPlan` (line 121)
 
-#### 📄 `agents/motor_starting_agent.py` _36.2 KB_
+#### 📄 `agents/motor_starting_agent.py` _37.1 KB_
 > AhmedETAP - Motor Starting Analysis Agent
 =============================================================
 Motor starting current, voltage dip, torque, a
@@ -891,22 +891,22 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `HarmonicAnalysisAgent` (line 485)
   - Methods: `execute()`, `validate_result()`
-- **Class** `OptimalPowerFlowAgent` (line 616)
+- **Class** `OptimalPowerFlowAgent` (line 617)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 756)
+- **Class** `ProtectionCoordinationAgent` (line 757)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 859)
+- **Class** `ETAPExecutionAgent` (line 860)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 973)
+- **Class** `ValidationAgent` (line 974)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1306)
+- **Class** `ReportGenerationAgent` (line 1307)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 129)
 - **def** `resolve_agent_key()` (line 134)
 - **def** `validate_agent_keys()` (line 139)
-- **def** `get_study_type_mapping()` (line 1609)
-- **def** `get_agent_for_study()` (line 1614)
-- **def** `create_agent_registry()` (line 1625)
+- **def** `get_study_type_mapping()` (line 1610)
+- **def** `get_agent_for_study()` (line 1615)
+- **def** `create_agent_registry()` (line 1626)
 
 #### 📄 `agents/renewable_agent.py` _39.6 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -2995,7 +2995,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _109.9 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _110.2 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -3120,7 +3120,7 @@ Generates industrial-grade
 - **Class** `FaultAnalyzer` (line 16)
   - Methods: `three_phase_fault()`, `line_to_ground_fault()`, `line_to_line_fault()`, `double_line_to_ground_fault()`
 
-#### 📄 `fault_analysis/harmonic_analysis.py` _30.0 KB_
+#### 📄 `fault_analysis/harmonic_analysis.py` _30.4 KB_
 > Harmonic Analysis Engine
 =========================
 Implements harmonic power flow analysis per IEEE 519-2022.
@@ -5926,10 +5926,10 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
-| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api` |
+| `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
 | `core_model` | `network_solver` | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
@@ -5943,10 +5943,10 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | `core_model`, `engine` |
@@ -5954,7 +5954,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
