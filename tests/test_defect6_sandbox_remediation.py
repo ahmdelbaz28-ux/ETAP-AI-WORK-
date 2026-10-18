@@ -153,3 +153,29 @@ def test_prompt_rule_enforcement_accepts_canonical_execution_or_run_python():
     )
     assert blocked_response["success"] is False
     assert "Response blocked by prompt rule enforcement" in blocked_response["error"]
+
+
+def test_legacy_sandbox_switch_cannot_bypass_in_production():
+    """Setting ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES=1 cannot activate bypass in production environment."""
+    prod_env = {
+        **ENV,
+        "ENVIRONMENT": "production",
+        "ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES": "1",
+    }
+    # Remove PYTEST_CURRENT_TEST to simulate non-test production environment
+    prod_env.pop("PYTEST_CURRENT_TEST", None)
+
+    code = "import engine\nprint('SECURITY_VIOLATION')"
+    proc = subprocess.run(
+        [sys.executable, str(SECURE_EXECUTOR)],
+        input=code,
+        capture_output=True,
+        text=True,
+        timeout=15,
+        cwd=str(PROJECT_ROOT),
+        env=prod_env,
+    )
+    assert proc.returncode != 0
+    wrapper = json.loads(proc.stdout.strip())
+    assert wrapper.get("success") is False
+    assert "Unauthorized" in wrapper.get("error", "") or "Forbidden" in wrapper.get("error", "")

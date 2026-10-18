@@ -71,11 +71,28 @@ def verify_bus_results(
     require_baseline : bool
         If True, missing or zero baseline voltage fails validation with 'baseline_missing'.
     """
+    if not expected_buses:
+        return NetworkVerificationResult(
+            passed=False,
+            status="baseline_missing",
+            reason="Baseline contains no verifiable buses (empty expected bus inventory).",
+            details={"total_buses_evaluated": 0},
+        )
+
+    if not calculated_buses:
+        return NetworkVerificationResult(
+            passed=False,
+            status="execution_failed",
+            reason="No bus voltage results returned from load flow simulation (empty calculation results).",
+            details={"total_buses_evaluated": len(expected_buses)},
+        )
+
     comparisons: dict[str, BusVerificationDetail] = {}
     max_diff = 0.0
     all_passed = True
     failure_reasons: list[str] = []
     baseline_missing = False
+    valid_comparisons = 0
 
     for bus_id, expected_v in expected_buses.items():
         if bus_id not in calculated_buses:
@@ -118,6 +135,7 @@ def verify_bus_results(
                 )
             continue
 
+        valid_comparisons += 1
         diff_pct = abs(calc_v - expected_v) / expected_v * 100.0
         if diff_pct > max_diff:
             max_diff = diff_pct
@@ -139,7 +157,14 @@ def verify_bus_results(
             message=msg,
         )
 
-    if all_passed:
+    # Verification passes ONLY IF at least one valid comparison was actually performed
+    # AND all comparisons passed.
+    passed = all_passed and (valid_comparisons > 0)
+    if not passed and all_passed and valid_comparisons == 0:
+        baseline_missing = True
+        failure_reasons.append("No valid non-zero baseline voltages were available for numerical comparison.")
+
+    if passed:
         status_str = "verified"
     elif baseline_missing:
         status_str = "baseline_missing"
@@ -149,12 +174,12 @@ def verify_bus_results(
     reason_str = "; ".join(failure_reasons) if failure_reasons else None
 
     return NetworkVerificationResult(
-        passed=all_passed,
+        passed=passed,
         status=status_str,
         max_voltage_diff_pct=max_diff,
         bus_comparisons=comparisons,
         reason=reason_str,
-        details={"total_buses_evaluated": len(expected_buses)},
+        details={"total_buses_evaluated": len(expected_buses), "valid_comparisons": valid_comparisons},
     )
 
 
@@ -175,10 +200,18 @@ async def dispatch_load_flow_verification(
     elif isinstance(baseline_model, dict):
         buses = baseline_model.get("buses") or baseline_model.get("objects", {}).get("buses", [])
         for b in buses:
-            b_id = str(b.get("id") or b.get("name"))
-            v_val = b.get("v_mag") or b.get("voltage_magnitude")
-            if v_val is not None:
-                expected_voltages[b_id] = float(v_val)
+            b_id = str(b.get("id") or b.get("name") or "")
+            if b_id:
+                v_val = b.get("v_mag") if b.get("v_mag") is not None else b.get("voltage_magnitude")
+                expected_voltages[b_id] = float(v_val) if v_val is not None else None
+
+    if not expected_voltages:
+        return NetworkVerificationResult(
+            passed=False,
+            status="baseline_missing",
+            reason="Baseline model contains no verifiable buses (empty source topology).",
+            details={"total_buses_evaluated": 0},
+        )
 
     # 2. Invoke ETAP worker service
     headers = {}
@@ -231,6 +264,14 @@ async def dispatch_load_flow_verification(
                 calc_voltages[str(bid)] = float(bdata["voltage_magnitude"])
             elif isinstance(bdata, (int, float)):
                 calc_voltages[str(bid)] = float(bdata)
+
+        if not calc_voltages:
+            return NetworkVerificationResult(
+                passed=False,
+                status="execution_failed",
+                reason="Load flow study completed, but returned no comparable bus voltage results.",
+                details={"total_buses_evaluated": len(expected_voltages)},
+            )
 
         # 4. MathGuard verification check
         return verify_bus_results(

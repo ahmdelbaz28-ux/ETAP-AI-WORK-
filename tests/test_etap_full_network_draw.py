@@ -824,3 +824,58 @@ class TestEtapDrawFromProjectEndpoint:
         assert data["drawing_completed"] is True
         assert data["verification_passed"] is False
         assert data["error"]["code"] == "VERIFICATION_READBACK_FAILED"
+
+
+class TestPostDrawVerifierFailClosed:
+    """Verifies fail-closed post-draw load-flow verification contracts (P1-A)."""
+
+    def test_empty_expected_baseline_fails_closed(self):
+        """Empty expected baseline must return baseline_missing and passed=False."""
+        res = verify_bus_results(expected_buses={}, calculated_buses={"B1": 1.0})
+        assert res.passed is False
+        assert res.status == "baseline_missing"
+        assert "no verifiable buses" in res.reason.lower()
+
+    def test_empty_calculated_results_fails_closed(self):
+        """Empty calculated results must return execution_failed and passed=False."""
+        res = verify_bus_results(expected_buses={"B1": 1.0}, calculated_buses={})
+        assert res.passed is False
+        assert res.status == "execution_failed"
+        assert "empty calculation" in res.reason.lower()
+
+    def test_missing_expected_voltage_for_source_bus_fails_closed(self):
+        """Missing or None expected voltage for a source bus must fail closed."""
+        res = verify_bus_results(expected_buses={"B1": None}, calculated_buses={"B1": 1.0})
+        assert res.passed is False
+        assert res.status == "baseline_missing"
+        assert res.bus_comparisons["B1"].passed is False
+        assert "baseline voltage missing" in res.bus_comparisons["B1"].message.lower()
+
+    def test_normal_within_tolerance_passes(self):
+        """Comparable buses within tolerance return passed=True and verified."""
+        res = verify_bus_results(
+            expected_buses={"B1": 1.0, "B2": 0.98},
+            calculated_buses={"B1": 1.005, "B2": 0.985},
+            tolerance_pct=2.0,
+        )
+        assert res.passed is True
+        assert res.status == "verified"
+        assert len(res.bus_comparisons) == 2
+
+    def test_out_of_tolerance_fails(self):
+        """Drift exceeding tolerance returns passed=False and tolerance_exceeded."""
+        res = verify_bus_results(
+            expected_buses={"B1": 1.0},
+            calculated_buses={"B1": 1.05},
+            tolerance_pct=2.0,
+        )
+        assert res.passed is False
+        assert res.status == "tolerance_exceeded"
+        assert res.max_voltage_diff_pct >= 5.0
+
+    @pytest.mark.asyncio
+    async def test_dispatch_empty_baseline_model_fails_closed(self):
+        """dispatch_load_flow_verification with empty baseline model returns baseline_missing."""
+        res = await dispatch_load_flow_verification(project_path="dummy/path.etap", baseline_model={})
+        assert res.passed is False
+        assert res.status == "baseline_missing"

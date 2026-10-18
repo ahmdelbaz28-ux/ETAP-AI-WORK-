@@ -79,9 +79,21 @@ CANONICAL_ENGINE_MODULES = frozenset({
 
 # In strict advisory mode (default in production, Mastra tool, and standard runtime),
 # canonical calculation engines are strictly disallowed from run_python sandbox.
+# Production configuration strictly forbids the legacy engine sandbox switch.
+# ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES is strictly restricted to test harnesses (pytest)
+# in non-production environments to avoid accidental production bypasses.
+_is_production = (
+    os.getenv("ENVIRONMENT", "").lower() == "production"
+    or os.getenv("ENV", "").lower() == "production"
+)
+_is_pytest = bool(os.getenv("PYTEST_CURRENT_TEST"))
 _allow_legacy_sandbox = (
-    os.getenv("ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES", "").lower() in ("1", "true")
-    or "test_arc_flash_single_engine" in os.getenv("PYTEST_CURRENT_TEST", "")
+    not _is_production
+    and _is_pytest
+    and (
+        os.getenv("ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES", "").lower() in ("1", "true")
+        or "test_arc_flash_single_engine" in os.getenv("PYTEST_CURRENT_TEST", "")
+    )
 )
 
 ALLOWED_IMPORT_NAMES = [

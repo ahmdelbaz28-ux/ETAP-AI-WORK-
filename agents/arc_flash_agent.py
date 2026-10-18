@@ -19,6 +19,7 @@ Standards:
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
@@ -286,21 +287,15 @@ class ArcFlashAgent(BaseAgent):
             else:
                 boundary_mm = 0.0
         else:
-            try:
-                boundary_mm = ArcFlashEngine.calculate_arc_flash_boundary(
-                    voltage_kv=voltage_kv,
-                    bolted_fault_current_ka=arc_current_ka,
-                    arc_duration_sec=arc_duration_s,
-                    working_distance_mm=working_distance_mm,
-                    electrode_config=electrode_config,
-                    enclosure_type=EnclosureType.BOX,
-                    arc_gap_mm=gap_mm,
-                )
-            except Exception:
-                if E_cal_cm2 > 0 and working_distance_mm > 0:
-                    boundary_mm = working_distance_mm * np.sqrt(E_cal_cm2 / 1.2)
-                else:
-                    boundary_mm = 0.0
+            boundary_mm = ArcFlashEngine.calculate_arc_flash_boundary(
+                voltage_kv=voltage_kv,
+                bolted_fault_current_ka=arc_current_ka,
+                arc_duration_sec=arc_duration_s,
+                working_distance_mm=working_distance_mm,
+                electrode_config=electrode_config,
+                enclosure_type=EnclosureType.BOX,
+                arc_gap_mm=gap_mm,
+            )
 
         # PPE category: fail-closed with REJECTED if simplified model is active
         try:
@@ -360,38 +355,119 @@ class ArcFlashAgent(BaseAgent):
             self.log_execution(f"Starting arc flash analysis for task {task.task_id}")
 
             missing_af: list[str] = []
+            invalid_af: list[str] = []
+
+            # 1. Voltage
             if "voltage_kv" not in task.parameters or task.parameters["voltage_kv"] is None:
                 missing_af.append("voltage_kv")
-            if (
-                "bolted_fault_current_ka" not in task.parameters
-                and "fault_current_ka" not in task.parameters
-            ) or (
-                task.parameters.get("bolted_fault_current_ka") is None
-                and task.parameters.get("fault_current_ka") is None
-            ):
+            else:
+                try:
+                    v_val = float(task.parameters["voltage_kv"])
+                    if v_val <= 0 or not math.isfinite(v_val):
+                        invalid_af.append(f"voltage_kv must be positive and finite (got {v_val})")
+                except (ValueError, TypeError):
+                    invalid_af.append("voltage_kv is not a valid number")
+
+            # 2. Bolted fault current
+            raw_fault = (
+                task.parameters.get("bolted_fault_current_ka")
+                if task.parameters.get("bolted_fault_current_ka") is not None
+                else task.parameters.get("fault_current_ka")
+            )
+            if raw_fault is None:
                 missing_af.append("bolted_fault_current_ka")
+            else:
+                try:
+                    bf_val = float(raw_fault)
+                    if bf_val <= 0 or not math.isfinite(bf_val):
+                        invalid_af.append(f"bolted_fault_current_ka must be positive and finite (got {bf_val})")
+                except (ValueError, TypeError):
+                    invalid_af.append("bolted_fault_current_ka is not a valid number")
 
+            # 3. Conductor gap (arc_gap_mm or gap_mm)
+            raw_gap = (
+                task.parameters.get("arc_gap_mm")
+                if task.parameters.get("arc_gap_mm") is not None
+                else task.parameters.get("gap_mm")
+            )
+            if raw_gap is None:
+                missing_af.append("arc_gap_mm")
+            else:
+                try:
+                    gap_val = float(raw_gap)
+                    if gap_val <= 0 or not math.isfinite(gap_val):
+                        invalid_af.append(f"arc_gap_mm must be positive and finite (got {gap_val})")
+                except (ValueError, TypeError):
+                    invalid_af.append("arc_gap_mm is not a valid number")
+
+            # 4. Electrode config validation if present
+            raw_cfg = task.parameters.get("electrode_config")
+            if raw_cfg is not None:
+                try:
+                    cfg_enum = ElectrodeConfig(str(raw_cfg).strip().upper())
+                except (ValueError, AttributeError):
+                    invalid_af.append(
+                        f"Invalid electrode_config '{raw_cfg}'. Must be one of {[e.value for e in ElectrodeConfig]}"
+                    )
+            else:
+                cfg_enum = ElectrodeConfig.VCB
+
+            # 5. Enclosure type validation if present
+            raw_enc = task.parameters.get("enclosure_type")
+            if raw_enc is not None:
+                enc_clean = str(raw_enc).strip().lower()
+                if enc_clean in ("box", "enclosed"):
+                    enc_type = EnclosureType.BOX
+                elif enc_clean in ("open", "open_air", "air"):
+                    enc_type = EnclosureType.OPEN
+                else:
+                    invalid_af.append(f"Invalid enclosure_type '{raw_enc}'. Must be 'box' or 'open'")
+            else:
+                enc_type = EnclosureType.BOX
+
+            # 6. Analysis type parameters
             analysis_type = task.parameters.get("analysis_type", "full")
+            raw_duration = None
+            raw_wd = None
             if analysis_type in ("incident_energy", "full"):
-                if (
-                    "arc_duration_s" not in task.parameters
-                    and "arc_duration_sec" not in task.parameters
-                    and "clearing_time_s" not in task.parameters
-                ) or (
-                    task.parameters.get("arc_duration_s") is None
-                    and task.parameters.get("arc_duration_sec") is None
-                    and task.parameters.get("clearing_time_s") is None
-                ):
+                raw_duration = (
+                    task.parameters.get("arc_duration_s")
+                    if task.parameters.get("arc_duration_s") is not None
+                    else (
+                        task.parameters.get("arc_duration_sec")
+                        if task.parameters.get("arc_duration_sec") is not None
+                        else task.parameters.get("clearing_time_s")
+                    )
+                )
+                if raw_duration is None:
                     missing_af.append("arc_duration_s")
-                if (
-                    "working_distance_mm" not in task.parameters
-                    or task.parameters["working_distance_mm"] is None
-                ):
-                    missing_af.append("working_distance_mm")
+                else:
+                    try:
+                        dur_val = float(raw_duration)
+                        if dur_val <= 0 or not math.isfinite(dur_val):
+                            invalid_af.append(f"arc_duration_s must be positive and finite (got {raw_duration})")
+                    except (ValueError, TypeError):
+                        invalid_af.append(f"arc_duration_s is not a valid number: {raw_duration}")
 
-            if missing_af:
+                raw_wd = task.parameters.get("working_distance_mm")
+                if raw_wd is None:
+                    missing_af.append("working_distance_mm")
+                else:
+                    try:
+                        wd_val = float(raw_wd)
+                        if wd_val <= 0 or not math.isfinite(wd_val):
+                            invalid_af.append(f"working_distance_mm must be positive and finite (got {raw_wd})")
+                    except (ValueError, TypeError):
+                        invalid_af.append(f"working_distance_mm is not a valid number: {raw_wd}")
+
+            if missing_af or invalid_af:
+                errors_list = []
+                if missing_af:
+                    errors_list.append(f"Missing mandatory arc flash parameter(s): {', '.join(missing_af)}")
+                if invalid_af:
+                    errors_list.append(f"Invalid parameter value(s): {'; '.join(invalid_af)}")
                 err_msg = (
-                    f"Missing mandatory arc flash parameter(s): {', '.join(missing_af)}. "
+                    f"{'; '.join(errors_list)}. "
                     "Silent default parameter injection (0.48kV/20kA/0.2s/457mm) is strictly prohibited per life-safety requirements (fail-closed)."
                 )
                 self.log_execution(err_msg, "ERROR")
@@ -400,33 +476,16 @@ class ArcFlashAgent(BaseAgent):
                     study_type=StudyType.ARC_FLASH,
                     status=AgentStatus.FAILED,
                     validation_errors=[err_msg],
-                    data={"missing_parameters": missing_af, "error": err_msg},
+                    data={"missing_parameters": missing_af, "invalid_parameters": invalid_af, "error": err_msg},
                 )
 
             voltage_kv = float(task.parameters["voltage_kv"])
-            bolted_fault_ka = float(
-                task.parameters.get("bolted_fault_current_ka")
-                if task.parameters.get("bolted_fault_current_ka") is not None
-                else task.parameters["fault_current_ka"]
-            )
-            electrode_config = task.parameters.get("electrode_config", "VCB")
+            bolted_fault_ka = float(raw_fault)
+            gap_val = float(raw_gap)
+            arc_duration_s = float(raw_duration) if raw_duration is not None else 0.2
+            working_distance_mm = float(raw_wd) if raw_wd is not None else 457.0
 
             results: dict[str, Any] = {}
-
-            gap_val = float(task.parameters.get("arc_gap_mm") or task.parameters.get("gap_mm", 32.0))
-            enc_str = str(task.parameters.get("enclosure_type", "box"))
-            enc_type = EnclosureType.OPEN if "OPEN" in enc_str.upper() else EnclosureType.BOX
-            try:
-                cfg_enum = ElectrodeConfig(str(electrode_config).strip().upper())
-            except (ValueError, AttributeError):
-                cfg_enum = ElectrodeConfig.VCB
-
-            arc_duration_s = float(
-                task.parameters.get("arc_duration_s")
-                or task.parameters.get("arc_duration_sec")
-                or task.parameters.get("clearing_time_s", 0.2)
-            )
-            working_distance_mm = float(task.parameters.get("working_distance_mm", 457.0))
 
             af_res = ArcFlashEngine().calculate(
                 voltage_kv=voltage_kv,
@@ -447,7 +506,7 @@ class ArcFlashAgent(BaseAgent):
                 "reduced_arc_current_ka": af_res.reduced_arc_current_ka,
                 "voltage_kv": voltage_kv,
                 "bolted_fault_current_ka": bolted_fault_ka,
-                "electrode_config": str(electrode_config),
+                "electrode_config": cfg_enum.value,
                 "gap_mm": gap_val,
             }
             results["arc_current"] = arc_result

@@ -135,3 +135,106 @@ class TestFailClosedTopologyRejection:
         assert len(sys_exec.lines) == 1
         assert len(sys_exec.generators) == 1
         assert len(sys_exec.loads) == 1
+
+
+@pytest.mark.asyncio
+class TestCanonicalExecutionOrchestratorTopologyRejection:
+    """Verifies that ExecutionOrchestrator enforces fail-closed topology validation (P1-B)."""
+
+    async def test_canonical_orchestrator_rejects_dict_with_dangling_line_bus(self):
+        """Dict system input with dangling line bus must fail closed at canonical boundary."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={
+                "system": {
+                    "base_mva": 100.0,
+                    "buses": [{"bus_id": 1, "base_kv": 132.0, "bus_type": "slack"}],
+                    "lines": [{"line_id": 101, "from_bus_id": 999, "to_bus_id": 1, "r1": 0.01, "x1": 0.05}],
+                }
+            },
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status == "failed"
+        assert any("references unknown bus" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_rejects_spec_with_dangling_transformer_bus(self, valid_bus_spec):
+        """SystemSpec with dangling transformer bus must fail closed at canonical boundary."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        orch = ExecutionOrchestrator()
+        b2 = BusSpec(bus_id=2, base_kv=132.0, bus_type="pq")
+        spec = SystemSpec(
+            base_mva=100.0,
+            buses=[valid_bus_spec, b2],
+            lines=[LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=0.01, x1=0.05)],
+            transformers=[
+                TransformerSpec(transformer_id=201, from_bus_id=1, to_bus_id=777, r1=0.01, x1=0.08)
+            ],
+        )
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": spec},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("references unknown bus 777" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_rejects_spec_with_dangling_load_or_generator(self, valid_bus_spec):
+        """SystemSpec with dangling generator/load must fail closed at canonical boundary."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        orch = ExecutionOrchestrator()
+        b2 = BusSpec(bus_id=2, base_kv=132.0, bus_type="pq")
+        spec = SystemSpec(
+            base_mva=100.0,
+            buses=[valid_bus_spec, b2],
+            lines=[LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=0.01, x1=0.05)],
+            generators=[GeneratorSpec(generator_id=301, bus_id=666, r1=0.02, x1=0.15)],
+            loads=[LoadSpec(load_id=401, bus_id=555, p_mw=25.0, q_mvar=10.0)],
+        )
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": spec},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("references unknown bus" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_valid_model_continues_normally(self, valid_bus_spec):
+        """Valid SystemSpec model continues through normal canonical execution without rejection."""
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        orch = ExecutionOrchestrator()
+        b2 = BusSpec(bus_id=2, base_kv=132.0, bus_type="pq")
+        spec = SystemSpec(
+            base_mva=100.0,
+            buses=[valid_bus_spec, b2],
+            lines=[LineSpec(line_id=1, from_bus_id=1, to_bus_id=2, r1=0.01, x1=0.05)],
+            generators=[GeneratorSpec(generator_id=1, bus_id=1, r1=0.01, x1=0.1)],
+            loads=[LoadSpec(load_id=1, bus_id=2, p_mw=15.0, q_mvar=5.0)],
+        )
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": spec},
+        )
+        res = await orch.execute(req)
+        assert res.success is True
+        assert res.status == "completed"
