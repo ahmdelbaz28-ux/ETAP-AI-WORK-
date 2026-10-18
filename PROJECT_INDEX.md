@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-15T13:24:19.041679+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T07:57:01.668925+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -14,11 +14,11 @@
 | Python | Classes | 974 |
 | Python | Functions | 877 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 297 |
-| Total | Tests | 4089 |
+| Test | Files | 302 |
+| Total | Tests | 4123 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
-| Environment | Variables | 457 |
+| Environment | Variables | 459 |
 | Scripts | | 170 |
 | AI | Agents | 31 |
 | Integrations | | 22 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,12 +53,12 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -121,7 +121,7 @@ Total: **0** mappings
 
 ## 🔐 Environment Variables
 
-Total: **457** variables
+Total: **459** variables
 
 ### General
 
@@ -560,6 +560,7 @@ Total: **457** variables
 - `E2E_USER_PASSWORD`
 - `ENGINEERING_SERVICE_AUTH_DISABLED`
 - `ENV`
+- `ETAP_ALLOW_SANDBOX_CANONICAL_ENGINES`
 - `ETAP_REST_ALLOWLIST`
 - `ETAP_REST_TOKEN`
 - `ETAP_REST_URL`
@@ -573,6 +574,7 @@ Total: **457** variables
 - `LOCUST_TEST_USERNAME`
 - `PLAYWRIGHT_BROWSERS_PATH`
 - `PRODUCTION_URL`
+- `PYTEST_CURRENT_TEST`
 - `PYTEST_XDIST_WORKER`
 - `SMOKE_BASE_URL`
 - `SMOKE_UI_URL`
@@ -594,7 +596,7 @@ Total: **457** variables
 
 #### 📄 `agents/__init__.py` _4.7 KB_
 
-#### 📄 `agents/ahmed_etap_orchestrator.py` _52.7 KB_
+#### 📄 `agents/ahmed_etap_orchestrator.py` _56.1 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
 ======================================================================
 
@@ -609,22 +611,22 @@ Runtim
   - Methods: `remaining()`, `fraction_spent()`, `compression_count()`, `record_spend()`, `estimate_and_record()`, `record_compression()`, `to_dict()`
 - **Class** `MathGuard` (line 408)
   - Methods: `validate()`
-- **Class** `MathGuardResult` (line 544)
+- **Class** `MathGuardResult` (line 548)
   - Methods: `to_dict()`
-- **Class** `PeerReview` (line 588)
+- **Class** `PeerReview` (line 594)
   - Methods: `reviewer_for()`, `review()`
-- **Class** `PeerReviewResult` (line 730)
+- **Class** `PeerReviewResult` (line 736)
   - Methods: `to_dict()`
-- **Class** `OrchestrationVerdict` (line 750)
-- **Class** `OrchestrationResult` (line 761)
+- **Class** `OrchestrationVerdict` (line 756)
+- **Class** `OrchestrationResult` (line 767)
   - Methods: `to_dict()`
-- **Class** `AhmedETAPOrchestrator` (line 790)
+- **Class** `AhmedETAPOrchestrator` (line 796)
   - Methods: `run_study()`
-- **Class** `AhmedETAPSkillAgent` (line 1055)
+- **Class** `AhmedETAPSkillAgent` (line 1061)
   - Methods: `execute()`, `get_agent_info()`
 - **def** `canonicalize_study_type()` (line 85)
-- **def** `load_skill_text()` (line 1346)
-- **def** `load_reference_text()` (line 1359)
+- **def** `load_skill_text()` (line 1410)
+- **def** `load_reference_text()` (line 1423)
 
 #### 📄 `agents/anomaly_agent.py` _27.7 KB_
 > AhmedETAP - Anomaly Detection Agent
@@ -634,7 +636,7 @@ Anomaly detection, classification, and diagnosis in power
 - **Class** `AnomalyAgent` (line 36)
   - Methods: `detect_spc_anomalies()`, `detect_cusum()`, `detect_ewma()`, `detect_threshold_violations()`, `cross_correlation_analysis()`, `detect_ml_anomaly()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/arc_flash_agent.py` _17.0 KB_
+#### 📄 `agents/arc_flash_agent.py` _21.3 KB_
 > AhmedETAP - Arc Flash Analysis Agent
 =======================================================
 Arc flash incident energy and boundary calculations per I
@@ -1081,7 +1083,7 @@ Extracts the repeated patt
 - **def** `normalize_template_var()` (line 142)
 - **def** `get_api_key_auth()` (line 171)
 
-#### 📄 `api/agent_executor.py` _37.9 KB_
+#### 📄 `api/agent_executor.py` _38.8 KB_
 > api/agent_executor.py — Secure Agent Execution Path (P4a).
 
 The narrow gateway through which an autonomous agent may turn a *tool plan*
@@ -1108,7 +1110,7 @@ into real work
   - `POST /plan`
   - `POST /execute`
 
-#### 📄 `api/agents.py` _49.0 KB_
+#### 📄 `api/agents.py` _49.3 KB_
 > Agent Information API Router
 ===========================
 Handles all AI agent information endpoints.
@@ -1704,22 +1706,22 @@ Provides:
 - **def** `get_recovery_suggestions()` (line 840)
 - **def** `setup_structured_logging()` (line 1109)
 
-#### 📄 `api/etap_draw.py` _34.6 KB_
+#### 📄 `api/etap_draw.py` _37.0 KB_
 > ETAP Draw Endpoints API Router — /api/v1/etap/draw/*
 
 Safe automatic ETAP drawing via DataHub etapAPI REST (server-side Auto-Build).
 Mirrors the SCADA
 
-- **Class** `EtapDrawProposeRequest` (line 114)
-- **Class** `EtapDrawResolveRequest` (line 118)
-- **Class** `EtapDrawFromProjectRequest` (line 598)
-- **def** `is_draw_enabled()` (line 79)
-- **async def** `propose_draw()` (line 143)
-- **async def** `list_pending_draws()` (line 236)
-- **async def** `resolve_draw()` (line 283)
-- **async def** `get_draw_status()` (line 535)
-- **def** `is_full_network_draw_enabled()` (line 573)
-- **async def** `propose_draw_from_project()` (line 834)
+- **Class** `EtapDrawProposeRequest` (line 115)
+- **Class** `EtapDrawResolveRequest` (line 119)
+- **Class** `EtapDrawFromProjectRequest` (line 660)
+- **def** `is_draw_enabled()` (line 80)
+- **async def** `propose_draw()` (line 144)
+- **async def** `list_pending_draws()` (line 237)
+- **async def** `resolve_draw()` (line 284)
+- **async def** `get_draw_status()` (line 597)
+- **def** `is_full_network_draw_enabled()` (line 635)
+- **async def** `propose_draw_from_project()` (line 896)
 
 #### 📄 `api/export.py` _49.6 KB_
 > api/export.py — Advanced Export Service (P9).
@@ -3324,7 +3326,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _92.7 KB_
+#### 📄 `services/execution_orchestrator.py` _92.4 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3341,17 +3343,17 @@ Coo
   - Methods: `execute()`
 - **Class** `AgentEngineeringExecutor` (line 435)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 593)
+- **Class** `EtapEngineeringExecutor` (line 592)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 725)
+- **Class** `ExternalServiceExecutor` (line 724)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 900)
+- **Class** `CompositeEngineeringExecutor` (line 899)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1149)
+- **Class** `ExecutionOrchestrator` (line 1148)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 2158)
+- **def** `get_execution_orchestrator()` (line 2156)
 
 #### 📄 `services/execution_request.py` _17.7 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -3423,7 +3425,7 @@ Separates real SCADA bridge communication (ETAPScadaBridge / IEC 61
 - **def** `generate_simulated_scada()` (line 36)
 - **def** `get_scada_telemetry()` (line 115)
 
-#### 📄 `services/study_executor.py` _75.8 KB_
+#### 📄 `services/study_executor.py` _76.4 KB_
 > Study Executor — native engineering executor behind Canonical Execution Orchestrator (Phase 7).
 
 Owns the native engineering execution pipeline behind
@@ -3431,11 +3433,11 @@ Owns the native engineering execution pipeline behind
 - **Class** `StudyExecutor` (line 87)
   - Methods: `execute_native()`, `execute()`
 
-#### 📄 `services/study_service.py` _19.1 KB_
+#### 📄 `services/study_service.py` _18.1 KB_
 > Study Service module for the Engineering Service.
 Handles all study execution logic, system building, and ETAP integration.
 
-- **def** `execute_study_logic()` (line 427)
+- **def** `execute_study_logic()` (line 400)
 
 #### 📄 `services/task_ownership.py` _5.2 KB_
 > services/task_ownership.py — Authoritative Async Task Ownership and Access Enforcement (P0-3).
@@ -3566,13 +3568,13 @@ Production-grade secrets management with HashiCor
   - Methods: `check_missing_secrets()`, `check_file_permissions()`, `check_for_hardcoded_secrets()`, `generate_env_template()`
 - **def** `get_secrets_manager()` (line 737)
 
-#### 📄 `security/secure_executor.py` _22.4 KB_
+#### 📄 `security/secure_executor.py` _24.3 KB_
 > Secure Python Executor
 ======================
 P0 Security Control: Validates and executes Python code in a restricted environment.
 Integrates with sec
 
-- **def** `main()` (line 606)
+- **def** `main()` (line 647)
 
 #### 📄 `security/secure_powershell_executor.py` _14.7 KB_
 > Secure PowerShell Executor
@@ -4048,7 +4050,7 @@ Adapted from the docs-guard skill (github.com/amElnagdy/guard-skil
 - **Class** `DocsGuard` (line 31)
   - Methods: `scan()`
 
-#### 📄 `guards/prompt_rule_enforcement.py` _20.0 KB_
+#### 📄 `guards/prompt_rule_enforcement.py` _21.7 KB_
 > Prompt Rule Enforcement — Code-Gated Mandatory Rules (F-03 Fix)
 ================================================================
 
@@ -4057,9 +4059,9 @@ ARCHITECTURE AUDIT F
 - **Class** `PromptRuleViolation` (line 133)
 - **Class** `PromptRuleResult` (line 145)
   - Methods: `passed()`, `must_fix_count()`, `to_guard_result()`
-- **def** `validate_agent_response()` (line 183)
-- **def** `enforce_prompt_rules()` (line 318)
-- **def** `enforce_at_api_boundary()` (line 443)
+- **def** `validate_agent_response()` (line 210)
+- **def** `enforce_prompt_rules()` (line 365)
+- **def** `enforce_at_api_boundary()` (line 490)
 
 #### 📄 `guards/test_guard.py` _27.1 KB_
 > Test Guard — Test Code Quality Gate
@@ -4588,7 +4590,7 @@ Supports:
 - **Class** `MotorModel` (line 62)
   - Methods: `full_load_current()`, `starting_current()`, `starting_current_pu()`, `locked_rotor_current_pu()`, `running_current_pu()`, `acceleration_time()`, `voltage_dip_contribution()`, `calculate_starting_voltage_drop()`
 
-#### 📄 `core_model/specs.py` _25.5 KB_
+#### 📄 `core_model/specs.py` _27.0 KB_
 > Shared Pydantic spec models for power-system studies.
 
 These are the canonical request/response schemas for study execution.
@@ -4607,10 +4609,10 @@ Both `api/studies.py` (HT
 - **Class** `LoadSpec` (line 297)
   - Methods: `validate_power_finite_and_bounded()`
 - **Class** `SystemSpec` (line 328)
-  - Methods: `validate_buses_count()`, `validate_base_mva()`, `validate_no_duplicate_loads()`
-- **Class** `StudyRequest` (line 412)
+  - Methods: `validate_buses_count()`, `validate_base_mva()`, `validate_references()`, `validate_no_duplicate_loads()`
+- **Class** `StudyRequest` (line 444)
   - Methods: `normalize_study_request_input()`, `validate_parameters_count()`, `validate_etap_project_path()`, `validate_study_type()`, `validate_study_request_parameters()`
-- **Class** `StudyResult` (line 553)
+- **Class** `StudyResult` (line 585)
   - Methods: `sync_data_and_results()`, `to_canonical_dict()`
 
 #### 📄 `core_model/system.py` _8.7 KB_
@@ -5023,7 +5025,7 @@ from ABB/COPA-DATA zenon SC
 - **Class** `ZenonSource` (line 194)
 - **Class** `ZenonNetworkExport` (line 204)
 
-#### 📄 `integrations/zenon_network_export/live_values.py` _5.3 KB_
+#### 📄 `integrations/zenon_network_export/live_values.py` _8.0 KB_
 > Zenon Live SCADA Values Integration.
 
 Enriches static Zenon network import models with real-time operational measurements
@@ -5905,9 +5907,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
 | ui-page | 61 |
 | python-module | 41 |
+| api-route | 92 |
 | ui-component | 280 |
 | **TOTAL** | **474** |
 
@@ -5937,7 +5939,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security` |
+| `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5948,7 +5950,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5979,6 +5981,7 @@ Provides
 | `test_arc_flash_agent_calculations.py` | 0 | 5 | **11** |
 | `test_arc_flash_ieee1584_deep.py` | 0 | 8 | **22** |
 | `test_arc_flash_single_engine.py` | 0 | 3 | **8** |
+| `test_arc_flash_unification_regression.py` | 0 | 1 | **6** |
 | `test_arcflash_1584_st_cases.py` | 0 | 2 | **3** |
 | `test_arcgis_edits.py` | 0 | 3 | **19** |
 | `test_arcgis_provider.py` | 0 | 9 | **38** |
@@ -6036,6 +6039,8 @@ Provides
 | `test_data_import.py` | 0 | 1 | **3** |
 | `test_data_import_parsing.py` | 0 | 8 | **20** |
 | `test_daytona_chrome_helper.py` | 0 | 1 | **5** |
+| `test_defect5_execution_gateway_regression.py` | 4 | 0 | **4** |
+| `test_defect6_sandbox_remediation.py` | 4 | 0 | **4** |
 | `test_dependencies.py` | 3 | 4 | **24** |
 | `test_design_agent_scaffold.py` | 8 | 0 | **8** |
 | `test_digital_twin_coverage.py` | 14 | 0 | **14** |
@@ -6055,7 +6060,7 @@ Provides
 | `test_etap_com_mocked.py` | 0 | 5 | **37** |
 | `test_etap_expert_proof.py` | 33 | 0 | **33** |
 | `test_etap_expert_skill.py` | 27 | 0 | **27** |
-| `test_etap_full_network_draw.py` | 0 | 5 | **17** |
+| `test_etap_full_network_draw.py` | 0 | 5 | **22** |
 | `test_etap_gui_agent.py` | 36 | 0 | **36** |
 | `test_etap_parameter_roundtrip.py` | 0 | 6 | **11** |
 | `test_etap_rest_draw.py` | 15 | 0 | **15** |
@@ -6137,6 +6142,7 @@ Provides
 | `test_phase_a_chat_enhancements.py` | 8 | 0 | **8** |
 | `test_phase_a_rag_and_schema.py` | 0 | 3 | **7** |
 | `test_physical_operating_bounds_and_hashes.py` | 5 | 0 | **5** |
+| `test_pilot_gate_enforcement.py` | 0 | 1 | **6** |
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_prod_database_failclosed.py` | 7 | 0 | **7** |
@@ -6203,6 +6209,7 @@ Provides
 | `test_study_request_contract.py` | 5 | 0 | **5** |
 | `test_study_rerun_phase_b.py` | 7 | 0 | **7** |
 | `test_study_service.py` | 5 | 0 | **5** |
+| `test_study_service_topology_rejection.py` | 0 | 1 | **6** |
 | `test_study_versions.py` | 2 | 0 | **2** |
 | `test_supabase_integration.py` | 0 | 9 | **37** |
 | `test_tcc_safety_guards.py` | 0 | 10 | **48** |
@@ -6223,7 +6230,7 @@ Provides
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
 | `test_workflow_chains.py` | 4 | 0 | **4** |
-| `test_zenon_live_values.py` | 4 | 0 | **4** |
+| `test_zenon_live_values.py` | 7 | 0 | **7** |
 | `test_zenon_network_import.py` | 0 | 3 | **14** |
 | `test_zenon_raw_dump_classifier.py` | 0 | 1 | **7** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
