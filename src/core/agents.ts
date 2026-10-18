@@ -235,6 +235,14 @@ export const AGENT_REGISTRY: Readonly<Record<string, AgentMeta>> = Object.freeze
     capabilities: ['anomaly', 'disturbance_detection', 'event_classification'],
     promptHandle: 'anomaly_agent',
   },
+  'qgis-agent': {
+    id: 'qgis-agent',
+    name: 'GIS & Geospatial Integration Agent',
+    description:
+      'Integrates power networks with ESRI ArcGIS Pro, ArcGIS Online, and QGIS.',
+    capabilities: ['gis', 'geospatial', 'arcgis', 'qgis', 'topology_mapping'],
+    promptHandle: 'qgis_agent',
+  },
 });
 
 export function getAgent(id: string): AgentMeta | undefined {

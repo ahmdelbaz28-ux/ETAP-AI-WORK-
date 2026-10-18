@@ -121,6 +121,12 @@ DEFAULT_FEATURE_FLAGS: dict[str, dict[str, Any]] = {
         "description": "SCADA integration, state estimation, and IEC 61850 data mapping - PILOT fail-closed",
         "rollout_percentage": 0,
     },
+    "etap_gui": {
+        "enabled": False,
+        "status": "pilot",
+        "description": "ETAP GUI Agent (CUA automation with kill-switch safeguards - PILOT fail-closed)",
+        "rollout_percentage": 0,
+    },
     "data_import": {
         "enabled": False,
         "status": "beta",

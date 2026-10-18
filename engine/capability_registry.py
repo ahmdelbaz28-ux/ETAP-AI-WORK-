@@ -658,6 +658,7 @@ def _populate_canonical_registry(registry: CapabilityRegistry) -> None:
             requires_system=False,
             required_params=("question",),
             agent_key="etap_gui",
+            feature_flag="etap_gui",
             benchmark_status="PENDING",
             standards_scope="ETAP Graphical Interface Computer-Use Navigation",
             validation_evidence="CUA safety kill-switch test suite",

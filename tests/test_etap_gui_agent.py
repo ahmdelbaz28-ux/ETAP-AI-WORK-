@@ -463,32 +463,40 @@ def test_chat_endpoint_returns_response(fastapi_client):
 
 def test_study_endpoint_returns_response(fastapi_client):
     """POST /api/v1/studies/run with study_type=etap_gui must return a valid response."""
-    r = fastapi_client.post(
-        "/api/v1/studies/run",
-        headers={"X-API-Key": "test-key", "Content-Type": "application/json"},
-        json={
-            "study_type": "etap_gui",
-            "parameters": {"question": "Monitor the running study"},
-            "metadata": {"pilot_opt_in": True},
-            "use_etap": False,
-        },
-    )
-    assert r.status_code == 200, f"HTTP {r.status_code}: {r.text}"
-    body = r.json()
-    assert body["success"] is True
-    assert body["data"]["format"] in ("A", "B", "C", "D", "U")
+    with patch(
+        "api.feature_flags.is_strict_feature_enabled",
+        side_effect=lambda k, *a, **kw: k == "etap_gui",
+    ):
+        r = fastapi_client.post(
+            "/api/v1/studies/run",
+            headers={"X-API-Key": "test-key", "Content-Type": "application/json"},
+            json={
+                "study_type": "etap_gui",
+                "parameters": {"question": "Monitor the running study"},
+                "metadata": {"pilot_opt_in": True},
+                "use_etap": False,
+            },
+        )
+        assert r.status_code == 200, f"HTTP {r.status_code}: {r.text}"
+        body = r.json()
+        assert body["success"] is True
+        assert body["data"]["format"] in ("A", "B", "C", "D", "U")
 
 
 def test_study_endpoint_rejects_missing_question(fastapi_client):
     """Missing 'question' must return HTTP 400 with validation error."""
-    r = fastapi_client.post(
-        "/api/v1/studies/run",
-        headers={"X-API-Key": "test-key", "Content-Type": "application/json"},
-        json={"study_type": "etap_gui", "parameters": {}, "use_etap": False},
-    )
-    assert r.status_code == 400
-    # The API wraps ValueError in a generic "Invalid study request parameters"
-    # detail (see api/studies.py line 675) to avoid leaking internal messages.
-    # The original ValueError ("'question' field is required") is logged but
-    # not returned to the client.
-    assert "invalid" in r.text.lower()
+    with patch(
+        "api.feature_flags.is_strict_feature_enabled",
+        side_effect=lambda k, *a, **kw: k == "etap_gui",
+    ):
+        r = fastapi_client.post(
+            "/api/v1/studies/run",
+            headers={"X-API-Key": "test-key", "Content-Type": "application/json"},
+            json={"study_type": "etap_gui", "parameters": {}, "use_etap": False},
+        )
+        assert r.status_code == 400
+        # The API wraps ValueError in a generic "Invalid study request parameters"
+        # detail (see api/studies.py line 675) to avoid leaking internal messages.
+        # The original ValueError ("'question' field is required") is logged but
+        # not returned to the client.
+        assert "invalid" in r.text.lower()

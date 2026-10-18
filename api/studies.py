@@ -348,6 +348,13 @@ async def run_study(
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=err_msg)
             if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg or "MAKER_CHECKER_VIOLATION" in err_msg:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=err_msg)
+            if "SCHEMA_VALIDATION_FAILED" in err_msg or "missing mandatory parameters" in err_msg.lower():
+                detail_str = (
+                    err_msg
+                    if "invalid" in err_msg.lower()
+                    else f"Invalid study request parameters: {err_msg}"
+                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail_str)
             if "MISSING_REQUIRED_SYSTEM_DATA" in err_msg or "SYSTEM_MODEL_REQUIRED" in err_msg:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=err_msg)
             detail_str = (
