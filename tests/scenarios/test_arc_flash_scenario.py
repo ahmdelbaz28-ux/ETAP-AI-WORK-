@@ -40,6 +40,7 @@ class TestArcFlashScenario:
                 arc_duration_sec=0.5,
                 working_distance_mm=610,
                 electrode_config=ElectrodeConfig.VCB,
+                arc_gap_mm=25.0,
             )
         )
         # Incident energy should be positive (cal/cm²)
@@ -56,6 +57,7 @@ class TestArcFlashScenario:
             arc_duration_sec=0.5,
             working_distance_mm=610,
             electrode_config=ElectrodeConfig.VCB,
+            arc_gap_mm=25.0,
         )
         assert boundary > 0
 
@@ -69,6 +71,7 @@ class TestArcFlashScenario:
                 arc_duration_sec=0.3,
                 working_distance_mm=910,
                 electrode_config=ElectrodeConfig.VCB,
+                arc_gap_mm=104.0,
             )
         )
         assert E_final > 0
@@ -91,6 +94,7 @@ class TestArcFlashScenario:
                     arc_duration_sec=0.2,
                     working_distance_mm=610,
                     electrode_config=config,
+                    arc_gap_mm=25.0,
                 )
             )
             assert E_final > 0
@@ -105,6 +109,7 @@ class TestArcFlashScenario:
                 arc_duration_sec=0.1,
                 working_distance_mm=610,
                 electrode_config=ElectrodeConfig.VCB,
+                arc_gap_mm=25.0,
             )
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
         _, E_long, _ = (
@@ -114,6 +119,7 @@ class TestArcFlashScenario:
                 arc_duration_sec=1.0,
                 working_distance_mm=610,
                 electrode_config=ElectrodeConfig.VCB,
+                arc_gap_mm=25.0,
             )
         )
         # Longer duration → higher energy
