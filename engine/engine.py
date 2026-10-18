@@ -503,50 +503,42 @@ class PowerSystemEngine:
         bolted_fault_current_ka: float,
         arc_duration_sec: float,
         working_distance_mm: float,
-        electrode_config: str = "VCB",
-        enclosure_type: str = "box",
-        enclosure_width_mm: float = 508.0,
-        enclosure_height_mm: float = 508.0,
-        enclosure_depth_mm: float = 508.0,
+        electrode_config: str,
+        enclosure_type: str,
+        enclosure_width_mm: float | None = None,
+        enclosure_height_mm: float | None = None,
+        enclosure_depth_mm: float | None = None,
         arc_gap_mm: float | None = None,
     ) -> dict[str, Any]:
         """
         Run arc flash analysis per IEEE 1584-2018.
-
-        Parameters
-        ----------
-        voltage_kv : float
-            System voltage in kV (0.208–15 kV; outside this range the
-            ``ArcFlashEngine`` falls back to Ralph Lee).
-        bolted_fault_current_ka : float
-            Bolted fault current in kA (0.7–106 kA per IEEE 1584-2018).
-        arc_duration_sec : float
-            Arc duration in seconds.
-        working_distance_mm : float
-            Working distance in mm.
-        electrode_config : str
-            One of "VCB", "VCBB", "HCB", "VOA", "HOA".
-        enclosure_type : str
-            "open" or "box".
-        enclosure_width_mm, enclosure_height_mm, enclosure_depth_mm : float
-            Enclosure dimensions (default 508 mm ≈ 20 in cube).
-
-        Returns
-        -------
-        dict
-            Arc flash result with keys matching the legacy ``arc_flash_calculator``
-            tool output (incident_energy_cal_per_cm2, arc_flash_boundary_mm,
-            ppe_level, …) so callers can migrate transparently.
         """
+        if electrode_config is None:
+            raise ValueError("electrode_config is required for arc flash calculation")
+        if enclosure_type is None:
+            raise ValueError("enclosure_type is required for arc flash calculation")
+        if arc_gap_mm is None:
+            raise ValueError("arc_gap_mm is required for arc flash calculation")
+
+        raw_enc = str(enclosure_type).strip().lower()
+        if raw_enc == "box":
+            for d_name, d_val in [
+                ("enclosure_width_mm", enclosure_width_mm),
+                ("enclosure_height_mm", enclosure_height_mm),
+                ("enclosure_depth_mm", enclosure_depth_mm),
+            ]:
+                if d_val is None:
+                    raise ValueError(f"{d_name} is required for box enclosure (no silent defaults)")
+
         try:
-            electrode_enum = ElectrodeConfig(electrode_config)
+            electrode_enum = ElectrodeConfig(str(electrode_config).strip().upper())
         except ValueError:
             valid_configs = [e.value for e in ElectrodeConfig]
             raise ValueError(
                 f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
             )
         try:
-            enclosure_enum = EnclosureType(enclosure_type)
+            enclosure_enum = EnclosureType(raw_enc)
         except ValueError:
             valid_types = [e.value for e in EnclosureType]
             raise ValueError(

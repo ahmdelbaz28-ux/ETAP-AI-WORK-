@@ -300,3 +300,109 @@ async def test_valid_discrete_switch_states_succeed(
     assert res.extra_elements["switches"][0]["status"] == 1
     counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
     assert counts.get("switches_updated") == 2
+
+
+@pytest.mark.asyncio
+async def test_mixed_valid_and_invalid_measurements_updates_only_valid_elements(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Payload with both valid and invalid measurements updates valid elements and reports exact counters."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_mixed = {
+        "voltages": {
+            "BUS_1": 1.045,          # Valid
+            "BUS_2": float("nan"),   # Invalid (nonfinite)
+        },
+        "loads": {
+            "LOAD_1": 22.0,          # Valid
+        },
+        "status": {
+            "BRK_1": 1,              # Valid
+            "SW_1": 0.45,            # Invalid (fractional)
+        },
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_mixed,
+    )
+
+    # Valid values applied
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.045
+    assert res.system.loads[0].load_power.real == 22.0
+    assert res.extra_elements["breakers"][0]["status"] == 1
+
+    # Invalid values rejected
+    assert res.system.buses["BUS_2"].voltage_magnitude == 1.0
+    assert res.extra_elements["switches"][0]["status"] == 0
+
+    # Status and exact counters
+    assert res.extra_elements.get("zenon_live_enrichment") == "ENRICHED"
+    counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
+    assert counts.get("voltages_updated") == 1
+    assert counts.get("loads_updated") == 1
+    assert counts.get("switches_updated") == 1
+
+
+@pytest.mark.asyncio
+async def test_unknown_tags_mixed_with_valid_tags(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Unknown tags are safely skipped and do not increment counters or corrupt model elements."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_with_unknown = {
+        "voltages": {
+            "BUS_1": 1.030,
+            "UNKNOWN_BUS_999": 1.080,
+        },
+        "loads": {
+            "UNKNOWN_LOAD_888": 50.0,
+        },
+        "status": {
+            "UNKNOWN_SW_777": 1,
+        },
+    }
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data=mock_with_unknown,
+    )
+
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.030
+    assert "UNKNOWN_BUS_999" not in res.system.buses
+    counts = res.extra_elements.get("zenon_live_telemetry_counts", {})
+    assert counts.get("voltages_updated") == 1
+    assert counts.get("loads_updated") == 0
+    assert counts.get("switches_updated") == 0
+    assert res.extra_elements.get("zenon_live_enrichment") == "ENRICHED"
+
+
+@pytest.mark.asyncio
+async def test_raw_tcp_connection_without_telemetry_produces_telemetry_unavailable(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Raw TCP socket connection succeeding without live protocol stream produces TELEMETRY_UNAVAILABLE."""
+    import asyncio
+    from unittest.mock import AsyncMock, MagicMock
+
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    mock_writer = MagicMock()
+    mock_writer.close = MagicMock()
+    mock_writer.wait_closed = AsyncMock()
+
+    async def fake_open_connection(host, port):
+        return (MagicMock(), mock_writer)
+
+    monkeypatch.setattr(asyncio, "open_connection", fake_open_connection)
+
+    res = await enrich_zenon_live_values(
+        sample_import_result,
+        endpoint="opc.tcp://10.0.0.1:4840",
+    )
+
+    assert res.extra_elements.get("zenon_live_enrichment") is None or res.extra_elements.get("zenon_live_enrichment") != "ENRICHED"
+    assert any(inc.get("status") == "TELEMETRY_UNAVAILABLE" for inc in res.incomplete)
+    assert any("TELEMETRY_UNAVAILABLE" in w or "unavailable" in w for w in res.warnings)
+    # Model remains unmodified
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.0

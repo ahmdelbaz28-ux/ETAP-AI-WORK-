@@ -129,13 +129,24 @@ def test_prompt_rule_enforcement_accepts_canonical_execution_or_run_python():
     )
     assert res_alias.passed is True
 
-    # C. Agent called run_python for advisory calculation -> MUST PASS
+    # C. Agent called run_python for advisory calculation with explicit is_advisory=True -> MUST PASS
     res_advisory = validate_agent_response(
         agent_id="load-flow-agent",
         response_text="Standard: IEEE 3002.7. Voltage drop calculation: 2.1 %",
         tool_calls_made=["run_python"],
+        is_advisory=True,
     )
     assert res_advisory.passed is True
+
+    # C2. Authoritative agent calling run_python WITHOUT explicit is_advisory=True -> MUST FAIL
+    res_unauthorized_advisory = validate_agent_response(
+        agent_id="load-flow-agent",
+        response_text="Standard: IEEE 3002.7. Voltage drop calculation: 2.1 %",
+        tool_calls_made=["run_python"],
+        is_advisory=False,
+    )
+    assert res_unauthorized_advisory.passed is False
+    assert any(v.rule_id == "F03-TOOL-canonical-execution" for v in res_unauthorized_advisory.violations)
 
     # D. Agent made NO tool call -> MUST FAIL MUST_FIX for life-safety agent
     res_no_tool = validate_agent_response(

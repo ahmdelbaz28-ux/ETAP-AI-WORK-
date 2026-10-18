@@ -89,6 +89,9 @@ class ExecutionRequest(BaseModel):
     approval_context: Optional[dict[str, Any]] = Field(
         default=None, description="Maker-checker approval record"
     )
+    approval_id: Optional[str] = Field(
+        default=None, description="Persistent approval reference ID"
+    )
     idempotency_key: str = Field(
         default_factory=lambda: uuid.uuid4().hex,
         description="Idempotency key for replay prevention",
@@ -187,18 +190,28 @@ class ExecutionRequest(BaseModel):
             "dry_run": dry_run,
         }
 
-        approval = None
-        if pe_stamp:
-            # SECURITY: A client-provided PE stamp is data/evidence, NOT maker-checker approval.
-            # Do not synthesize approved=True.
-            approval = {"pe_stamp": pe_stamp, "approved": False}
-
         req_meta = getattr(study_request, "metadata", None)
         exec_metadata = dict(req_meta or {}) if isinstance(req_meta, dict) else {}
         if metadata:
             exec_metadata.update(metadata)
         if dry_run:
             exec_metadata["dry_run"] = True
+
+        approval_id = (
+            getattr(study_request, "approval_id", None)
+            or (exec_metadata.get("approval_id") if isinstance(exec_metadata, dict) else None)
+            or (params.get("approval_id") if isinstance(params, dict) else None)
+        )
+        approval = None
+        if pe_stamp or approval_id:
+            approval = {}
+            if pe_stamp:
+                # SECURITY: A client-provided PE stamp is data/evidence, NOT maker-checker approval.
+                # Do not synthesize approved=True.
+                approval["pe_stamp"] = pe_stamp
+                approval["approved"] = False
+            if approval_id:
+                approval["approval_id"] = approval_id
 
         return cls(
             request_id=task_id,

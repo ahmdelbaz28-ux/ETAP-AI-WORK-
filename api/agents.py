@@ -20,16 +20,16 @@ import socket  # noqa: F401 — re-exported for backward compatibility in tests
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any, List
+from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api._messages import MSG_INTERNAL_ERROR
 from api.database import get_db
-from api.dependencies import get_api_key
+from api.dependencies import CurrentUser, get_api_key, get_optional_current_user_from_header
 
 logger = logging.getLogger(__name__)
 
@@ -1078,34 +1078,22 @@ class AhmedETAPOrchestrateRequest(BaseModel):
 async def ahmed_etap_orchestrate(
     request: Request,
     payload: AhmedETAPOrchestrateRequest,
-    _: str = Depends(
-        get_api_key
-    ),  # NOSONAR Annotated[T, Depends(...)] migration will be done in API refactoring sprint
+    api_key: str = Depends(get_api_key),
+    user: Optional[CurrentUser] = Depends(get_optional_current_user_from_header),
 ):
-    """Run a study through the AhmedETAP orchestration skill pipeline.
-
-    Pipeline (per skills/ahmed-etap/SKILL.md):
-        Parse → canonical StudyType
-        → load SharedContext with project + standards
-        → route to Lead Agent (run computation)
-        → MathGuard (deterministic Python recompute, 0.01 % tolerance)
-        → Peer Review (per REFERENCE.md matrix)
-        → ship | loop back (max 2 retries)
-
-    Returns the full :class:`OrchestrationResult` including:
-      - ``verdict``: approved / blocked_math_guard / blocked_peer_review / ...
-      - ``math_guard``: { passed, reason, claim_value, recomputed_value, units_ok }
-      - ``peer_review``: { passed, reviewer, notes }
-      - ``shared_context``: snapshot of the shared context (budget, tasks, errors)
-      - ``response``: the Lead Agent's result dict (only present if approved)
-      - ``iterations``: number of iterations (1 = first try, 3 = exhausted)
-      - ``elapsed_seconds``: wall-clock time
-
-    Knowledge base: skills/ahmed-etap/SKILL.md
-    Reference:      skills/ahmed-etap/REFERENCE.md
-    """
+    """Run a study through the AhmedETAP orchestration skill pipeline."""
     trace_id = getattr(request.state, "trace_id", "unknown")
     try:
+        from api.studies import _extract_trusted_identity
+
+        try:
+            user_id, tenant_id, user_role = _extract_trusted_identity(request, user, api_key)
+        except HTTPException as auth_exc:
+            return JSONResponse(
+                status_code=auth_exc.status_code,
+                content={"success": False, "error": auth_exc.detail, "trace_id": trace_id},
+            )
+
         # Resolve the canonical StudyType enum for the inner task
         from agents.ahmed_etap_orchestrator import AhmedETAPSkillAgent, canonicalize_study_type
         from agents.orchestrator import (
@@ -1131,6 +1119,22 @@ async def ahmed_etap_orchestrate(
                 },
             )
 
+        # Validate lead_agent compatibility if supplied by caller
+        if payload.lead_agent:
+            default_lead = AhmedETAPSkillAgent._default_lead_for(payload.study_type)
+            if payload.lead_agent != default_lead:
+                return JSONResponse(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    content={
+                        "success": False,
+                        "error": (
+                            f"Incompatible lead_agent '{payload.lead_agent}' for study_type '{payload.study_type}'. "
+                            f"Caller cannot mutate canonical execution agent (expected '{default_lead}')."
+                        ),
+                        "trace_id": trace_id,
+                    },
+                )
+
         # Build the workflow parameters expected by AhmedETAPSkillAgent.execute
         workflow_params: dict[str, Any] = {
             "study_type": payload.study_type,
@@ -1145,6 +1149,9 @@ async def ahmed_etap_orchestrate(
             "quantity_kind": payload.quantity_kind,
             "expected_unit": payload.expected_unit,
             "budget_tokens": payload.budget_tokens,
+            "user_id": user_id,
+            "tenant_id": tenant_id,
+            "user_role": user_role,
         }
         if payload.lead_agent:
             workflow_params["lead_agent"] = payload.lead_agent

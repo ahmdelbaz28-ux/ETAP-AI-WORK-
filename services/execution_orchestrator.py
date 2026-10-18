@@ -15,6 +15,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 import time
 import uuid
@@ -301,37 +302,140 @@ def _validate_canonical_system(system_input: Any) -> None:
         return
 
     if isinstance(system_input, DomainSystem):
-        if not isinstance(system_input.buses, dict):
+        # 1. Base quantities check
+        base_mva = getattr(system_input, "base_mva", None)
+        if base_mva is None or not math.isfinite(float(base_mva)) or float(base_mva) <= 0.0:
+            raise ValueError(f"Domain System model has invalid base_mva: {base_mva} (must be positive and finite)")
+        base_kv = getattr(system_input, "base_kv", None)
+        if base_kv is not None and (not math.isfinite(float(base_kv)) or float(base_kv) <= 0.0):
+            raise ValueError(f"Domain System model has invalid base_kv: {base_kv} (must be positive and finite)")
+
+        # 2. Buses collection check
+        buses = getattr(system_input, "buses", None)
+        if not isinstance(buses, dict):
             raise ValueError("Domain System model has invalid or non-dictionary buses collection")
-        known_bus_ids = set(system_input.buses.keys())
-        for line in getattr(system_input, "lines", []):
-            from_id = getattr(getattr(line, "from_bus", None), "bus_id", None)
-            to_id = getattr(getattr(line, "to_bus", None), "bus_id", None)
+
+        for key, bus in buses.items():
+            if bus is None:
+                raise ValueError(f"Domain System contains null bus object under key '{key}'")
+            bus_id = getattr(bus, "bus_id", None)
+            if bus_id is None:
+                raise ValueError(f"Bus under key '{key}' is missing canonical 'bus_id'")
+            if key != bus_id:
+                raise ValueError(
+                    f"Bus dictionary key '{key}' does not match canonical bus_id '{bus_id}'"
+                )
+            b_kv = getattr(bus, "base_kv", None)
+            if b_kv is not None and (not math.isfinite(float(b_kv)) or float(b_kv) <= 0.0):
+                raise ValueError(f"Bus '{bus_id}' has invalid base_kv: {b_kv} (must be positive and finite)")
+            vm = getattr(bus, "vm_pu", None)
+            if vm is not None and (not math.isfinite(float(vm)) or float(vm) < 0.0):
+                raise ValueError(f"Bus '{bus_id}' has invalid vm_pu: {vm}")
+            va = getattr(bus, "va_deg", None)
+            if va is not None and not math.isfinite(float(va)):
+                raise ValueError(f"Bus '{bus_id}' has nonfinite va_deg: {va}")
+
+        known_bus_ids = set(buses.keys())
+
+        # 3. Lines check
+        lines = getattr(system_input, "lines", [])
+        if not isinstance(lines, (list, tuple)):
+            raise ValueError("Domain System lines collection must be a list or tuple")
+        for line in lines:
+            line_id = getattr(line, "line_id", None)
+            from_bus = getattr(line, "from_bus", None)
+            to_bus = getattr(line, "to_bus", None)
+            if from_bus is None or to_bus is None:
+                raise ValueError(f"Line '{line_id}' has null bus references: from_bus={from_bus}, to_bus={to_bus}")
+            from_id = getattr(from_bus, "bus_id", None)
+            to_id = getattr(to_bus, "bus_id", None)
             if from_id not in known_bus_ids or to_id not in known_bus_ids:
                 raise ValueError(
-                    f"Line '{getattr(line, 'line_id', '')}' references unknown bus: "
-                    f"from_bus={from_id}, to_bus={to_id}"
+                    f"Line '{line_id}' references unknown bus: from_bus={from_id}, to_bus={to_id}"
                 )
-        for xf in getattr(system_input, "transformers", []):
-            from_id = getattr(getattr(xf, "from_bus", None), "bus_id", None)
-            to_id = getattr(getattr(xf, "to_bus", None), "bus_id", None)
+            for param in ("r", "x", "b", "r_pos", "x_pos", "b_pos"):
+                val = getattr(line, param, None)
+                if val is not None and not math.isfinite(float(val)):
+                    raise ValueError(f"Line '{line_id}' has nonfinite parameter {param}: {val}")
+            for param in ("z1", "z2", "z0", "yshunt1", "yshunt2", "yshunt0"):
+                val = getattr(line, param, None)
+                if val is not None:
+                    if isinstance(val, complex):
+                        if not math.isfinite(val.real) or not math.isfinite(val.imag):
+                            raise ValueError(f"Line '{line_id}' has nonfinite complex parameter {param}: {val}")
+                    elif not math.isfinite(float(val)):
+                        raise ValueError(f"Line '{line_id}' has nonfinite parameter {param}: {val}")
+
+        # 4. Transformers check
+        xfmrs = getattr(system_input, "transformers", [])
+        if not isinstance(xfmrs, (list, tuple)):
+            raise ValueError("Domain System transformers collection must be a list or tuple")
+        for xf in xfmrs:
+            xf_id = getattr(xf, "transformer_id", None)
+            from_bus = getattr(xf, "from_bus", None)
+            to_bus = getattr(xf, "to_bus", None)
+            if from_bus is None or to_bus is None:
+                raise ValueError(f"Transformer '{xf_id}' has null bus references: from_bus={from_bus}, to_bus={to_bus}")
+            from_id = getattr(from_bus, "bus_id", None)
+            to_id = getattr(to_bus, "bus_id", None)
             if from_id not in known_bus_ids or to_id not in known_bus_ids:
                 raise ValueError(
-                    f"Transformer '{getattr(xf, 'transformer_id', '')}' references unknown bus: "
-                    f"from_bus={from_id}, to_bus={to_id}"
+                    f"Transformer '{xf_id}' references unknown bus: from_bus={from_id}, to_bus={to_id}"
                 )
-        for gen in getattr(system_input, "generators", []):
-            b_id = getattr(getattr(gen, "bus", None), "bus_id", None)
+            for param in ("r", "x", "r_pos", "x_pos", "rating_mva", "s_rated"):
+                val = getattr(xf, param, None)
+                if val is not None and not math.isfinite(float(val)):
+                    raise ValueError(f"Transformer '{xf_id}' has nonfinite parameter {param}: {val}")
+            for param in ("z1", "z2", "z0", "yshunt1", "yshunt2", "yshunt0"):
+                val = getattr(xf, param, None)
+                if val is not None:
+                    if isinstance(val, complex):
+                        if not math.isfinite(val.real) or not math.isfinite(val.imag):
+                            raise ValueError(f"Transformer '{xf_id}' has nonfinite complex parameter {param}: {val}")
+                    elif not math.isfinite(float(val)):
+                        raise ValueError(f"Transformer '{xf_id}' has nonfinite parameter {param}: {val}")
+
+        # 5. Generators check
+        gens = getattr(system_input, "generators", [])
+        if not isinstance(gens, (list, tuple)):
+            raise ValueError("Domain System generators collection must be a list or tuple")
+        for gen in gens:
+            gen_id = getattr(gen, "generator_id", None)
+            bus = getattr(gen, "bus", None)
+            if bus is None:
+                raise ValueError(f"Generator '{gen_id}' has null bus reference")
+            b_id = getattr(bus, "bus_id", None)
             if b_id not in known_bus_ids:
-                raise ValueError(
-                    f"Generator '{getattr(gen, 'generator_id', '')}' references unknown bus: {b_id}"
-                )
-        for ld in getattr(system_input, "loads", []):
-            b_id = getattr(getattr(ld, "bus", None), "bus_id", None)
+                raise ValueError(f"Generator '{gen_id}' references unknown bus: {b_id}")
+            for param in ("p_mw", "q_mvar", "v_set_pu", "s_rated"):
+                val = getattr(gen, param, None)
+                if val is not None and not math.isfinite(float(val)):
+                    raise ValueError(f"Generator '{gen_id}' has nonfinite parameter {param}: {val}")
+
+        # 6. Loads check
+        loads = getattr(system_input, "loads", [])
+        if not isinstance(loads, (list, tuple)):
+            raise ValueError("Domain System loads collection must be a list or tuple")
+        for ld in loads:
+            load_id = getattr(ld, "load_id", None)
+            bus = getattr(ld, "bus", None)
+            if bus is None:
+                raise ValueError(f"Load '{load_id}' has null bus reference")
+            b_id = getattr(bus, "bus_id", None)
             if b_id not in known_bus_ids:
-                raise ValueError(
-                    f"Load '{getattr(ld, 'load_id', '')}' references unknown bus: {b_id}"
-                )
+                raise ValueError(f"Load '{load_id}' references unknown bus: {b_id}")
+            for param in ("p_mw", "q_mvar"):
+                val = getattr(ld, param, None)
+                if val is not None and not math.isfinite(float(val)):
+                    raise ValueError(f"Load '{load_id}' has nonfinite parameter {param}: {val}")
+            val = getattr(ld, "load_power", None)
+            if val is not None:
+                if isinstance(val, complex):
+                    if not math.isfinite(val.real) or not math.isfinite(val.imag):
+                        raise ValueError(f"Load '{load_id}' has nonfinite load_power: {val}")
+                elif not math.isfinite(float(val)):
+                    raise ValueError(f"Load '{load_id}' has nonfinite load_power: {val}")
+
         return
 
     # Any other object, including fake objects with a 'buses' attribute or unvalidated mocks
@@ -365,43 +469,59 @@ def _validate_and_build_system(system_input: Any, executor: Any = None) -> Any:
     raise ValueError(f"Cannot build system from type '{type(system_input).__name__}'")
 
 
-def _verify_server_approval(
+async def _verify_server_approval(
     request: ExecutionRequest, cap: CapabilityDefinition
 ) -> tuple[bool, str, str]:
     """Verify authoritative server-side approval record for maker-checker / dual-control capabilities."""
-    approval_ctx = request.approval_context
-    if not approval_ctx or not isinstance(approval_ctx, dict):
-        return (
-            False,
-            "APPROVAL_REQUIRED",
-            f"Capability '{request.capability_id}' requires approved dual-control maker-checker authorization record",
-        )
+    cached = getattr(request, "_verified_approval_status", None)
+    if cached is not None:
+        return cached
 
-    server_record = approval_ctx.get("approval_record") or approval_ctx.get("pending_action")
+    approval_ctx = request.approval_context or {}
+    approval_id = (
+        getattr(request, "approval_id", None)
+        or (approval_ctx.get("approval_id") if isinstance(approval_ctx, dict) else None)
+        or (approval_ctx.get("id") if isinstance(approval_ctx, dict) else None)
+        or (approval_ctx.get("action_id") if isinstance(approval_ctx, dict) else None)
+    )
+    if not approval_id and isinstance(approval_ctx, dict):
+        inner = approval_ctx.get("approval_record") or approval_ctx.get("pending_action")
+        if isinstance(inner, dict):
+            approval_id = inner.get("id") or inner.get("approval_id") or inner.get("action_id")
+        elif hasattr(inner, "id"):
+            approval_id = inner.id
 
-    if not server_record:
-        # Check if approval_ctx itself is structured as an authoritative server-side approval record
-        if (
-            "id" in approval_ctx
-            and "status" in approval_ctx
-            and "requested_by_user_id" in approval_ctx
-            and "decided_by_user_id" in approval_ctx
-        ):
-            server_record = approval_ctx
-        else:
+    if not approval_id or not isinstance(approval_id, str) or not approval_id.strip():
+        if not request.approval_context and not getattr(request, "approval_id", None):
             return (
                 False,
-                "UNVERIFIED_APPROVAL_ASSERTION",
-                "Client-supplied approval dictionary lacks verified server-side approval record provenance. Authoritative approval required.",
+                "APPROVAL_REQUIRED",
+                f"Capability '{request.capability_id}' requires approved dual-control maker-checker authorization record",
             )
+        return (
+            False,
+            "UNVERIFIED_APPROVAL_ASSERTION",
+            "Client-supplied approval lacks verified server-side approval record provenance. Authoritative approval ID reference required.",
+        )
+
+    from api.approvals import compute_args_hash, get_persisted_pending_action
+
+    server_record = await get_persisted_pending_action(approval_id)
+    if server_record is None:
+        return (
+            False,
+            "APPROVAL_NOT_FOUND",
+            f"Persisted approval record '{approval_id}' was not found in authoritative approval store. Execution refused.",
+        )
 
     # 1. State check
-    rec_status = (
-        getattr(server_record, "status", None)
-        or server_record.get("status")
-        if isinstance(server_record, dict)
-        else None
-    )
+    rec_status = getattr(server_record, "status", None)
+    if rec_status in ("executing", "completed", "failed"):
+        return (
+            False,
+            "APPROVAL_ALREADY_CONSUMED",
+            f"Approval record '{approval_id}' has already been consumed (status: '{rec_status}'). Replay is prohibited.",
+        )
     if rec_status != "approved":
         return (
             False,
@@ -410,13 +530,14 @@ def _verify_server_approval(
         )
 
     # 2. Requester identity check
-    req_user = (
-        getattr(server_record, "requested_by_user_id", None)
-        or server_record.get("requested_by_user_id")
-        if isinstance(server_record, dict)
-        else None
-    )
-    if req_user and req_user != request.user_id:
+    req_user = getattr(server_record, "requested_by_user_id", None)
+    if not req_user:
+        return (
+            False,
+            "APPROVAL_REQUIRED",
+            "Approval record missing authenticated requester identity (requested_by_user_id)",
+        )
+    if req_user != request.user_id:
         return (
             False,
             "REQUESTER_MISMATCH",
@@ -424,12 +545,7 @@ def _verify_server_approval(
         )
 
     # 3. Approver identity and distinctness (maker-checker)
-    decider = (
-        getattr(server_record, "decided_by_user_id", None)
-        or server_record.get("decided_by_user_id")
-        if isinstance(server_record, dict)
-        else None
-    )
+    decider = getattr(server_record, "decided_by_user_id", None)
     if not decider:
         return (
             False,
@@ -444,13 +560,14 @@ def _verify_server_approval(
         )
 
     # 4. Approver role check
-    decider_role = (
-        getattr(server_record, "decided_by_role", None)
-        or server_record.get("decided_by_role")
-        if isinstance(server_record, dict)
-        else None
-    )
-    if decider_role and decider_role not in ("admin", "lead_engineer", "checker", "supervisor"):
+    decider_role = getattr(server_record, "decided_by_role", None)
+    if not decider_role or decider_role not in (
+        "admin",
+        "lead_engineer",
+        "checker",
+        "supervisor",
+        "senior_engineer",
+    ):
         return (
             False,
             "UNAUTHORIZED_APPROVER_ROLE",
@@ -458,12 +575,13 @@ def _verify_server_approval(
         )
 
     # 5. Tenant isolation check
-    rec_tenant = (
-        getattr(server_record, "tenant_id", None)
-        or server_record.get("tenant_id")
-        if isinstance(server_record, dict)
-        else None
-    )
+    rec_tenant = getattr(server_record, "tenant_id", None)
+    if not rec_tenant or not request.tenant_id:
+        return (
+            False,
+            "CROSS_TENANT_FORBIDDEN",
+            "Tenant identity is mandatory on both approval record and execution request",
+        )
     from api.approvals import _norm_tenant
 
     if _norm_tenant(rec_tenant) != _norm_tenant(request.tenant_id):
@@ -474,55 +592,102 @@ def _verify_server_approval(
         )
 
     # 6. Expiry check
-    expires_at = (
-        getattr(server_record, "expires_at", None)
-        or server_record.get("expires_at")
-        if isinstance(server_record, dict)
-        else None
-    )
-    if expires_at:
-        from datetime import datetime, timezone
-
-        now = datetime.now(timezone.utc)
-        if isinstance(expires_at, str):
-            clean_str = expires_at.strip()
-            if clean_str.endswith("Z"):
-                clean_str = clean_str[:-1] + "+00:00"
-            try:
-                expires_at = datetime.fromisoformat(clean_str)
-            except ValueError:
-                pass
-        if getattr(expires_at, "tzinfo", None) is None and isinstance(expires_at, datetime):
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        if isinstance(expires_at, datetime) and expires_at <= now:
-            return (
-                False,
-                "APPROVAL_EXPIRED",
-                f"Approval record expired at {expires_at.isoformat()} (current time {now.isoformat()})",
-            )
+    expires_at = getattr(server_record, "expires_at", None)
+    if not expires_at:
+        return (
+            False,
+            "APPROVAL_EXPIRED",
+            "Approval record missing expiration timestamp (expires_at)",
+        )
+    now = datetime.now(timezone.utc)
+    if isinstance(expires_at, str):
+        clean_str = expires_at.strip()
+        if clean_str.endswith("Z"):
+            clean_str = clean_str[:-1] + "+00:00"
+        try:
+            expires_at = datetime.fromisoformat(clean_str)
+        except ValueError:
+            pass
+    if getattr(expires_at, "tzinfo", None) is None and isinstance(expires_at, datetime):
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if isinstance(expires_at, datetime) and expires_at <= now:
+        return (
+            False,
+            "APPROVAL_EXPIRED",
+            f"Approval record expired at {expires_at.isoformat()} (current time {now.isoformat()})",
+        )
 
     # 7. Capability / tool binding
-    rec_tool = (
-        getattr(server_record, "tool", None)
-        or server_record.get("tool")
-        if isinstance(server_record, dict)
-        else None
-    )
-    if rec_tool:
-        try:
-            from agents.ahmed_etap_orchestrator import canonicalize_study_type
-            match_tool = canonicalize_study_type(rec_tool) == canonicalize_study_type(request.capability_id)
-        except Exception:
-            match_tool = str(rec_tool).lower().strip() == str(request.capability_id).lower().strip()
+    rec_tool = getattr(server_record, "tool", None)
+    if not rec_tool:
+        return (
+            False,
+            "CAPABILITY_MISMATCH",
+            "Approval record missing approved tool/capability specification",
+        )
+    try:
+        from agents.ahmed_etap_orchestrator import canonicalize_study_type
 
-        if not match_tool:
+        match_tool = canonicalize_study_type(rec_tool) == canonicalize_study_type(
+            request.capability_id
+        )
+    except Exception:
+        match_tool = str(rec_tool).lower().strip() == str(request.capability_id).lower().strip()
+
+    if not match_tool:
+        return (
+            False,
+            "CAPABILITY_MISMATCH",
+            f"Approval was granted for tool '{rec_tool}', but request executes capability '{request.capability_id}'",
+        )
+
+    # 8. Material request payload binding
+    stored_hash = getattr(server_record, "args_hash", None)
+    stored_args = getattr(server_record, "args", None)
+    if stored_hash or stored_args is not None:
+        def _normalize_obj(val: Any) -> Any:
+            if hasattr(val, "model_dump"):
+                return _normalize_obj(val.model_dump())
+            elif hasattr(val, "dict"):
+                return _normalize_obj(val.dict())
+            elif isinstance(val, dict):
+                return {k: _normalize_obj(v) for k, v in val.items()}
+            elif isinstance(val, list):
+                return [_normalize_obj(v) for v in val]
+            return val
+
+        raw_input = request.input or {}
+        req_input = _normalize_obj(raw_input)
+        req_params = _normalize_obj(request.get_parameters() or {})
+        payload_matched = False
+        if stored_hash:
+            if compute_args_hash(req_input) == stored_hash or compute_args_hash(req_params) == stored_hash:
+                payload_matched = True
+        if not payload_matched and isinstance(stored_args, dict):
+            if stored_args in (req_input, req_params):
+                payload_matched = True
+            elif stored_args.get("parameters") == req_params:
+                payload_matched = True
+            elif stored_args.get("input") == req_input:
+                payload_matched = True
+            elif stored_args.get("system") and isinstance(req_input, dict) and req_input.get("system"):
+                if stored_args.get("system") == req_input.get("system"):
+                    payload_matched = True
+
+        if not payload_matched:
             return (
                 False,
-                "CAPABILITY_MISMATCH",
-                f"Approval was granted for tool '{rec_tool}', but request executes capability '{request.capability_id}'",
+                "PAYLOAD_MISMATCH",
+                f"Execution payload does not match approved action arguments (hash/content binding mismatch for approval '{approval_id}')",
             )
 
-    return (True, "", "")
+    res = (True, "", "")
+    try:
+        object.__setattr__(request, "_verified_approval_status", res)
+        object.__setattr__(request, "_verified_approval_record", server_record)
+    except Exception:
+        pass
+    return res
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -727,7 +892,7 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                         f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled",
                     )
                 if cap.approval_policy in ("maker_checker", "dual_control"):
-                    ok, err_code, err_msg = _verify_server_approval(request, cap)
+                    ok, err_code, err_msg = await _verify_server_approval(request, cap)
                     if not ok:
                         raise SpecializedExecutionUnavailableError(
                             request.capability_id,
@@ -1467,6 +1632,14 @@ class ExecutionOrchestrator:
         """Register an observer callback for execution lifecycle events."""
         self._event_listeners.append(listener)
 
+    async def verify_server_approval(
+        self, request: ExecutionRequest, cap: CapabilityDefinition
+    ) -> tuple[bool, str, str]:
+        """Unified mediator for maker-checker / dual-control server-side approval verification."""
+        if cap.approval_policy not in ("maker_checker", "dual_control"):
+            return True, "", ""
+        return await _verify_server_approval(request, cap)
+
     async def execute(
         self, request: ExecutionRequest, *, raise_on_error: bool = False
     ) -> CanonicalExecutionResult:
@@ -1571,7 +1744,7 @@ class ExecutionOrchestrator:
 
         # ── 5. Validate Approval Requirements ────────────────────────────────
         if cap.approval_policy in ("maker_checker", "dual_control"):
-            ok, err_code, err_msg = _verify_server_approval(request, cap)
+            ok, err_code, err_msg = await self.verify_server_approval(request, cap)
             if not ok:
                 return self._build_rejection(
                     request,
@@ -1670,7 +1843,7 @@ class ExecutionOrchestrator:
                     pilot_allowed = False
 
             if cap.approval_policy in ("maker_checker", "dual_control"):
-                ok, err_code, err_msg = _verify_server_approval(request, cap)
+                ok, err_code, err_msg = await self.verify_server_approval(request, cap)
                 if not ok:
                     pilot_allowed = False
 
@@ -1738,22 +1911,6 @@ class ExecutionOrchestrator:
                 )
 
         if system is not None:
-            try:
-                _validate_canonical_system(system)
-            except Exception as model_err:
-                logger.error(
-                    "Topology/model validation rejected before execution for %s: %s",
-                    request.capability_id,
-                    model_err,
-                )
-                return self._build_rejection(
-                    request,
-                    reason="TOPOLOGY_VALIDATION_FAILED",
-                    message=f"Model validation error: {model_err}",
-                    cap=cap,
-                    raise_on_error=raise_on_error,
-                )
-
             if cap.required_system_data:
                 missing_components = self._validate_required_system_data(
                     system, cap.required_system_data
@@ -1769,6 +1926,22 @@ class ExecutionOrchestrator:
                         cap=cap,
                         raise_on_error=raise_on_error,
                     )
+
+            try:
+                _validate_canonical_system(system)
+            except Exception as model_err:
+                logger.error(
+                    "Topology/model validation rejected before execution for %s: %s",
+                    request.capability_id,
+                    model_err,
+                )
+                return self._build_rejection(
+                    request,
+                    reason="TOPOLOGY_VALIDATION_FAILED",
+                    message=f"Model validation error: {model_err}",
+                    cap=cap,
+                    raise_on_error=raise_on_error,
+                )
 
         # ── 7b. Dry-Run Short-Circuit (Guaranteed Zero Solver Invocation) ─────
         is_dry_run = bool(

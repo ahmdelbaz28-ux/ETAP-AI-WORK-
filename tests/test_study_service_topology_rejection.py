@@ -286,3 +286,168 @@ class TestCanonicalExecutionOrchestratorTopologyRejection:
         assert res.success is False
         assert res.status in ("failed", "rejected")
         assert any("references unknown bus" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_rejects_domain_system_bus_key_mismatch(self):
+        """DomainSystem where bus dict key does not match bus_id is rejected."""
+        from core_model.bus import Bus
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=100.0, base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        sys_obj.buses = {"WRONG_KEY": b1}
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("does not match canonical bus_id" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_rejects_domain_system_nonfinite_base_mva(self):
+        """DomainSystem with nonfinite base_mva fails closed."""
+        from core_model.bus import Bus
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=float("nan"), base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        sys_obj.buses = {"B1": b1}
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert res.status in ("failed", "rejected")
+        assert any("invalid base_mva" in err for err in res.errors)
+
+    async def test_canonical_orchestrator_rejects_domain_system_dangling_transformer_and_generator(self):
+        """DomainSystem with dangling transformer or generator fails closed."""
+        from core_model.bus import Bus
+        from core_model.generator import Generator
+        from core_model.transformer import Transformer
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=100.0, base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        sys_obj.buses = {"B1": b1}
+
+        b_ghost = Bus(bus_id="B_GHOST", base_kv=33.0, bus_type="pq")
+        xf = Transformer(transformer_id="T1", from_bus=b1, to_bus=b_ghost, z1=complex(0.01, 0.08))
+        sys_obj.transformers = [xf]
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert any("Transformer 'T1' references unknown bus" in err for err in res.errors)
+
+        # Clear transformers, add dangling generator
+        sys_obj.transformers = []
+        gen = Generator(generator_id="G1", bus=b_ghost)
+        sys_obj.generators = [gen]
+
+        req2 = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res2 = await orch.execute(req2)
+        assert res2.success is False
+        assert any("Generator 'G1' references unknown bus" in err for err in res2.errors)
+
+    async def test_canonical_orchestrator_rejects_domain_system_nonfinite_parameters(self):
+        """DomainSystem with NaN or Inf in electrical parameters fails closed."""
+        from core_model.bus import Bus
+        from core_model.line import Line
+        from core_model.load import Load
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=100.0, base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        b2 = Bus(bus_id="B2", base_kv=132.0, bus_type="pq")
+        sys_obj.buses = {"B1": b1, "B2": b2}
+
+        # Line with NaN impedance
+        line = Line(line_id="L1", from_bus=b1, to_bus=b2, z1=complex(float("nan"), 0.05))
+        sys_obj.lines = [line]
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res = await orch.execute(req)
+        assert res.success is False
+        assert any("nonfinite complex parameter z1" in err for err in res.errors)
+
+        # Fix line, add load with infinite load_power
+        sys_obj.lines = [Line(line_id="L1", from_bus=b1, to_bus=b2, z1=complex(0.01, 0.05))]
+        ld = Load(load_id="LD1", bus=b2, load_power=complex(float("inf"), 5.0))
+        sys_obj.loads = [ld]
+
+        req2 = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+        res2 = await orch.execute(req2)
+        assert res2.success is False
+        assert any("nonfinite load_power" in err for err in res2.errors)
+
+    async def test_canonical_orchestrator_prevents_engine_dispatch_on_validation_failure(self):
+        """A topology validation failure aborts execution before the engine or study service is dispatched."""
+        from unittest.mock import patch
+        from core_model.bus import Bus
+        from core_model.line import Line
+        from core_model.system import System as DomainSystem
+        from services.execution_orchestrator import ExecutionOrchestrator
+        from services.execution_request import ExecutionRequest
+
+        sys_obj = DomainSystem(base_mva=100.0, base_kv=132.0)
+        b1 = Bus(bus_id="B1", base_kv=132.0, bus_type="slack")
+        sys_obj.buses = {"B1": b1}
+        b_ghost = Bus(bus_id="B_GHOST", base_kv=132.0, bus_type="pq")
+        line = Line(line_id="L1", from_bus=b1, to_bus=b_ghost, z1=complex(0.01, 0.05))
+        sys_obj.lines = [line]
+
+        orch = ExecutionOrchestrator()
+        req = ExecutionRequest(
+            capability_id="load_flow",
+            tenant_id="tenant_topo_test",
+            user_id="engineer_1",
+            input={"system": sys_obj},
+        )
+
+        from services.execution_orchestrator import NativeEngineeringExecutor
+
+        with patch.object(NativeEngineeringExecutor, "execute", autospec=True) as mock_executor:
+            res = await orch.execute(req)
+            assert res.success is False
+            assert res.status in ("failed", "rejected")
+            mock_executor.assert_not_called()

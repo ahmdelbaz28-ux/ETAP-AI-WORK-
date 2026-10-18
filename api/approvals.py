@@ -1056,6 +1056,41 @@ async def resolve_action(
     return payload
 
 
+async def get_persisted_pending_action(
+    action_id: str,
+    db: Optional[AsyncSession] = None,
+) -> Optional[PendingAction]:
+    """Retrieve an authoritative persisted PendingAction by action_id.
+
+    If db session is provided, queries within that session; otherwise opens
+    a session via async_session(). Returns None if not found or on lookup failure.
+    """
+    if not action_id or not isinstance(action_id, str):
+        return None
+    action_id = action_id.strip()
+    if not action_id:
+        return None
+
+    if db is not None:
+        result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
+        return result.scalar_one_or_none()
+
+    try:
+        from api.database import async_session
+
+        async with async_session() as session:
+            result = await session.execute(select(PendingAction).where(PendingAction.id == action_id))
+            return result.scalar_one_or_none()
+    except Exception as exc:
+        import logging
+
+        logging.getLogger("api.approvals").warning(
+            "Failed to lookup persisted pending action %s: %s", action_id, exc
+        )
+        return None
+
+
+
 @router.get("/verify", summary="Verify approval request via QR code / web link")
 async def verify_approval(
     approval_id: str = Query(..., description="Approval ID to verify"),

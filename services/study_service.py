@@ -263,36 +263,10 @@ def _run_native_study(  # NOSONAR cognitive complexity; scheduled for refactorin
             first_bus = next(iter(system.buses.values())) if isinstance(system.buses, dict) else system.buses[0]
             voltage_kv = getattr(first_bus, "base_kv", None)
 
-        missing_af = []
-        if voltage_kv is None:
-            missing_af.append("voltage_kv")
-        if "bolted_fault_current_ka" not in parameters and "fault_current_ka" not in parameters:
-            missing_af.append("bolted_fault_current_ka")
-        if "arc_duration_sec" not in parameters and "clearing_time_s" not in parameters:
-            missing_af.append("arc_duration_sec")
-        if "working_distance_mm" not in parameters:
-            missing_af.append("working_distance_mm")
-        if "arc_gap_mm" not in parameters and "conductor_gap_mm" not in parameters:
-            missing_af.append("arc_gap_mm")
+        from fault_analysis.arc_flash_engine import validate_and_extract_arc_flash_params
 
-        if missing_af:
-            raise ValueError(
-                f"Missing required arc flash parameter(s): {', '.join(missing_af)}. "
-                "Silent default parameter injection (13.8kV/20kA/0.1s/610mm) is prohibited per life safety rules (fail-closed)."
-            )
-
-        raw_res = engine.run_arc_flash(
-            voltage_kv=float(voltage_kv),
-            bolted_fault_current_ka=float(parameters.get("bolted_fault_current_ka", parameters.get("fault_current_ka"))),
-            arc_duration_sec=float(parameters.get("arc_duration_sec", parameters.get("clearing_time_s"))),
-            working_distance_mm=float(parameters["working_distance_mm"]),
-            electrode_config=str(parameters.get("electrode_config", "VCB")),
-            enclosure_type=str(parameters.get("enclosure_type", "box")),
-            enclosure_width_mm=float(parameters.get("enclosure_width_mm", 508.0)),
-            enclosure_height_mm=float(parameters.get("enclosure_height_mm", 508.0)),
-            enclosure_depth_mm=float(parameters.get("enclosure_depth_mm", 508.0)),
-            arc_gap_mm=float(parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm"))),
-        )
+        af_kwargs = validate_and_extract_arc_flash_params(parameters, voltage_kv)
+        raw_res = engine.run_arc_flash(**af_kwargs)
     elif study_type in ("protection_coordination", "coordination"):
         missing_pc = []
         if "upstream_relay_id" not in parameters:

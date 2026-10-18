@@ -398,7 +398,7 @@ async def init_db() -> None:
         app = FastAPI(lifespan=lifespan)
     """
     # Import all ORM models so Base.metadata knows about their tables.
-    # This MUST happen before create_all is called.
+    import api.approvals  # noqa: F401  - registers PendingAction model
     import api.assets  # noqa: F401  - registers Asset model
     import api.auth  # noqa: F401  - registers User model
     import api.components  # noqa: F401  - registers Component model

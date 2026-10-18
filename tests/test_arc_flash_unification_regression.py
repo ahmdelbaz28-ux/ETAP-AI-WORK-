@@ -346,3 +346,163 @@ class TestArcFlashUnification:
         assert res.status == AgentStatus.COMPLETED
         assert res.data["arc_current_ka"] > 0
         assert "incident_energy" not in res.data
+
+    def test_study_executor_missing_electrode_config_fails_closed(self):
+        """StudyExecutor._dispatch must reject arc flash without electrode_config (no silent VCB)."""
+        from services.study_executor import StudyExecutor
+        executor = StudyExecutor()
+        with pytest.raises(ValueError, match="Missing required arc flash parameter"):
+            executor._dispatch(
+                "arc_flash",
+                None,
+                {
+                    "voltage_kv": 0.48,
+                    "bolted_fault_current_ka": 25.0,
+                    "arc_duration_sec": 0.15,
+                    "working_distance_mm": 457.0,
+                    "arc_gap_mm": 25.0,
+                    "enclosure_type": "box",
+                    "enclosure_width_mm": 508.0,
+                    "enclosure_height_mm": 508.0,
+                    "enclosure_depth_mm": 508.0,
+                },
+            )
+
+    def test_study_executor_missing_box_dims_fails_closed(self):
+        """StudyExecutor._dispatch must reject box enclosure without dimensions (no silent 508mm)."""
+        from services.study_executor import StudyExecutor
+        executor = StudyExecutor()
+        with pytest.raises(ValueError, match="Missing required arc flash parameter"):
+            executor._dispatch(
+                "arc_flash",
+                None,
+                {
+                    "voltage_kv": 0.48,
+                    "bolted_fault_current_ka": 25.0,
+                    "arc_duration_sec": 0.15,
+                    "working_distance_mm": 457.0,
+                    "arc_gap_mm": 25.0,
+                    "electrode_config": "VCB",
+                    "enclosure_type": "box",
+                },
+            )
+
+    def test_study_service_missing_electrode_config_fails_closed(self):
+        """study_service._run_native_study must reject arc flash missing electrode_config."""
+        from services.study_service import _run_native_study
+        with pytest.raises(ValueError, match="Missing required arc flash parameter"):
+            _run_native_study(
+                study_type="arc_flash",
+                system=None,
+                parameters={
+                    "voltage_kv": 0.48,
+                    "bolted_fault_current_ka": 25.0,
+                    "arc_duration_sec": 0.15,
+                    "working_distance_mm": 457.0,
+                    "arc_gap_mm": 25.0,
+                    "enclosure_type": "box",
+                    "enclosure_width_mm": 508.0,
+                    "enclosure_height_mm": 508.0,
+                    "enclosure_depth_mm": 508.0,
+                },
+            )
+
+    def test_engine_nonfinite_gap_nan_inf_fails_closed(self):
+        """ArcFlashEngine.calculate_incident_energy must reject NaN, +inf, -inf conductor gap."""
+        for bad_gap in (float("nan"), float("inf"), float("-inf"), -5.0, 0.0):
+            with pytest.raises(ValueError, match="arc_gap_mm must be a positive finite number"):
+                ArcFlashEngine.calculate_incident_energy(
+                    voltage_kv=0.48,
+                    bolted_fault_current_ka=25.0,
+                    arc_duration_sec=0.15,
+                    working_distance_mm=457.0,
+                    electrode_config="VCB",
+                    enclosure_type="box",
+                    enclosure_width_mm=508.0,
+                    enclosure_height_mm=508.0,
+                    enclosure_depth_mm=508.0,
+                    arc_gap_mm=bad_gap,
+                )
+
+    def test_engine_nonfinite_duration_and_distance_fails_closed(self):
+        """ArcFlashEngine must reject nonfinite duration and working distance without clamping."""
+        with pytest.raises(ValueError, match="arc_duration_sec must be a positive finite number"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=float("nan"),
+                working_distance_mm=457.0,
+                electrode_config="VCB",
+                enclosure_type="box",
+                enclosure_width_mm=508.0,
+                enclosure_height_mm=508.0,
+                enclosure_depth_mm=508.0,
+                arc_gap_mm=25.0,
+            )
+
+        with pytest.raises(ValueError, match="working_distance_mm must be a positive finite number"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.15,
+                working_distance_mm=float("-inf"),
+                electrode_config="VCB",
+                enclosure_type="box",
+                enclosure_width_mm=508.0,
+                enclosure_height_mm=508.0,
+                enclosure_depth_mm=508.0,
+                arc_gap_mm=25.0,
+            )
+
+    def test_engine_invalid_electrode_and_enclosure_fails_closed(self):
+        """ArcFlashEngine must not silently map invalid electrode to VCB or enclosure to BOX."""
+        with pytest.raises(ValueError, match="Invalid electrode_config"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.15,
+                working_distance_mm=457.0,
+                electrode_config="NOT_A_CONFIG",
+                enclosure_type="box",
+                enclosure_width_mm=508.0,
+                enclosure_height_mm=508.0,
+                enclosure_depth_mm=508.0,
+                arc_gap_mm=25.0,
+            )
+
+        with pytest.raises(ValueError, match="Invalid enclosure_type"):
+            ArcFlashEngine.calculate_incident_energy(
+                voltage_kv=0.48,
+                bolted_fault_current_ka=25.0,
+                arc_duration_sec=0.15,
+                working_distance_mm=457.0,
+                electrode_config="VCB",
+                enclosure_type="SUBMERGED",
+                enclosure_width_mm=508.0,
+                enclosure_height_mm=508.0,
+                enclosure_depth_mm=508.0,
+                arc_gap_mm=25.0,
+            )
+
+    def test_agent_calculate_incident_energy_invalid_inputs_fail(self):
+        """ArcFlashAgent.calculate_incident_energy must reject invalid electrode or out-of-range gap."""
+        agent = ArcFlashAgent()
+        with pytest.raises(ValueError, match="Invalid electrode_config"):
+            agent.calculate_incident_energy(
+                voltage_kv=0.48,
+                arc_current_ka=20.0,
+                arc_duration_s=0.15,
+                working_distance_mm=457.0,
+                electrode_config="XYZ",
+                gap_mm=25.0,
+            )
+
+        with pytest.raises(ValueError, match="gap_mm"):
+            agent.calculate_incident_energy(
+                voltage_kv=0.48,
+                arc_current_ka=20.0,
+                arc_duration_s=0.15,
+                working_distance_mm=457.0,
+                electrode_config="VCB",
+                gap_mm=2.0,  # Below 6.35 mm minimum for LV
+            )

@@ -19,6 +19,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 import numpy as np
 
@@ -223,39 +224,26 @@ class ArcFlashEngine:
         Returns:
         tuple: (arc_current_ka, reduced_arc_current_ka)
         """
-        Ibf = bolted_fault_current_ka  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        # Normalize electrode_config to the coefficient dict key (VCB/VCBB/HCB/VOA/HOA).
-        if isinstance(electrode_config, str):
-            electrode_key = electrode_config
-        elif isinstance(electrode_config, Enum):
-            electrode_key = electrode_config.value
-        else:
-            electrode_key = str(electrode_config)
+        if voltage_kv is None or not math.isfinite(float(voltage_kv)) or float(voltage_kv) <= 0:
+            raise ValueError(f"voltage_kv must be a positive finite number, got {voltage_kv}")
+        if bolted_fault_current_ka is None or not math.isfinite(float(bolted_fault_current_ka)) or float(bolted_fault_current_ka) <= 0:
+            raise ValueError(f"bolted_fault_current_ka must be a positive finite number, got {bolted_fault_current_ka}")
 
-        # Hard fallback: avoid crashes if caller passes enclosure_type ("box"/"open")
-        # into electrode_config by mistake.
-        electrode_key = str(electrode_key).strip().upper()
+        raw_electrode = (
+            electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
+        )
+        electrode_key = str(raw_electrode).strip().upper()
         if electrode_key not in ARC_CURRENT_COEFFICIENTS:
-            # Attempt extract common electrode ids from the input string
-            s = str(electrode_config).upper()
-            if "VCBB" in s:
-                electrode_key = ElectrodeConfig.VCBB.value
-            elif "VCB" in s:
-                electrode_key = ElectrodeConfig.VCB.value
-            elif "HCB" in s:
-                electrode_key = ElectrodeConfig.HCB.value
-            elif "VOA" in s:
-                electrode_key = ElectrodeConfig.VOA.value
-            elif "HOA" in s:
-                electrode_key = ElectrodeConfig.HOA.value
-            else:
-                electrode_key = ElectrodeConfig.VCB.value
+            valid_configs = list(ARC_CURRENT_COEFFICIENTS.keys())
+            raise ValueError(
+                f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}"
+            )
 
         from fault_analysis.ieee1584_database import calculate_arcing_current_ieee1584
 
         iarc, iarc_varcf = calculate_arcing_current_ieee1584(
-            voltage_kv=voltage_kv,
-            bolted_fault_current_ka=Ibf,
+            voltage_kv=float(voltage_kv),
+            bolted_fault_current_ka=float(bolted_fault_current_ka),
             electrode_config=electrode_key,
         )
         iarc_reduced = iarc_varcf
@@ -305,57 +293,65 @@ class ArcFlashEngine:
         )
 
         # Normalize keys for coefficient lookup (case/enum-identity safe)
+        # Validate primary electrical parameters
+        if voltage_kv is None or not math.isfinite(float(voltage_kv)) or float(voltage_kv) <= 0:
+            raise ValueError(f"voltage_kv must be a positive finite number, got {voltage_kv}")
+        if bolted_fault_current_ka is None or not math.isfinite(float(bolted_fault_current_ka)) or float(bolted_fault_current_ka) <= 0:
+            raise ValueError(f"bolted_fault_current_ka must be a positive finite number, got {bolted_fault_current_ka}")
+        if arc_duration_sec is None or not math.isfinite(float(arc_duration_sec)) or float(arc_duration_sec) <= 0:
+            raise ValueError(f"arc_duration_sec must be a positive finite number, got {arc_duration_sec}")
+        if working_distance_mm is None or not math.isfinite(float(working_distance_mm)) or float(working_distance_mm) <= 0:
+            raise ValueError(f"working_distance_mm must be a positive finite number, got {working_distance_mm}")
+
+        # Normalize keys for coefficient lookup (case/enum-identity safe)
         raw_electrode = (
             electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
         )
         e = str(raw_electrode).strip().upper()
-        if "VCBB" in e:
-            electrode_key = ElectrodeConfig.VCBB.value
-        elif "HCB" in e:
-            electrode_key = ElectrodeConfig.HCB.value
-        elif "VOA" in e:
-            electrode_key = ElectrodeConfig.VOA.value
-        elif "HOA" in e:
-            electrode_key = ElectrodeConfig.HOA.value
-        else:
-            electrode_key = ElectrodeConfig.VCB.value
+        valid_electrode_configs = {cfg.value: cfg.value for cfg in ElectrodeConfig}
+        if e not in valid_electrode_configs:
+            raise ValueError(
+                f"Invalid electrode_config '{electrode_config}'. Allowed values: {list(valid_electrode_configs.keys())}"
+            )
+        electrode_key = valid_electrode_configs[e]
 
         raw_enclosure = (
             enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
         )
         enc = str(raw_enclosure).strip().upper()
-        enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc else EnclosureType.BOX.value
+        if enc in (EnclosureType.BOX.value, "BOX"):
+            enclosure_key = EnclosureType.BOX.value
+        elif enc in (EnclosureType.OPEN.value, "OPEN"):
+            enclosure_key = EnclosureType.OPEN.value
+        else:
+            raise ValueError(f"Invalid enclosure_type '{enclosure_type}'. Allowed values: ['box', 'open']")
 
         k1, k2, k3, k4, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
 
-        # SECURITY AUDIT 2026-07-25 — Fix E-02: Use IEEE Table 4 distance exponent.
-        # Previously x_power was hardcoded to 1.0 for ALL configurations.
-        # Now uses the per-config x_factor from INCIDENT_ENERGY_COEFFICIENTS
-        # (derived from IEEE 1584-2018 Table 4). Values range ~0.91-1.0.
-        # Hard-clamp to [0.5, 2.5] to prevent division-by-zero or overflow.
-
         # Calculate enclosure correction factor for box configurations
-        if enclosure_type == EnclosureType.BOX:
-            # Enclosure size correction per IEEE 1584-2018
-            # CF = 1.0 for typical enclosures; adjusted for non-standard sizes
-            v_enc = enclosure_width_mm * enclosure_height_mm * enclosure_depth_mm  # NOSONAR
-            # Reference enclosure volume: 20" x 20" x 20" = 508^3 mm^3
-            v_ref = (
-                508.0**3
-            )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        if enclosure_key == EnclosureType.BOX.value:
+            for dim_name, dim_val in [
+                ("enclosure_width_mm", enclosure_width_mm),
+                ("enclosure_height_mm", enclosure_height_mm),
+                ("enclosure_depth_mm", enclosure_depth_mm),
+            ]:
+                if dim_val is None:
+                    raise ValueError(f"{dim_name} is required for box enclosure (no silent defaults).")
+                try:
+                    d_v = float(dim_val)
+                except (TypeError, ValueError):
+                    raise ValueError(f"{dim_name} must be a valid number, got {dim_val}")
+                if not math.isfinite(d_v) or d_v <= 0:
+                    raise ValueError(f"{dim_name} must be a positive finite number, got {d_v}")
+
+            v_enc = float(enclosure_width_mm) * float(enclosure_height_mm) * float(enclosure_depth_mm)  # NOSONAR
+            v_ref = 508.0**3
             if v_enc > 0 and v_enc != v_ref:
-                # Simplified correction factor
                 CF = (v_ref / v_enc) ** 0.1 if v_enc > v_ref else 1.0
             else:
                 CF = 1.0
         else:
             CF = 1.0
-
-        # SECURITY AUDIT 2026-07-25 — Fix E-01: Full IEEE 1584-2018 formula.
-        # log10(En) = K1 + K2*log10(Iarc) + K3*log10(G) + K4*log10(Iarc)*log10(G)
-        # E = 10^(log10(En) + log10(t)) * CF / D^x
-        #
-        # Gap distance G defaults: 25mm for LV (<=1kV), 13mm for HV (>1kV) per IEEE.
 
         # Determine gap distance G
         if arc_gap_mm is None:
@@ -363,8 +359,14 @@ class ArcFlashEngine:
                 "arc_gap_mm is required (fail-closed: missing gap distance). "
                 "IEEE 1584-2018 requires an explicit conductor gap."
             )
-        G = float(arc_gap_mm)
-        if voltage_kv <= 1.0:
+        try:
+            G = float(arc_gap_mm)
+        except (TypeError, ValueError):
+            raise ValueError(f"arc_gap_mm must be a valid number, got {arc_gap_mm}")
+        if not math.isfinite(G) or G <= 0:
+            raise ValueError(f"arc_gap_mm must be a positive finite number, got {G}")
+
+        if float(voltage_kv) <= 1.0:
             if G < 6.35 or G > 76.2:
                 raise ValueError(
                     f"arc_gap_mm={G} mm is outside IEEE 1584-2018 valid range [6.35, 76.2] mm "
@@ -378,20 +380,11 @@ class ArcFlashEngine:
                 )
 
         log10_g = np.log10(G)
-        t = max(0.01, float(arc_duration_sec))  # prevent log10(0)
+        t = float(arc_duration_sec)
         log10_t = np.log10(t / 0.2)  # Normalized to 0.2s (200 ms) IEEE reference duration
 
-        # Extra hardening against parameter mixups:
-        if isinstance(working_distance_mm, Enum):
-            if not isinstance(enclosure_width_mm, Enum) and isinstance(
-                enclosure_width_mm,
-                (int, float, np.floating, np.integer),
-            ):
-                working_distance_mm = enclosure_width_mm
-            else:
-                working_distance_mm = 1.0
         x_power = max(0.5, min(2.5, float(x_factor)))
-        D = max(1.0, float(working_distance_mm))
+        D = float(working_distance_mm)
 
         # Full IEEE 1584-2018 equation
         log_e = (
@@ -438,50 +431,31 @@ class ArcFlashEngine:
         it stays consistent with calculate_incident_energy().
         The boundary is the distance where incident energy equals 1.2 cal/cm^2.
         """
-        # Hardening against parameter mixups:
-        # validation/debug can accidentally route an Enum into working_distance_mm.
-        if isinstance(working_distance_mm, Enum):
-            if not isinstance(enclosure_width_mm, Enum) and isinstance(
-                enclosure_width_mm,
-                (int, float, np.floating, np.integer),
-            ):
-                working_distance_mm = enclosure_width_mm
-            else:
-                working_distance_mm = 1.0
+        if working_distance_mm is None or not math.isfinite(float(working_distance_mm)) or float(working_distance_mm) <= 0:
+            raise ValueError(f"working_distance_mm must be a positive finite number, got {working_distance_mm}")
 
         # Incident energy exponent x (normalize to string keys)
-        electrode_key = (
+        raw_electrode = (
             electrode_config.value if isinstance(electrode_config, Enum) else str(electrode_config)
         )
-
-        electrode_key = str(electrode_key).strip().upper()
-
-        # Normalize electrode_key
+        electrode_key = str(raw_electrode).strip().upper()
         if electrode_key not in INCIDENT_ENERGY_COEFFICIENTS:
-            s = str(electrode_config).upper()
-            if "VCBB" in s:
-                electrode_key = ElectrodeConfig.VCBB.value
-            elif "VCB" in s:
-                electrode_key = ElectrodeConfig.VCB.value
-            elif "HCB" in s:
-                electrode_key = ElectrodeConfig.HCB.value
-            elif "VOA" in s:
-                electrode_key = ElectrodeConfig.VOA.value
-            elif "HOA" in s:
-                electrode_key = ElectrodeConfig.HOA.value
-            else:
-                electrode_key = ElectrodeConfig.VCB.value
+            valid_configs = list(INCIDENT_ENERGY_COEFFICIENTS.keys())
+            raise ValueError(f"Invalid electrode_config '{electrode_config}'. Allowed values: {valid_configs}")
 
-        # Normalize enclosure_key for the dict lookup below (default to BOX).
-        enc_up = str(enclosure_type).strip().upper()
-        enclosure_key = EnclosureType.OPEN.value if "OPEN" in enc_up else EnclosureType.BOX.value
+        enc_up = (
+            enclosure_type.value if isinstance(enclosure_type, Enum) else str(enclosure_type)
+        ).strip().upper()
+        if enc_up in (EnclosureType.BOX.value, "BOX"):
+            enclosure_key = EnclosureType.BOX.value
+        elif enc_up in (EnclosureType.OPEN.value, "OPEN"):
+            enclosure_key = EnclosureType.OPEN.value
+        else:
+            raise ValueError(f"Invalid enclosure_type '{enclosure_type}'. Allowed values: ['box', 'open']")
 
         # Use numeric x exponent (IEEE 1584-2018 coefficients expected to be numeric)
         _, _, _, _, x_factor = INCIDENT_ENERGY_COEFFICIENTS[electrode_key][enclosure_key]
-        if isinstance(x_factor, (int, float, np.floating, np.integer)):
-            x_factor_num = float(x_factor)
-        else:
-            x_factor_num = 1.0
+        x_factor_num = float(x_factor)
 
         # Compute incident energy at the given working distance
         (
@@ -699,3 +673,109 @@ class ArcFlashEngine:
             arc_duration_sec=arc_duration_sec,
             working_distance_mm=working_distance_mm,
         )
+
+
+def validate_and_extract_arc_flash_params(
+    parameters: dict[str, Any],
+    voltage_kv: float | None = None,
+) -> dict[str, Any]:
+    """Canonical IEEE 1584 arc flash parameter extraction and validation.
+
+    Validates that all life-safety parameters are present and finite without
+    any silent default injection or clamps. Returns normalized parameters dict:
+    - voltage_kv: float
+    - bolted_fault_current_ka: float
+    - arc_duration_sec: float
+    - working_distance_mm: float
+    - arc_gap_mm: float
+    - electrode_config: str
+    - enclosure_type: str
+    - enclosure_width_mm: float | None
+    - enclosure_height_mm: float | None
+    - enclosure_depth_mm: float | None
+    """
+    missing_af: list[str] = []
+
+    # 1. Voltage
+    v_raw = voltage_kv if voltage_kv is not None else parameters.get("voltage_kv", parameters.get("base_kv"))
+    if v_raw is None:
+        missing_af.append("voltage_kv")
+
+    # 2. Fault current
+    if "bolted_fault_current_ka" not in parameters and "fault_current_ka" not in parameters:
+        missing_af.append("bolted_fault_current_ka")
+
+    # 3. Arc duration / clearing time
+    if "arc_duration_sec" not in parameters and "clearing_time_s" not in parameters:
+        missing_af.append("arc_duration_sec")
+
+    # 4. Working distance
+    if "working_distance_mm" not in parameters:
+        missing_af.append("working_distance_mm")
+
+    # 5. Gap
+    if "arc_gap_mm" not in parameters and "conductor_gap_mm" not in parameters and "gap_mm" not in parameters:
+        missing_af.append("arc_gap_mm")
+
+    # 6. Electrode config
+    if "electrode_config" not in parameters:
+        missing_af.append("electrode_config")
+
+    # 7. Enclosure type
+    if "enclosure_type" not in parameters:
+        missing_af.append("enclosure_type")
+
+    raw_enc = str(parameters.get("enclosure_type", "")).strip().lower()
+    if raw_enc == "box":
+        for dim in ("enclosure_width_mm", "enclosure_height_mm", "enclosure_depth_mm"):
+            if dim not in parameters:
+                missing_af.append(dim)
+
+    if missing_af:
+        raise ValueError(
+            f"Missing required arc flash parameter(s): {', '.join(missing_af)}. "
+            "Silent default parameter injection (VCB/box/508mm/etc) is prohibited per life safety rules (fail-closed)."
+        )
+
+    bf_ka = float(parameters.get("bolted_fault_current_ka", parameters.get("fault_current_ka")))
+    arc_dur = float(parameters.get("arc_duration_sec", parameters.get("clearing_time_s")))
+    w_dist = float(parameters["working_distance_mm"])
+    gap = float(parameters.get("arc_gap_mm", parameters.get("conductor_gap_mm", parameters.get("gap_mm"))))
+    v_val = float(v_raw)
+
+    for name, val in [
+        ("voltage_kv", v_val),
+        ("bolted_fault_current_ka", bf_ka),
+        ("arc_duration_sec", arc_dur),
+        ("working_distance_mm", w_dist),
+        ("arc_gap_mm", gap),
+    ]:
+        if not math.isfinite(val) or val <= 0:
+            raise ValueError(f"Arc flash parameter '{name}' must be finite and > 0, got {val}")
+
+    enc_w = float(parameters["enclosure_width_mm"]) if raw_enc == "box" else None
+    enc_h = float(parameters["enclosure_height_mm"]) if raw_enc == "box" else None
+    enc_d = float(parameters["enclosure_depth_mm"]) if raw_enc == "box" else None
+
+    if raw_enc == "box":
+        for dim_name, dim_val in [
+            ("enclosure_width_mm", enc_w),
+            ("enclosure_height_mm", enc_h),
+            ("enclosure_depth_mm", enc_d),
+        ]:
+            if dim_val is None or not math.isfinite(dim_val) or dim_val <= 0:
+                raise ValueError(f"Enclosure dimension '{dim_name}' must be finite and > 0, got {dim_val}")
+
+    return {
+        "voltage_kv": v_val,
+        "bolted_fault_current_ka": bf_ka,
+        "arc_duration_sec": arc_dur,
+        "working_distance_mm": w_dist,
+        "arc_gap_mm": gap,
+        "electrode_config": str(parameters["electrode_config"]),
+        "enclosure_type": str(parameters["enclosure_type"]),
+        "enclosure_width_mm": enc_w,
+        "enclosure_height_mm": enc_h,
+        "enclosure_depth_mm": enc_d,
+    }
+
