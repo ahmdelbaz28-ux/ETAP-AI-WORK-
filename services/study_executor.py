@@ -587,8 +587,14 @@ class StudyExecutor:
     @staticmethod
     def _add_spec_lines(system: System, lines: list[Any], bus_map: dict[int, Bus]) -> None:
         for l in lines:
-            if l.from_bus_id not in bus_map or l.to_bus_id not in bus_map:
-                raise ValueError(f"Line {l.line_id} references unknown bus")
+            if l.from_bus_id not in bus_map:
+                raise ValueError(
+                    f"Line {l.line_id} references unknown bus {l.from_bus_id} (from_bus_id)"
+                )
+            if l.to_bus_id not in bus_map:
+                raise ValueError(
+                    f"Line {l.line_id} references unknown bus {l.to_bus_id} (to_bus_id)"
+                )
             line = Line(
                 line_id=l.line_id,
                 from_bus=bus_map[l.from_bus_id],
@@ -605,8 +611,14 @@ class StudyExecutor:
         system: System, transformers: list[Any], bus_map: dict[int, Bus]
     ) -> None:
         for t in transformers:
-            if t.from_bus_id not in bus_map or t.to_bus_id not in bus_map:
-                raise ValueError(f"Transformer {t.transformer_id} references unknown bus")
+            if t.from_bus_id not in bus_map:
+                raise ValueError(
+                    f"Transformer {t.transformer_id} references unknown bus {t.from_bus_id} (from_bus_id)"
+                )
+            if t.to_bus_id not in bus_map:
+                raise ValueError(
+                    f"Transformer {t.transformer_id} references unknown bus {t.to_bus_id} (to_bus_id)"
+                )
             xf = Transformer(
                 transformer_id=t.transformer_id,
                 from_bus=bus_map[t.from_bus_id],
@@ -623,7 +635,7 @@ class StudyExecutor:
     ) -> None:
         for g in generators:
             if g.bus_id not in bus_map:
-                raise ValueError(f"Generator {g.generator_id} references unknown bus")
+                raise ValueError(f"Generator {g.generator_id} references unknown bus {g.bus_id}")
             r1, x1 = g.r1, g.x1
             r2 = g.r2 if g.r2 is not None else r1
             x2 = g.x2 if g.x2 is not None else x1
@@ -651,7 +663,7 @@ class StudyExecutor:
     ) -> None:
         for ld in loads:
             if ld.bus_id not in bus_map:
-                raise ValueError(f"Load {ld.load_id} references unknown bus")
+                raise ValueError(f"Load {ld.load_id} references unknown bus {ld.bus_id}")
             target_bus = bus_map[ld.bus_id]
             if target_bus.load_power != complex(0, 0):
                 raise ValueError(
@@ -675,6 +687,8 @@ class StudyExecutor:
             if norm_err is not None:
                 raise ValueError(norm_err["error"])
             spec = SystemSpec.model_validate(spec)
+        if hasattr(spec, "validate_references"):
+            spec.validate_references()
         system = System(base_mva=spec.base_mva)
         bus_map = self._add_spec_buses(system, spec.buses)
         self._add_spec_lines(system, spec.lines, bus_map)

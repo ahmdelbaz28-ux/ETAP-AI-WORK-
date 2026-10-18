@@ -480,21 +480,20 @@ class AgentEngineeringExecutor(IEngineeringExecutor):
                     request.capability_id,
                     f"Capability '{request.capability_id}' is {cap_status.upper()} in capability registry",
                 )
-            if cap_status == "pilot" and cap.feature_flag:
-                pilot_opt_in = bool(
-                    (request.metadata or {}).get("pilot_opt_in")
-                    or (request.metadata or {}).get("allow_pilot")
-                    or (isinstance(request.input, dict) and request.input.get("pilot_opt_in"))
-                    or str(request.execution_policy or "").lower() in ("pilot", "experimental", "allow_pilot")
-                    or str(request.provider_policy or "").lower() in ("pilot", "experimental")
-                )
-                if not pilot_opt_in:
-                    from api.feature_flags import is_strict_feature_enabled
+            if cap_status == "pilot":
+                from api.feature_flags import is_strict_feature_enabled
 
-                    if not is_strict_feature_enabled(cap.feature_flag):
+                if cap.feature_flag and not is_strict_feature_enabled(cap.feature_flag):
+                    raise SpecializedExecutionUnavailableError(
+                        request.capability_id,
+                        f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled",
+                    )
+                if cap.approval_policy in ("maker_checker", "dual_control"):
+                    approval = request.approval_context or {}
+                    if not approval.get("approved"):
                         raise SpecializedExecutionUnavailableError(
                             request.capability_id,
-                            f"Capability '{request.capability_id}' is in PILOT status and its feature flag '{cap.feature_flag}' is disabled",
+                            f"Capability '{request.capability_id}' is in PILOT status and requires server-side approval",
                         )
 
         params = request.get_parameters()
@@ -1417,27 +1416,26 @@ class ExecutionOrchestrator:
             )
 
         if status_str == "pilot":
-            # PILOT: reject by default; allow only via explicit server-side pilot policy and is_strict_feature_enabled(cap.feature_flag)
-            pilot_allowed = False
-            if (
-                bool((request.metadata or {}).get("pilot_opt_in"))
-                or bool((request.metadata or {}).get("allow_pilot"))
-                or bool((request.input or {}).get("pilot_opt_in") if isinstance(request.input, dict) else False)
-                or str(request.execution_policy or "").lower() in ("pilot", "experimental", "allow_pilot")
-                or str(request.provider_policy or "").lower() in ("pilot", "experimental")
-            ):
-                pilot_allowed = True
-            elif cap.feature_flag:
+            # PILOT: reject by default; allow only via authoritative server-side policy:
+            # 1. Feature Flag gate (must be strictly enabled on server; client cannot bypass)
+            # 2. Dual-control approval gate (must have verified server approval context)
+            pilot_allowed = True
+            if cap.feature_flag:
                 try:
                     from api.feature_flags import is_strict_feature_enabled
 
-                    pilot_allowed = is_strict_feature_enabled(cap.feature_flag)
+                    if not is_strict_feature_enabled(cap.feature_flag):
+                        pilot_allowed = False
                 except Exception:
                     pilot_allowed = False
-            elif cap.approval_policy in ("maker_checker", "dual_control"):
+
+            if cap.approval_policy in ("maker_checker", "dual_control"):
                 approval = request.approval_context or {}
-                if approval.get("approved"):
-                    pilot_allowed = True
+                if not approval.get("approved"):
+                    pilot_allowed = False
+
+            if not cap.feature_flag and cap.approval_policy not in ("maker_checker", "dual_control"):
+                pilot_allowed = False
 
             if not pilot_allowed:
                 exc = SpecializedExecutionUnavailableError(

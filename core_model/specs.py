@@ -359,6 +359,38 @@ class SystemSpec(_BaseSpecModel):
             raise ValueError(f"base_mva is unreasonably large ({v}), max is 10000")
         return v
 
+    def validate_references(self) -> None:
+        """Reject system if any line, transformer, generator, or load references a nonexistent bus."""
+        known_bus_ids = {b.bus_id for b in self.buses}
+        for l in self.lines:
+            if l.from_bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Line {l.line_id} references unknown bus {l.from_bus_id} (from_bus_id)"
+                )
+            if l.to_bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Line {l.line_id} references unknown bus {l.to_bus_id} (to_bus_id)"
+                )
+        for t in self.transformers:
+            if t.from_bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Transformer {t.transformer_id} references unknown bus {t.from_bus_id} (from_bus_id)"
+                )
+            if t.to_bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Transformer {t.transformer_id} references unknown bus {t.to_bus_id} (to_bus_id)"
+                )
+        for g in self.generators:
+            if g.bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Generator {g.generator_id} references unknown bus {g.bus_id}"
+                )
+        for ld in self.loads:
+            if ld.bus_id not in known_bus_ids:
+                raise ValueError(
+                    f"Load {ld.load_id} references unknown bus {ld.bus_id}"
+                )
+
     @model_validator(mode="after")
     def validate_no_duplicate_loads(self) -> SystemSpec:
         """Reject if load is specified both on bus fields and in loads list for the same bus."""

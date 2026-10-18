@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 UTC = timezone.utc  # noqa: UP017
 from typing import Any, List
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -1122,7 +1122,14 @@ async def ahmed_etap_orchestrate(
         try:
             st_enum = _ST(canonical)
         except ValueError:
-            st_enum = _ST.LOAD_FLOW
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={
+                    "success": False,
+                    "error": f"Unknown or unsupported study_type: '{payload.study_type}'",
+                    "trace_id": trace_id,
+                },
+            )
 
         # Build the workflow parameters expected by AhmedETAPSkillAgent.execute
         workflow_params: dict[str, Any] = {

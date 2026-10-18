@@ -103,3 +103,76 @@ async def test_live_data_enrichment_updates_elements(
     assert res.system.loads[0].load_power.imag == 5.0
     assert res.extra_elements["breakers"][0]["status"] == 1
     assert res.extra_elements["switches"][0]["status"] == 1
+
+
+@pytest.mark.asyncio
+async def test_tcp_connection_without_telemetry_reports_telemetry_unavailable(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Raw TCP socket connection must NOT claim successful telemetry enrichment."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    from unittest.mock import AsyncMock, patch
+
+    mock_writer = AsyncMock()
+    mock_writer.close = AsyncMock()
+    mock_writer.wait_closed = AsyncMock()
+    mock_reader = AsyncMock()
+
+    with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
+        res = await enrich_zenon_live_values(
+            sample_import_result, endpoint="opc.tcp://127.0.0.1:4840/zenon/gateway"
+        )
+
+    # Must report TELEMETRY_UNAVAILABLE rather than silently claiming success
+    assert any("TELEMETRY_UNAVAILABLE" in inc.get("status", "") for inc in res.incomplete)
+    assert any("live telemetry data reading is unavailable" in w for w in res.warnings)
+    # Voltage should NOT be mutated on raw TCP connect
+    assert res.system.buses["BUS_1"].voltage_magnitude == 1.0
+
+
+@pytest.mark.asyncio
+async def test_empty_live_data_payload_reports_empty_telemetry(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Empty or missing variables in live_data must NOT silently succeed."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    # 1. Empty dict
+    res_empty = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data={},
+    )
+    assert any("EMPTY_TELEMETRY" in inc.get("status", "") for inc in res_empty.incomplete)
+    assert any("empty" in w for w in res_empty.warnings)
+
+    # 2. Dict with no readings
+    res_no_vars = await enrich_zenon_live_values(
+        sample_import_result,
+        live_data={"voltages": {}, "loads": {}, "status": {}},
+    )
+    assert any("EMPTY_TELEMETRY" in inc.get("status", "") for inc in res_no_vars.incomplete)
+
+
+@pytest.mark.asyncio
+async def test_distinct_statuses_for_connection_fail_vs_no_telemetry_vs_empty(
+    sample_import_result: ZenonImportResult, monkeypatch: pytest.MonkeyPatch
+):
+    """Failure states must be distinct: BLOCKED (connect fail) vs TELEMETRY_UNAVAILABLE vs EMPTY_TELEMETRY."""
+    monkeypatch.setenv("FEATURE_FLAG_ZENON_LIVE_VALUES", "true")
+
+    # A. Connection failure
+    res_conn_fail = await enrich_zenon_live_values(
+        sample_import_result, endpoint="opc.tcp://127.0.0.1:59998/zenon/gateway"
+    )
+    statuses_a = [inc.get("status") for inc in res_conn_fail.incomplete]
+    assert "BLOCKED" in statuses_a
+
+    # B. Empty data
+    res_empty = await enrich_zenon_live_values(
+        sample_import_result, live_data={}
+    )
+    statuses_b = [inc.get("status") for inc in res_empty.incomplete]
+    assert "EMPTY_TELEMETRY" in statuses_b
+
+    assert statuses_a != statuses_b

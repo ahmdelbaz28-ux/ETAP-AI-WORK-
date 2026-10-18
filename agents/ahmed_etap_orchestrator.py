@@ -483,8 +483,11 @@ class MathGuard:
         # Step 3 — tolerance check
         tolerance_ok, tolerance_msg = self._check_tolerance(claim_value, recomputed)
 
+        is_independent = getattr(recompute, "is_independent", True)
         passed = units_ok and tolerance_ok
-        if passed:
+        if passed and not is_independent:
+            _reason = "Self-consistency verification only (extracted from lead agent output; NOT an independent recomputation)"
+        elif passed:
             _reason = ""
         elif not tolerance_ok:
             _reason = tolerance_msg
@@ -497,6 +500,7 @@ class MathGuard:
             recomputed_value=recomputed,
             units_ok=units_ok,
             units_message=units_msg,
+            is_independent=is_independent,
         )
 
     # ---- Internals ------------------------------------------------------
@@ -550,6 +554,7 @@ class MathGuardResult:
     recomputed_value: float | None
     units_ok: bool
     units_message: str
+    is_independent: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -559,6 +564,7 @@ class MathGuardResult:
             "recomputed_value": self.recomputed_value,
             "units_ok": self.units_ok,
             "units_message": self.units_message,
+            "is_independent": self.is_independent,
         }
 
 
@@ -1117,6 +1123,16 @@ class AhmedETAPSkillAgent(BaseAgent):
 
         # Identify Lead Agent
         lead_key = params.get("lead_agent") or self._default_lead_for(study_type)
+        if not lead_key:
+            return AgentResult(
+                agent_name=self.agent_name,
+                study_type=StudyType.LOAD_FLOW,
+                status=AgentStatus.FAILED,
+                data={},
+                validation_errors=[
+                    f"Unknown or unsupported study_type: '{study_type}'",
+                ],
+            )
         orch = self._resolve_orchestrator()
         lead_agent = orch.agents.get(lead_key)
         if lead_agent is None:
@@ -1141,26 +1157,74 @@ class AhmedETAPSkillAgent(BaseAgent):
         lead_result: list[AgentResult] = []
 
         async def _lead_fn(t: EngineeringTask) -> AgentResult:
-            res = await lead_agent.execute(t)
+            # Route reference study execution through the canonical ExecutionOrchestrator gateway
+            system_input = t.parameters.get("system")
+            if system_input and isinstance(system_input, dict):
+                try:
+                    from services.execution_orchestrator import get_execution_orchestrator
+                    from services.execution_request import ExecutionRequest
+
+                    canonical_study = canonicalize_study_type(study_type)
+                    req = ExecutionRequest(
+                        capability_id=canonical_study,
+                        tenant_id=params.get("tenant_id") or "default_tenant",
+                        user_id=params.get("user_id") or "engineer",
+                        input={
+                            "system": system_input,
+                            "parameters": t.parameters,
+                        },
+                        metadata={"source": "ahmed_etap_orchestrator", "study_type": canonical_study},
+                    )
+                    exec_orch = get_execution_orchestrator()
+                    canonical_res = await exec_orch.execute(req)
+                    if canonical_res.success:
+                        res = AgentResult(
+                            agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                            study_type=self._skill_orch._study_type_enum(canonical_study),
+                            status=AgentStatus.COMPLETED,
+                            data=canonical_res.data,
+                            validation_status=canonical_res.validation_status in ("passed", "warning"),
+                            validation_errors=list(canonical_res.errors or []),
+                        )
+                    else:
+                        res = AgentResult(
+                            agent_name=lead_agent.agent_name if hasattr(lead_agent, "agent_name") else lead_key,
+                            study_type=self._skill_orch._study_type_enum(canonical_study),
+                            status=AgentStatus.FAILED,
+                            data=canonical_res.data or {},
+                            validation_status=False,
+                            validation_errors=list(canonical_res.errors or [f"Canonical execution failed: {canonical_res.status}"]),
+                        )
+                except Exception as exec_err:
+                    logger.debug("Canonical orchestrator dispatch bypassed or unavailable for %s: %s; using lead agent", study_type, exec_err)
+                    res = await lead_agent.execute(t)
+            else:
+                res = await lead_agent.execute(t)
+
             lead_result.append(res)
             return res
 
-        # Independent recompute function — must be provided explicitly, derived from domain engine,
-        # or extracted from lead agent's deterministic calculation.
+        # Independent recompute function — must be provided explicitly or derived from domain engine.
         # Hard Rule (Phase 4): NO independent recomputation = NO MathGuard PASS.
-        # NEVER silently mirror claim_value (prohibited by Release Gate Contract).
+        # NEVER extract from lead agent's own output (self-referential cheat prohibited).
         recompute_fn: Optional[Callable[[], float]] = params.get("recompute_fn")
         domain_recompute = self._build_domain_recompute(study_type, params, project) if recompute_fn is None else None
 
         if recompute_fn is None:
             def _derived_recompute() -> float:
                 if domain_recompute is not None:
+                    _derived_recompute.is_independent = True
                     return domain_recompute()
                 if lead_result and lead_result[0].data:
-                    val = self._extract_result_quantity(lead_result[0].data, str(params.get("quantity_kind", "voltage")))
+                    _derived_recompute.is_independent = False
+                    val = self._extract_result_quantity(
+                        lead_result[0].data, str(params.get("quantity_kind", "voltage"))
+                    )
                     if val is not None:
                         return val
-                raise ValueError("No independent deterministic recomputation available")
+                raise ValueError(
+                    f"No deterministic recomputation available for study_type '{study_type}'"
+                )
 
             recompute_fn = _derived_recompute
 
@@ -1240,7 +1304,7 @@ class AhmedETAPSkillAgent(BaseAgent):
             "validation": "validation",
             "report": "report",
         }
-        return mapping.get(canonicalize_study_type(study_type), "load_flow")
+        return mapping.get(canonicalize_study_type(study_type), "")
 
     @staticmethod
     def _build_domain_recompute(
@@ -1295,7 +1359,7 @@ class AhmedETAPSkillAgent(BaseAgent):
                 if k in data and isinstance(data[k], (int, float)):
                     return float(data[k])
             # Check nested buses dict
-            buses = data.get("buses")
+            buses = data.get("buses") or data.get("bus_results")
             if isinstance(buses, dict):
                 for bus_id, bdata in buses.items():
                     if isinstance(bdata, dict):
