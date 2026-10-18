@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T10:07:31.887160+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-18T11:23:37.641434+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -15,7 +15,7 @@
 | Python | Functions | 877 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 302 |
-| Total | Tests | 4147 |
+| Total | Tests | 4165 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 459 |
@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -596,7 +596,7 @@ Total: **459** variables
 
 #### 📄 `agents/__init__.py` _4.7 KB_
 
-#### 📄 `agents/ahmed_etap_orchestrator.py` _58.4 KB_
+#### 📄 `agents/ahmed_etap_orchestrator.py` _59.4 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
 ======================================================================
 
@@ -611,22 +611,22 @@ Runtim
   - Methods: `remaining()`, `fraction_spent()`, `compression_count()`, `record_spend()`, `estimate_and_record()`, `record_compression()`, `to_dict()`
 - **Class** `MathGuard` (line 408)
   - Methods: `validate()`
-- **Class** `MathGuardResult` (line 548)
+- **Class** `MathGuardResult` (line 566)
   - Methods: `to_dict()`
-- **Class** `PeerReview` (line 594)
+- **Class** `PeerReview` (line 612)
   - Methods: `reviewer_for()`, `review()`
-- **Class** `PeerReviewResult` (line 736)
+- **Class** `PeerReviewResult` (line 754)
   - Methods: `to_dict()`
-- **Class** `OrchestrationVerdict` (line 756)
-- **Class** `OrchestrationResult` (line 767)
+- **Class** `OrchestrationVerdict` (line 774)
+- **Class** `OrchestrationResult` (line 785)
   - Methods: `to_dict()`
-- **Class** `AhmedETAPOrchestrator` (line 796)
+- **Class** `AhmedETAPOrchestrator` (line 814)
   - Methods: `run_study()`
-- **Class** `AhmedETAPSkillAgent` (line 1061)
+- **Class** `AhmedETAPSkillAgent` (line 1079)
   - Methods: `execute()`, `get_agent_info()`
 - **def** `canonicalize_study_type()` (line 85)
-- **def** `load_skill_text()` (line 1465)
-- **def** `load_reference_text()` (line 1478)
+- **def** `load_skill_text()` (line 1493)
+- **def** `load_reference_text()` (line 1506)
 
 #### 📄 `agents/anomaly_agent.py` _27.7 KB_
 > AhmedETAP - Anomaly Detection Agent
@@ -636,7 +636,7 @@ Anomaly detection, classification, and diagnosis in power
 - **Class** `AnomalyAgent` (line 36)
   - Methods: `detect_spc_anomalies()`, `detect_cusum()`, `detect_ewma()`, `detect_threshold_violations()`, `cross_correlation_analysis()`, `detect_ml_anomaly()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/arc_flash_agent.py` _24.0 KB_
+#### 📄 `agents/arc_flash_agent.py` _27.0 KB_
 > AhmedETAP - Arc Flash Analysis Agent
 =======================================================
 Arc flash incident energy and boundary calculations per I
@@ -3326,7 +3326,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _94.4 KB_
+#### 📄 `services/execution_orchestrator.py` _102.3 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3339,21 +3339,21 @@ Coo
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
 - **Class** `RedisExecutionStateStore` (line 118)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `NativeEngineeringExecutor` (line 286)
+- **Class** `NativeEngineeringExecutor` (line 533)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 435)
+- **Class** `AgentEngineeringExecutor` (line 673)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 616)
+- **Class** `EtapEngineeringExecutor` (line 840)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 748)
+- **Class** `ExternalServiceExecutor` (line 972)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 923)
+- **Class** `CompositeEngineeringExecutor` (line 1147)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1172)
+- **Class** `ExecutionOrchestrator` (line 1396)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `execute()`
 - **def** `get_execution_state_store()` (line 256)
 - **def** `set_execution_state_store()` (line 275)
-- **def** `get_execution_orchestrator()` (line 2190)
+- **def** `get_execution_orchestrator()` (line 2414)
 
 #### 📄 `services/execution_request.py` _17.8 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -4050,7 +4050,7 @@ Adapted from the docs-guard skill (github.com/amElnagdy/guard-skil
 - **Class** `DocsGuard` (line 31)
   - Methods: `scan()`
 
-#### 📄 `guards/prompt_rule_enforcement.py` _21.7 KB_
+#### 📄 `guards/prompt_rule_enforcement.py` _22.7 KB_
 > Prompt Rule Enforcement — Code-Gated Mandatory Rules (F-03 Fix)
 ================================================================
 
@@ -4060,8 +4060,8 @@ ARCHITECTURE AUDIT F
 - **Class** `PromptRuleResult` (line 145)
   - Methods: `passed()`, `must_fix_count()`, `to_guard_result()`
 - **def** `validate_agent_response()` (line 210)
-- **def** `enforce_prompt_rules()` (line 365)
-- **def** `enforce_at_api_boundary()` (line 490)
+- **def** `enforce_prompt_rules()` (line 382)
+- **def** `enforce_at_api_boundary()` (line 507)
 
 #### 📄 `guards/test_guard.py` _27.1 KB_
 > Test Guard — Test Code Quality Gate
@@ -4494,16 +4494,16 @@ Provides a REST API for the
 - **async def** `health_check()` (line 94)
 - **async def** `execute_study()` (line 137)
 
-#### 📄 `etap_integration/post_draw_verifier.py` _10.8 KB_
+#### 📄 `etap_integration/post_draw_verifier.py` _12.1 KB_
 > Operational Post-Draw Verification Engine.
 
 Dispatches Load Flow calculation on the generated ETAP project via the ETAP
 worker service (or local engin
 
-- **Class** `BusVerificationDetail` (line 31)
-- **Class** `NetworkVerificationResult` (line 42)
-- **def** `verify_bus_results()` (line 55)
-- **async def** `dispatch_load_flow_verification()` (line 186)
+- **Class** `BusVerificationDetail` (line 32)
+- **Class** `NetworkVerificationResult` (line 43)
+- **def** `verify_bus_results()` (line 56)
+- **async def** `dispatch_load_flow_verification()` (line 220)
 
 #### 📄 `etap_integration/scada_client.py` _13.0 KB_
 > AhmedETAP Platform — SCADA Client (IEC 61850)
@@ -5025,14 +5025,14 @@ from ABB/COPA-DATA zenon SC
 - **Class** `ZenonSource` (line 194)
 - **Class** `ZenonNetworkExport` (line 204)
 
-#### 📄 `integrations/zenon_network_export/live_values.py` _8.6 KB_
+#### 📄 `integrations/zenon_network_export/live_values.py` _10.2 KB_
 > Zenon Live SCADA Values Integration.
 
 Enriches static Zenon network import models with real-time operational measurements
 (voltage magnitude, current,
 
-- **def** `is_zenon_live_values_enabled()` (line 28)
-- **async def** `enrich_zenon_live_values()` (line 42)
+- **def** `is_zenon_live_values_enabled()` (line 29)
+- **async def** `enrich_zenon_live_values()` (line 43)
 
 #### 📄 `integrations/zenon_network_export/mapping.py` _3.6 KB_
 > zenon field mapping engine.
@@ -5907,10 +5907,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| python-module | 41 |
 | ui-page | 61 |
 | ui-component | 280 |
+| api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
@@ -5939,7 +5939,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5950,7 +5950,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -5981,7 +5981,7 @@ Provides
 | `test_arc_flash_agent_calculations.py` | 0 | 5 | **11** |
 | `test_arc_flash_ieee1584_deep.py` | 0 | 8 | **22** |
 | `test_arc_flash_single_engine.py` | 0 | 3 | **8** |
-| `test_arc_flash_unification_regression.py` | 0 | 1 | **10** |
+| `test_arc_flash_unification_regression.py` | 0 | 1 | **15** |
 | `test_arcflash_1584_st_cases.py` | 0 | 2 | **3** |
 | `test_arcgis_edits.py` | 0 | 3 | **19** |
 | `test_arcgis_provider.py` | 0 | 9 | **38** |
@@ -6039,7 +6039,7 @@ Provides
 | `test_data_import.py` | 0 | 1 | **3** |
 | `test_data_import_parsing.py` | 0 | 8 | **20** |
 | `test_daytona_chrome_helper.py` | 0 | 1 | **5** |
-| `test_defect5_execution_gateway_regression.py` | 7 | 0 | **7** |
+| `test_defect5_execution_gateway_regression.py` | 8 | 0 | **8** |
 | `test_defect6_sandbox_remediation.py` | 5 | 0 | **5** |
 | `test_dependencies.py` | 3 | 4 | **24** |
 | `test_design_agent_scaffold.py` | 8 | 0 | **8** |
@@ -6060,7 +6060,7 @@ Provides
 | `test_etap_com_mocked.py` | 0 | 5 | **37** |
 | `test_etap_expert_proof.py` | 33 | 0 | **33** |
 | `test_etap_expert_skill.py` | 27 | 0 | **27** |
-| `test_etap_full_network_draw.py` | 0 | 6 | **28** |
+| `test_etap_full_network_draw.py` | 0 | 6 | **32** |
 | `test_etap_gui_agent.py` | 36 | 0 | **36** |
 | `test_etap_parameter_roundtrip.py` | 0 | 6 | **11** |
 | `test_etap_rest_draw.py` | 15 | 0 | **15** |
@@ -6142,7 +6142,7 @@ Provides
 | `test_phase_a_chat_enhancements.py` | 8 | 0 | **8** |
 | `test_phase_a_rag_and_schema.py` | 0 | 3 | **7** |
 | `test_physical_operating_bounds_and_hashes.py` | 5 | 0 | **5** |
-| `test_pilot_gate_enforcement.py` | 0 | 1 | **10** |
+| `test_pilot_gate_enforcement.py` | 0 | 1 | **13** |
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_prod_database_failclosed.py` | 7 | 0 | **7** |
@@ -6209,7 +6209,7 @@ Provides
 | `test_study_request_contract.py` | 5 | 0 | **5** |
 | `test_study_rerun_phase_b.py` | 7 | 0 | **7** |
 | `test_study_service.py` | 5 | 0 | **5** |
-| `test_study_service_topology_rejection.py` | 0 | 2 | **10** |
+| `test_study_service_topology_rejection.py` | 0 | 2 | **12** |
 | `test_study_versions.py` | 2 | 0 | **2** |
 | `test_supabase_integration.py` | 0 | 9 | **37** |
 | `test_tcc_safety_guards.py` | 0 | 10 | **48** |
@@ -6230,7 +6230,7 @@ Provides
 | `test_worker_auth_contract.py` | 8 | 0 | **8** |
 | `test_worker_tasks.py` | 0 | 3 | **6** |
 | `test_workflow_chains.py` | 4 | 0 | **4** |
-| `test_zenon_live_values.py` | 9 | 0 | **9** |
+| `test_zenon_live_values.py` | 12 | 0 | **12** |
 | `test_zenon_network_import.py` | 0 | 3 | **14** |
 | `test_zenon_raw_dump_classifier.py` | 0 | 1 | **7** |
 | `test_arc_flash_scenario.py` | 0 | 1 | **6** |
