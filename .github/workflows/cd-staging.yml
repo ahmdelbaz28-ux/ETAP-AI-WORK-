@@ -7,8 +7,6 @@ on:
         description: "Deploy this exact commit SHA to Staging (must have passed CI)"
         required: true
         type: string
-  push:
-    branches: [staging]
 
 concurrency:
   group: cd-staging
@@ -27,6 +25,14 @@ jobs:
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
+      - name: Verify repository identity
+        run: |
+          set -euo pipefail
+          if [ "${{ github.repository }}" != "ahmdelbaz28-ux/ETAP-AI-WORK-" ]; then
+            echo "::error::Workflow triggered on untrusted repository '${{ github.repository }}'. Aborting."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
@@ -38,11 +44,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            SHA="${{ inputs.ref_sha }}"
-          else
-            SHA="${{ github.sha }}"
-          fi
+          SHA="${{ inputs.ref_sha }}"
 
           if ! echo "$SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
             echo "::error::ref_sha must be a full 40-character hexadecimal SHA. Received: $SHA"
@@ -59,49 +61,101 @@ jobs:
           echo "Deploying pinned SHA to Staging: $SHA"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
-  validate-secrets:
+  validate-staging-environment:
     needs: [guard]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     environment: staging
     steps:
-      - name: Fail fast on missing staging secrets
+      - name: Fail fast on SQLite, missing staging secrets, or production collision
         run: |
           set -euo pipefail
           missing=0
-          # Deployment secrets
-          for s in HF_TOKEN VERCEL_TOKEN; do
-            if [ -z "${!s:-}" ]; then
-              echo "::error::Missing deployment secret: $s in staging environment"
-              missing=1
-            fi
-          done
 
-          # Target Vercel Project must strictly match Staging Project ID
-          TARGET_VERCEL_PRJ="${{ vars.VERCEL_PROJECT_ID || 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' }}"
-          if [ "$TARGET_VERCEL_PRJ" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
-            echo "::error::CRITICAL: Staging workflow is configured with Production Vercel Project ID! Aborting (Fail-Closed)."
+          # 1. SQLite is strictly forbidden in Staging (Non-negotiable production parity)
+          ALLOW_SQLITE="${{ vars.ALLOW_SQLITE_IN_PROD || '' }}"
+          if [ "$ALLOW_SQLITE" = "true" ] || [ "$ALLOW_SQLITE" = "1" ]; then
+            echo "::error::CRITICAL: ALLOW_SQLITE_IN_PROD is enabled in staging! Staging strictly requires persistent PostgreSQL. Aborting."
             exit 1
           fi
 
-          # Target HF Space must strictly match Staging Space
-          TARGET_HF_SPACE="${{ vars.HF_SPACE_NAME || 'ahmdelbaz28/AhmedETAP-Platform-Staging' }}"
-          if [ "$TARGET_HF_SPACE" = "ahmdelbaz28/AhmedETAP-Platform" ]; then
+          # 2. Database validation: Dedicated PostgreSQL required
+          if [ -z "${STAGING_DB_URL:-}" ]; then
+            echo "::error::Missing STAGING_DATABASE_URL in staging environment secrets. Staging requires an independent persistent PostgreSQL database."
+            missing=1
+          else
+            case "$STAGING_DB_URL" in
+              postgresql://*|postgres://*|postgresql+asyncpg://*)
+                echo "STAGING_DATABASE_URL scheme is PostgreSQL (verified)."
+                ;;
+              sqlite://*|sqlite+*|*)
+                echo "::error::CRITICAL: STAGING_DATABASE_URL must be a PostgreSQL connection string. SQLite is strictly forbidden."
+                exit 1
+                ;;
+            esac
+
+            # Prevent pointing to production Supabase project
+            if echo "$STAGING_DB_URL" | grep -qi "aws-1-eu-central-1.pooler.supabase.com"; then
+              echo "::error::CRITICAL: STAGING_DATABASE_URL appears to target the production Supabase instance! Aborting."
+              exit 1
+            fi
+          fi
+
+          # 3. Dedicated deployment secrets (No fallback to repo/production secrets)
+          if [ -z "${STAGING_HF_TOKEN:-}" ]; then
+            echo "::error::Missing STAGING_HF_TOKEN secret in staging environment."
+            missing=1
+          fi
+
+          if [ -z "${STAGING_VERCEL_TOKEN:-}" ]; then
+            echo "::error::Missing STAGING_VERCEL_TOKEN secret in staging environment."
+            missing=1
+          fi
+
+          # 4. Target Vercel Project must strictly match Staging Project ID
+          TARGET_VERCEL_PRJ="${{ vars.VERCEL_PROJECT_ID || '' }}"
+          if [ -z "$TARGET_VERCEL_PRJ" ]; then
+            echo "::error::Missing VERCEL_PROJECT_ID in staging environment variables."
+            missing=1
+          elif [ "$TARGET_VERCEL_PRJ" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
+            echo "::error::CRITICAL: Staging workflow is configured with Production Vercel Project ID! Aborting (Fail-Closed)."
+            exit 1
+          elif [ "$TARGET_VERCEL_PRJ" != "prj_XHvIpATc0SF11QBeCNPatRe5t8Af" ]; then
+            echo "::error::CRITICAL: Staging workflow VERCEL_PROJECT_ID unexpected: $TARGET_VERCEL_PRJ"
+            exit 1
+          fi
+
+          # 5. Target HF Space must strictly match Staging Space and cannot be production
+          TARGET_HF_SPACE="${{ vars.HF_SPACE_NAME || '' }}"
+          if [ -z "$TARGET_HF_SPACE" ]; then
+            echo "::error::Missing HF_SPACE_NAME in staging environment variables."
+            missing=1
+          elif [ "$TARGET_HF_SPACE" = "ahmdelbaz28/AhmedETAP-Platform" ]; then
             echo "::error::CRITICAL: Staging workflow is configured with Production HF Space! Aborting (Fail-Closed)."
             exit 1
           fi
 
           if [ $missing -ne 0 ]; then
-            echo "::error::NOT DEPLOYED — Required staging secrets are missing."
+            echo "::error::NOT DEPLOYED — Required staging configuration or secrets are missing."
             exit 1
           fi
-          echo "Staging deployment target and secrets validated successfully."
+
+          # 6. Verify that target Hugging Face Space actually exists before proceeding
+          echo "Verifying existence of Hugging Face Space: $TARGET_HF_SPACE"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $STAGING_HF_TOKEN" "https://huggingface.co/api/spaces/$TARGET_HF_SPACE") || HTTP_STATUS="000"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::CRITICAL: Staging Hugging Face Space '$TARGET_HF_SPACE' does not exist or is inaccessible (HTTP $HTTP_STATUS). Aborting deployment (Fail-Closed)."
+            exit 1
+          fi
+
+          echo "Staging environment configuration, database, and targets validated successfully."
         env:
-          HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN || secrets.HF_TOKEN }}
-          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+          STAGING_DB_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN }}
+          STAGING_VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
 
   build-ui:
-    needs: [guard, validate-secrets]
+    needs: [guard, validate-staging-environment]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: staging
@@ -135,7 +189,7 @@ jobs:
           path: ui/dist
 
   deploy-hf-staging:
-    needs: [guard, validate-secrets, build-ui]
+    needs: [guard, validate-staging-environment, build-ui]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: staging
@@ -176,7 +230,7 @@ jobs:
       - name: Push staged set to Hugging Face Staging Space
         id: push
         env:
-          HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN || secrets.HF_TOKEN }}
+          HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN }}
           STAGING_SPACE: ${{ vars.HF_SPACE_NAME || 'ahmdelbaz28/AhmedETAP-Platform-Staging' }}
         run: |
           set -euo pipefail
@@ -205,7 +259,7 @@ jobs:
           echo "hf_sha=$HF_COMMIT" >> "$GITHUB_OUTPUT"
 
   deploy-vercel-staging:
-    needs: [guard, validate-secrets, build-ui]
+    needs: [guard, validate-staging-environment, build-ui]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: staging
@@ -225,7 +279,7 @@ jobs:
 
       - name: Deploy to Vercel Staging Project
         env:
-          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: "${{ vars.VERCEL_PROJECT_ID || 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' }}"
         run: |
@@ -233,7 +287,7 @@ jobs:
           export VERCEL_TOKEN=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_TOKEN', '') if c.isascii() and not c.isspace()))")
           export VERCEL_ORG_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_ORG_ID', '') if c.isascii() and not c.isspace()))")
           export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
-          
+
           # Strictly reject if VERCEL_PROJECT_ID is production
           if [ "$VERCEL_PROJECT_ID" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
             echo "::error::Refusing to deploy to production project from staging workflow!"
@@ -268,5 +322,6 @@ jobs:
             echo "attempt $i: $code"; sleep 5
           done
           if [ "$HEALTHY" -ne 1 ]; then
-            echo "::warning::Staging Backend health probe timed out (check Space status)"
+            echo "::error::Staging Backend health probe failed or timed out. Aborting deployment verification."
+            exit 1
           fi
