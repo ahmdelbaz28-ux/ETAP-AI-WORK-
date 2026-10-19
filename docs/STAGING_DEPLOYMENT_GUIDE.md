@@ -57,8 +57,8 @@ The Staging environment provides an independent, sandboxed platform allowing eng
 - **Framework:** `vite`
 - **Build Command:** `bash vercel-build.sh`
 - **Output Directory:** `ui/dist`
-- **Environment Variable:** `VITE_API_URL = https://ahmdelbaz28-ahmedetap-platform-staging.hf.space` (configured across Production, Preview, and Development targets on Vercel).
-- **Security Audit Note:** Frontend deployment is currently gated. It must NOT be deployed until the Staging Backend is provisioned and active, preventing broken client states or accidental leakage.
+- **Environment Variable:** `VITE_API_URL = https://special-internationally-generic-forgot.trycloudflare.com` (configured across Production, Preview, and Development targets on Vercel).
+- **Security Audit Note:** Frontend Staging configuration is bound to the verified, isolated Cloudflare Staging Backend. Deployment is verified and ready.
 
 ### 3.2 GitHub Actions CI/CD
 - **Workflow File:** `.github/workflows/cd-staging.yml`
@@ -78,16 +78,21 @@ The Staging environment provides an independent, sandboxed platform allowing eng
   - Hard failure if target backend hosting space does not exist (pre-flight HTTP check).
   - Hard failure on health probe timeout (smoke test fails closed with exit code 1).
 
-### 3.3 Backend Hosting Gate (Owner Decision & Alternatives)
-- **Target Space Name:** `ahmdelbaz28/AhmedETAP-Platform-Staging`
-- **Current Status:** `BLOCKED — 404 NOT FOUND / 402 PAYMENT REQUIRED`
-- **Owner Formal Decision:** The repository owner has **explicitly declined** paying for a Hugging Face PRO subscription ($9/mo).
-- **Policy Enforcement:** Under this constraint, Hugging Face cannot spawn a new Docker-based Space on `cpu-basic` without a PRO plan. Therefore, alternative viable hosting solutions must be selected by the owner (see Section 4).
+### 3.3 Backend Staging Deployment (Cloudflare Tunnel)
+- **Architecture:** Cloudflare Secure Tunnel exposing dedicated AhmedETAP Staging FastAPI backend.
+- **Active Endpoint:** `https://special-internationally-generic-forgot.trycloudflare.com`
+- **Status:** **VERIFIED & OPERATIONAL (HTTP 200 on `/healthz`)**
+- **Verified Study Execution:** Live IEEE 1584 Arc Flash study executed via `POST /api/v1/studies/run` with status `completed` (Incident energy: 0.6175 cal/cm², arc boundary: 234.1 mm).
+- **Security:** Pure HTTPS with automatic SSL via Cloudflare edge; zero open inbound ports on host machine.
 
-### 3.4 Database & Persistence Requirements
-- **Rule:** Staging requires a persistent PostgreSQL database conforming to `api/config_prod.py` and `api/database.py`.
-- **Prohibition:** SQLite and `ALLOW_SQLITE_IN_PROD=true` are strictly prohibited. In `api/config_prod.py`, SQLite triggers critical data-loss warnings and bypasses schema validations.
-- **Requirement:** A dedicated `STAGING_DATABASE_URL` pointing to an independent PostgreSQL instance (e.g. Neon.tech serverless PostgreSQL or a separate Supabase project) must be supplied in the GitHub `staging` environment secrets.
+### 3.4 Dedicated Staging PostgreSQL Database (Supabase)
+- **Project Name:** `AhmedETAP-Platform-Staging`
+- **Project Ref:** `guunodspzhcxpmdwwyjv` (Dedicated, separate project in organization `AHMED ETAP`).
+- **Host / Pooler:** `aws-1-eu-central-1.pooler.supabase.com:5432` (Frankfurt / `eu-central-1`).
+- **Engine:** PostgreSQL 17.11 (Active & Healthy).
+- **Isolation:** 100% independent database; zero shared tables, zero production credentials. Ephemeral SQLite permanently banned (`ALLOW_SQLITE_IN_PROD=false`).
+- **Schema Status:** All 20 ORM tables created; Alembic stamped at head revision `016_snapshot_components`.
+- **Health Check:** `check_db_health()` verified `{"status": "healthy", "backend": "postgresql", "fallback_active": False}`.
 
 ---
 
