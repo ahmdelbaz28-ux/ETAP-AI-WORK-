@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-18T21:18:28.604057+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-19T07:35:09.255246+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -12,10 +12,10 @@
 | Python | Packages | 41 |
 | Python | Files | 400 |
 | Python | Classes | 976 |
-| Python | Functions | 879 |
+| Python | Functions | 883 |
 | UI | Files (TSX/TS) | 240 |
-| Test | Files | 302 |
-| Total | Tests | 4184 |
+| Test | Files | 303 |
+| Total | Tests | 4209 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 459 |
@@ -38,7 +38,7 @@
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEEE 242, IEC60255, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEC 60255, IEEE 242 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -596,7 +596,7 @@ Total: **459** variables
 
 #### 📄 `agents/__init__.py` _4.7 KB_
 
-#### 📄 `agents/ahmed_etap_orchestrator.py` _68.0 KB_
+#### 📄 `agents/ahmed_etap_orchestrator.py` _71.1 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
 ======================================================================
 
@@ -612,24 +612,24 @@ Runtim
 - **Class** `TrustedCalculator` (line 412)
 - **Class** `TrustedCalculatorRegistry` (line 447)
   - Methods: `register()`, `is_trusted()`, `create()`
-- **Class** `MathGuard` (line 518)
+- **Class** `MathGuard` (line 546)
   - Methods: `validate()`
-- **Class** `MathGuardResult` (line 706)
+- **Class** `MathGuardResult` (line 751)
   - Methods: `to_dict()`
-- **Class** `PeerReview` (line 752)
+- **Class** `PeerReview` (line 797)
   - Methods: `reviewer_for()`, `review()`
-- **Class** `PeerReviewResult` (line 894)
+- **Class** `PeerReviewResult` (line 939)
   - Methods: `to_dict()`
-- **Class** `OrchestrationVerdict` (line 914)
-- **Class** `OrchestrationResult` (line 925)
+- **Class** `OrchestrationVerdict` (line 959)
+- **Class** `OrchestrationResult` (line 970)
   - Methods: `to_dict()`
-- **Class** `AhmedETAPOrchestrator` (line 954)
+- **Class** `AhmedETAPOrchestrator` (line 999)
   - Methods: `run_study()`
-- **Class** `AhmedETAPSkillAgent` (line 1219)
+- **Class** `AhmedETAPSkillAgent` (line 1265)
   - Methods: `execute()`, `get_agent_info()`
 - **def** `canonicalize_study_type()` (line 89)
-- **def** `load_skill_text()` (line 1705)
-- **def** `load_reference_text()` (line 1718)
+- **def** `load_skill_text()` (line 1769)
+- **def** `load_reference_text()` (line 1782)
 
 #### 📄 `agents/anomaly_agent.py` _27.7 KB_
 > AhmedETAP - Anomaly Detection Agent
@@ -703,7 +703,7 @@ Protection system coordination analysis per IE
 - **Class** `CoordinationAgent` (line 53)
   - Methods: `calculate_relay_operating_time()`, `verify_coordination()`, `generate_tcc_data()`, `analyze_selectivity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/cua_base_executor.py` _53.7 KB_
+#### 📄 `agents/cua_base_executor.py` _57.8 KB_
 > agents/cua_base_executor.py — Base CUA Executor (Template Method pattern)
 
 Extracts the shared CUA loop algorithm from DesktopCUAExecutor and
@@ -879,7 +879,7 @@ This module loa
 - **def** `get_prompt_cache_info()` (line 686)
 - **def** `list_available_prompts()` (line 706)
 
-#### 📄 `agents/registry.py` _66.0 KB_
+#### 📄 `agents/registry.py` _66.9 KB_
 > AhmedETAP - Agent Registry & Specialist Agents
 ===============================================
 Encapsulates registration, life-cycle management, and c
@@ -889,24 +889,24 @@ Encapsulates registration, life-cycle management, and c
   - Methods: `execute()`, `validate_result()`
 - **Class** `ShortCircuitAgent` (line 311)
   - Methods: `execute()`, `validate_result()`
-- **Class** `HarmonicAnalysisAgent` (line 485)
+- **Class** `HarmonicAnalysisAgent` (line 501)
   - Methods: `execute()`, `validate_result()`
-- **Class** `OptimalPowerFlowAgent` (line 617)
+- **Class** `OptimalPowerFlowAgent` (line 633)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ProtectionCoordinationAgent` (line 757)
+- **Class** `ProtectionCoordinationAgent` (line 773)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ETAPExecutionAgent` (line 860)
+- **Class** `ETAPExecutionAgent` (line 876)
   - Methods: `execute()`, `validate_result()`
-- **Class** `ValidationAgent` (line 974)
+- **Class** `ValidationAgent` (line 990)
   - Methods: `execute()`
-- **Class** `ReportGenerationAgent` (line 1307)
+- **Class** `ReportGenerationAgent` (line 1323)
   - Methods: `execute()`
 - **def** `all_registered_keys()` (line 129)
 - **def** `resolve_agent_key()` (line 134)
 - **def** `validate_agent_keys()` (line 139)
-- **def** `get_study_type_mapping()` (line 1610)
-- **def** `get_agent_for_study()` (line 1615)
-- **def** `create_agent_registry()` (line 1626)
+- **def** `get_study_type_mapping()` (line 1626)
+- **def** `get_agent_for_study()` (line 1631)
+- **def** `create_agent_registry()` (line 1642)
 
 #### 📄 `agents/renewable_agent.py` _39.6 KB_
 > AhmedETAP - Renewable Integration Agent
@@ -1197,29 +1197,29 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _44.6 KB_
+#### 📄 `api/approvals.py` _50.3 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
 pass before execution. Provides:
 
 
-- **Class** `PendingAction` (line 144)
-- **Class** `IdempotencyKey` (line 182)
-- **Class** `CreateApprovalRequest` (line 206)
-- **Class** `ResolveRequest` (line 558)
-- **Class** `AutoApproveRequest` (line 573)
-- **Class** `ApprovalResponse` (line 580)
-- **def** `compute_args_hash()` (line 123)
-- **def** `classify_tool()` (line 129)
-- **def** `validate_server_control_action()` (line 218)
-- **def** `set_session_auto_approve()` (line 611)
-- **def** `get_session_auto_approve()` (line 616)
-- **async def** `expire_stale_actions()` (line 705)
-- **async def** `transition_status()` (line 732)
-- **async def** `create_approval()` (line 790)
-- **async def** `list_pending()` (line 871)
-- **async def** `resolve_action()` (line 900)
+- **Class** `PendingAction` (line 191)
+- **Class** `IdempotencyKey` (line 229)
+- **Class** `CreateApprovalRequest` (line 253)
+- **Class** `ResolveRequest` (line 605)
+- **Class** `AutoApproveRequest` (line 620)
+- **Class** `ApprovalResponse` (line 627)
+- **def** `normalize_payload_dict()` (line 123)
+- **def** `build_canonical_execution_payload()` (line 155)
+- **def** `compute_args_hash()` (line 169)
+- **def** `classify_tool()` (line 176)
+- **def** `validate_server_control_action()` (line 265)
+- **def** `set_session_auto_approve()` (line 658)
+- **def** `get_session_auto_approve()` (line 663)
+- **async def** `expire_stale_actions()` (line 752)
+- **async def** `transition_status()` (line 779)
+- **async def** `create_approval()` (line 837)
 
   **API Routes:**
   - `GET /pending`
@@ -2868,7 +2868,7 @@ Authoritative projection and adapter over Canonical CapabilityRegistry (ADR-0002
 
 - **Class** `StudyRegistration` (line 38)
 
-#### 📄 `engine/engine.py` _34.2 KB_
+#### 📄 `engine/engine.py` _34.8 KB_
 - **Class** `PowerSystemEngine` (line 92)
   - Methods: `run_load_flow()`, `run_fault_analysis()`, `run_arc_flash()`, `run_protection_coordination()`, `run_study()`, `visualize_tcc()`, `visualize_coordination()`
 
@@ -2995,7 +2995,7 @@ load flow solving
   - Methods: `build_sparse_ybus()`, `sparse_newton_raphson()`, `compare_memory()`, `benchmark()`
 - **def** `create_ieee_test_system()` (line 1018)
 
-#### 📄 `engine/benchmarks/ieee_cases.py` _110.2 KB_
+#### 📄 `engine/benchmarks/ieee_cases.py` _110.0 KB_
 > engine/benchmarks/ieee_cases.py — IEEE Standard Benchmark Power Systems.
 
 Provides standard test case models and analytical reference solutions:
@@ -3007,10 +3007,10 @@ Provides standard test case models and analytical reference solutions:
 - **def** `build_ieee_30bus_system()` (line 577)
 - **def** `calculate_iec_60909_theoretical_fault()` (line 729)
 - **def** `calculate_ieee_1584_incident_energy_benchmark()` (line 736)
-- **def** `build_ieee_13bus_harmonic_system()` (line 759)
-- **def** `build_industrial_4bus_harmonic_system()` (line 792)
-- **def** `build_commercial_480v_harmonic_system()` (line 829)
-- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 864)
+- **def** `build_ieee_13bus_harmonic_system()` (line 761)
+- **def** `build_industrial_4bus_harmonic_system()` (line 794)
+- **def** `build_commercial_480v_harmonic_system()` (line 831)
+- **def** `calculate_ieee_519_harmonic_benchmarks()` (line 866)
 
 #### 📄 `engine/optimizers/__init__.py` _0.4 KB_
 > engine/optimizers — Metaheuristic and numerical optimization package for AhmedETAP.
@@ -3116,8 +3116,8 @@ Generates industrial-grade
 - **Class** `ArcFlashLabelSpec` (line 22)
   - Methods: `from_calculation_result()`, `to_svg()`, `to_dict()`
 
-#### 📄 `fault_analysis/fault.py` _13.7 KB_
-- **Class** `FaultAnalyzer` (line 16)
+#### 📄 `fault_analysis/fault.py` _15.1 KB_
+- **Class** `FaultAnalyzer` (line 17)
   - Methods: `three_phase_fault()`, `line_to_ground_fault()`, `line_to_line_fault()`, `double_line_to_ground_fault()`
 
 #### 📄 `fault_analysis/harmonic_analysis.py` _30.4 KB_
@@ -3330,7 +3330,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _113.2 KB_
+#### 📄 `services/execution_orchestrator.py` _114.3 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3343,21 +3343,21 @@ Coo
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
 - **Class** `RedisExecutionStateStore` (line 119)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `NativeEngineeringExecutor` (line 698)
+- **Class** `NativeEngineeringExecutor` (line 718)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 838)
+- **Class** `AgentEngineeringExecutor` (line 858)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 1005)
+- **Class** `EtapEngineeringExecutor` (line 1025)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 1137)
+- **Class** `ExternalServiceExecutor` (line 1157)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 1312)
+- **Class** `CompositeEngineeringExecutor` (line 1332)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1561)
+- **Class** `ExecutionOrchestrator` (line 1581)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `verify_server_approval()`, `execute()`
 - **def** `get_execution_state_store()` (line 257)
 - **def** `set_execution_state_store()` (line 276)
-- **def** `get_execution_orchestrator()` (line 2624)
+- **def** `get_execution_orchestrator()` (line 2658)
 
 #### 📄 `services/execution_request.py` _18.3 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -3557,7 +3557,7 @@ Provides runtime a
   - Methods: `enabled()`, `enabled()`, `inspect()`, `get_stats()`, `add_rule()`, `remove_rule()`
 - **def** `create_default_rasp_engine()` (line 263)
 
-#### 📄 `security/secrets_manager.py` _31.5 KB_
+#### 📄 `security/secrets_manager.py` _33.5 KB_
 > Secrets Manager for AhmedETAP Engineering Platform
 =================================================
 Production-grade secrets management with HashiCor
@@ -3568,9 +3568,9 @@ Production-grade secrets management with HashiCor
   - Methods: `set_api_key()`, `get_api_key()`, `rotate_key()`, `delete_api_key()`, `list_services()`
 - **Class** `KeyAccessAuditor` (line 450)
   - Methods: `log_access()`, `get_access_logs()`, `get_recent_access()`
-- **Class** `EnvironmentValidator` (line 572)
+- **Class** `EnvironmentValidator` (line 591)
   - Methods: `check_missing_secrets()`, `check_file_permissions()`, `check_for_hardcoded_secrets()`, `generate_env_template()`
-- **def** `get_secrets_manager()` (line 753)
+- **def** `get_secrets_manager()` (line 807)
 
 #### 📄 `security/secure_executor.py` _24.8 KB_
 > Secure Python Executor
@@ -5911,10 +5911,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-component | 280 |
 | python-module | 41 |
-| ui-page | 61 |
+| ui-component | 280 |
 | api-route | 92 |
+| ui-page | 61 |
 | **TOTAL** | **474** |
 
 ---
@@ -5924,14 +5924,14 @@ Provides
 | Package | Imports | Imported By |
 |:---|:---|:---|
 | `adms_control` | `scada_model` | — |
-| `agents` | `api`, `coordination`, `copilot`, `core`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
+| `agents` | `api`, `coordination`, `copilot`, `core`, `core_model`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
 | `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
 | `core` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `load_flow`, `scada_model`, `services` | `agents`, `api`, `engine`, `etap_integration`, `services` |
-| `core_model` | `network_solver` | `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
+| `core_model` | `network_solver` | `agents`, `api`, `digital_twin`, `engine`, `etap_integration`, `integrations`, `load_flow`, `services` |
 | `curves` | — | `agents`, `coordination`, `relays` |
 | `digital_twin` | `coordination`, `core_model`, `engine`, `fault_analysis`, `gis_integration`, `gis_model`, `load_flow`, `relays`, `scada_model` | `agents`, `copilot`, `core` |
 | `engine` | `agents`, `api`, `coordination`, `core`, `core_model`, `fault_analysis`, `load_flow`, `network_solver`, `relays`, `visualization` | `agents`, `api`, `coordination`, `core`, `digital_twin`, `etap_integration`, `integrations`, `load_flow`, `services`, `utils` |
@@ -5943,7 +5943,7 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
 | `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
@@ -5954,7 +5954,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -6150,6 +6150,7 @@ Provides
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_prod_database_failclosed.py` | 7 | 0 | **7** |
+| `test_production_blockers_regression.py` | 0 | 7 | **25** |
 | `test_production_hardening.py` | 0 | 5 | **12** |
 | `test_projects_api.py` | 0 | 7 | **28** |
 | `test_prompt_cache_tracking.py` | 0 | 6 | **23** |
