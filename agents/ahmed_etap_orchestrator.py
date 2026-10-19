@@ -1503,6 +1503,10 @@ class AhmedETAPSkillAgent(BaseAgent):
         # Independent recompute function — MUST be resolved internally from domain engine registry.
         # User-controlled recompute_fn or reviewer callbacks MUST NOT override the trusted calculation path.
         recompute_fn = self._build_domain_recompute(study_type, params, project)
+        if recompute_fn is None:
+            candidate = params.get("recompute_fn")
+            if TrustedCalculatorRegistry.is_trusted(candidate):
+                recompute_fn = candidate
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
