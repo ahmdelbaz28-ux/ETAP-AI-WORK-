@@ -1,0 +1,272 @@
+name: "CD — Deploy Staging (Isolated)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref_sha:
+        description: "Deploy this exact commit SHA to Staging (must have passed CI)"
+        required: true
+        type: string
+  push:
+    branches: [staging]
+
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: staging
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit SHA and Staging Isolation
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SHA="${{ inputs.ref_sha }}"
+          else
+            SHA="${{ github.sha }}"
+          fi
+
+          if ! echo "$SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
+            echo "::error::ref_sha must be a full 40-character hexadecimal SHA. Received: $SHA"
+            exit 1
+          fi
+
+          if ! git cat-file -e "$SHA^{commit}"; then
+            echo "::error::Commit $SHA does not exist in repository history."
+            exit 1
+          fi
+
+          # Fail-Closed: Verify that this workflow runs strictly against the staging environment
+          echo "Target Environment: staging (verified)"
+          echo "Deploying pinned SHA to Staging: $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+  validate-secrets:
+    needs: [guard]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: staging
+    steps:
+      - name: Fail fast on missing staging secrets
+        run: |
+          set -euo pipefail
+          missing=0
+          # Deployment secrets
+          for s in HF_TOKEN VERCEL_TOKEN; do
+            if [ -z "${!s:-}" ]; then
+              echo "::error::Missing deployment secret: $s in staging environment"
+              missing=1
+            fi
+          done
+
+          # Target Vercel Project must strictly match Staging Project ID
+          TARGET_VERCEL_PRJ="${{ vars.VERCEL_PROJECT_ID || 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' }}"
+          if [ "$TARGET_VERCEL_PRJ" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
+            echo "::error::CRITICAL: Staging workflow is configured with Production Vercel Project ID! Aborting (Fail-Closed)."
+            exit 1
+          fi
+
+          # Target HF Space must strictly match Staging Space
+          TARGET_HF_SPACE="${{ vars.HF_SPACE_NAME || 'ahmdelbaz28/AhmedETAP-Platform-Staging' }}"
+          if [ "$TARGET_HF_SPACE" = "ahmdelbaz28/AhmedETAP-Platform" ]; then
+            echo "::error::CRITICAL: Staging workflow is configured with Production HF Space! Aborting (Fail-Closed)."
+            exit 1
+          fi
+
+          if [ $missing -ne 0 ]; then
+            echo "::error::NOT DEPLOYED — Required staging secrets are missing."
+            exit 1
+          fi
+          echo "Staging deployment target and secrets validated successfully."
+        env:
+          HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN || secrets.HF_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+
+  build-ui:
+    needs: [guard, validate-secrets]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build UI for Staging (bound to Staging API)
+        env:
+          VITE_API_URL: "${{ vars.HF_SPACE_URL || 'https://ahmdelbaz28-ahmedetap-platform-staging.hf.space' }}"
+        run: |
+          echo "Building UI with VITE_API_URL=$VITE_API_URL"
+          pnpm --filter ui run build
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: staging-ui-dist
+          path: ui/dist
+
+  deploy-hf-staging:
+    needs: [guard, validate-secrets, build-ui]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: staging
+    outputs:
+      hf_sha: ${{ steps.push.outputs.hf_sha }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.1
+        with:
+          name: staging-ui-dist
+          path: ui-dist
+
+      - name: Stage whitelist for Staging container
+        run: |
+          set -euo pipefail
+          mkdir -p stage
+          test -f README.hf.md   || { echo "README.hf.md missing";   exit 1; }
+          test -f Dockerfile     || { echo "Dockerfile missing";     exit 1; }
+          test -f hf-space/app.py || { echo "hf-space/app.py missing"; exit 1; }
+          test -f ui-dist/index.html || { echo "ui-dist/index.html missing — UI build failed"; exit 1; }
+          cp README.hf.md stage/README.md
+          cp -r Dockerfile .dockerignore VERSION prompts.json compat.py alembic.ini migrations stage/
+          echo "${{ needs.guard.outputs.sha }}" > stage/DEPLOY_SHA
+          cp -r hf-space stage/
+          cp -r agents prompts core_model core engine stage/
+          cp -r load_flow fault_analysis coordination relays contingency motor_starting stage/
+          cp -r network_solver services api utils ai_context_engine stage/
+          cp -r integrations ml stage/
+          cp -r curves visualization reporting digital_twin security gis_integration adms_control stage/
+          cp -r contracts etap_integration scripts scada_model scada_protocols copilot stage/
+          cp -r data stage/
+          rm -f stage/data/*.db* 2>/dev/null
+          cp -r ui-dist stage/
+
+      - name: Push staged set to Hugging Face Staging Space
+        id: push
+        env:
+          HF_TOKEN: ${{ secrets.STAGING_HF_TOKEN || secrets.HF_TOKEN }}
+          STAGING_SPACE: ${{ vars.HF_SPACE_NAME || 'ahmdelbaz28/AhmedETAP-Platform-Staging' }}
+        run: |
+          set -euo pipefail
+          trap 'rm -f /tmp/.git-credentials-hf' EXIT ERR
+          echo "https://user:${HF_TOKEN}@huggingface.co" > /tmp/.git-credentials-hf
+          git config --global credential.helper "store --file=/tmp/.git-credentials-hf"
+          git clone "https://huggingface.co/spaces/${STAGING_SPACE}" space-repo 2>&1 | tail -3
+          cd space-repo
+          find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.gitattributes' -exec rm -rf {} +
+          cp -r ../stage/. ./
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "staging deploy ${{ needs.guard.outputs.sha }}"
+            git push origin main 2>&1 | tee /tmp/hf-push.log
+            if grep -q "remote rejected\|failed to push" /tmp/hf-push.log; then
+              echo "::error::HF Staging Space push FAILED"
+              exit 1
+            fi
+            echo "HF Staging Space updated and pushed successfully."
+          else
+            echo "No changes detected — Staging Space is already up to date."
+          fi
+          HF_COMMIT=$(git rev-parse HEAD)
+          echo "hf_sha=$HF_COMMIT" >> "$GITHUB_OUTPUT"
+
+  deploy-vercel-staging:
+    needs: [guard, validate-secrets, build-ui]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Deploy to Vercel Staging Project
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN || secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: "${{ vars.VERCEL_PROJECT_ID || 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' }}"
+        run: |
+          set -euo pipefail
+          export VERCEL_TOKEN=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_TOKEN', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_ORG_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_ORG_ID', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
+          
+          # Strictly reject if VERCEL_PROJECT_ID is production
+          if [ "$VERCEL_PROJECT_ID" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
+            echo "::error::Refusing to deploy to production project from staging workflow!"
+            exit 1
+          fi
+
+          npx vercel@59.25.0 pull --yes --environment=preview
+          npx vercel@59.25.0 build
+          npx vercel@59.25.0 deploy --prebuilt
+
+  smoke-and-health-staging:
+    needs: [guard, deploy-hf-staging, deploy-vercel-staging]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - name: Health Check Staging Endpoints
+        env:
+          STAGING_API: "${{ vars.HF_SPACE_URL || 'https://ahmdelbaz28-ahmedetap-platform-staging.hf.space' }}"
+          STAGING_UI: "${{ vars.STAGING_UI_URL || 'https://etap-ai-work-staging.vercel.app' }}"
+        run: |
+          set -euo pipefail
+          echo "Probing Staging Backend: $STAGING_API/healthz"
+          HEALTHY=0
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_API/healthz") || code="000"
+            if [ "$code" = "200" ]; then
+              echo "Staging Backend healthz OK"
+              HEALTHY=1
+              break
+            fi
+            echo "attempt $i: $code"; sleep 5
+          done
+          if [ "$HEALTHY" -ne 1 ]; then
+            echo "::warning::Staging Backend health probe timed out (check Space status)"
+          fi

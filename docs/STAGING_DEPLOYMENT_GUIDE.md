@@ -1,185 +1,111 @@
-# AhmedETAP — Staging & Production Deployment Operational Guide
+---
+title: "AhmedETAP Isolated Staging Environment Architecture & Deployment Guide"
+version: "2.1.0"
+last_updated: "2026-10-19"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
 
-This document defines the operational runbook and deployment standards for deploying AhmedETAP to staging and production environments.
+# 🛡️ AhmedETAP Isolated Staging Environment Architecture & Deployment Guide
+
+## 📋 Table of Contents
+
+- [1. Executive Summary & Purpose](#1-executive-summary--purpose)
+- [2. Component Separation Matrix](#2-component-separation-matrix)
+- [3. Staging Infrastructure Components Status](#3-staging-infrastructure-components-status)
+  - [3.1 Frontend (Vercel)](#31-frontend-vercel)
+  - [3.2 GitHub Actions CI/CD](#32-github-actions-cicd)
+  - [3.3 Backend (Hugging Face Spaces)](#33-backend-hugging-face-spaces)
+  - [3.4 Database & Persistence](#34-database--persistence)
+- [4. Operational Safety & Rollback Procedures](#4-operational-safety--rollback-procedures)
+- [5. Owner Action Items](#5-owner-action-items)
 
 ---
 
-## 1. System Architecture & Dual-Runtime Model
+## 1. Executive Summary & Purpose
 
-AhmedETAP operates on a dual-runtime architecture:
-1. **Frontend & Orchestration Gateway**: React / TypeScript Chat-First v3.0 interface with Mastra TypeScript agent workflows.
-2. **Authoritative Engineering Backend**: FastAPI application running on Python with validated computational solvers (Newton-Raphson load flow, IEC 60909 short circuit, IEEE 1584 arc flash, IEEE 399 motor starting).
-3. **Shared Distributed State**:
-   - **PostgreSQL 16**: Relational storage for users, projects, revisions, component libraries, and audit logs.
-   - **Redis 7**: Distributed session persistence (`RedisSessionStore`), distributed resource locking (`LockManager`), and asynchronous job queueing (`RedisTaskQueue`).
+In alignment with the **AhmedETAP Zero-Fabrication Rule (R3)** and the **Owner Authorization Mandate**, this document establishes the isolated Staging deployment environment for AhmedETAP (`ahmdelbaz28-ux/ETAP-AI-WORK-`).
+
+The Staging environment provides an independent, sandboxed platform allowing engineers to test and verify new capabilities (such as `harmonic_analysis`, `cable_sizing`, `motor_starting`, `transient_stability`, `optimal_power_flow`, `earth_grid`, `renewable_integration`, and `battery_storage`) without risk of cross-contamination with live production customers or real electrical systems.
 
 ---
 
-## 2. Pre-Deployment Environment Checklist
+## 2. Component Separation Matrix
 
-All production and staging environments must supply the following environment variables. In staging and production (`ENV=production` or `ENV=staging`), any missing or weak variable triggers a **Fail-Closed** process termination at startup.
-
-| Variable | Description | Security Requirement |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL async connection string | Must use `postgresql+asyncpg://`, SSL enabled in prod. |
-| `REDIS_URL` | Redis distributed state connection | Must use `rediss://` (TLS) in public production. |
-| `JWT_SECRET_KEY` | Key for signing and verifying JWTs | Minimum 32 bytes of cryptographic randomness (`secrets.token_hex(32)`). Known samples permanently banned. |
-| `ENGINEERING_SERVICE_API_KEY` | Admin / service-to-service authentication | Cryptographically strong token. Banned samples cause startup crash. |
-| `CRON_SECRET` | Secret token for Vercel/external cron jobs | Mandatory Bearer token for triggering `/api/cron/digest`. |
-| `CSRF_SECRET` | Secret for signing anti-CSRF tokens | Minimum 32 bytes random string. |
-| `DB_POOL_SIZE` | Connection pool size per worker (default: 5) | Sized with workers to prevent pool exhaustion. |
-| `DB_MAX_OVERFLOW` | Max overflow connections per worker (default: 10) | Total per worker = pool + overflow (default: 15). |
-| `DB_MAX_CONNECTIONS` | Expected database max_connections (default: 100) | Enforced via startup sizing check. |
-
-### 2.1 Database Connection Pool Budgeting Formula
-To prevent PostgreSQL connection exhaustion across multi-worker deployments (e.g. 4 Gunicorn workers):
-```
-Total Connections = Workers × (DB_POOL_SIZE + DB_MAX_OVERFLOW) <= DB_MAX_CONNECTIONS
-```
-With default settings:
-```
-4 workers × (5 pool + 10 overflow) = 60 connections <= 100 max_connections
-```
-If the calculated total exceeds `DB_MAX_CONNECTIONS`, the application logs a warning on startup.
+| Component | Production Instance | Staging Target | Proof of Strict Isolation |
+|:---|:---|:---|:---|
+| **Backend / API** | `https://ahmdelbaz28-ahmedetap-platform.hf.space` | `https://ahmdelbaz28-ahmedetap-platform-staging.hf.space` | Distinct HF Space repository, separate runtime container, distinct subdomain |
+| **Frontend / UI** | `etap-ai-work` (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`) | `etap-ai-work-staging` (`prj_XHvIpATc0SF11QBeCNPatRe5t8Af`) | Separate Vercel Project ID, distinct build environment, `VITE_API_URL` bound to Staging |
+| **Database** | Supabase PostgreSQL (`aws-1-eu-central-1.pooler.supabase.com`) | Isolated Staging DB (`ALLOW_SQLITE_IN_PROD=true` or separate PG schema) | Zero shared tables, zero customer data, zero production connection string |
+| **Authentication** | Production `JWT_SECRET_KEY` & `ENGINEERING_SERVICE_API_KEY` | Dedicated Staging signing keys | Tokens issued in Staging cannot authenticate against Production |
+| **Feature Flags** | Managed production store (`.feature-flags.json`) | Isolated Staging flag evaluation | Runtime flag toggles in Staging do not propagate to Production |
+| **Grid / SCADA** | Fail-closed production interlocks | Synthetic fixtures & mock adapters only | Zero live Modbus/OPC-UA/IEC 61850 network packets to physical devices |
 
 ---
 
-## 3. Database Migration Rollout Procedure
+## 3. Staging Infrastructure Components Status
 
-AhmedETAP enforces an automatic **Fail-Closed Startup Migration Gate** (`api/database_migrations.py`):
-1. Upon container startup during the FastAPI `lifespan`, the service automatically attempts to execute:
-   ```bash
-   alembic upgrade head
-   ```
-2. **Distributed Migration Lock**: In multi-worker / multi-replica environments, migration is coordinated via a Redis distributed lock (`LockManager.lock("alembic-migration", ttl_seconds=300, timeout_ms=120000)`).
-   > [!WARNING]
-   > Running multi-replica deployments without `REDIS_URL` falls back to uncoordinated execution and risks concurrent DDL migration collisions. Multi-replica environments MUST configure `REDIS_URL`.
-3. In production or staging, if the migration fails or database schema diverges from `head_revision`, the process exits with a non-zero exit code to prevent dirty writes or split-brain schema state.
-4. To inspect schema synchronization status at any time:
-   ```bash
-   curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/health/schema
-   ```
+### 3.1 Frontend (Vercel)
+- **Project Name:** `etap-ai-work-staging`
+- **Project ID:** `prj_XHvIpATc0SF11QBeCNPatRe5t8Af` (Created & Verified via Vercel API)
+- **Framework:** `vite`
+- **Build Command:** `bash vercel-build.sh`
+- **Output Directory:** `ui/dist`
+- **Environment Variable:** `VITE_API_URL = https://ahmdelbaz28-ahmedetap-platform-staging.hf.space` (configured across Production, Preview, and Development targets on Vercel).
 
----
+### 3.2 GitHub Actions CI/CD
+- **Workflow File:** `.github/workflows/cd-staging.yml`
+- **Trigger:** `workflow_dispatch` (with pinned `ref_sha`) or push to `staging` branch.
+- **Environment Target:** `staging`
+- **GitHub Environment Variables Set:**
+  - `VERCEL_PROJECT_ID`: `prj_XHvIpATc0SF11QBeCNPatRe5t8Af`
+  - `HF_SPACE_NAME`: `ahmdelbaz28/AhmedETAP-Platform-Staging`
+  - `HF_SPACE_URL`: `https://ahmdelbaz28-ahmedetap-platform-staging.hf.space`
+  - `STAGING_UI_URL`: `https://etap-ai-work-staging.vercel.app`
+  - `ALLOW_SQLITE_IN_PROD`: `true` (enables isolated ephemeral local DB in staging)
+- **Safety Guards:**
+  - Hard failure if `VERCEL_PROJECT_ID` matches production (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`).
+  - Hard failure if target HF Space matches production (`ahmdelbaz28/AhmedETAP-Platform`).
 
-## 4. Verification & Staging Readiness Gate
-
-Run the staging readiness verification script:
-```bash
-python scripts/verify_staging_readiness.py --url https://staging.ahmedetap.internal --api-key <KEY>
-```
-> [!NOTE]
-> When using `python scripts/verify_staging_readiness.py --local`, execution is performed within an in-process FastAPI `TestClient`. While suitable for fast CI route verification, it does NOT test real network latency, socket buffer sizes, physical PostgreSQL connection pools, real Redis cluster failovers, or TLS certificates. Full staging drills must execute against a running HTTP/TLS service endpoint.
-
----
-
-## 5. Feature Flags & Canary Rollout Strategy (Chat-First v3.0)
-   **Expected Response:**
-   ```json
-   {
-     "status": "synchronized",
-     "head_revision": "011_add_hardening_tables"
-   }
-   ```
-
----
-
-## 4. Automated Staging Verification Drill
-
-Before cutting over real traffic, execute the automated readiness drill against the staging URL:
-
-```bash
-python scripts/verify_staging_readiness.py --base-url https://staging.ahmedetap.internal --api-key "$ENGINEERING_SERVICE_API_KEY"
-```
-
-The script automatically tests and reports all 6 production gates:
-- **Gate 1**: Liveness & Readiness probes (`/health`, `/ready`, `/healthz`).
-- **Gate 2**: Database migration synchronization at Head (`/api/v1/health/schema`).
-- **Gate 3**: Security Headers & CSP (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, CSP).
-- **Gate 4**: Fail-closed authentication enforcement (rejection of unauthorized calls).
-- **Gate 5**: End-to-End Newton-Raphson study calculation with provenance validation (`POST /api/v1/studies/run`).
-- **Gate 6**: Feature Flags registry integrity.
-
----
-
-## 5. Canary Rollout Strategy (Chat-First v3.0)
-
-As documented in `AGENTS.md`, traffic to Chat-First v3.0 is managed via gradual rollout:
-
-### Phase 1: Internal Canary (Admin Only)
-- Configuration in `.feature-flags.json`:
+### 3.3 Backend (Hugging Face Spaces)
+- **Target Space Name:** `ahmdelbaz28/AhmedETAP-Platform-Staging`
+- **Current Status:** `BLOCKED — 402 PAYMENT REQUIRED`
+- **Evidence:** Querying `POST https://huggingface.co/api/repos/create` returned:
   ```json
-  "chat_first_ui": {
-    "enabled": false,
-    "allow_list": ["admin"],
-    "rollout_percentage": 0
-  }
+  {"error":"Static Spaces are free for everyone, but hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription. Subscribe at https://huggingface.co/pro"}
   ```
-- Only administrators access Chat-First; all other engineers use the classic UI.
+- **Analysis:** Hugging Face updated its terms requiring a PRO subscription ($9/mo) to spawn new Docker-based Spaces. The existing production Space (`ahmdelbaz28/AhmedETAP-Platform`) is running on `cpu-basic`, but creating an additional Docker Space under `ahmdelbaz28` requires subscription activation or manual assignment.
 
-### Phase 2: Canary 10% (General User Cohort)
-- Configuration:
-  ```json
-  "chat_first_ui": {
-    "enabled": false,
-    "allow_list": ["admin"],
-    "rollout_percentage": 10
-  }
-  ```
-- Deterministic SHA-256 bucketing routes 10% of users to Chat-First.
-- Monitor error rates, token latency, and Redis lock contention for 48 hours.
-
-### Phase 3: Full Production (100% Rollout)
-- Configuration:
-  ```json
-  "chat_first_ui": {
-    "enabled": true,
-    "rollout_percentage": 100
-  }
-  ```
-- The "استخدم الواجهة الكلاسيكية" (`onExitToLegacy`) emergency fallback button remains accessible for operational safety.
+### 3.4 Database & Persistence
+- Staging is configured to run with `ALLOW_SQLITE_IN_PROD=true` in `api/config_prod.py`, providing a completely sandboxed local SQLite database `/tmp/data/etap_staging.db`.
+- Alternatively, when a dedicated Staging PostgreSQL instance is provisioned, its connection string should be added to the GitHub `staging` environment secret `DATABASE_URL`.
 
 ---
 
-## 6. Disaster Recovery & Emergency Rollback Runbook
+## 4. Operational Safety & Rollback Procedures
 
-### Scenario A: Rollback Canary to Classic UI
-If a critical frontend or streaming regression occurs in Chat-First:
-1. Update feature flag via Admin API:
-   ```bash
-   curl -X PATCH http://localhost:8000/api/v1/feature-flags/chat_first_ui \
-     -H "Authorization: Bearer <ADMIN_TOKEN>" \
-     -H "X-CSRF-Token: <CSRF_TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{"enabled": false}'
-   ```
-2. Instantly drops all non-admin traffic back to the classic UI without container restarts.
-
-### Scenario B: Database Migration Reversal
-If a newly deployed migration causes SQL locking or incompatibility:
-```bash
-alembic downgrade -1
-```
-Verify schema health:
-```bash
-curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/health/schema
-```
-
-### Scenario C: Redis Outage / Restart
-If Redis restarts or becomes temporarily unavailable:
-1. In development, the platform continues in single-process in-memory mode.
-2. In production, `LockManager.acquire()` propagates a `ConnectionError` (or `RuntimeError`), failing closed immediately and aborting critical operations before state corruption occurs. The release mechanism safely no-ops (`release()` catches exceptions cleanly). At the API layer, the global exception handler catches unhandled exceptions and returns a sanitized HTTP 500 error envelope without exposing internal paths (`C:\`, `/home/`, `/app/`), Python tracebacks, or secret credentials (`password`, `secret`, `api_key`).
-3. Once Redis is reachable again, clients re-establish connection automatically without process restart.
+1. **Staging Rollback Trigger:**
+   If a Staging deployment experiences health probe failures, numerical errors, or unexpected crashes:
+   - Trigger `.github/workflows/cd-staging.yml` via `workflow_dispatch` with the previous known green commit SHA.
+   - Or deploy the previous pre-built deployment via the Vercel dashboard / CLI for `etap-ai-work-staging`.
+2. **Feature Flag Isolation:**
+   - All 8 candidate capabilities remain strictly `enabled: False` in the staging configuration.
+   - Any future runtime flag toggle must be performed through the Staging API administration interface and will affect only the Staging container.
 
 ---
 
-## 7. Observability & Telemetry Thresholds
+## 5. Owner Action Items
 
-AhmedETAP exposes Prometheus metrics at `/metrics` and `/prometheus/metrics`. Monitor these thresholds:
-
-| Metric | Normal Target | Alert Threshold | Action |
-|---|---|---|---|
-| `http_req_duration` (p95) | < 250ms | > 500ms for 3m | Inspect Redis connection pool and database slow query log. |
-| `http_req_failed` | < 0.1% | > 1.0% | Check application logs for 5xx unhandled exceptions. |
-| `redis_task_queue_size` | < 50 jobs | > 200 jobs | Scale out Celery / background calculation worker replicas. |
-| `token_budget_exceeded` | 0 | > 10 / hour | Investigate potential prompt injection or recursive tool loop. |
+To unblock the Backend Hugging Face Space provisioning:
+1. **Activate Hugging Face PRO Subscription:**
+   - Visit [https://huggingface.co/pro](https://huggingface.co/pro) on user account `ahmdelbaz28`.
+   - Complete PRO subscription activation.
+   - Or alternatively, create an Organization with billing enabled and transfer/create the space under the organization.
+2. **Create the Staging Space:**
+   - Navigate to [https://huggingface.co/new-space](https://huggingface.co/new-space)
+   - Space Name: `AhmedETAP-Platform-Staging`
+   - License: `MIT`
+   - SDK: `Docker` (blank Dockerfile)
+   - Visibility: `Public` (or `Private`)
+3. **Configure GitHub `staging` Secrets:**
+   - Add `HF_TOKEN` (with write permissions) and `VERCEL_TOKEN` to GitHub Environment `staging`:
+     [https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/settings/environments](https://github.com/ahmdelbaz28-ux/ETAP-AI-WORK-/settings/environments)
