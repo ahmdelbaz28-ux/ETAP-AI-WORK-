@@ -1,7 +1,7 @@
 ---
 title: "AhmedETAP Agent Reference"
 version: "2.1.0"
-last_updated: "2026-10-07"
+last_updated: "2026-10-19"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 

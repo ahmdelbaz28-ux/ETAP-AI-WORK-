@@ -1,7 +1,7 @@
 ---
 title: "AhmedETAP Changelog"
-version: "2.2.0"
-last_updated: "2026-10-14"
+version: "2.1.0"
+last_updated: "2026-10-19"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 
@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [2.2.0] - 2026-10-14
+## [2.2.0] - 2026-10-14 (Target Milestone — Unreleased Tag)
 
 ### Live ETAP Auto-Draw, SCADA Integration, Supabase Cutover & Automated E2E Verification
 
