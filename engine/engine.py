@@ -359,6 +359,35 @@ class PowerSystemEngine:
                 self.load_flow_solver = LoadFlowSolver(self.system)
             else:
                 raise RuntimeError("No system model loaded — cannot run fault analysis")
+
+        # Validate bus_id exists in system buses fail-closed before expensive matrix/sequence operations
+        if not hasattr(self.load_flow_solver, "bus_index") or bus_id not in self.load_flow_solver.bus_index:
+            valid_buses = sorted(self.load_flow_solver.bus_index.keys()) if hasattr(self.load_flow_solver, "bus_index") else []
+            raise ValueError(
+                f"bus_id {bus_id} not found in system buses {valid_buses} for fault analysis"
+            )
+        bus_index = self.load_flow_solver.bus_index[bus_id]
+
+        # Determine and validate slack bus strictly per IEC 60909 / IEEE standards
+        slack_buses = [
+            bid for bid, b in getattr(self.system, "buses", {}).items()
+            if getattr(b, "bus_type", "") == "slack"
+        ]
+        if len(slack_buses) == 0:
+            raise ValueError(
+                "No slack bus defined in system — fault analysis requires exactly one reference/slack bus per IEC 60909 / IEEE standards"
+            )
+        if len(slack_buses) > 1:
+            raise ValueError(
+                f"Multiple slack buses defined in system {slack_buses} — fault analysis requires exactly one reference/slack bus per IEC 60909 / IEEE standards"
+            )
+        slack_bid = slack_buses[0]
+        if slack_bid not in self.load_flow_solver.bus_index:
+            raise ValueError(
+                f"Slack bus '{slack_bid}' not found in load flow bus index"
+            )
+        slack_index = self.load_flow_solver.bus_index[slack_bid]
+
         # Build sequence networks with generator impedances for fault analysis
         self.system.build_sequence_networks(for_fault=True)
         ybus_pos = self.system.get_ybus(
@@ -370,16 +399,6 @@ class PowerSystemEngine:
         ybus_zero = self.system.get_ybus(
             seq="0"
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
-        # Determine slack bus index
-        slack_index = None
-        slack_bus_id = getattr(self.load_flow_solver, "slack_bus_id", None)
-        if slack_bus_id is not None and slack_bus_id in self.load_flow_solver.bus_index:
-            slack_index = self.load_flow_solver.bus_index[slack_bus_id]
-        elif hasattr(self.system, "buses"):
-            for bid, b in self.system.buses.items():
-                if getattr(b, "bus_type", "") == "slack":
-                    slack_index = self.load_flow_solver.bus_index.get(bid, 0)
-                    break
 
         base_mva = 100.0
         if getattr(self.system, "base_mva", None) is not None:
@@ -404,13 +423,7 @@ class PowerSystemEngine:
             base_kv=base_kv,
             slack_bus_index=slack_index,
         )
-        # Get bus index fail-closed
-        if bus_id not in self.load_flow_solver.bus_index:
-            valid_buses = sorted(self.load_flow_solver.bus_index.keys())
-            raise ValueError(
-                f"bus_id {bus_id} not found in system buses {valid_buses} for fault analysis"
-            )
-        bus_index = self.load_flow_solver.bus_index[bus_id]
+
         # Calculate fault
         if fault_type == "three_phase":
             result = fault_analyzer.three_phase_fault(bus_index)

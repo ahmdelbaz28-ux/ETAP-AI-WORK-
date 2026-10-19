@@ -569,6 +569,25 @@ class KeyAccessAuditor:
         return records[:limit]
 
 
+def _mask_secret_preview(raw_match: str) -> str:
+    """Mask sensitive values in match preview to prevent secret leakage in reports and logs."""
+    if not raw_match:
+        return ""
+    # Check if there is an assignment (= or :)
+    if "=" in raw_match or ":" in raw_match:
+        sep = "=" if "=" in raw_match else ":"
+        parts = raw_match.split(sep, 1)
+        prefix = parts[0] + sep
+        val = parts[1].strip(" '\"\t\r\n")
+        masked_val = val[:3] + "*" * (len(val) - 6) + val[-3:] if len(val) > 8 else "***"
+        return f"{prefix} {masked_val}"[:60]
+    # For bare strings (e.g. private keys or bare tokens)
+    s = raw_match.strip()
+    if len(s) > 8:
+        return (s[:4] + "*" * (len(s) - 8) + s[-4:])[:60]
+    return "***"
+
+
 class EnvironmentValidator:
     """
     Validates environment configuration for security best practices.
@@ -656,9 +675,42 @@ class EnvironmentValidator:
     def check_for_hardcoded_secrets(  # NOSONAR cognitive complexity — pre-existing on main; refactoring would require extracting pattern-matching and file-walking helpers (scheduled for follow-up)
         self, file_patterns: list[str] | None = None
     ) -> list[dict]:
-        """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.)."""
+        """Scan source files for hardcoded secret patterns (sk-, hf_, ghp_, etc.).
+
+        LIMITATIONS & OPERATIONAL BOUNDARIES:
+        This scanner performs heuristic static pattern-matching on common high-entropy token formats.
+        A clean scan result with zero findings indicates that no configured regex patterns matched,
+        but DOES NOT prove the complete absence of secrets. Obfuscated, encrypted, dynamically
+        constructed, custom-format, or unpatterned credentials cannot be detected by static regex
+        alone. Dedicated secret-scanning tools (e.g., git-secrets, TruffleHog, Gitleaks) and rigorous
+        code reviews remain mandatory.
+        """
         if file_patterns is None:
-            file_patterns = ["*.py", "*.ts", "*.js", "*.tsx", "*.jsx", "*.yaml", "*.yml"]
+            file_patterns = [
+                "*.py",
+                "*.ts",
+                "*.js",
+                "*.tsx",
+                "*.jsx",
+                "*.yaml",
+                "*.yml",
+                "*.json",
+                "*.toml",
+                "*.ini",
+                "*.cfg",
+                "*.conf",
+                "*.env*",
+                "*.sh",
+                "*.bash",
+                "*.ps1",
+                "*.bat",
+                "*.cmd",
+                "Dockerfile*",
+                "*.dockerfile",
+                "*.tf",
+                "*.tfvars",
+                "*.lock",
+            ]
         patterns = [
             (r'(?i)(api[_-]?key\s*=\s*["\']?(sk-[a-zA-Z0-9]{20,}))', "API Key"),
             (r'(?i)(secret\s*=\s*["\'][a-zA-Z0-9]{20,}["\'])', "Secret"),
@@ -700,7 +752,7 @@ class EnvironmentValidator:
                                     "file": str(rel_fpath),
                                     "line": content[: match.start()].count("\n") + 1,
                                     "type": label,
-                                    "match_preview": match.group(0)[:60],
+                                    "match_preview": _mask_secret_preview(match.group(0)),
                                 },
                             )
                 except (OSError, UnicodeDecodeError):
@@ -709,7 +761,9 @@ class EnvironmentValidator:
         if findings:
             logger.warning("Found %d potential hardcoded secrets in codebase", len(findings))
         else:
-            logger.info("No hardcoded secrets detected")
+            logger.info(
+                "No hardcoded secrets detected by pattern scanner (Note: a clean scan does not prove zero secrets in non-standard formats)"
+            )
         return findings
 
     def generate_env_template(self, output_path: Path | None = None) -> str:

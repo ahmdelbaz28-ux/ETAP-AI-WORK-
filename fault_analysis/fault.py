@@ -1,4 +1,5 @@
 import logging
+import math
 
 import numpy as np
 
@@ -54,10 +55,16 @@ class FaultAnalyzer:
 
         self.base_mva = base_mva
         self.base_kv = base_kv
-        self.slack_bus_index = slack_bus_index
         self.c_factor = float(c_factor)
 
         self.n = ybus_pos.shape[0]
+
+        if slack_bus_index is not None:
+            if not isinstance(slack_bus_index, int) or not (0 <= slack_bus_index < self.n):
+                raise ValueError(
+                    f"Invalid slack_bus_index {slack_bus_index}: must satisfy 0 <= slack_bus_index < {self.n}"
+                )
+        self.slack_bus_index = slack_bus_index
 
         if HAS_SCIPY and issparse(ybus_pos):
             try:
@@ -161,6 +168,12 @@ class FaultAnalyzer:
         else:
             return complex(self.Zbus_zero[bus_index, bus_index])
 
+    def _validate_bus_index(self, bus_index: int) -> None:
+        if not isinstance(bus_index, int) or not (0 <= bus_index < self.n):
+            raise ValueError(
+                f"Invalid target bus_index {bus_index}: must be an integer satisfying 0 <= bus_index < {self.n}"
+            )
+
     def three_phase_fault(self, bus_index):
         """
         Calculate three-phase fault current at a given bus using Thevenin method.
@@ -175,6 +188,7 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit, and optionally voltage.
         """
+        self._validate_bus_index(bus_index)
         vpre = complex(
             self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -184,6 +198,8 @@ class FaultAnalyzer:
         if abs(zth) < 1e-12:
             raise ValueError(f"Thevenin positive-sequence impedance at bus {bus_index} is zero (|Zth| < 1e-12); fault current is undefined.")
         if_ = vpre / zth
+        if not math.isfinite(float(np.abs(if_))):
+            raise ValueError(f"Calculated fault current is non-finite at bus index {bus_index}")
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),
@@ -203,6 +219,7 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phase.
         """
+        self._validate_bus_index(bus_index)
         vpre = complex(
             self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -213,6 +230,8 @@ class FaultAnalyzer:
         if abs(denominator) < 1e-12:
             raise ValueError(f"Zero sequence impedance denominator (Z1+Z2+Z0) at bus {bus_index}; SLG fault current is undefined.")
         if_ = 3 * vpre / denominator
+        if not math.isfinite(float(np.abs(if_))):
+            raise ValueError(f"Calculated fault current is non-finite at bus index {bus_index}")
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),
@@ -232,6 +251,7 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault current (complex) in per-unit for the faulted phases.
         """
+        self._validate_bus_index(bus_index)
         vpre = complex(
             self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -241,6 +261,8 @@ class FaultAnalyzer:
         if abs(denominator) < 1e-12:
             raise ValueError(f"Zero sequence impedance denominator (Z1+Z2) at bus {bus_index}; LL fault current is undefined.")
         if_ = vpre * np.sqrt(3) / denominator
+        if not math.isfinite(float(np.abs(if_))):
+            raise ValueError(f"Calculated fault current is non-finite at bus index {bus_index}")
         return {
             "fault_current": if_,
             "fault_current_magnitude": np.abs(if_),
@@ -260,6 +282,7 @@ class FaultAnalyzer:
         Returns:
         dict: Contains fault currents (complex) in per-unit.
         """
+        self._validate_bus_index(bus_index)
         vpre = complex(
             self.c_factor, 0.0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
@@ -289,6 +312,8 @@ class FaultAnalyzer:
         ic = (
             a * if1 + a2 * if2 + if0
         )  # NOSONAR physics/engineering notation (I=current, V=voltage, P/Q=power, Ybus/Zbus matrices); snake_case would harm domain readability
+        if not math.isfinite(float(np.abs(ib))) or not math.isfinite(float(np.abs(ic))):
+            raise ValueError(f"Calculated fault current is non-finite at bus index {bus_index}")
         return {
             "fault_current": ia,
             "fault_current_a": ia,

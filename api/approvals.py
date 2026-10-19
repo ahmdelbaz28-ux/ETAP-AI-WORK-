@@ -39,7 +39,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import JSON, DateTime, Index, String, func, select
+from sqlalchemy import JSON, DateTime, Index, String, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -120,9 +120,56 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+def normalize_payload_dict(val: Any) -> Any:
+    """Recursively normalize dictionaries and objects into canonical python data types.
+
+    Sorts dictionary keys and excludes purely ephemeral transit fields (e.g., trace_id,
+    request_id, execution_id, approval_id) so material engineering payloads can be
+    deterministically hashed and verified.
+    """
+    if hasattr(val, "model_dump") and callable(val.model_dump):
+        return normalize_payload_dict(val.model_dump())
+    if hasattr(val, "dict") and callable(val.dict):
+        return normalize_payload_dict(val.dict())
+    if isinstance(val, dict):
+        _ephemeral_keys = {
+            "trace_id",
+            "request_id",
+            "execution_id",
+            "created_at",
+            "timestamp",
+            "approval_id",
+            "approval_context",
+            "idempotency_key",
+        }
+        return {
+            k: normalize_payload_dict(v)
+            for k, v in sorted(val.items())
+            if k not in _ephemeral_keys
+        }
+    if isinstance(val, (list, tuple)):
+        return [normalize_payload_dict(v) for v in val]
+    return val
+
+
+def build_canonical_execution_payload(tool: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    """Define one canonical deterministic representation of the complete material execution request.
+
+    Includes every field that can materially change the action or engineering result:
+    tool capability, system/model, parameters, target identifiers, and execution options.
+    """
+    norm_args = normalize_payload_dict(args) if isinstance(args, dict) else {}
+    canonical_tool = str(tool).lower().strip()
+    return {
+        "tool": canonical_tool,
+        "args": norm_args,
+    }
+
+
 def compute_args_hash(args: Dict[str, Any]) -> str:
     """Stable SHA-256 over canonical JSON of the tool arguments."""
-    canonical = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
+    norm = normalize_payload_dict(args) if isinstance(args, dict) else args
+    canonical = json.dumps(norm, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -1088,6 +1135,123 @@ async def get_persisted_pending_action(
             "Failed to lookup persisted pending action %s: %s", action_id, exc
         )
         return None
+
+
+
+async def transition_pending_action_to_executing(
+    action_id: str,
+    expected_args_hash: str,
+    db: Optional[AsyncSession] = None,
+) -> tuple[bool, str, Optional[PendingAction]]:
+    """Atomically transition a PendingAction from 'approved' to 'executing'.
+
+    Guarded transition ensures concurrent requests cannot double-consume the approval.
+    Returns (success, error_code, record).
+    """
+    if not action_id or not isinstance(action_id, str):
+        return False, "INVALID_APPROVAL_ID", None
+    action_id = action_id.strip()
+
+    async def _do_transition(session: AsyncSession) -> tuple[bool, str, Optional[PendingAction]]:
+        # 1. Fetch record first to perform pre-flight checks (tenant, expiry, maker-checker)
+        stmt_select = select(PendingAction).where(PendingAction.id == action_id)
+        res = await session.execute(stmt_select)
+        record = res.scalar_one_or_none()
+        if record is None:
+            return False, "APPROVAL_NOT_FOUND", None
+
+        # Check status
+        if record.status in (_STATUS_EXECUTING, _STATUS_COMPLETED, _STATUS_FAILED):
+            return False, "APPROVAL_ALREADY_CONSUMED", record
+        if record.status != _STATUS_APPROVED:
+            return False, "APPROVAL_NOT_APPROVED", record
+
+        # Check hash
+        if record.args_hash != expected_args_hash:
+            return False, "PAYLOAD_MISMATCH", record
+
+        # Check expiry
+        now = _utc_now()
+        exp = record.expires_at
+        if exp is not None and getattr(exp, "tzinfo", None) is None:
+            exp = exp.replace(tzinfo=UTC)
+        if exp is not None and exp <= now:
+            return False, "APPROVAL_EXPIRED", record
+
+        # 2. Atomic guarded update: approved -> executing
+        stmt_update = (
+            update(PendingAction)
+            .where(
+                PendingAction.id == action_id,
+                PendingAction.status == _STATUS_APPROVED,
+                PendingAction.args_hash == expected_args_hash,
+            )
+            .values(status=_STATUS_EXECUTING)
+        )
+        up_res = await session.execute(stmt_update)
+        if up_res.rowcount == 0:
+            await session.rollback()
+            return False, "APPROVAL_ALREADY_CONSUMED", record
+
+        await session.commit()
+        await session.refresh(record)
+        return True, "", record
+
+    if db is not None:
+        return await _do_transition(db)
+
+    try:
+        from api.database import async_session
+
+        async with async_session() as session:
+            return await _do_transition(session)
+    except Exception as exc:
+        import logging
+
+        logging.getLogger("api.approvals").warning(
+            "Failed atomic transition of approval %s: %s", action_id, exc
+        )
+        return False, "DATABASE_ERROR", None
+
+
+async def transition_pending_action_final(
+    action_id: str,
+    final_status: str,  # 'completed' or 'failed'
+    db: Optional[AsyncSession] = None,
+) -> bool:
+    """Transition PendingAction from 'executing' to 'completed' or 'failed'."""
+    if not action_id or not isinstance(action_id, str):
+        return False
+    action_id = action_id.strip()
+
+    async def _do_final(session: AsyncSession) -> bool:
+        stmt = (
+            update(PendingAction)
+            .where(
+                PendingAction.id == action_id,
+                PendingAction.status.in_((_STATUS_EXECUTING, _STATUS_APPROVED)),
+            )
+            .values(status=final_status, resolved_at=_utc_now())
+        )
+        res = await session.execute(stmt)
+        await session.commit()
+        return res.rowcount > 0
+
+    if db is not None:
+        return await _do_final(db)
+
+    try:
+        from api.database import async_session
+
+        async with async_session() as session:
+            return await _do_final(session)
+    except Exception as exc:
+        import logging
+
+        logging.getLogger("api.approvals").warning(
+            "Failed final transition of approval %s: %s", action_id, exc
+        )
+        return False
 
 
 

@@ -450,6 +450,25 @@ class TrustedCalculatorRegistry:
     _registered_tokens: set[str] = set()
 
     @classmethod
+    def _is_caller_authorized(cls) -> bool:
+        import inspect
+
+        stack = inspect.stack()
+        if len(stack) > 2:
+            caller_frame = stack[2]
+            caller_module = caller_frame.frame.f_globals.get("__name__", "")
+            caller_filename = caller_frame.filename.replace("\\", "/")
+            if (
+                caller_module.startswith("agents.ahmed_etap_orchestrator")
+                or caller_module.startswith("engine.")
+                or "tests/" in caller_filename
+                or "test_" in caller_filename
+                or "conftest" in caller_filename
+            ):
+                return True
+        return False
+
+    @classmethod
     def _compute_signature(
         cls,
         token: str,
@@ -463,15 +482,20 @@ class TrustedCalculatorRegistry:
 
     @classmethod
     def register(cls, calc: TrustedCalculator) -> TrustedCalculator:
-        if isinstance(calc, TrustedCalculator):
-            if not getattr(calc, "_token", None):
-                token = uuid.uuid4().hex
-                sig = cls._compute_signature(
-                    token, calc.calculator_id, calc.study_type, calc.quantity_kind, calc.unit
-                )
-                calc._token = token
-                calc._signature = sig
-            cls._registered_tokens.add(calc._token)
+        if not isinstance(calc, TrustedCalculator):
+            raise TypeError("Only TrustedCalculator instances can be registered")
+        if not cls._is_caller_authorized():
+            raise PermissionError(
+                "Direct external registration of trusted calculators is strictly prohibited."
+            )
+        if not getattr(calc, "_token", None):
+            token = uuid.uuid4().hex
+            sig = cls._compute_signature(
+                token, calc.calculator_id, calc.study_type, calc.quantity_kind, calc.unit
+            )
+            calc._token = token
+            calc._signature = sig
+        cls._registered_tokens.add(calc._token)
         return calc
 
     @classmethod
@@ -500,6 +524,10 @@ class TrustedCalculatorRegistry:
         unit: str,
         fn: Callable[[], float],
     ) -> TrustedCalculator:
+        if not cls._is_caller_authorized():
+            raise PermissionError(
+                "Direct external creation of trusted calculators is strictly prohibited."
+            )
         token = uuid.uuid4().hex
         sig = cls._compute_signature(token, calculator_id, study_type, quantity_kind, unit)
         calc = TrustedCalculator(
@@ -544,6 +572,7 @@ class MathGuard:
         quantity_kind: str,
         claim_unit: str,
         expected_unit: str | None = None,
+        study_type: str | None = None,
     ) -> MathGuardResult:
         """Validate a single numerical claim.
 
@@ -592,6 +621,22 @@ class MathGuard:
                 units_message=units_msg,
                 is_independent=False,
             )
+
+        # Study type binding check
+        calc_study = getattr(recompute, "study_type", None)
+        if calc_study and study_type:
+            from agents.ahmed_etap_orchestrator import canonicalize_study_type
+
+            if canonicalize_study_type(calc_study) != canonicalize_study_type(study_type):
+                return MathGuardResult(
+                    passed=False,
+                    reason=f"STUDY_TYPE_MISMATCH: Calculator is bound to study '{calc_study}' but verified study is '{study_type}'",
+                    claim_value=claim_value,
+                    recomputed_value=None,
+                    units_ok=False,
+                    units_message=f"study type mismatch ({calc_study} != {study_type})",
+                    is_independent=True,
+                )
 
         # Quantity and unit binding check
         calc_quantity = getattr(recompute, "quantity_kind", None)
@@ -1110,6 +1155,7 @@ class AhmedETAPOrchestrator:
                 quantity_kind=quantity_kind,
                 claim_unit=claim_unit,
                 expected_unit=expected_unit,
+                study_type=canonical,
             )
             last_math_guard = mg
             # Estimate tokens for the agent's data (truncated to first 400 chars
@@ -1454,13 +1500,9 @@ class AhmedETAPSkillAgent(BaseAgent):
             lead_result.append(res)
             return res
 
-        # Independent recompute function — MUST be resolved internally from domain engine registry,
-        # or accept an authenticated TrustedCalculator instance from TrustedCalculatorRegistry.
+        # Independent recompute function — MUST be resolved internally from domain engine registry.
+        # User-controlled recompute_fn or reviewer callbacks MUST NOT override the trusted calculation path.
         recompute_fn = self._build_domain_recompute(study_type, params, project)
-        if recompute_fn is None and "recompute_fn" in params:
-            candidate = params["recompute_fn"]
-            if TrustedCalculatorRegistry.is_trusted(candidate):
-                recompute_fn = candidate
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
@@ -1473,7 +1515,7 @@ class AhmedETAPSkillAgent(BaseAgent):
             quantity_kind=str(params.get("quantity_kind", "voltage")),
             expected_unit=params.get("expected_unit"),
             budget_tokens=int(params.get("budget_tokens", 8_000)),
-            reviewer_fn=params.get("reviewer_fn"),
+            reviewer_fn=None,  # Callers cannot supply reviewer callback to override verification
         )
 
         elapsed = (datetime.now(UTC) - start).total_seconds()
@@ -1615,29 +1657,51 @@ class AhmedETAPSkillAgent(BaseAgent):
                 except (ValueError, TypeError):
                     pass
 
-        # 4. Load Flow / Power Flow Reference Voltage: V_ref (nominal / slack bus reference in pu)
+        # 4. Load Flow / Power Flow: genuinely solve the power flow on the system model
         if canonical in ("load_flow", "power_flow"):
-            raw_v = (
-                lead_params.get("v_slack_pu")
-                or lead_params.get("slack_voltage_pu")
-                or lead_params.get("v_ref_pu")
-                or lead_params.get("voltage_pu")
-            )
-            if raw_v is not None:
+            system_data = lead_params.get("system") or getattr(project, "system", None)
+            target_bus_id = lead_params.get("bus_id") or lead_params.get("target_bus")
+            if system_data is not None:
                 try:
-                    v_pu = float(raw_v)
-                    if 0.5 <= v_pu <= 1.5 and math.isfinite(v_pu):
+                    import numpy as np
+
+                    from core_model.system import System
+                    from load_flow.load_flow import LoadFlowSolver
+
+                    sys_obj = None
+                    if isinstance(system_data, System):
+                        sys_obj = system_data
+                    elif hasattr(system_data, "model_dump"):
+                        from core_model.builder import build_system_from_spec
+
+                        sys_obj = build_system_from_spec(system_data.model_dump())
+                    elif isinstance(system_data, dict):
+                        from core_model.builder import build_system_from_spec
+
+                        sys_obj = build_system_from_spec(system_data)
+
+                    if sys_obj is not None and getattr(sys_obj, "buses", None):
+                        def _solve_lf_voltage() -> float:
+                            solver = LoadFlowSolver(sys_obj)
+                            converged = solver.solve()
+                            if not converged:
+                                raise ValueError("Independent load flow failed to converge")
+                            if target_bus_id is not None and target_bus_id in solver.bus_index:
+                                idx = solver.bus_index[target_bus_id]
+                                return float(abs(solver.V[idx]))
+                            return float(np.min(np.abs(solver.V)))
+
                         return TrustedCalculatorRegistry.create(
-                            calculator_id=f"lf_vref_{canonical}",
+                            calculator_id=f"lf_solver_{canonical}",
                             study_type=canonical,
                             quantity_kind="voltage",
                             unit="pu",
-                            fn=lambda: v_pu,
+                            fn=_solve_lf_voltage,
                         )
-                except (ValueError, TypeError):
+                except Exception:
                     pass
-
-        return None
+            # Independent verification unavailable for load flow without system model — fail closed
+            return None
 
     @staticmethod
     def _extract_result_quantity(data: dict[str, Any], quantity_kind: str) -> Optional[float]:

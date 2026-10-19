@@ -372,15 +372,31 @@ class ShortCircuitAgent(BaseAgent):
             base_mva = system_data.base_mva
             base_kv = task.parameters.get("base_kv", 115.0)
 
-            # Determine slack bus index
+            # Determine bus indexing and slack bus index strictly matching sorted bus index map
+            bus_keys = sorted(system_data.buses.keys()) if hasattr(system_data, "buses") else []
+            bus_index_map = {b_id: idx for idx, b_id in enumerate(bus_keys)}
+
             slack_index = None
             if hasattr(system_data, "buses"):
-                for idx, (bid, b) in enumerate(system_data.buses.items()):
-                    if getattr(b, "bus_type", "") == "slack":
-                        slack_index = idx
-                        break
+                slack_buses = [
+                    bid for bid in bus_keys
+                    if getattr(system_data.buses[bid], "bus_type", "") == "slack"
+                ]
+                if len(slack_buses) == 1:
+                    slack_index = bus_index_map[slack_buses[0]]
+                elif len(slack_buses) > 1:
+                    raise ValueError(
+                        f"Multiple slack buses found in system ({slack_buses}); exactly one reference bus is required for short-circuit analysis."
+                    )
+
             if slack_index is None:
-                slack_index = task.parameters.get("slack_bus_index")
+                param_slack = task.parameters.get("slack_bus_index")
+                if param_slack is not None and 0 <= int(param_slack) < len(bus_keys):
+                    slack_index = int(param_slack)
+                else:
+                    raise ValueError(
+                        "No slack bus found in system and no valid slack_bus_index provided; short-circuit analysis requires a reference bus."
+                    )
 
             if self._analyzer_factory is not None:
                 analyzer = self._analyzer_factory(
@@ -401,15 +417,15 @@ class ShortCircuitAgent(BaseAgent):
                 )
 
             # Execute all fault types at specified buses
-            bus_keys = list(system_data.buses.keys())
-            bus_index_map = {b_id: idx for idx, b_id in enumerate(bus_keys)}
             fault_buses = task.parameters.get("fault_buses", bus_keys)
             fault_results = {}
 
             for bus_id in fault_buses:
                 bus_idx = bus_index_map.get(bus_id)
                 if bus_idx is None:
-                    continue
+                    raise ValueError(
+                        f"Fault bus '{bus_id}' not found in system buses ({bus_keys})"
+                    )
 
                 faults = {
                     "three_phase": analyzer.three_phase_fault(bus_idx),

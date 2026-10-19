@@ -644,47 +644,67 @@ async def _verify_server_approval(
     # 8. Material request payload binding
     stored_hash = getattr(server_record, "args_hash", None)
     stored_args = getattr(server_record, "args", None)
-    if stored_hash or stored_args is not None:
-        def _normalize_obj(val: Any) -> Any:
-            if hasattr(val, "model_dump"):
-                return _normalize_obj(val.model_dump())
-            elif hasattr(val, "dict"):
-                return _normalize_obj(val.dict())
-            elif isinstance(val, dict):
-                return {k: _normalize_obj(v) for k, v in val.items()}
-            elif isinstance(val, list):
-                return [_normalize_obj(v) for v in val]
-            return val
+    if not stored_hash or not isinstance(stored_hash, str) or not stored_hash.strip():
+        return (
+            False,
+            "UNVERIFIABLE_APPROVAL",
+            f"Approval record '{approval_id}' lacks authoritative SHA-256 args_hash binding.",
+        )
+    if stored_args is None or not isinstance(stored_args, dict):
+        return (
+            False,
+            "MISSING_ORIGINAL_ARGUMENTS",
+            f"Approval record '{approval_id}' lacks original material arguments.",
+        )
 
-        raw_input = request.input or {}
-        req_input = _normalize_obj(raw_input)
-        req_params = _normalize_obj(request.get_parameters() or {})
-        payload_matched = False
-        if stored_hash:
-            if compute_args_hash(req_input) == stored_hash or compute_args_hash(req_params) == stored_hash:
-                payload_matched = True
-        if not payload_matched and isinstance(stored_args, dict):
-            if stored_args in (req_input, req_params):
-                payload_matched = True
-            elif stored_args.get("parameters") == req_params:
-                payload_matched = True
-            elif stored_args.get("input") == req_input:
-                payload_matched = True
-            elif stored_args.get("system") and isinstance(req_input, dict) and req_input.get("system"):
-                if stored_args.get("system") == req_input.get("system"):
-                    payload_matched = True
+    from api.approvals import (
+        normalize_payload_dict,
+        transition_pending_action_to_executing,
+    )
 
-        if not payload_matched:
-            return (
-                False,
-                "PAYLOAD_MISMATCH",
-                f"Execution payload does not match approved action arguments (hash/content binding mismatch for approval '{approval_id}')",
-            )
+    # Verify that stored_hash is integral to stored_args
+    expected_record_hash = compute_args_hash(stored_args)
+    if stored_hash != expected_record_hash:
+        return (
+            False,
+            "CORRUPTED_APPROVAL_RECORD",
+            f"Approval record '{approval_id}' args_hash does not match hash of stored arguments.",
+        )
+
+    raw_input = request.input or {}
+    norm_input = normalize_payload_dict(raw_input)
+    req_hash = compute_args_hash(norm_input)
+
+    # EXACT payload match required: matching only system, parameters, or partial fragments is strictly forbidden!
+    if req_hash != stored_hash:
+        return (
+            False,
+            "PAYLOAD_MISMATCH",
+            f"Execution payload does not match approved action arguments (hash mismatch for approval '{approval_id}': expected '{stored_hash}', got '{req_hash}')",
+        )
+
+    # 9. Atomic guarded transition: approved -> executing
+    trans_ok, trans_err, updated_record = await transition_pending_action_to_executing(
+        approval_id, stored_hash
+    )
+    if not trans_ok:
+        return (
+            False,
+            trans_err,
+            f"Failed to atomically acquire approval record '{approval_id}': {trans_err}",
+        )
+    if updated_record is not None:
+        server_record = updated_record
+
+    # 10. Immutable snapshot: execute the validated canonical snapshot, not a separately supplied mutable request!
+    import copy
+    request.input = copy.deepcopy(stored_args)
 
     res = (True, "", "")
     try:
         object.__setattr__(request, "_verified_approval_status", res)
         object.__setattr__(request, "_verified_approval_record", server_record)
+        object.__setattr__(request, "_verified_approval_id", approval_id)
     except Exception:
         pass
     return res
@@ -2509,7 +2529,21 @@ class ExecutionOrchestrator:
             except Exception as store_err:
                 logger.debug("Failed to store canonical result in semantic cache: %s", store_err)
 
-        # ── 18. Emit Execution Events ────────────────────────────────────────
+        # ── 18. Transition Approval State to Final ───────────────────────────
+        verified_app_id = getattr(request, "_verified_approval_id", None)
+        if verified_app_id:
+            try:
+                from api.approvals import transition_pending_action_final
+
+                await transition_pending_action_final(
+                    verified_app_id, "completed" if success else "failed"
+                )
+            except Exception as final_err:
+                logger.warning(
+                    "Failed to record final status for approval %s: %s", verified_app_id, final_err
+                )
+
+        # ── 18b. Emit Execution Events ───────────────────────────────────────
         self._emit_event("execution_completed", result)
 
         # ── 19. Return Canonical Result ──────────────────────────────────────

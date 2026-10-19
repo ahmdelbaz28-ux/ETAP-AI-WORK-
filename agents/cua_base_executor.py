@@ -1007,7 +1007,35 @@ class BaseCUAExecutor(abc.ABC):
                             vision_source=analysis.get("source"),
                         )
 
-                    # (b) Build confirmation payload and invoke single confirmation callback
+                    # Enforce distinct dual confirmation; reject single self-confirmation before action callback
+                    if safety_check.requires_dual_confirmation and single_operator_mode:
+                        if safety_check.state_snapshot_id:
+                            with contextlib.suppress(Exception):
+                                life_safety_guard.rollback(
+                                    snapshot_id=safety_check.state_snapshot_id,
+                                    reason="dual_confirmation_required_in_single_operator_mode",
+                                )
+                        step_result = CUAStepResult(
+                            step_number=step_num,
+                            action=action,
+                            success=False,
+                            screenshot_before=screenshot_before,
+                            gemini_analysis=analysis,
+                            error="DUAL CONFIRMATION REQUIRED: Action requires two distinct operators. Single-operator self-confirmation is rejected.",
+                            duration_ms=int((time.monotonic() - step_start) * 1000),
+                        )
+                        steps.append(step_result)
+                        return CUAExecutionResult(
+                            success=False,
+                            steps=steps,
+                            aborted_reason="Dual confirmation required: action cannot be self-confirmed by a single operator (fail-closed)",
+                            total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                            execution_id=exec_id,
+                            resumed_from_step=resume_from,
+                            vision_source=analysis.get("source"),
+                        )
+
+                    # (b) Build confirmation payload and invoke confirmation callback
                     val_raw = getattr(action, "value", None)
                     if val_raw is None and action.text:
                         val_raw = action.text
@@ -1023,6 +1051,7 @@ class BaseCUAExecutor(abc.ABC):
                         override_reason=getattr(action, "override_reason", None),
                         overridden=bool(getattr(action, "overridden", False)),
                         decided_by_user_id=decided_user,
+                        requires_dual_confirmation=safety_check.requires_dual_confirmation,
                     )
 
                     approved = on_confirmation_request(confirm_payload)
@@ -1059,6 +1088,41 @@ class BaseCUAExecutor(abc.ABC):
                             resumed_from_step=resume_from,
                             vision_source=analysis.get("source"),
                         )
+
+                    if safety_check.requires_dual_confirmation:
+                        confirmations = confirm_payload.get("confirmations") or []
+                        approvers = confirm_payload.get("approvers") or []
+                        if isinstance(approved, dict):
+                            confirmations = approved.get("confirmations") or confirmations
+                            approvers = approved.get("approvers") or approvers
+
+                        distinct_approvers = {str(u) for u in (list(confirmations) + list(approvers)) if u}
+                        if len(distinct_approvers) < 2:
+                            if safety_check.state_snapshot_id:
+                                with contextlib.suppress(Exception):
+                                    life_safety_guard.rollback(
+                                        snapshot_id=safety_check.state_snapshot_id,
+                                        reason="insufficient_confirmations_for_dual_confirmation",
+                                    )
+                            step_result = CUAStepResult(
+                                step_number=step_num,
+                                action=action,
+                                success=False,
+                                screenshot_before=screenshot_before,
+                                gemini_analysis=analysis,
+                                error="DUAL CONFIRMATION VIOLATION: Two distinct approvers required (fail-closed)",
+                                duration_ms=int((time.monotonic() - step_start) * 1000),
+                            )
+                            steps.append(step_result)
+                            return CUAExecutionResult(
+                                success=False,
+                                steps=steps,
+                                aborted_reason="Dual confirmation violation: two distinct approvers required (fail-closed)",
+                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                                execution_id=exec_id,
+                                resumed_from_step=resume_from,
+                                vision_source=analysis.get("source"),
+                            )
 
                     # (c) Suggestion-override validation
                     is_overridden = bool(
@@ -1121,7 +1185,8 @@ class BaseCUAExecutor(abc.ABC):
                         "overridden": bool(is_overridden),
                         "override_reason": str(override_reason).strip() if (is_overridden and override_reason) else None,
                         "decided_by_user_id": confirm_payload.get("decided_by_user_id") or decided_user,
-                        "self_approved": True,
+                        "self_approved": not safety_check.requires_dual_confirmation,
+                        "dual_confirmed": bool(safety_check.requires_dual_confirmation),
                     }
 
                 # STEP 9: execute the action (passed safety check & validation)
