@@ -43,7 +43,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # SECURITY R7-C2: pinned to commit SHA of tag v3 — resolves S7637
@@ -90,7 +90,7 @@ jobs:
       pull-requests: write   # Required for commenting terraform plan on PRs
       id-token: write        # Required for OIDC auth to Azure
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Check Azure Credentials
         id: check-azure
