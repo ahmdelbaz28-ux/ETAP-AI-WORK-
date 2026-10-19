@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-19T08:16:31.680200+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-19T10:36:44.669004+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -11,11 +11,11 @@
 |:---|---:|
 | Python | Packages | 41 |
 | Python | Files | 400 |
-| Python | Classes | 976 |
-| Python | Functions | 883 |
+| Python | Classes | 978 |
+| Python | Functions | 884 |
 | UI | Files (TSX/TS) | 240 |
 | Test | Files | 303 |
-| Total | Tests | 4209 |
+| Total | Tests | 4222 |
 | Help | Topics | 0 |
 | Context | Mappings | 0 |
 | Environment | Variables | 459 |
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC 60255, IEEE 242, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -58,7 +58,7 @@
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
 | **Scada** | `scada_agent.py` | IEC 61850 | AhmedETAP - SCADA Integration Agent ======================== |
-| **Stability** | `stability_agent.py` | IEEE 399, IEEE 1584-2018 | AhmedETAP - Stability Analysis Agent ======================= |
+| **Stability** | `stability_agent.py` | IEEE 1584-2018, IEEE 399 | AhmedETAP - Stability Analysis Agent ======================= |
 | **Weather** | `weather_agent.py` | — | AhmedETAP - Weather Impact Analysis Agent ================== |
 | **Workflow.Py** | `workflow.py` | — | AhmedETAP - Multi-Agent Workflow Engine ==================== |
 
@@ -596,7 +596,7 @@ Total: **459** variables
 
 #### 📄 `agents/__init__.py` _4.7 KB_
 
-#### 📄 `agents/ahmed_etap_orchestrator.py` _71.3 KB_
+#### 📄 `agents/ahmed_etap_orchestrator.py` _77.2 KB_
 > agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestration Skill
 ======================================================================
 
@@ -609,27 +609,29 @@ Runtim
   - Methods: `add_task()`, `mark_running()`, `mark_completed()`, `mark_reviewed()`, `add_error()`, `compress_if_needed()`, `to_dict()`
 - **Class** `TokenBudget` (line 323)
   - Methods: `remaining()`, `fraction_spent()`, `compression_count()`, `record_spend()`, `estimate_and_record()`, `record_compression()`, `to_dict()`
-- **Class** `TrustedCalculator` (line 412)
-- **Class** `TrustedCalculatorRegistry` (line 447)
+- **Class** `TrustedCalculator` (line 422)
+  - Methods: `calculator_id()`, `study_type()`, `quantity_kind()`, `unit()`, `is_independent()`
+- **Class** `_CalculatorRegistration` (line 508)
+- **Class** `TrustedCalculatorRegistry` (line 519)
   - Methods: `register()`, `is_trusted()`, `create()`
-- **Class** `MathGuard` (line 546)
+- **Class** `MathGuard` (line 668)
   - Methods: `validate()`
-- **Class** `MathGuardResult` (line 751)
+- **Class** `MathGuardResult` (line 898)
   - Methods: `to_dict()`
-- **Class** `PeerReview` (line 797)
+- **Class** `PeerReview` (line 944)
   - Methods: `reviewer_for()`, `review()`
-- **Class** `PeerReviewResult` (line 939)
+- **Class** `PeerReviewResult` (line 1086)
   - Methods: `to_dict()`
-- **Class** `OrchestrationVerdict` (line 959)
-- **Class** `OrchestrationResult` (line 970)
+- **Class** `OrchestrationVerdict` (line 1106)
+- **Class** `OrchestrationResult` (line 1117)
   - Methods: `to_dict()`
-- **Class** `AhmedETAPOrchestrator` (line 999)
+- **Class** `AhmedETAPOrchestrator` (line 1146)
   - Methods: `run_study()`
-- **Class** `AhmedETAPSkillAgent` (line 1265)
+- **Class** `AhmedETAPSkillAgent` (line 1412)
   - Methods: `execute()`, `get_agent_info()`
 - **def** `canonicalize_study_type()` (line 89)
-- **def** `load_skill_text()` (line 1773)
-- **def** `load_reference_text()` (line 1786)
+- **def** `load_skill_text()` (line 1942)
+- **def** `load_reference_text()` (line 1955)
 
 #### 📄 `agents/anomaly_agent.py` _27.7 KB_
 > AhmedETAP - Anomaly Detection Agent
@@ -703,25 +705,28 @@ Protection system coordination analysis per IE
 - **Class** `CoordinationAgent` (line 53)
   - Methods: `calculate_relay_operating_time()`, `verify_coordination()`, `generate_tcc_data()`, `analyze_selectivity()`, `execute()`, `validate_result()`
 
-#### 📄 `agents/cua_base_executor.py` _57.8 KB_
+#### 📄 `agents/cua_base_executor.py` _70.0 KB_
 > agents/cua_base_executor.py — Base CUA Executor (Template Method pattern)
 
 Extracts the shared CUA loop algorithm from DesktopCUAExecutor and
 BrowserC
 
-- **Class** `CUAAction` (line 68)
+- **Class** `CUAAction` (line 70)
   - Methods: `from_gemini()`, `is_destructive()`
-- **Class** `ControlValidationResult` (line 132)
+- **Class** `ControlValidationResult` (line 134)
   - Methods: `program_suggestion()`, `risk_note()`, `to_dict()`
-- **Class** `ConfirmationPayload` (line 160)
-  - Methods: `type()`, `text()`, `keys()`, `x()`, `y()`, `is_destructive()`
-- **Class** `CUAStepResult` (line 419)
+- **Class** `AuthenticatedApproval` (line 163)
+  - Methods: `is_fresh()`
+- **Class** `ConfirmationPayload` (line 207)
+  - Methods: `action()`, `target()`, `action_payload_hash()`, `execution_id()`, `type()`, `text()`, `keys()`, `x()`
+- **Class** `CUAStepResult` (line 482)
   - Methods: `to_audit_dict()`
-- **Class** `CUAExecutionResult` (line 456)
+- **Class** `CUAExecutionResult` (line 519)
   - Methods: `to_dict()`
-- **Class** `BaseCUAExecutor` (line 487)
+- **Class** `BaseCUAExecutor` (line 550)
   - Methods: `check_dependencies()`, `validate_control_action()`, `execute_loop()`
-- **def** `validate_control_action()` (line 236)
+- **def** `compute_cua_action_hash()` (line 192)
+- **def** `validate_control_action()` (line 299)
 
 #### 📄 `agents/cua_executor.py` _13.0 KB_
 > agents/cua_executor.py — Computer Use Agent Executor (Desktop/pyautogui)
@@ -1197,29 +1202,29 @@ This module verifies that incoming requests reached the origin (HF Space)
 - **Class** `EngineeringMetric` (line 25)
 - **Class** `EngineerAnswer` (line 37)
 
-#### 📄 `api/approvals.py` _50.3 KB_
+#### 📄 `api/approvals.py` _51.4 KB_
 > api/approvals.py — Approval Gateway (P2).
 
 Central gate through which every mutating / critical tool invocation must
 pass before execution. Provides:
 
 
-- **Class** `PendingAction` (line 191)
-- **Class** `IdempotencyKey` (line 229)
-- **Class** `CreateApprovalRequest` (line 253)
-- **Class** `ResolveRequest` (line 605)
-- **Class** `AutoApproveRequest` (line 620)
-- **Class** `ApprovalResponse` (line 627)
+- **Class** `PendingAction` (line 212)
+- **Class** `IdempotencyKey` (line 250)
+- **Class** `CreateApprovalRequest` (line 274)
+- **Class** `ResolveRequest` (line 626)
+- **Class** `AutoApproveRequest` (line 641)
+- **Class** `ApprovalResponse` (line 648)
 - **def** `normalize_payload_dict()` (line 123)
-- **def** `build_canonical_execution_payload()` (line 155)
-- **def** `compute_args_hash()` (line 169)
-- **def** `classify_tool()` (line 176)
-- **def** `validate_server_control_action()` (line 265)
-- **def** `set_session_auto_approve()` (line 658)
-- **def** `get_session_auto_approve()` (line 663)
-- **async def** `expire_stale_actions()` (line 752)
-- **async def** `transition_status()` (line 779)
-- **async def** `create_approval()` (line 837)
+- **def** `build_canonical_execution_payload()` (line 164)
+- **def** `compute_args_hash()` (line 178)
+- **def** `classify_tool()` (line 197)
+- **def** `validate_server_control_action()` (line 286)
+- **def** `set_session_auto_approve()` (line 679)
+- **def** `get_session_auto_approve()` (line 684)
+- **async def** `expire_stale_actions()` (line 773)
+- **async def** `transition_status()` (line 800)
+- **async def** `create_approval()` (line 858)
 
   **API Routes:**
   - `GET /pending`
@@ -3330,7 +3335,7 @@ Layered on top o
 - **async def** `send_study_failed_email()` (line 421)
 - **async def** `send_role_change_email()` (line 459)
 
-#### 📄 `services/execution_orchestrator.py` _114.3 KB_
+#### 📄 `services/execution_orchestrator.py` _115.0 KB_
 > services/execution_orchestrator.py — Canonical Execution Orchestrator (Phase 6).
 
 Promoted to the single production engineering execution gateway.
@@ -3343,21 +3348,21 @@ Coo
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
 - **Class** `RedisExecutionStateStore` (line 119)
   - Methods: `get_idempotency()`, `set_idempotency()`, `get_result()`, `set_result()`, `reset()`
-- **Class** `NativeEngineeringExecutor` (line 718)
+- **Class** `NativeEngineeringExecutor` (line 730)
   - Methods: `execute()`
-- **Class** `AgentEngineeringExecutor` (line 858)
+- **Class** `AgentEngineeringExecutor` (line 870)
   - Methods: `execute()`
-- **Class** `EtapEngineeringExecutor` (line 1025)
+- **Class** `EtapEngineeringExecutor` (line 1037)
   - Methods: `execute()`
-- **Class** `ExternalServiceExecutor` (line 1157)
+- **Class** `ExternalServiceExecutor` (line 1169)
   - Methods: `execute()`
-- **Class** `CompositeEngineeringExecutor` (line 1332)
+- **Class** `CompositeEngineeringExecutor` (line 1344)
   - Methods: `execute()`
-- **Class** `ExecutionOrchestrator` (line 1581)
+- **Class** `ExecutionOrchestrator` (line 1593)
   - Methods: `register_executor()`, `get_executor()`, `register_event_listener()`, `verify_server_approval()`, `execute()`
 - **def** `get_execution_state_store()` (line 257)
 - **def** `set_execution_state_store()` (line 276)
-- **def** `get_execution_orchestrator()` (line 2658)
+- **def** `get_execution_orchestrator()` (line 2670)
 
 #### 📄 `services/execution_request.py` _18.3 KB_
 > services/execution_request.py — Canonical Execution Request Contract (Phase 4 & Phase 5).
@@ -5911,10 +5916,10 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| api-route | 92 |
-| python-module | 41 |
 | ui-page | 61 |
 | ui-component | 280 |
+| python-module | 41 |
+| api-route | 92 |
 | **TOTAL** | **474** |
 
 ---
@@ -5926,7 +5931,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `core_model`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5941,7 +5946,7 @@ Provides
 | `gis_integration` | `api` | `api`, `digital_twin`, `gis_validation`, `gis_validation_electrical`, `gis_validation_real` |
 | `gis_model` | — | `digital_twin` |
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
-| `gis_validation_electrical` | `gis_integration` | — |
+| `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
 | `guards` | — | `agents`, `security`, `services` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
@@ -5957,7 +5962,7 @@ Provides
 | `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
-| `worker` | `etap_integration`, `services` | — |
+| `worker` | `etap_integration`, `services` | `api` |
 | `zenon_user_guide` | — | — |
 
 ---
@@ -6150,7 +6155,7 @@ Provides
 | `test_placement_and_filter.py` | 4 | 0 | **4** |
 | `test_predictive_hardening.py` | 7 | 0 | **7** |
 | `test_prod_database_failclosed.py` | 7 | 0 | **7** |
-| `test_production_blockers_regression.py` | 0 | 7 | **25** |
+| `test_production_blockers_regression.py` | 0 | 7 | **38** |
 | `test_production_hardening.py` | 0 | 5 | **12** |
 | `test_projects_api.py` | 0 | 7 | **28** |
 | `test_prompt_cache_tracking.py` | 0 | 6 | **23** |
