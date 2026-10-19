@@ -662,9 +662,12 @@ async def _verify_server_approval(
         transition_pending_action_to_executing,
     )
 
+    rec_tool = getattr(server_record, "tool", None) or rec_tool or ""
+    hash_with_tool = compute_args_hash(stored_args, tool=rec_tool) if rec_tool else None
+    hash_without_tool = compute_args_hash(stored_args)
+
     # Verify that stored_hash is integral to stored_args
-    expected_record_hash = compute_args_hash(stored_args)
-    if stored_hash != expected_record_hash:
+    if stored_hash not in (hash_with_tool, hash_without_tool):
         return (
             False,
             "CORRUPTED_APPROVAL_RECORD",
@@ -673,14 +676,23 @@ async def _verify_server_approval(
 
     raw_input = request.input or {}
     norm_input = normalize_payload_dict(raw_input)
-    req_hash = compute_args_hash(norm_input)
+    req_tool = getattr(request, "capability_id", None) or rec_tool
+    req_hash_with_tool = compute_args_hash(norm_input, tool=req_tool) if req_tool else None
+    req_hash_without_tool = compute_args_hash(norm_input)
+
+    matched = False
+    if stored_hash == hash_with_tool and req_hash_with_tool == stored_hash:
+        matched = True
+    elif stored_hash == hash_without_tool and req_hash_without_tool == stored_hash:
+        matched = True
 
     # EXACT payload match required: matching only system, parameters, or partial fragments is strictly forbidden!
-    if req_hash != stored_hash:
+    if not matched:
+        actual_req_hash = req_hash_with_tool if stored_hash == hash_with_tool else req_hash_without_tool
         return (
             False,
             "PAYLOAD_MISMATCH",
-            f"Execution payload does not match approved action arguments (hash mismatch for approval '{approval_id}': expected '{stored_hash}', got '{req_hash}')",
+            f"Execution payload does not match approved action arguments (hash mismatch for approval '{approval_id}': expected '{stored_hash}', got '{actual_req_hash}')",
         )
 
     # 9. Atomic guarded transition: approved -> executing

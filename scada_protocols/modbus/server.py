@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import time
 from typing import Any, Callable, Dict, Optional
 
@@ -70,13 +71,25 @@ class ModbusServerAdapter(ProtocolAdapter):
         self._thread: Optional[Any] = None
         self._latest_snapshot: Dict[str, float] = {}
         self._last_successful_refresh_ts: Optional[float] = None
+        self._point_freshness: Dict[str, float] = {}
+        self._point_quality: Dict[str, str] = {}
         self._mirror_degraded: bool = False
+        self._server_device: Any = None
+        self._server_context: Any = None
 
     # -- public hooks -------------------------------------------------------
 
     @property
     def register_map(self) -> RegisterMap:
         return self._register_map
+
+    @property
+    def point_freshness(self) -> Dict[str, float]:
+        return dict(self._point_freshness)
+
+    @property
+    def point_quality(self) -> Dict[str, str]:
+        return dict(self._point_quality)
 
     def set_provider(self, provider: MeasurementProvider) -> None:
         self._provider = provider
@@ -138,44 +151,45 @@ class ModbusServerAdapter(ProtocolAdapter):
         if self._provider is not None:
             try:
                 res = self._provider()
-                if res is not None:
+                if res is not None and isinstance(res, dict):
                     initial_snapshot = res
                     initial_ok = True
             except Exception as snap_err:
                 logger.warning("ModbusServerAdapter initial provider snapshot failed: %s", snap_err)
                 self._mark_error(f"initial snapshot failed: {snap_err}")
 
-        if _USE_SPARSE:
-            initial = dict.fromkeys(range(0, max_addr + 10), 0)
+        # DO NOT seed with synthetic zeros when provider is unavailable!
+        # Only populate verified valid measurements from initial_snapshot.
+        initial: Dict[int, int] = {}
+        if initial_ok and initial_snapshot:
             for entry in self._register_map.entries:
-                if initial_ok and entry.name in initial_snapshot:
-                    val = initial_snapshot[entry.name]
-                    words = self._register_map.encode_value(entry, float(val))
-                    for i, w in enumerate(words):
-                        self._register_map.write_registers(entry.address + i, [w])
-                        store[entry.address + i] = w
-                        initial[entry.address + i] = w
+                if entry.name in initial_snapshot and initial_snapshot[entry.name] is not None:
+                    try:
+                        val = float(initial_snapshot[entry.name])
+                        if math.isfinite(val):
+                            words = self._register_map.encode_value(entry, val)
+                            for i, w in enumerate(words):
+                                self._register_map.write_registers(entry.address + i, [w])
+                                store[entry.address + i] = w
+                                initial[entry.address + i] = w
+                            self._latest_snapshot[entry.name] = val
+                            self._point_freshness[entry.name] = time.time()
+                            self._point_quality[entry.name] = "GOOD"
+                    except Exception as enc_err:
+                        logger.warning("Failed encoding initial value for %s: %s", entry.name, enc_err)
+                        self._point_quality[entry.name] = "ERROR"
+
+        if _USE_SPARSE:
             block = ModbusSparseDataBlock(initial)
         else:  # pragma: no cover - legacy API
-            block = ModbusSequentialDataBlock(1, [0] * (max_addr + 10))
-            for entry in self._register_map.entries:
-                if initial_ok and entry.name in initial_snapshot:
-                    val = initial_snapshot[entry.name]
-                    words = self._register_map.encode_value(entry, float(val))
-                    for i, w in enumerate(words):
-                        self._register_map.write_registers(entry.address + i, [w])
-                        store[entry.address + i + 1] = w
-                        # Legacy blocks are mutable lists; seed via setValues.
-                        block.setValues(entry.address + i + 1, [w])  # +1 offset
+            block = ModbusSequentialDataBlock(1, [store.get(i, 0) for i in range(1, max_addr + 11)])
 
-        if initial_ok and initial_snapshot:
-            self._latest_snapshot = {
-                e.name: float(initial_snapshot[e.name])
-                for e in self._register_map.entries
-                if e.name in initial_snapshot
-            }
-            if self._latest_snapshot:
-                self._last_successful_refresh_ts = time.time()
+        if (
+            initial_ok
+            and self._latest_snapshot
+            and len(self._latest_snapshot) == len(self._register_map.entries)
+        ):
+            self._last_successful_refresh_ts = time.time()
 
         if _NEW_API:
             # di/co can be sparse too — they only need a tiny address space.
@@ -196,6 +210,9 @@ class ModbusServerAdapter(ProtocolAdapter):
                 ir=block,
             )
             context = ModbusServerContext(slaves={self._cfg.server_unit_id: device}, single=False)
+
+        self._server_device = device
+        self._server_context = context
 
         def _mirror_words(entry_addr: int, words: list[int]) -> bool:
             """Mirror refreshed words into the datastore so external
@@ -248,14 +265,18 @@ class ModbusServerAdapter(ProtocolAdapter):
                 try:
                     new_block = ModbusSparseDataBlock(dict(store))
                     ctx_store2 = getattr(device, "store", None)
+                    replaced = False
                     if isinstance(ctx_store2, dict):
                         for key in ("h", "i"):
                             if key in ctx_store2:
                                 ctx_store2[key] = new_block
+                                replaced = True
                     else:
                         device.ir = new_block
                         device.hr = new_block
-                    return True
+                        replaced = True
+                    if replaced:
+                        return True
                 except Exception as exc:
                     self._mirror_degraded = True
                     logger.warning("Modbus datastore mirroring degraded: %s", exc)
@@ -284,18 +305,45 @@ class ModbusServerAdapter(ProtocolAdapter):
                 try:
                     if self._provider is not None:
                         snapshot = self._provider()
-                        if snapshot is None:
-                            self._mark_error("refresh loop: provider returned None")
+                        if snapshot is None or not isinstance(snapshot, dict):
+                            self._mark_error("refresh loop: provider returned None or invalid snapshot")
+                            for e in self._register_map.entries:
+                                self._point_quality[e.name] = "UNAVAILABLE"
                         else:
-                            any_served = False
+                            all_ok = True
+                            now = time.time()
                             for entry in self._register_map.entries:
-                                val = snapshot.get(entry.name)
-                                if val is None:
+                                if entry.name not in snapshot or snapshot[entry.name] is None:
+                                    all_ok = False
+                                    self._point_quality[entry.name] = "UNAVAILABLE"
+                                    # Evict missing point so stale data is not preserved
+                                    self._latest_snapshot.pop(entry.name, None)
                                     continue
-                                words = self._register_map.encode_value(entry, float(val))
+
+                                raw_val = snapshot[entry.name]
+                                try:
+                                    val = float(raw_val)
+                                    if not math.isfinite(val):
+                                        raise ValueError(f"Non-finite value {val}")
+                                except Exception as conv_err:
+                                    all_ok = False
+                                    self._point_quality[entry.name] = "ERROR"
+                                    self._latest_snapshot.pop(entry.name, None)
+                                    self._mark_error(f"conversion error for '{entry.name}': {conv_err}")
+                                    continue
+
+                                try:
+                                    words = self._register_map.encode_value(entry, val)
+                                except Exception as enc_err:
+                                    all_ok = False
+                                    self._point_quality[entry.name] = "ERROR"
+                                    self._latest_snapshot.pop(entry.name, None)
+                                    self._mark_error(f"encoding error for '{entry.name}': {enc_err}")
+                                    continue
+
                                 for i, w in enumerate(words):
                                     self._register_map.write_registers(entry.address + i, [w])
-                                # Mirror into the datastore so external readers see it.
+
                                 mirror_ok = False
                                 try:
                                     mirror_ok = _mirror_words(entry.address, words)
@@ -305,15 +353,19 @@ class ModbusServerAdapter(ProtocolAdapter):
 
                                 if mirror_ok:
                                     self._mark_served(1)
-                                    self._latest_snapshot[entry.name] = float(val)
-                                    any_served = True
+                                    self._latest_snapshot[entry.name] = val
+                                    self._point_freshness[entry.name] = now
+                                    self._point_quality[entry.name] = "GOOD"
                                 else:
+                                    all_ok = False
+                                    self._latest_snapshot.pop(entry.name, None)
+                                    self._point_quality[entry.name] = "ERROR"
                                     self._mark_error(
                                         f"datastore write failed for entry '{entry.name}' at address {entry.address}"
                                     )
 
-                            if any_served:
-                                self._last_successful_refresh_ts = time.time()
+                            if all_ok and self._latest_snapshot:
+                                self._last_successful_refresh_ts = now
                     await asyncio.sleep(interval)
                 except asyncio.CancelledError:
                     raise
@@ -384,11 +436,56 @@ class ModbusServerAdapter(ProtocolAdapter):
 
     # -- health & freshness -------------------------------------------------
 
+    def read_holding_registers(self, address: int, count: int = 1) -> list[int]:
+        """Direct inspection helper to read registers from the active Modbus datastore."""
+        dev = self._server_device
+        if dev is not None:
+            dev_get = getattr(dev, "get_values", None) or getattr(dev, "getValues", None)
+            if callable(dev_get):
+                try:
+                    vals = dev_get(3, address, count)
+                    if vals is not None:
+                        return list(vals)
+                except Exception as ex:
+                    logger.debug("Device get_values failed at %d: %s", address, ex)
+            ctx_store = getattr(dev, "store", None)
+            candidates = []
+            if isinstance(ctx_store, dict):
+                candidates.extend(ctx_store[k] for k in ("h", "i") if k in ctx_store)
+            for attr in ("hr", "ir"):
+                blk = getattr(dev, attr, None)
+                if blk is not None:
+                    candidates.append(blk)
+            for blk in candidates:
+                blk_get = getattr(blk, "get_values", None) or getattr(blk, "getValues", None)
+                if callable(blk_get):
+                    try:
+                        vals = blk_get(address, count)
+                        if vals is not None:
+                            return list(vals)
+                    except Exception as ex:
+                        logger.debug("Block get_values failed at %d: %s", address, ex)
+                        continue
+        return self._register_map.read_registers(address, count)
+
+    def is_point_stale(self, entry_name: str) -> bool:
+        """Check if an individual telemetry point is stale or unavailable."""
+        if entry_name not in self._point_freshness:
+            return True
+        ts = self._point_freshness[entry_name]
+        max_stale_sec = max((self._cfg.scan_rate_ms / 1000.0) * 3, 3.0)
+        return (time.time() - ts) > max_stale_sec
+
     @property
     def is_stale(self) -> bool:
         """Indicate whether telemetry data is stale due to missed or failing refresh cycles."""
         if self._last_successful_refresh_ts is None:
             return True
+        if not self._register_map.entries:
+            return False
+        for entry in self._register_map.entries:
+            if self.is_point_stale(entry.name):
+                return True
         max_stale_sec = max((self._cfg.scan_rate_ms / 1000.0) * 3, 3.0)
         return (time.time() - self._last_successful_refresh_ts) > max_stale_sec
 

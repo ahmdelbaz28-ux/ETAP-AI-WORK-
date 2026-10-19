@@ -30,6 +30,8 @@ from __future__ import annotations
 
 import abc
 import contextlib
+import hashlib
+import json
 import logging
 import os
 import time
@@ -157,6 +159,51 @@ class ControlValidationResult:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class AuthenticatedApproval:
+    """Cryptographically bound, authenticated approval record for CUA dual-control actions."""
+
+    user_id: str
+    role: str
+    tenant_id: str | None = None
+    execution_id: str = ""
+    action_payload_hash: str = ""
+    approved_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime | None = None
+    signature: str = ""
+
+    def is_fresh(self, max_age_seconds: float = 300.0) -> bool:
+        now = datetime.now(timezone.utc)
+        app_time = self.approved_at
+        if app_time.tzinfo is None:
+            app_time = app_time.replace(tzinfo=timezone.utc)
+        age = (now - app_time).total_seconds()
+        if age < -10.0 or age > max_age_seconds:
+            return False
+        if self.expires_at is not None:
+            exp_time = self.expires_at
+            if exp_time.tzinfo is None:
+                exp_time = exp_time.replace(tzinfo=timezone.utc)
+            if now > exp_time:
+                return False
+        return True
+
+
+def compute_cua_action_hash(action: CUAAction, target: str | None, execution_id: str) -> str:
+    """Compute deterministic SHA-256 hash binding the exact action, coordinates, target and execution."""
+    raw = {
+        "execution_id": str(execution_id),
+        "keys": list(action.keys or []),
+        "target": str(target or action.target or ""),
+        "text": str(action.text or ""),
+        "type": str(action.type),
+        "x": action.x,
+        "y": action.y,
+    }
+    canonical = json.dumps(raw, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 class ConfirmationPayload(dict):
     """Payload delivered to on_confirmation_request in validated self-confirmation mode."""
 
@@ -171,6 +218,8 @@ class ConfirmationPayload(dict):
         override_reason: str | None = None,
         overridden: bool = False,
         decided_by_user_id: str | None = None,
+        action_payload_hash: str | None = None,
+        execution_id: str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -183,17 +232,27 @@ class ConfirmationPayload(dict):
             override_reason=override_reason,
             overridden=overridden,
             decided_by_user_id=decided_by_user_id,
+            action_payload_hash=action_payload_hash,
+            execution_id=execution_id,
             **kwargs,
         )
-        self.action = action
-        self.target = target
-        self.value = value
-        self.validation_results = validation_results
-        self.program_suggestion = program_suggestion
-        self.risk_note = risk_note
-        self.override_reason = override_reason
-        self.overridden = overridden
-        self.decided_by_user_id = decided_by_user_id
+        object.__setattr__(self, "_immutable_fields", {"action", "target", "action_payload_hash", "execution_id"})
+
+    @property
+    def action(self) -> CUAAction:
+        return self["action"]
+
+    @property
+    def target(self) -> str | None:
+        return self["target"]
+
+    @property
+    def action_payload_hash(self) -> str | None:
+        return self.get("action_payload_hash")
+
+    @property
+    def execution_id(self) -> str | None:
+        return self.get("execution_id")
 
     def __getattr__(self, name: str) -> Any:
         try:
@@ -202,10 +261,14 @@ class ConfirmationPayload(dict):
             raise AttributeError(f"'ConfirmationPayload' object has no attribute '{name}'") from None
 
     def __setattr__(self, name: str, value: Any) -> None:
+        if name in getattr(self, "_immutable_fields", set()):
+            raise TypeError(f"Cannot mutate material field '{name}' on ConfirmationPayload")
         super().__setattr__(name, value)
         self[name] = value
 
     def __setitem__(self, key: str, value: Any) -> None:
+        if key in getattr(self, "_immutable_fields", set()):
+            raise TypeError(f"Cannot mutate material field '{key}' on ConfirmationPayload")
         super().__setitem__(key, value)
         super().__setattr__(key, value)
 
@@ -1041,6 +1104,7 @@ class BaseCUAExecutor(abc.ABC):
                         val_raw = action.text
 
                     decided_user = getattr(action, "user_id", None) or user_id or "operator"
+                    expected_action_hash = compute_cua_action_hash(action, action.target, exec_id)
                     confirm_payload = ConfirmationPayload(
                         action=action,
                         target=action.target,
@@ -1052,6 +1116,8 @@ class BaseCUAExecutor(abc.ABC):
                         overridden=bool(getattr(action, "overridden", False)),
                         decided_by_user_id=decided_user,
                         requires_dual_confirmation=safety_check.requires_dual_confirmation,
+                        execution_id=exec_id,
+                        action_payload_hash=expected_action_hash,
                     )
 
                     approved = on_confirmation_request(confirm_payload)
@@ -1089,20 +1155,16 @@ class BaseCUAExecutor(abc.ABC):
                             vision_source=analysis.get("source"),
                         )
 
+                    # Authoritative dual-confirmation verification gate
+                    dual_audit_data: dict[str, Any] = {}
                     if safety_check.requires_dual_confirmation:
-                        confirmations = confirm_payload.get("confirmations") or []
-                        approvers = confirm_payload.get("approvers") or []
-                        if isinstance(approved, dict):
-                            confirmations = approved.get("confirmations") or confirmations
-                            approvers = approved.get("approvers") or approvers
-
-                        distinct_approvers = {str(u) for u in (list(confirmations) + list(approvers)) if u}
-                        if len(distinct_approvers) < 2:
+                        # 1. Bare boolean or truthy non-structured response is strictly rejected
+                        if isinstance(approved, bool):
                             if safety_check.state_snapshot_id:
                                 with contextlib.suppress(Exception):
                                     life_safety_guard.rollback(
                                         snapshot_id=safety_check.state_snapshot_id,
-                                        reason="insufficient_confirmations_for_dual_confirmation",
+                                        reason="dual_confirmation_bare_boolean_rejected",
                                     )
                             step_result = CUAStepResult(
                                 step_number=step_num,
@@ -1110,19 +1172,182 @@ class BaseCUAExecutor(abc.ABC):
                                 success=False,
                                 screenshot_before=screenshot_before,
                                 gemini_analysis=analysis,
-                                error="DUAL CONFIRMATION VIOLATION: Two distinct approvers required (fail-closed)",
+                                error="DUAL CONFIRMATION VIOLATION: Bare boolean approval cannot authorize a dual-control action (fail-closed)",
                                 duration_ms=int((time.monotonic() - step_start) * 1000),
                             )
                             steps.append(step_result)
                             return CUAExecutionResult(
                                 success=False,
                                 steps=steps,
-                                aborted_reason="Dual confirmation violation: two distinct approvers required (fail-closed)",
+                                aborted_reason="Dual confirmation violation: structured authenticated approvals required; bare boolean rejected (fail-closed)",
                                 total_duration_ms=int((time.monotonic() - start_time) * 1000),
                                 execution_id=exec_id,
                                 resumed_from_step=resume_from,
                                 vision_source=analysis.get("source"),
                             )
+
+                        raw_approvals = []
+                        if isinstance(approved, list):
+                            raw_approvals = approved
+                        elif isinstance(approved, dict):
+                            raw_approvals = approved.get("approvals") or approved.get("confirmations") or []
+                        elif hasattr(confirm_payload, "get"):
+                            raw_approvals = confirm_payload.get("approvals") or []
+
+                        if not raw_approvals or not isinstance(raw_approvals, list):
+                            if safety_check.state_snapshot_id:
+                                with contextlib.suppress(Exception):
+                                    life_safety_guard.rollback(
+                                        snapshot_id=safety_check.state_snapshot_id,
+                                        reason="missing_structured_approvals",
+                                    )
+                            step_result = CUAStepResult(
+                                step_number=step_num,
+                                action=action,
+                                success=False,
+                                screenshot_before=screenshot_before,
+                                gemini_analysis=analysis,
+                                error="DUAL CONFIRMATION VIOLATION: Missing structured approval list (fail-closed)",
+                                duration_ms=int((time.monotonic() - step_start) * 1000),
+                            )
+                            steps.append(step_result)
+                            return CUAExecutionResult(
+                                success=False,
+                                steps=steps,
+                                aborted_reason="Dual confirmation violation: two distinct authenticated approvers required (fail-closed)",
+                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                                execution_id=exec_id,
+                                resumed_from_step=resume_from,
+                                vision_source=analysis.get("source"),
+                            )
+
+                        ALLOWED_APPROVAL_ROLES = {
+                            "admin",
+                            "lead_engineer",
+                            "protection_engineer",
+                            "scada_engineer",
+                            "supervisor",
+                        }
+                        BANNED_IDENTITIES = {"", "operator", "admin", "engineer", "default", "none", "anonymous"}
+
+                        verified_approvals: list[AuthenticatedApproval] = []
+                        verification_error: str | None = None
+
+                        for item in raw_approvals:
+                            if isinstance(item, str):
+                                verification_error = f"Plain string identifier '{item}' rejected; authenticated structured approval required"
+                                break
+
+                            app_obj: AuthenticatedApproval | None = None
+                            if isinstance(item, AuthenticatedApproval):
+                                app_obj = item
+                            elif isinstance(item, dict):
+                                try:
+                                    approved_ts = item.get("approved_at")
+                                    if isinstance(approved_ts, str):
+                                        approved_dt = datetime.fromisoformat(approved_ts)
+                                    elif isinstance(approved_ts, datetime):
+                                        approved_dt = approved_ts
+                                    else:
+                                        approved_dt = datetime.now(timezone.utc)
+
+                                    expires_ts = item.get("expires_at")
+                                    expires_dt = None
+                                    if isinstance(expires_ts, str):
+                                        expires_dt = datetime.fromisoformat(expires_ts)
+                                    elif isinstance(expires_ts, datetime):
+                                        expires_dt = expires_ts
+
+                                    app_obj = AuthenticatedApproval(
+                                        user_id=str(item.get("user_id", "")),
+                                        role=str(item.get("role", "")),
+                                        tenant_id=item.get("tenant_id"),
+                                        execution_id=str(item.get("execution_id", "")),
+                                        action_payload_hash=str(item.get("action_payload_hash", "")),
+                                        approved_at=approved_dt,
+                                        expires_at=expires_dt,
+                                        signature=str(item.get("signature", "")),
+                                    )
+                                except Exception as parse_err:
+                                    verification_error = f"Malformed approval object: {parse_err}"
+                                    break
+                            else:
+                                verification_error = f"Unsupported approval type: {type(item).__name__}"
+                                break
+
+                            # Validate principal identity
+                            if not app_obj.user_id or app_obj.user_id.lower() in BANNED_IDENTITIES:
+                                verification_error = f"Invalid or unauthenticated user_id: '{app_obj.user_id}' (generic identities forbidden)"
+                                break
+
+                            # Validate role
+                            if app_obj.role.lower() not in ALLOWED_APPROVAL_ROLES:
+                                verification_error = f"User '{app_obj.user_id}' has role '{app_obj.role}' which is not authorized for dual confirmation"
+                                break
+
+                            # Validate tenant isolation
+                            if tenant_id and app_obj.tenant_id and str(app_obj.tenant_id).strip() != str(tenant_id).strip():
+                                verification_error = f"Approval for user '{app_obj.user_id}' belongs to tenant '{app_obj.tenant_id}', not '{tenant_id}'"
+                                break
+
+                            # Validate execution ID binding
+                            if app_obj.execution_id != exec_id:
+                                verification_error = f"Approval execution_id '{app_obj.execution_id}' does not match active execution '{exec_id}' (replay prevention)"
+                                break
+
+                            # Validate action payload hash binding
+                            if app_obj.action_payload_hash != expected_action_hash:
+                                verification_error = f"Approval action_payload_hash does not match active action (expected '{expected_action_hash}', got '{app_obj.action_payload_hash}')"
+                                break
+
+                            # Validate freshness
+                            if not app_obj.is_fresh(300.0):
+                                verification_error = f"Approval from '{app_obj.user_id}' is stale or expired"
+                                break
+
+                            verified_approvals.append(app_obj)
+
+                        # Enforce at least 2 distinct verified principals
+                        distinct_users = {a.user_id for a in verified_approvals}
+                        if verification_error is None and len(distinct_users) < 2:
+                            verification_error = f"Two distinct verified approvers required; only got {len(distinct_users)}"
+
+                        # Check requester distinctness if user_id was provided
+                        if verification_error is None and user_id and user_id.lower() not in BANNED_IDENTITIES:
+                            if any(a.user_id == user_id for a in verified_approvals) and len(distinct_users) < 2:
+                                verification_error = "Self-approval violation: distinct checker required"
+
+                        if verification_error is not None:
+                            if safety_check.state_snapshot_id:
+                                with contextlib.suppress(Exception):
+                                    life_safety_guard.rollback(
+                                        snapshot_id=safety_check.state_snapshot_id,
+                                        reason=f"dual_confirmation_failed: {verification_error}",
+                                    )
+                            step_result = CUAStepResult(
+                                step_number=step_num,
+                                action=action,
+                                success=False,
+                                screenshot_before=screenshot_before,
+                                gemini_analysis=analysis,
+                                error=f"DUAL CONFIRMATION VIOLATION: {verification_error} (fail-closed)",
+                                duration_ms=int((time.monotonic() - step_start) * 1000),
+                            )
+                            steps.append(step_result)
+                            return CUAExecutionResult(
+                                success=False,
+                                steps=steps,
+                                aborted_reason=f"Dual confirmation violation: {verification_error} (fail-closed)",
+                                total_duration_ms=int((time.monotonic() - start_time) * 1000),
+                                execution_id=exec_id,
+                                resumed_from_step=resume_from,
+                                vision_source=analysis.get("source"),
+                            )
+
+                        dual_audit_data["verified_approvers"] = [a.user_id for a in verified_approvals]
+                        dual_audit_data["action_payload_hash"] = expected_action_hash
+                        dual_audit_data["dual_confirmed"] = True
+                        dual_audit_data["self_approved"] = False
 
                     # (c) Suggestion-override validation
                     is_overridden = bool(
@@ -1187,6 +1412,7 @@ class BaseCUAExecutor(abc.ABC):
                         "decided_by_user_id": confirm_payload.get("decided_by_user_id") or decided_user,
                         "self_approved": not safety_check.requires_dual_confirmation,
                         "dual_confirmed": bool(safety_check.requires_dual_confirmation),
+                        **dual_audit_data,
                     }
 
                 # STEP 9: execute the action (passed safety check & validation)

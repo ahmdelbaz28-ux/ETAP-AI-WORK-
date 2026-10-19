@@ -120,36 +120,45 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-def normalize_payload_dict(val: Any) -> Any:
+def normalize_payload_dict(val: Any, is_top_level: bool = True) -> Any:
     """Recursively normalize dictionaries and objects into canonical python data types.
 
     Sorts dictionary keys and excludes purely ephemeral transit fields (e.g., trace_id,
-    request_id, execution_id, approval_id) so material engineering payloads can be
-    deterministically hashed and verified.
+    request_id, approval_context, idempotency_key) ONLY at the top level so material
+    engineering payloads (including timestamps, scheduling, and nested parameters) are
+    preserved and deterministically hashed.
+
+    Rejects non-finite numbers (NaN, Inf) with ValueError and unsupported types with TypeError.
     """
     if hasattr(val, "model_dump") and callable(val.model_dump):
-        return normalize_payload_dict(val.model_dump())
+        return normalize_payload_dict(val.model_dump(), is_top_level=is_top_level)
     if hasattr(val, "dict") and callable(val.dict):
-        return normalize_payload_dict(val.dict())
+        return normalize_payload_dict(val.dict(), is_top_level=is_top_level)
     if isinstance(val, dict):
-        _ephemeral_keys = {
+        _top_level_transport = {
             "trace_id",
             "request_id",
             "execution_id",
-            "created_at",
-            "timestamp",
             "approval_id",
             "approval_context",
             "idempotency_key",
         }
         return {
-            k: normalize_payload_dict(v)
+            str(k): normalize_payload_dict(v, is_top_level=False)
             for k, v in sorted(val.items())
-            if k not in _ephemeral_keys
+            if not (is_top_level and str(k).lower() in _top_level_transport)
         }
     if isinstance(val, (list, tuple)):
-        return [normalize_payload_dict(v) for v in val]
-    return val
+        return [normalize_payload_dict(v, is_top_level=False) for v in val]
+    if isinstance(val, (int, bool, str)) or val is None:
+        return val
+    if isinstance(val, float):
+        import math
+
+        if not math.isfinite(val):
+            raise ValueError(f"Cannot normalize non-finite float: {val}")
+        return val
+    raise TypeError(f"Unsupported payload type for normalization: {type(val).__name__}")
 
 
 def build_canonical_execution_payload(tool: str, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -158,18 +167,30 @@ def build_canonical_execution_payload(tool: str, args: Dict[str, Any]) -> Dict[s
     Includes every field that can materially change the action or engineering result:
     tool capability, system/model, parameters, target identifiers, and execution options.
     """
-    norm_args = normalize_payload_dict(args) if isinstance(args, dict) else {}
+    norm_args = normalize_payload_dict(args, is_top_level=True) if isinstance(args, dict) else {}
     canonical_tool = str(tool).lower().strip()
     return {
-        "tool": canonical_tool,
         "args": norm_args,
+        "tool": canonical_tool,
     }
 
 
-def compute_args_hash(args: Dict[str, Any]) -> str:
-    """Stable SHA-256 over canonical JSON of the tool arguments."""
-    norm = normalize_payload_dict(args) if isinstance(args, dict) else args
-    canonical = json.dumps(norm, sort_keys=True, separators=(",", ":"), default=str)
+def compute_args_hash(args: Any, tool: Optional[str] = None) -> str:
+    """Stable SHA-256 over canonical JSON of the tool arguments and optional tool name.
+
+    Ensures deterministic key ordering, preserves material timestamps, rejects non-finite
+    numbers and unsupported types, and optionally binds the tool capability name.
+    """
+    norm = (
+        normalize_payload_dict(args, is_top_level=True)
+        if isinstance(args, (dict, list)) or hasattr(args, "model_dump") or hasattr(args, "dict")
+        else args
+    )
+    if tool is not None:
+        payload = build_canonical_execution_payload(tool, norm if isinstance(norm, dict) else {"args": norm})
+    else:
+        payload = norm
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str, allow_nan=False)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 

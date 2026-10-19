@@ -37,10 +37,12 @@ from agents.ahmed_etap_orchestrator import (
     TrustedCalculatorRegistry,
 )
 from agents.cua_base_executor import (
+    AuthenticatedApproval,
     BaseCUAExecutor,
     CUAAction,
     CUAExecutionResult,
     CUAStepResult,
+    compute_cua_action_hash,
 )
 from agents.life_safety import SafetyCheckResult, life_safety_guard
 from agents.orchestrator import (
@@ -92,8 +94,53 @@ class TestApprovalPayloadBinding:
         tampered = {"bus_id": "BUS-1", "action": "trip", "tolerance": 0.06}
         assert compute_args_hash(original) != compute_args_hash(tampered)
 
+    def test_normalize_payload_preserves_timestamp(self):
+        """Material timestamps (top level and nested) are preserved in normalized payload."""
+        data = {
+            "bus_id": "BUS-1",
+            "timestamp": 1718900000.5,
+            "sub_config": {"timestamp": 1718900001.0, "setting": 42},
+            "trace_id": "trace-header-123",
+            "request_id": "req-transport-456",
+        }
+        normalized = normalize_payload_dict(data)
+        assert normalized["timestamp"] == 1718900000.5
+        assert normalized["sub_config"]["timestamp"] == 1718900001.0
+        assert "trace_id" not in normalized
+        assert "request_id" not in normalized
+
+    def test_normalize_payload_rejects_nan_and_inf(self):
+        """Normalization rejects NaN and Inf float values fail-closed with ValueError."""
+        with pytest.raises(ValueError, match="non-finite float"):
+            normalize_payload_dict({"voltage": float("nan")})
+
+        with pytest.raises(ValueError, match="non-finite float"):
+            normalize_payload_dict({"nested": {"current": float("inf")}})
+
+    def test_normalize_payload_rejects_unsupported_types(self):
+        """Normalization rejects non-serializable unsupported types with TypeError."""
+        class UnserializableObject:
+            pass
+
+        with pytest.raises(TypeError, match="Unsupported payload type"):
+            normalize_payload_dict({"obj": UnserializableObject()})
+
+    def test_compute_args_hash_with_and_without_tool(self):
+        """compute_args_hash produces deterministic hashes and binds tool identity when provided."""
+        args = {"breaker_id": "CB-101", "action": "open"}
+        hash_no_tool = compute_args_hash(args)
+        hash_with_tool_a = compute_args_hash(args, tool="etap_breaker_operation")
+        hash_with_tool_b = compute_args_hash(args, tool="other_breaker_operation")
+
+        assert len(hash_no_tool) == 64
+        assert len(hash_with_tool_a) == 64
+        assert hash_with_tool_a != hash_no_tool
+        assert hash_with_tool_a != hash_with_tool_b
+        # Same tool with different case/spaces produces identical hash
+        assert hash_with_tool_a == compute_args_hash(args, tool=" ETAP_BREAKER_OPERATION ")
+
     def test_build_canonical_execution_payload(self):
-        """Build canonical execution payload filters non-canonical ephemeral transit fields."""
+        """Build canonical execution payload filters non-canonical ephemeral transit fields but keeps timestamp."""
         raw = {
             "bus_id": "BUS-2",
             "voltage_pu": 1.02,
@@ -105,9 +152,9 @@ class TestApprovalPayloadBinding:
         assert canonical["tool"] == "etap_breaker_operation"
         assert "bus_id" in canonical["args"]
         assert "voltage_pu" in canonical["args"]
+        assert "timestamp" in canonical["args"]
         assert "trace_id" not in canonical["args"]
         assert "request_id" not in canonical["args"]
-        assert "timestamp" not in canonical["args"]
 
     @pytest.mark.asyncio
     async def test_atomic_transition_to_executing_prevents_replay(self):
@@ -144,6 +191,42 @@ class TestApprovalPayloadBinding:
         ok2, err2, rec2 = await transition_pending_action_to_executing(action_id, act_hash)
         assert ok2 is False
         assert err2 == "APPROVAL_ALREADY_CONSUMED"
+
+    @pytest.mark.asyncio
+    async def test_atomic_transition_concurrent_replay_race(self):
+        """Concurrent calls to transition_pending_action_to_executing in asyncio.gather()
+        guarantee exactly ONE caller succeeds and all other callers get APPROVAL_ALREADY_CONSUMED."""
+        args = {"breaker_id": "CB-101-RACE", "command": "TRIP"}
+        act_hash = compute_args_hash(args)
+        action_id = f"act-race-{uuid.uuid4().hex[:6]}"
+        action = PendingAction(
+            id=action_id,
+            session_id="sess_race",
+            tool="etap_breaker_operation",
+            args=args,
+            args_hash=act_hash,
+            risk_class="critical",
+            status="approved",
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
+            requested_by_user_id="operator_race",
+        )
+        from api.database import Base, async_session, engine
+
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        async with async_session() as session:
+            session.add(action)
+            await session.commit()
+
+        # Fire 5 concurrent transition attempts simultaneously
+        results = await asyncio.gather(
+            *[transition_pending_action_to_executing(action_id, act_hash) for _ in range(5)]
+        )
+        successes = [r for r in results if r[0] is True]
+        failures = [r for r in results if r[0] is False]
+        assert len(successes) == 1
+        assert len(failures) == 4
+        assert all(f[1] == "APPROVAL_ALREADY_CONSUMED" for f in failures)
 
     @pytest.mark.asyncio
     async def test_transition_pending_action_final_seals_status(self):
@@ -237,6 +320,72 @@ class TestMathGuardIndependentRecompute:
         )
         assert result.passed is False
         assert "STUDY_TYPE_MISMATCH" in result.reason
+
+    def test_trusted_calculator_immutability(self):
+        """TrustedCalculator instances are immutable and reject attribute mutation."""
+        calc = TrustedCalculatorRegistry.create(
+            calculator_id="calc_immut",
+            study_type="load_flow",
+            quantity_kind="voltage",
+            unit="pu",
+            fn=lambda: 1.0,
+        )
+        with pytest.raises(TypeError, match="immutable"):
+            calc.calculator_id = "tampered_id"
+
+        with pytest.raises(TypeError, match="immutable"):
+            calc.study_type = "short_circuit"
+
+        with pytest.raises(TypeError, match="cannot be deleted"):
+            del calc.calculator_id
+
+    def test_trusted_calculator_bytecode_tampering_detected(self):
+        """Modifying the underlying callable or bytecode breaks verification and fails is_trusted."""
+        def good_fn():
+            return 1.02
+
+        calc = TrustedCalculatorRegistry.create(
+            calculator_id="tamper_test",
+            study_type="load_flow",
+            quantity_kind="voltage",
+            unit="pu",
+            fn=good_fn,
+        )
+        assert TrustedCalculatorRegistry.is_trusted(calc) is True
+
+        # Malicious replacement of internal callable
+        def bad_fn():
+            return 999.0
+
+        object.__setattr__(calc, "_fn", bad_fn)
+        assert TrustedCalculatorRegistry.is_trusted(calc) is False
+
+    def test_target_specific_load_flow_verification(self):
+        """Target-specific Load Flow verification enforces target bus in system model and solver index, with zero fallback."""
+        sys = System(base_mva=100.0)
+        sys.add_bus(Bus("B1", base_kv=13.8, bus_type="slack"))
+        sys.add_bus(Bus("B2", base_kv=13.8, bus_type="pq", load_power=complex(0.5, 0.2)))
+        sys.add_line(Line("L1", sys.buses["B1"], sys.buses["B2"], z1=complex(0.05, 0.2)))
+
+        # 1. Missing target bus fails closed (returns None, zero fallback)
+        calc_no_target = AhmedETAPSkillAgent._build_domain_recompute(
+            "load_flow", {"system": sys}, ProjectRef()
+        )
+        assert calc_no_target is None
+
+        # 2. Non-existent target bus fails closed (returns None)
+        calc_invalid_target = AhmedETAPSkillAgent._build_domain_recompute(
+            "load_flow", {"system": sys, "target_bus_id": "NON_EXISTENT_BUS"}, ProjectRef()
+        )
+        assert calc_invalid_target is None
+
+        # 3. Valid target bus computes voltage drop across impedance correctly
+        calc_valid = AhmedETAPSkillAgent._build_domain_recompute(
+            "load_flow", {"system": sys, "target_bus_id": "B2"}, ProjectRef()
+        )
+        assert calc_valid is not None
+        v_b2 = calc_valid()
+        assert 0.8 < v_b2 < 1.0  # Physical voltage drop across line impedance
 
     def test_domain_recompute_performs_genuine_solving_not_slack_copy(self):
         """_build_domain_recompute runs LoadFlowSolver; altering impedance alters result."""
@@ -508,6 +657,44 @@ class TestModbusTelemetryQuality:
         try:
             assert server.latest_snapshot.get("BUS1_V") == 1.025
             assert server.is_stale is False
+            assert server.is_point_stale("BUS1_V") is False
+            assert server.point_quality.get("BUS1_V") == "GOOD"
+        finally:
+            server.stop_server()
+
+    def test_modbus_sparse_unmapped_datastore_and_genuine_zero(self):
+        """Sparse datastore retains genuine 0.0 values with GOOD quality and does not synthesize zeros."""
+        reg_map = [
+            RegisterEntry(
+                name="BUS1_V",
+                element_id="B1",
+                measurement_type="voltage_magnitude",
+                address=0,
+                function_code=3,
+                data_type="float32",
+                scale=1.0,
+                offset=0.0,
+            )
+        ]
+        cfg = ModbusConfig(
+            enabled=True,
+            role="server",
+            server_host="127.0.0.1",
+            server_port=5097,
+            server_unit_id=1,
+            register_map=[r.__dict__ for r in reg_map],
+        )
+        server = ModbusServerAdapter(cfg)
+        # Genuine 0.0 voltage (e.g., dead bus)
+        server.set_provider(lambda: {"BUS1_V": 0.0})
+        server.start_server()
+        try:
+            assert "BUS1_V" in server.latest_snapshot
+            assert server.latest_snapshot["BUS1_V"] == 0.0
+            assert server.point_quality["BUS1_V"] == "GOOD"
+            assert server.is_point_stale("BUS1_V") is False
+            regs = server.read_holding_registers(0, 2)
+            assert regs == [0, 0]
         finally:
             server.stop_server()
 
@@ -524,6 +711,7 @@ class TestCUADualConfirmationSafety:
     class MockExecutor(BaseCUAExecutor):
         def __init__(self, **kwargs):
             import tempfile
+
             self.temp_dir = tempfile.TemporaryDirectory()
             super().__init__(audit_dir=self.temp_dir.name, **kwargs)
             self.executed_actions = []
@@ -582,8 +770,8 @@ class TestCUADualConfirmationSafety:
         assert "dual confirmation required" in (result.aborted_reason or "").lower()
         assert len(executor.executed_actions) == 0
 
-    def test_dual_confirmation_requires_two_distinct_approvers(self):
-        """Dual confirmation rejects single approver even when callback returns True."""
+    def test_dual_confirmation_bare_boolean_rejected(self):
+        """Bare boolean approval returns fail-closed when dual confirmation is required."""
         executor = self.MockExecutor()
         action_dict = {
             "source": "gemini",
@@ -595,10 +783,205 @@ class TestCUADualConfirmationSafety:
             },
         }
 
-        def single_human_approval_callback(payload):
-            # Only 1 approver provided
-            payload["confirmations"] = ["operator_1"]
-            return True
+        with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_dict):
+            with patch.object(
+                life_safety_guard,
+                "pre_action_check",
+                return_value=SafetyCheckResult(
+                    blocked=False,
+                    requires_dual_confirmation=True,
+                    safety_level="dual_confirmation",
+                    timestamp=datetime.now(timezone.utc),
+                ),
+            ):
+                result: CUAExecutionResult = executor.execute_loop(
+                    objective=f"Trip breaker bare bool {uuid.uuid4().hex[:8]}",
+                    max_steps=1,
+                    mode="control",
+                    single_operator_mode=False,
+                    require_confirmation=True,
+                    on_confirmation_request=lambda p: True,  # Bare boolean
+                    bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+                )
+
+        assert result.success is False
+        assert "bare boolean" in (result.aborted_reason or "").lower()
+        assert len(executor.executed_actions) == 0
+
+    def test_dual_confirmation_plain_strings_rejected(self):
+        """Plain string operator identifiers are rejected fail-closed."""
+        executor = self.MockExecutor()
+        action_dict = {
+            "source": "gemini",
+            "next_action": {
+                "type": "click",
+                "x": 100,
+                "y": 100,
+                "target": "Trip Substation Main Breaker",
+            },
+        }
+
+        def plain_strings_callback(payload):
+            return ["operator_1", "operator_2"]
+
+        with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_dict):
+            with patch.object(
+                life_safety_guard,
+                "pre_action_check",
+                return_value=SafetyCheckResult(
+                    blocked=False,
+                    requires_dual_confirmation=True,
+                    safety_level="dual_confirmation",
+                    timestamp=datetime.now(timezone.utc),
+                ),
+            ):
+                result: CUAExecutionResult = executor.execute_loop(
+                    objective=f"Trip breaker plain strings {uuid.uuid4().hex[:8]}",
+                    max_steps=1,
+                    mode="control",
+                    single_operator_mode=False,
+                    require_confirmation=True,
+                    on_confirmation_request=plain_strings_callback,
+                    bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+                )
+
+        assert result.success is False
+        assert "plain string" in (result.aborted_reason or "").lower()
+        assert len(executor.executed_actions) == 0
+
+    def test_dual_confirmation_banned_identities_rejected(self):
+        """Banned identities ('admin', 'operator') are rejected even inside structured approvals."""
+        executor = self.MockExecutor()
+        action_dict = {
+            "source": "gemini",
+            "next_action": {
+                "type": "click",
+                "x": 100,
+                "y": 100,
+                "target": "Trip Substation Main Breaker",
+            },
+        }
+
+        def banned_identities_callback(payload):
+            exec_id = payload.get("execution_id") or ""
+            act_hash = payload.get("action_payload_hash") or ""
+            return [
+                AuthenticatedApproval(
+                    user_id="admin",  # Banned identity
+                    role="lead_engineer",
+                    execution_id=exec_id,
+                    action_payload_hash=act_hash,
+                ),
+                AuthenticatedApproval(
+                    user_id="usr_valid_02",
+                    role="supervisor",
+                    execution_id=exec_id,
+                    action_payload_hash=act_hash,
+                ),
+            ]
+
+        with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_dict):
+            with patch.object(
+                life_safety_guard,
+                "pre_action_check",
+                return_value=SafetyCheckResult(
+                    blocked=False,
+                    requires_dual_confirmation=True,
+                    safety_level="dual_confirmation",
+                    timestamp=datetime.now(timezone.utc),
+                ),
+            ):
+                result: CUAExecutionResult = executor.execute_loop(
+                    objective=f"Trip breaker banned identity {uuid.uuid4().hex[:8]}",
+                    max_steps=1,
+                    mode="control",
+                    single_operator_mode=False,
+                    require_confirmation=True,
+                    on_confirmation_request=banned_identities_callback,
+                    bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+                )
+
+        assert result.success is False
+        assert len(executor.executed_actions) == 0
+
+    def test_dual_confirmation_mismatched_payload_hash_rejected(self):
+        """Approvals with forged or mismatched action payload hash are rejected fail-closed."""
+        executor = self.MockExecutor()
+        action_dict = {
+            "source": "gemini",
+            "next_action": {
+                "type": "click",
+                "x": 100,
+                "y": 100,
+                "target": "Trip Substation Main Breaker",
+            },
+        }
+
+        def mismatched_hash_callback(payload):
+            exec_id = payload.get("execution_id") or ""
+            return [
+                AuthenticatedApproval(
+                    user_id="eng_alice_101",
+                    role="lead_engineer",
+                    execution_id=exec_id,
+                    action_payload_hash="forged_action_hash_00000000000000000000000000000000000000000000",
+                ),
+                AuthenticatedApproval(
+                    user_id="eng_bob_102",
+                    role="supervisor",
+                    execution_id=exec_id,
+                    action_payload_hash="forged_action_hash_00000000000000000000000000000000000000000000",
+                ),
+            ]
+
+        with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_dict):
+            with patch.object(
+                life_safety_guard,
+                "pre_action_check",
+                return_value=SafetyCheckResult(
+                    blocked=False,
+                    requires_dual_confirmation=True,
+                    safety_level="dual_confirmation",
+                    timestamp=datetime.now(timezone.utc),
+                ),
+            ):
+                result: CUAExecutionResult = executor.execute_loop(
+                    objective=f"Trip breaker mismatched hash {uuid.uuid4().hex[:8]}",
+                    max_steps=1,
+                    mode="control",
+                    single_operator_mode=False,
+                    require_confirmation=True,
+                    on_confirmation_request=mismatched_hash_callback,
+                    bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
+                )
+
+        assert result.success is False
+        assert len(executor.executed_actions) == 0
+
+    def test_dual_confirmation_requires_two_distinct_approvers(self):
+        """Dual confirmation rejects single approver even with valid AuthenticatedApproval."""
+        executor = self.MockExecutor()
+        action_dict = {
+            "source": "gemini",
+            "next_action": {
+                "type": "click",
+                "x": 100,
+                "y": 100,
+                "target": "Trip Substation Main Breaker",
+            },
+        }
+
+        def single_approval_callback(payload):
+            exec_id = payload.get("execution_id") or ""
+            act_hash = payload.get("action_payload_hash") or ""
+            return [
+                AuthenticatedApproval(
+                    user_id="eng_alice_101",
+                    role="lead_engineer",
+                    execution_id=exec_id,
+                    action_payload_hash=act_hash,
+                )
+            ]
 
         with patch("integrations.resilience.hybrid_vision.analyze_screenshot", return_value=action_dict):
             with patch.object(
@@ -617,16 +1000,17 @@ class TestCUADualConfirmationSafety:
                     mode="control",
                     single_operator_mode=False,
                     require_confirmation=True,
-                    on_confirmation_request=single_human_approval_callback,
+                    on_confirmation_request=single_approval_callback,
                     bounds={"min_x": 0, "min_y": 0, "max_x": 1920, "max_y": 1080},
                 )
 
         assert result.success is False
-        assert "two distinct approvers required" in (result.aborted_reason or "").lower()
+        assert "two distinct" in (result.aborted_reason or "").lower()
+        assert "approvers required" in (result.aborted_reason or "").lower()
         assert len(executor.executed_actions) == 0
 
-    def test_dual_confirmation_succeeds_with_two_distinct_approvers(self):
-        """Dual confirmation succeeds when two distinct operators confirm."""
+    def test_dual_confirmation_succeeds_with_two_distinct_authenticated_approvers(self):
+        """Dual confirmation succeeds when two distinct authorized approvers confirm with matching hash."""
         executor = self.MockExecutor()
         action_dict_1 = {
             "source": "gemini",
@@ -640,9 +1024,22 @@ class TestCUADualConfirmationSafety:
         action_done = {"source": "gemini", "next_action": {"type": "done"}}
 
         def dual_approval_callback(payload):
-            # Two distinct approvers
-            payload["confirmations"] = ["operator_1", "operator_2"]
-            return True
+            exec_id = payload.get("execution_id") or ""
+            act_hash = payload.get("action_payload_hash") or ""
+            return [
+                AuthenticatedApproval(
+                    user_id="eng_alice_101",
+                    role="lead_engineer",
+                    execution_id=exec_id,
+                    action_payload_hash=act_hash,
+                ),
+                AuthenticatedApproval(
+                    user_id="eng_bob_102",
+                    role="supervisor",
+                    execution_id=exec_id,
+                    action_payload_hash=act_hash,
+                ),
+            ]
 
         with patch(
             "integrations.resilience.hybrid_vision.analyze_screenshot",
@@ -716,3 +1113,4 @@ class TestSecretsScannerImprovements:
             assert "sk-abcdefghijklmnopqrstuvwxyz123456789" not in f["match_preview"]
             assert "somesecrettoken1234567890abcdef" not in f["match_preview"]
             assert "*" in f["match_preview"]
+

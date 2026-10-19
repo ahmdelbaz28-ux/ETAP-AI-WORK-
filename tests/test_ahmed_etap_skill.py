@@ -873,7 +873,11 @@ async def test_skill_agent_routes_to_load_flow_lead():
 
     trusted_calc = _make_trusted_calc(lambda: 1.024, quantity_kind="voltage", unit="pu", calc_id="e2e_lf_calc")
 
-    skill_agent = AhmedETAPSkillAgent(orchestrator=orch)
+    skill_agent = AhmedETAPSkillAgent(
+        orchestrator=orch,
+        test_lead_agent=StubLoadFlowAgent(),
+        test_recompute_resolver=lambda st, sys_dict, p: trusted_calc,
+    )
     task = EngineeringTask(
         task_id="e2e_load_flow",
         description="end-to-end load_flow via skill",
@@ -882,7 +886,6 @@ async def test_skill_agent_routes_to_load_flow_lead():
             "study_type": "load_flow",
             "project": {"name": "E2E", "base_mva": 100, "base_kv": 115},
             "parameters": {"v_slack_pu": 1.024},
-            "recompute_fn": trusted_calc,
             "claim_value": 1.024,
             "claim_unit": "pu",
             "quantity_kind": "voltage",

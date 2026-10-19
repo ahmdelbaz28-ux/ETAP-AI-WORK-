@@ -409,13 +409,36 @@ _UNIT_RULES: dict[str, set[str]] = {
 }
 
 
-class TrustedCalculator:
-    """Internal trusted deterministic calculator for MathGuard independent recomputations.
+def _compute_fn_fingerprint(fn: Any) -> str:
+    """Compute deterministic cryptographic fingerprint of a callable's implementation."""
+    code = getattr(fn, "__code__", None)
+    if code is not None:
+        raw = f"{getattr(fn, '__module__', '')}:{getattr(fn, '__qualname__', '')}:{code.co_code.hex()}:{repr(code.co_consts)}:{repr(code.co_varnames)}"
+    else:
+        raw = f"{getattr(fn, '__module__', '')}:{type(fn).__name__}:{id(fn)}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
-    Instances are cryptographically registered in TrustedCalculatorRegistry and can only be
-    created internally by approved factory methods. Instances cannot be spoofed by external
-    callables attaching attributes like `_provenance` or `is_independent`.
+
+class TrustedCalculator:
+    """Internal immutable trusted deterministic calculator for MathGuard independent recomputations.
+
+    Instances are cryptographically bound to their approved deterministic execution function,
+    study type, quantity kind, and unit. Attributes cannot be modified after registration,
+    and attempting to replace the underlying callable or forge tokens invalidates trust.
     """
+
+    __slots__ = (
+        "_calculator_id",
+        "_study_type",
+        "_quantity_kind",
+        "_unit",
+        "_fn",
+        "_token",
+        "_signature",
+        "_fn_fingerprint",
+        "_frozen",
+        "__weakref__",
+    )
 
     def __init__(
         self,
@@ -426,28 +449,77 @@ class TrustedCalculator:
         fn: Callable[[], float],
         token: str = "",
         signature: str = "",
+        fn_fingerprint: str = "",
     ) -> None:
-        self.calculator_id = calculator_id
-        self.study_type = study_type
-        self.quantity_kind = quantity_kind
-        self.unit = unit
-        self._fn = fn
-        self._token = token
-        self._signature = signature
-        self.is_independent = True
-        self._provenance = "domain_engine"
+        object.__setattr__(self, "_calculator_id", str(calculator_id))
+        object.__setattr__(self, "_study_type", str(study_type))
+        object.__setattr__(self, "_quantity_kind", str(quantity_kind))
+        object.__setattr__(self, "_unit", str(unit))
+        object.__setattr__(self, "_fn", fn)
+        object.__setattr__(self, "_token", str(token))
+        object.__setattr__(self, "_signature", str(signature))
+        object.__setattr__(
+            self,
+            "_fn_fingerprint",
+            fn_fingerprint or _compute_fn_fingerprint(fn),
+        )
+        object.__setattr__(self, "_frozen", False)
+
+    @property
+    def calculator_id(self) -> str:
+        return self._calculator_id
+
+    @property
+    def study_type(self) -> str:
+        return self._study_type
+
+    @property
+    def quantity_kind(self) -> str:
+        return self._quantity_kind
+
+    @property
+    def unit(self) -> str:
+        return self._unit
+
+    @property
+    def is_independent(self) -> bool:
+        return True
+
+    @property
+    def _provenance(self) -> str:
+        return "domain_engine"
 
     def __call__(self) -> float:
         return float(self._fn())
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if getattr(self, "_frozen", False):
+            raise TypeError("TrustedCalculator is immutable; modifying attributes is forbidden")
+        object.__setattr__(self, name, value)
+
+    def __delattr__(self, name: str) -> None:
+        raise TypeError("TrustedCalculator attributes cannot be deleted")
 
 
 _REGISTRY_SECRET: bytes = secrets.token_bytes(32)
 
 
+@dataclass(frozen=True)
+class _CalculatorRegistration:
+    token: str
+    calculator_id: str
+    study_type: str
+    quantity_kind: str
+    unit: str
+    fn: Callable[[], float]
+    fn_fingerprint: str
+    signature: str
+
+
 class TrustedCalculatorRegistry:
     """Internal cryptographic registry of approved deterministic independent calculators."""
 
-    _registered_tokens: set[str] = set()
+    _registered_records: dict[str, _CalculatorRegistration] = {}
 
     @classmethod
     def _is_caller_authorized(cls) -> bool:
@@ -476,8 +548,9 @@ class TrustedCalculatorRegistry:
         study_type: str,
         quantity_kind: str,
         unit: str,
+        fn_fingerprint: str,
     ) -> str:
-        payload = f"{token}:{calculator_id}:{study_type}:{quantity_kind}:{unit}".encode()
+        payload = f"{token}:{calculator_id}:{study_type}:{quantity_kind}:{unit}:{fn_fingerprint}".encode()
         return hmac.new(_REGISTRY_SECRET, payload, hashlib.sha256).hexdigest()
 
     @classmethod
@@ -488,14 +561,30 @@ class TrustedCalculatorRegistry:
             raise PermissionError(
                 "Direct external registration of trusted calculators is strictly prohibited."
             )
-        if not getattr(calc, "_token", None):
+        fn_fp = getattr(calc, "_fn_fingerprint", "") or _compute_fn_fingerprint(calc._fn)
+        token = getattr(calc, "_token", "")
+        if not token:
             token = uuid.uuid4().hex
             sig = cls._compute_signature(
-                token, calc.calculator_id, calc.study_type, calc.quantity_kind, calc.unit
+                token, calc.calculator_id, calc.study_type, calc.quantity_kind, calc.unit, fn_fp
             )
-            calc._token = token
-            calc._signature = sig
-        cls._registered_tokens.add(calc._token)
+            object.__setattr__(calc, "_token", token)
+            object.__setattr__(calc, "_signature", sig)
+            object.__setattr__(calc, "_fn_fingerprint", fn_fp)
+        else:
+            sig = getattr(calc, "_signature", "")
+
+        object.__setattr__(calc, "_frozen", True)
+        cls._registered_records[token] = _CalculatorRegistration(
+            token=token,
+            calculator_id=calc.calculator_id,
+            study_type=calc.study_type,
+            quantity_kind=calc.quantity_kind,
+            unit=calc.unit,
+            fn=calc._fn,
+            fn_fingerprint=fn_fp,
+            signature=sig,
+        )
         return calc
 
     @classmethod
@@ -504,16 +593,37 @@ class TrustedCalculatorRegistry:
             return False
         token = getattr(obj, "_token", None)
         sig = getattr(obj, "_signature", None)
-        if not token or not sig or token not in cls._registered_tokens:
+        fn_fp = getattr(obj, "_fn_fingerprint", None)
+        fn = getattr(obj, "_fn", None)
+        if not token or not sig or not fn or token not in cls._registered_records:
             return False
+
+        rec = cls._registered_records[token]
+        # Verify exact function identity, fingerprint, and attributes
+        if rec.fn is not fn:
+            return False
+        current_fp = _compute_fn_fingerprint(fn)
+        if fn_fp != rec.fn_fingerprint or current_fp != rec.fn_fingerprint:
+            return False
+        if (
+            obj.calculator_id != rec.calculator_id
+            or obj.study_type != rec.study_type
+            or obj.quantity_kind != rec.quantity_kind
+            or obj.unit != rec.unit
+        ):
+            return False
+
         expected_sig = cls._compute_signature(
             token=token,
-            calculator_id=getattr(obj, "calculator_id", ""),
-            study_type=getattr(obj, "study_type", ""),
-            quantity_kind=getattr(obj, "quantity_kind", ""),
-            unit=getattr(obj, "unit", ""),
+            calculator_id=rec.calculator_id,
+            study_type=rec.study_type,
+            quantity_kind=rec.quantity_kind,
+            unit=rec.unit,
+            fn_fingerprint=rec.fn_fingerprint,
         )
-        return hmac.compare_digest(str(sig), expected_sig)
+        return hmac.compare_digest(str(sig), expected_sig) and hmac.compare_digest(
+            str(rec.signature), expected_sig
+        )
 
     @classmethod
     def create(
@@ -529,7 +639,8 @@ class TrustedCalculatorRegistry:
                 "Direct external creation of trusted calculators is strictly prohibited."
             )
         token = uuid.uuid4().hex
-        sig = cls._compute_signature(token, calculator_id, study_type, quantity_kind, unit)
+        fn_fp = _compute_fn_fingerprint(fn)
+        sig = cls._compute_signature(token, calculator_id, study_type, quantity_kind, unit, fn_fp)
         calc = TrustedCalculator(
             calculator_id=calculator_id,
             study_type=study_type,
@@ -538,8 +649,19 @@ class TrustedCalculatorRegistry:
             fn=fn,
             token=token,
             signature=sig,
+            fn_fingerprint=fn_fp,
         )
-        cls._registered_tokens.add(token)
+        object.__setattr__(calc, "_frozen", True)
+        cls._registered_records[token] = _CalculatorRegistration(
+            token=token,
+            calculator_id=calculator_id,
+            study_type=study_type,
+            quantity_kind=quantity_kind,
+            unit=unit,
+            fn=fn,
+            fn_fingerprint=fn_fp,
+            signature=sig,
+        )
         return calc
 
 
@@ -622,21 +744,46 @@ class MathGuard:
                 is_independent=False,
             )
 
-        # Study type binding check
+        # Study type binding check (strictly require intended study identity for production verification)
+        effective_study = study_type
         calc_study = getattr(recompute, "study_type", None)
-        if calc_study and study_type:
-            from agents.ahmed_etap_orchestrator import canonicalize_study_type
+        if not effective_study and calc_study:
+            effective_study = calc_study
 
-            if canonicalize_study_type(calc_study) != canonicalize_study_type(study_type):
-                return MathGuardResult(
-                    passed=False,
-                    reason=f"STUDY_TYPE_MISMATCH: Calculator is bound to study '{calc_study}' but verified study is '{study_type}'",
-                    claim_value=claim_value,
-                    recomputed_value=None,
-                    units_ok=False,
-                    units_message=f"study type mismatch ({calc_study} != {study_type})",
-                    is_independent=True,
-                )
+        if not effective_study or not str(effective_study).strip():
+            return MathGuardResult(
+                passed=False,
+                reason="MISSING_STUDY_TYPE: MathGuard verification requires explicit intended study_type binding (fail-closed)",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=False,
+                units_message="missing study_type parameter",
+                is_independent=True,
+            )
+
+        if not calc_study or not str(calc_study).strip():
+            return MathGuardResult(
+                passed=False,
+                reason="UNBOUND_CALCULATOR_STUDY: Calculator lacks bound study_type metadata (fail-closed)",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=False,
+                units_message="calculator missing study_type",
+                is_independent=True,
+            )
+
+        from agents.ahmed_etap_orchestrator import canonicalize_study_type
+
+        if canonicalize_study_type(calc_study) != canonicalize_study_type(effective_study):
+            return MathGuardResult(
+                passed=False,
+                reason=f"STUDY_TYPE_MISMATCH: Calculator is bound to study '{calc_study}' but verified study is '{effective_study}'",
+                claim_value=claim_value,
+                recomputed_value=None,
+                units_ok=False,
+                units_message=f"study type mismatch ({calc_study} != {effective_study})",
+                is_independent=True,
+            )
 
         # Quantity and unit binding check
         calc_quantity = getattr(recompute, "quantity_kind", None)
@@ -1289,10 +1436,20 @@ class AhmedETAPSkillAgent(BaseAgent):
 
     prompt_handle = "ahmed_etap_agent"
 
-    def __init__(self, orchestrator: ChiefEngineeringOrchestrator | None = None) -> None:
+    def __init__(
+        self,
+        orchestrator: ChiefEngineeringOrchestrator | None = None,
+        *,
+        test_lead_agent: BaseAgent | None = None,
+        test_recompute_resolver: Optional[
+            Callable[[str, dict[str, Any], ProjectRef], Optional[Callable[..., float]]]
+        ] = None,
+    ) -> None:
         super().__init__("ahmed_etap_skill")
         self._orch = orchestrator
         self._skill_orch = AhmedETAPOrchestrator()
+        self._test_lead_agent = test_lead_agent
+        self._test_recompute_resolver = test_recompute_resolver
 
     def _resolve_orchestrator(self) -> ChiefEngineeringOrchestrator:
         if self._orch is None:
@@ -1367,7 +1524,7 @@ class AhmedETAPSkillAgent(BaseAgent):
             )
         orch = self._resolve_orchestrator()
         lead_agent = orch.agents.get(lead_key)
-        if lead_agent is None:
+        if lead_agent is None and self._test_lead_agent is None:
             return AgentResult(
                 agent_name=self.agent_name,
                 study_type=StudyType.LOAD_FLOW,
@@ -1391,14 +1548,9 @@ class AhmedETAPSkillAgent(BaseAgent):
         lead_result: list[AgentResult] = []
 
         async def _lead_fn(t: EngineeringTask) -> AgentResult:
-            # If lead_agent is an explicit test stub for isolated testing (excluding mocks)
-            import unittest.mock
-            is_mock = isinstance(lead_agent, unittest.mock.NonCallableMock)
-            if not is_mock and (
-                type(lead_agent).__name__.startswith("Stub")
-                or getattr(lead_agent, "__dict__", {}).get("_is_stub", False)
-            ):
-                res = await lead_agent.execute(t)
+            # If explicit test lead agent injected via constructor seam
+            if self._test_lead_agent is not None:
+                res = await self._test_lead_agent.execute(t)
                 lead_result.append(res)
                 return res
 
@@ -1503,10 +1655,8 @@ class AhmedETAPSkillAgent(BaseAgent):
         # Independent recompute function — MUST be resolved internally from domain engine registry.
         # User-controlled recompute_fn or reviewer callbacks MUST NOT override the trusted calculation path.
         recompute_fn = self._build_domain_recompute(study_type, params, project)
-        if recompute_fn is None:
-            candidate = params.get("recompute_fn")
-            if TrustedCalculatorRegistry.is_trusted(candidate):
-                recompute_fn = candidate
+        if recompute_fn is None and self._test_recompute_resolver is not None:
+            recompute_fn = self._test_recompute_resolver(study_type, params, project)
 
         result = await self._skill_orch.run_study(
             study_type=study_type,
@@ -1664,11 +1814,16 @@ class AhmedETAPSkillAgent(BaseAgent):
         # 4. Load Flow / Power Flow: genuinely solve the power flow on the system model
         if canonical in ("load_flow", "power_flow"):
             system_data = lead_params.get("system") or getattr(project, "system", None)
-            target_bus_id = lead_params.get("bus_id") or lead_params.get("target_bus")
+            target_bus_id = (
+                lead_params.get("target_bus_id")
+                or lead_params.get("bus_id")
+                or lead_params.get("target_bus")
+            )
+            if target_bus_id is None:
+                return None
+
             if system_data is not None:
                 try:
-                    import numpy as np
-
                     from core_model.system import System
                     from load_flow.load_flow import LoadFlowSolver
 
@@ -1685,18 +1840,32 @@ class AhmedETAPSkillAgent(BaseAgent):
                         sys_obj = build_system_from_spec(system_data)
 
                     if sys_obj is not None and getattr(sys_obj, "buses", None):
+                        resolved_target = None
+                        if target_bus_id in sys_obj.buses:
+                            resolved_target = target_bus_id
+                        else:
+                            for b in sys_obj.buses:
+                                if str(b) == str(target_bus_id):
+                                    resolved_target = b
+                                    break
+                        if resolved_target is None:
+                            return None
+
                         def _solve_lf_voltage() -> float:
                             solver = LoadFlowSolver(sys_obj)
                             converged = solver.solve()
                             if not converged:
                                 raise ValueError("Independent load flow failed to converge")
-                            if target_bus_id is not None and target_bus_id in solver.bus_index:
-                                idx = solver.bus_index[target_bus_id]
-                                return float(abs(solver.V[idx]))
-                            return float(np.min(np.abs(solver.V)))
+                            if resolved_target not in solver.bus_index:
+                                raise ValueError(f"Target bus '{resolved_target}' not found in solved bus index")
+                            idx = solver.bus_index[resolved_target]
+                            val = float(abs(solver.V[idx]))
+                            if not math.isfinite(val):
+                                raise ValueError(f"Non-finite voltage computed for target bus '{resolved_target}'")
+                            return val
 
                         return TrustedCalculatorRegistry.create(
-                            calculator_id=f"lf_solver_{canonical}",
+                            calculator_id=f"lf_solver_{canonical}_{resolved_target}",
                             study_type=canonical,
                             quantity_kind="voltage",
                             unit="pu",
