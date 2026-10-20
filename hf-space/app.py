@@ -224,6 +224,7 @@ from api.approvals import (
 )
 from api.assets import router as assets_router  # noqa: E402
 from api.auth import router as auth_router  # noqa: E402
+from api.chat_stream import router as chat_stream_router  # noqa: E402
 
 # Email integration routers (Resend integration v2 — added 2026-07-10)
 from api.csrf import CSRFMiddleware, csrf_router  # noqa: E402
@@ -251,7 +252,6 @@ from api.magic_links import router as magic_links_router  # noqa: E402
 from api.notifications import router as notifications_router  # noqa: E402
 from api.projects import router as projects_router  # noqa: E402
 from api.results_store import router as results_router  # noqa: E402
-from api.chat_stream import router as chat_stream_router  # noqa: E402
 from api.session_stream import router as session_stream_router  # noqa: E402
 from api.solver_parameters import router as solver_parameters_router  # noqa: E402
 from api.studies import StudyReRunRequest  # noqa: E402

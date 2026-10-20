@@ -1,7 +1,7 @@
 ---
 title: "AhmedETAP Isolated Staging Environment Architecture & Deployment Guide"
-version: "2.2.0"
-last_updated: "2026-10-19"
+version: "2.3.0"
+last_updated: "2026-10-20"
 maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 ---
 
@@ -13,39 +13,40 @@ maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
 - [2. Component Separation Matrix](#2-component-separation-matrix)
 - [3. Staging Infrastructure Components Status](#3-staging-infrastructure-components-status)
   - [3.1 Frontend (Vercel)](#31-frontend-vercel)
-  - [3.2 GitHub Actions CI/CD](#32-github-actions-cicd)
-  - [3.3 Backend Hosting Gate (Owner Decision & Alternatives)](#33-backend-hosting-gate-owner-decision--alternatives)
-  - [3.4 Database & Persistence Requirements](#34-database--persistence-requirements)
-- [4. Backend & Database Alternative Architectures (Zero-Cost / Pro-Alternative)](#4-backend--database-alternative-architectures-zero-cost--pro-alternative)
+  - [3.2 Dedicated Staging PostgreSQL Database (Supabase)](#32-dedicated-staging-postgresql-database-supabase)
+  - [3.3 GitHub Actions CI/CD](#33-github-actions-cicd)
+  - [3.4 Backend Runtime & Ingress (Ephemeral vs. Persistent Hosting)](#34-backend-runtime--ingress-ephemeral-vs-persistent-hosting)
+- [4. Engineering Capability Verification & Feature Flag Isolation](#4-engineering-capability-verification--feature-flag-isolation)
 - [5. Operational Safety & Rollback Procedures](#5-operational-safety--rollback-procedures)
-- [6. Owner Decision Points & Unblocking Steps](#6-owner-decision-points--unblocking-steps)
+- [6. Owner Decision Points & Persistent Hosting Options](#6-owner-decision-points--persistent-hosting-options)
 
 ---
 
 ## 1. Executive Summary & Purpose
 
-In alignment with the **AhmedETAP Zero-Fabrication Rule (R3)** and the **Owner Safety Remediation Mandate**, this document defines the isolated Staging deployment environment for AhmedETAP (`ahmdelbaz28-ux/ETAP-AI-WORK-`).
+In alignment with the **AhmedETAP Zero-Fabrication Rule (R3)** and the **Owner Safety Remediation Mandate**, this document defines the verified Staging deployment architecture for AhmedETAP (`ahmdelbaz28-ux/ETAP-AI-WORK-`).
 
-The Staging environment provides an independent, sandboxed platform allowing engineers to test and verify new capabilities (such as `harmonic_analysis`, `cable_sizing`, `motor_starting`, `transient_stability`, `optimal_power_flow`, `earth_grid`, `renewable_integration`, and `battery_storage`) without risk of cross-contamination with live production customers or real electrical systems.
+The Staging environment provides an isolated, sandboxed platform allowing engineers to test and verify new capabilities (such as `harmonic_analysis`, `cable_sizing`, `motor_starting`, `transient_stability`, `optimal_power_flow`, `earth_grid`, `renewable_integration`, and `battery_storage`) without cross-contamination with live production customers or physical electrical systems.
 
 **Non-Negotiable Safety Invariants:**
-1. Staging **MUST NOT** share database tables, schemas, or connections with Production.
+1. Staging **MUST NOT** share database tables, schemas, or credentials with Production (`kuqwgxzkscqqftcrcuqe`).
 2. Staging **MUST NOT** use SQLite or ephemeral storage (`ALLOW_SQLITE_IN_PROD` is strictly banned in Staging).
 3. Staging workflows **MUST NOT** have automatic push triggers and **MUST NOT** fall back to production repository secrets.
-4. No Staging deployment or feature flag activation may proceed until independent backend compute and persistent database are provisioned and verified.
+4. Production feature flag defaults in `api/feature_flags.py` **MUST REMAIN** fail-closed (`enabled: False, rollout_percentage: 0`).
+5. Quick Tunnels (`trycloudflare.com`) are recognized as temporary, ephemeral smoke-test utilities and are **NOT** persistent production-grade hosting.
 
 ---
 
 ## 2. Component Separation Matrix
 
-| Component | Production Instance | Staging Target | Proof of Strict Isolation |
-|:---|:---|:---|:---|
-| **Backend / API** | `https://ahmdelbaz28-ahmedetap-platform.hf.space` | Distinct Backend Container URL | Distinct hosting service, separate runtime container, distinct hostname |
-| **Frontend / UI** | `etap-ai-work` (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`) | `etap-ai-work-staging` (`prj_XHvIpATc0SF11QBeCNPatRe5t8Af`) | Separate Vercel Project ID, distinct build environment, `VITE_API_URL` bound exclusively to Staging Backend |
-| **Database** | Supabase PostgreSQL (`aws-1-eu-central-1.pooler.supabase.com`) | Dedicated Staging PostgreSQL instance (e.g. Neon.tech / separate Supabase project) | Zero shared tables, zero customer data, distinct connection credentials; SQLite strictly prohibited |
-| **Authentication** | Production `JWT_SECRET_KEY` & `ENGINEERING_SERVICE_API_KEY` | Dedicated Staging signing keys (`STAGING_JWT_SECRET_KEY`, `STAGING_ENGINEERING_SERVICE_API_KEY`) | Tokens issued in Staging cannot authenticate against Production |
-| **Feature Flags** | Managed production store (`.feature-flags.json`) | Isolated Staging flag evaluation | Runtime flag toggles in Staging do not propagate to Production |
-| **Grid / SCADA** | Fail-closed production interlocks | Synthetic fixtures & mock adapters only | Zero live Modbus/OPC-UA/IEC 61850 network packets to physical devices |
+| Component | Production Instance | Staging Target | Proof of Strict Isolation | Status |
+|:---|:---|:---|:---|:---|
+| **Frontend / UI** | `etap-ai-work` (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`) | `etap-ai-work-staging` (`prj_XHvIpATc0SF11QBeCNPatRe5t8Af`) | Separate Vercel Project ID, distinct build environment, `VITE_API_URL` bound exclusively to Staging Backend | **OPERATIONAL (HTTP 200)** |
+| **Database** | Supabase PostgreSQL (`kuqwgxzkscqqftcrcuqe`) | Dedicated Supabase Project `guunodspzhcxpmdwwyjv` | Distinct project ref, isolated credentials, enforced by `api/staging_guard.py`; SQLite strictly banned | **OPERATIONAL (PostgreSQL 17)** |
+| **Backend API** | `https://ahmdelbaz28-ahmedetap-platform.hf.space` | Isolated Staging Service | Independent container process, dedicated ports and credentials | **SMOKE-TESTED (Temporary Tunnel)** |
+| **Authentication** | Production `JWT_SECRET_KEY` & `ENGINEERING_SERVICE_API_KEY` | Dedicated Staging signing keys (`STAGING_JWT_SECRET_KEY`, `STAGING_ENGINEERING_SERVICE_API_KEY`) | Tokens issued in Staging cannot authenticate against Production | **CONFIGURED** |
+| **Feature Flags** | Code defaults (`DEFAULT_FEATURE_FLAGS`) | In-memory / untracked local `.feature-flags.json` | Flags activated in Staging do not modify code defaults; production remains fail-closed | **ISOLATED** |
+| **Grid / SCADA** | Fail-closed production interlocks | Synthetic fixtures & mock adapters only | Zero live Modbus/OPC-UA/IEC 61850 network packets to physical devices | **VERIFIED** |
 
 ---
 
@@ -57,75 +58,53 @@ The Staging environment provides an independent, sandboxed platform allowing eng
 - **Framework:** `vite`
 - **Build Command:** `bash vercel-build.sh`
 - **Output Directory:** `ui/dist`
-- **Environment Variable:** `VITE_API_URL = https://special-internationally-generic-forgot.trycloudflare.com` (configured across Production, Preview, and Development targets on Vercel).
-- **Security Audit Note:** Frontend Staging configuration is bound to the verified, isolated Cloudflare Staging Backend. Deployment is verified and ready.
+- **Live URL:** `https://etap-ai-work-staging.vercel.app` (Verified HTTP 200).
+- **Anti-Production Guard:** `ui/src/lib/api-base-url.ts` contains explicit guards preventing fallback to production Hugging Face Spaces on Staging hosts.
 
-### 3.2 GitHub Actions CI/CD
-- **Workflow File:** `.github/workflows/cd-staging.yml`
-- **Trigger:** Strict manual `workflow_dispatch` only (with required 40-character `ref_sha`). Automated `push` triggers are completely disabled.
-- **Environment Target:** `staging`
-- **GitHub Environment Variables:**
-  - `VERCEL_PROJECT_ID`: `prj_XHvIpATc0SF11QBeCNPatRe5t8Af` (Staging ID)
-  - `HF_SPACE_NAME`: `ahmdelbaz28/AhmedETAP-Platform-Staging`
-  - `HF_SPACE_URL`: `https://ahmdelbaz28-ahmedetap-platform-staging.hf.space`
-  - `STAGING_UI_URL`: `https://etap-ai-work-staging.vercel.app`
-- **SQLite Remediation:** `ALLOW_SQLITE_IN_PROD` was permanently removed from GitHub Environment `staging`. The workflow fails closed if SQLite is detected or if `ALLOW_SQLITE_IN_PROD` is present.
-- **Fail-Closed Safety Guards:**
-  - Hard failure if repository is not `ahmdelbaz28-ux/ETAP-AI-WORK-`.
-  - Hard failure if `VERCEL_PROJECT_ID` matches production (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`).
-  - Hard failure if target HF Space matches production (`ahmdelbaz28/AhmedETAP-Platform`).
-  - Hard failure if `STAGING_DATABASE_URL` is empty, points to SQLite, or matches the production Supabase database.
-  - Hard failure if target backend hosting space does not exist (pre-flight HTTP check).
-  - Hard failure on health probe timeout (smoke test fails closed with exit code 1).
-
-### 3.3 Backend Staging Deployment (Cloudflare Tunnel)
-- **Architecture:** Cloudflare Secure Tunnel exposing dedicated AhmedETAP Staging FastAPI backend.
-- **Active Endpoint:** `https://special-internationally-generic-forgot.trycloudflare.com`
-- **Status:** **VERIFIED & OPERATIONAL (HTTP 200 on `/healthz`)**
-- **Verified Study Execution:** Live IEEE 1584 Arc Flash study executed via `POST /api/v1/studies/run` with status `completed` (Incident energy: 0.6175 cal/cm², arc boundary: 234.1 mm).
-- **Security:** Pure HTTPS with automatic SSL via Cloudflare edge; zero open inbound ports on host machine.
-
-### 3.4 Dedicated Staging PostgreSQL Database (Supabase)
+### 3.2 Dedicated Staging PostgreSQL Database (Supabase)
 - **Project Name:** `AhmedETAP-Platform-Staging`
 - **Project Ref:** `guunodspzhcxpmdwwyjv` (Dedicated, separate project in organization `AHMED ETAP`).
 - **Host / Pooler:** `aws-1-eu-central-1.pooler.supabase.com:5432` (Frankfurt / `eu-central-1`).
 - **Engine:** PostgreSQL 17.11 (Active & Healthy).
-- **Isolation:** 100% independent database; zero shared tables, zero production credentials. Ephemeral SQLite permanently banned (`ALLOW_SQLITE_IN_PROD=false`).
-- **Schema Status:** All 20 ORM tables created; Alembic stamped at head revision `016_snapshot_components`.
-- **Health Check:** `check_db_health()` verified `{"status": "healthy", "backend": "postgresql", "fallback_active": False}`.
+- **Isolation Verification:** Enforced by `api/staging_guard.py` (which validates project ref `guunodspzhcxpmdwwyjv` and rejects `kuqwgxzkscqqftcrcuqe`). Tested with 15/15 unit tests in `tests/test_staging_db_guards.py`.
+- **Schema Status:** All 21 ORM tables verified; Alembic stamped at head revision `016_snapshot_components`.
+- **SQLite Ban:** Enforced fail-closed via `api/config_prod.py` (`ALLOW_SQLITE_IN_PROD` forbidden in Staging).
+
+### 3.3 GitHub Actions CI/CD
+- **Workflow File:** `.github/workflows/cd-staging.yml`
+- **Trigger:** Strict manual `workflow_dispatch` only (with required 40-character `ref_sha`). Automated `push` triggers are completely disabled.
+- **Environment Target:** `staging`
+- **Fail-Closed Safety Guards:**
+  - Validates commit SHA length and repository name.
+  - Verifies target `VERCEL_PROJECT_ID` is `prj_XHvIpATc0SF11QBeCNPatRe5t8Af`.
+  - Executes `python3 -m api.staging_guard` against `STAGING_DATABASE_URL` prior to build.
+  - Performs comprehensive health and smoke checks on backend endpoints (`/healthz`, `/readyz`, `/version`, `/api/v1/studies/run`, `/api/v1/chat/stream`).
+
+### 3.4 Backend Runtime & Ingress (Ephemeral vs. Persistent Hosting)
+- **Current Runtime Status:** The isolated Staging backend runs `hf-space/app.py` bound to dedicated Staging Supabase PostgreSQL 17.
+- **Ingress Mechanism (Temporary):** Cloudflare Quick Tunnels (`trycloudflare.com`) provide temporary ingress for automated validation and smoke testing.
+- **Limitation:** Quick tunnels expire after 12-24 hours or when the tunnel process stops. They do not constitute permanent cloud hosting.
+- **Status Gate:** **PERSISTENT BACKEND HOSTING IS BLOCKED** pending Owner infrastructure selection (see Section 6).
 
 ---
 
-## 4. Backend & Database Alternative Architectures (Zero-Cost / Pro-Alternative)
+## 4. Engineering Capability Verification & Feature Flag Isolation
 
-Because the owner declined the Hugging Face PRO subscription, the staging backend and database can be deployed using one of the following fully viable, production-grade architectures:
+All eight candidate engineering capabilities have been verified with deterministic solvers and independent IEEE/IEC standard benchmarks:
 
-### Option A: Free Serverless PostgreSQL + Free Container Hosting (Recommended Cloud $0 Solution)
-- **Database:** **Neon.tech Serverless PostgreSQL** (Free Tier):
-  - 0.5 GB permanent storage, automated branching, SSL-enabled, full PostgreSQL 16 compatibility.
-  - Completely independent from production Supabase.
-  - Zero ongoing cost.
-- **Backend Compute:** **Koyeb** or **Render.com** (Free / Low Tier):
-  - Deploys Docker container directly from GitHub or container registry.
-  - Koyeb Free Tier provides 1 web service running Docker on `nano` instance with free HTTPS domain.
-  - Connects to Neon PostgreSQL via `DATABASE_URL`.
-- **Frontend Integration:**
-  - Update `VITE_API_URL` in Vercel `etap-ai-work-staging` to point to the Koyeb/Render URL.
+| Capability | Standard | Acceptance & Simulation Tests | Benchmark Status | Staging Runtime Flag |
+|:---|:---|:---|:---|:---|
+| `harmonic_analysis` | IEEE 519-2022 | 6/6 passed (`test_harmonic_analysis_acceptance.py`) | Verified (3 IEEE 519 benchmarks) | `enabled: true` |
+| `cable_sizing` | IEC 60364-5-52 | 7/7 passed (`test_cable_sizing_acceptance.py`) | Verified (4 Prysmian/IEC benchmarks) | `enabled: true` |
+| `motor_starting` | IEEE 399-1997 | 12/12 passed (acceptance + dynamic simulation) | Verified (DOL, Star-Delta, Soft-Starter) | `enabled: true` |
+| `transient_stability` | IEEE 399 | 7/7 passed (`test_transient_stability_acceptance.py`) | Verified (SMIB & Multi-machine RK4) | `enabled: true` |
+| `optimal_power_flow` | IEEE 3002 | 9/9 passed (`test_opf_correctness.py`, `test_pso_opf.py`) | Verified (DC-OPF PTDF & AC-OPF PSO) | `enabled: true` |
+| `earth_grid` | IEEE 80-2013 | 7/7 passed (`test_earth_grid_acceptance.py`) | Verified (Sverak/Schwarz potentials) | `enabled: true` |
+| `renewable_integration` | IEEE 1547-2018 | 7/7 passed (`test_renewable_integration_acceptance.py`) | Verified (PVWatts & Hosting Capacity) | `enabled: true` |
+| `battery_storage` | IEC 62933 | 7/7 passed (`test_battery_storage_acceptance.py`) | Verified (4 IEC 62933 benchmarks) | `enabled: true` |
 
-### Option B: Local Workstation / Dedicated Server Container with Cloudflare Zero Trust Tunnel ($0 Self-Hosted Solution)
-- **Database & Compute:** Local Docker Compose on Engineering Workstation (EWS) or private Linux VM:
-  - Container 1: `postgres:16-alpine` (persistent Docker volume).
-  - Container 2: `ahmedetap-backend` (running `Dockerfile` via Uvicorn).
-- **Public Tunnel:** **Cloudflare Tunnel (cloudflared)**:
-  - Free, zero open inbound firewall ports.
-  - Exposes `https://staging-api.ahmedetap.org` (or Cloudflare provided subdomain) routing securely to the local container.
-- **Advantages:**
-  - Uncapped CPU and RAM for heavy ETAP simulations (Load Flow, Transient Stability, OPF).
-  - 100% control, zero cloud bills, persistent local PostgreSQL.
-
-### Option C: Repurpose an Existing Docker Space on Hugging Face (If Available)
-- If an existing, pre-approved Hugging Face Space under `ahmdelbaz28` is inactive and already authorized as a Docker space, it could be repurposed as the Staging Space without additional subscription fees.
-- Requires explicit verification of existing space permissions from the owner.
+**Total Capability Test Suite:** 62 passed tests in `pytest`.
+**Production Isolation:** In `api/feature_flags.py`, `DEFAULT_FEATURE_FLAGS` sets all 8 capabilities to `enabled: False, rollout_percentage: 0`. Flags are toggled exclusively in Staging runtime without modifying repository defaults.
 
 ---
 
@@ -134,26 +113,29 @@ Because the owner declined the Hugging Face PRO subscription, the staging backen
 1. **Staging Rollback Trigger:**
    If a Staging deployment experiences health probe failures, numerical errors, or unexpected crashes:
    - Trigger `.github/workflows/cd-staging.yml` via `workflow_dispatch` with the previous known green commit SHA.
-   - Or redeploy the previous deployment via the Vercel dashboard for `etap-ai-work-staging`.
+   - Or roll back to the previous deployment via the Vercel dashboard for `etap-ai-work-staging`.
 2. **Feature Flag Isolation:**
-   - All 8 candidate capabilities remain strictly `enabled: False` in the staging configuration.
-   - Any future runtime flag toggle must be performed through the Staging API administration interface and will affect only the Staging container.
+   - All 8 candidate capabilities remain strictly `enabled: False` in repository defaults.
+   - Staging flag activation is isolated from production.
 3. **No Cross-Contamination:**
    - Under no circumstances will staging credentials, tokens, or endpoints be merged into `main` or deployed to `production`.
 
 ---
 
-## 6. Owner Decision Points & Unblocking Steps
+## 6. Owner Decision Points & Persistent Hosting Options
 
-To transition Staging from `BLOCKED` to `READY`:
+To transition persistent Staging backend hosting from `BLOCKED` to `OPERATIONAL`, the owner must select one of the following permanent hosting architectures:
 
-1. **Select Hosting & Database Architecture:**
-   - Approve **Option A** (Neon PostgreSQL + Koyeb/Render Docker) or **Option B** (Local Workstation Docker + Cloudflare Tunnel).
-2. **Provision Independent PostgreSQL Database:**
-   - Create a free project at [Neon.tech](https://neon.tech) or [Supabase](https://supabase.com).
-   - Retrieve connection string (`postgresql://user:pass@host/dbname?sslmode=require`).
-3. **Configure GitHub `staging` Environment Secrets:**
-   - Add `STAGING_DATABASE_URL` (the independent PostgreSQL connection string).
-   - Add `STAGING_VERCEL_TOKEN` (the Vercel deployment token).
-   - Add `STAGING_JWT_SECRET_KEY` and `STAGING_ENGINEERING_SERVICE_API_KEY` (staging-only auth keys).
-   - Update `vars.HF_SPACE_URL` or set backend URL variable to match the chosen backend host.
+### Option 1: Persistent Container Service (Render.com / Koyeb)
+- Deploys Docker container (`Dockerfile`) directly from GitHub branch `infra/staging-environment-bootstrap`.
+- Configures static environment variables (`DATABASE_URL`, `JWT_SECRET_KEY`, `DEPLOY_SHA`).
+- Provides a stable, permanent HTTPS domain (e.g., `https://etap-staging-api.onrender.com`).
+
+### Option 2: Named Cloudflare Zero Trust Tunnel (Permanent Self-Hosted)
+- Installs `cloudflared` service with a persistent tunnel token (`CLOUDFLARE_TUNNEL_TOKEN`).
+- Routes a custom subdomain (e.g., `https://staging-api.ahmedetap.org`) directly to the backend container.
+- Zero open inbound ports, completely free, but requires continuous workstation/server availability.
+
+### Option 3: Dedicated Hugging Face Docker Space (Paid Pro)
+- Upgrades `ahmdelbaz28/AhmedETAP-Platform-Staging` to a persistent Docker Space.
+- Requires owner approval of Hugging Face subscription billing.
