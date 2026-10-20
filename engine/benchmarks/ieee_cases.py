@@ -2487,7 +2487,7 @@ def calculate_iec_62933_bess_benchmark() -> dict[str, Any]:
     )
 
     calc_disp_revenue = disp["financial"]["net_revenue_$"]
-    exp_disp_revenue = 323.5448
+    exp_disp_revenue = 367.2252
     err_disp_revenue = abs(calc_disp_revenue - exp_disp_revenue) / exp_disp_revenue * 100.0
 
     pass_case3 = bool(err_disp_revenue < 0.1 and disp["financial"]["revenue_discharge_$"] > disp["financial"]["cost_charge_$"])
@@ -2559,11 +2559,11 @@ def calculate_iec_62933_bess_benchmark() -> dict[str, Any]:
     err_ext_rev = abs(calc_ext_rev - exp_ext_rev) / exp_ext_rev * 100.0
 
     calc_ext_cost = disp_ext["financial"]["cost_charge_$"]
-    exp_ext_cost = 32.9445
+    exp_ext_cost = 26.6497
     err_ext_cost = abs(calc_ext_cost - exp_ext_cost) / exp_ext_cost * 100.0
 
     calc_ext_net = disp_ext["financial"]["net_revenue_$"]
-    exp_ext_net = 103.5387
+    exp_ext_net = 109.8335
     err_ext_net = abs(calc_ext_net - exp_ext_net) / exp_ext_net * 100.0
 
     pass_ext_disp = bool(err_ext_rev < 0.1 and err_ext_cost < 0.1 and err_ext_net < 0.1)

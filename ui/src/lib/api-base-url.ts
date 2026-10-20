@@ -5,10 +5,26 @@
  * origin hostname, or default production HF Space.
  */
 
+const PROD_HF_SPACE_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space";
+
 export function resolveApiBaseUrl(): string {
-  // 1. Explicit env var wins (set at build time)
   const env = (import.meta as unknown as { env?: Record<string, string> }).env;
-  if (env?.VITE_API_URL) return env.VITE_API_URL;
+  const isStaging =
+    env?.MODE === "staging" ||
+    (typeof window !== "undefined" && window.location?.hostname.includes("staging"));
+
+  // 1. Explicit env var wins (set at build time or runtime)
+  if (env?.VITE_API_URL) {
+    const rawUrl = env.VITE_API_URL.trim();
+    // Fail-Closed: Guard against accidental production routing from Staging
+    if (isStaging && rawUrl.includes("ahmdelbaz28-ahmedetap-platform.hf.space")) {
+      console.error(
+        "[API GUARD] Rejecting production API fallback in Staging deployment! VITE_API_URL must point to dedicated Staging backend."
+      );
+      return "";
+    }
+    return rawUrl;
+  }
 
   // 2. On HF Space or local dev (localhost / 127.0.0.1), UI uses same-origin / Vite proxy.
   //    Use typeof window check to avoid ReferenceError during Vite build (Node.js).
@@ -22,8 +38,16 @@ export function resolveApiBaseUrl(): string {
     return ""; // same-origin — empty prefix so fetch('/api/v1/...') works
   }
 
-  // 3. Last-resort default: the HF Space production API.
-  return "https://ahmdelbaz28-ahmedetap-platform.hf.space";
+  // 3. Strict Staging Guard: Never silently fall back to production HF Space on Staging hostnames
+  if (isStaging) {
+    console.error(
+      "[API GUARD] Running on Staging host without explicit VITE_API_URL. Refusing to fall back to production API."
+    );
+    return "";
+  }
+
+  // 4. Last-resort default: production HF Space API (for standalone prod preview only).
+  return PROD_HF_SPACE_URL;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();

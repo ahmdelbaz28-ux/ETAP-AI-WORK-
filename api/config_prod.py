@@ -65,10 +65,17 @@ def validate_production_config(
     allow_sqlite = os.getenv("ALLOW_SQLITE_IN_PROD", "").strip().lower() in ("1", "true", "yes")
     db_url = os.environ.get("DATABASE_URL", "").strip()
 
+    if env == "staging" and allow_sqlite:
+        missing_vars.append(
+            "ALLOW_SQLITE_IN_PROD is strictly forbidden in Staging. Staging requires persistent PostgreSQL."
+        )
+
     if not db_url or db_url.startswith("sqlite"):
-        if not allow_sqlite:
+        if env == "staging" or not allow_sqlite:
             missing_vars.append(
-                "DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in production unless ALLOW_SQLITE_IN_PROD=true)"
+                f"DATABASE_URL (Persistent PostgreSQL required; SQLite is forbidden in {env}"
+                + (" unless ALLOW_SQLITE_IN_PROD=true" if env != "staging" else "")
+                + ")"
             )
         else:
             logger.critical(
