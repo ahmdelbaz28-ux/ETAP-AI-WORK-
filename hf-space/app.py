@@ -841,6 +841,21 @@ async def get_version():
                 except Exception:
                     pass
     if not deploy_sha:
+        # Check live git repository if available
+        try:
+            import subprocess
+            res = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=Path(__file__).resolve().parent.parent,
+                capture_output=True,
+                text=True,
+                timeout=2,
+            )
+            if res.returncode == 0 and res.stdout.strip():
+                deploy_sha = res.stdout.strip()
+        except Exception:
+            pass
+    if not deploy_sha:
         deploy_sha = (
             os.getenv("COMMIT_SHA")
             or os.getenv("HF_COMMIT_SHA")

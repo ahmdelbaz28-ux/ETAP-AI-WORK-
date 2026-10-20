@@ -236,15 +236,70 @@ jobs:
           export VERCEL_ORG_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_ORG_ID', '') if c.isascii() and not c.isspace()))")
           export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
 
-          # Strictly reject if VERCEL_PROJECT_ID is production
-          if [ "$VERCEL_PROJECT_ID" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
-            echo "::error::Refusing to deploy to production project from staging workflow!"
+          # Approach A: Strictly require exact Staging Project ID match (Fail-Closed)
+          if [ "$VERCEL_PROJECT_ID" != "prj_XHvIpATc0SF11QBeCNPatRe5t8Af" ]; then
+            echo "::error::VERCEL_PROJECT_ID must match exactly 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' (got '$VERCEL_PROJECT_ID'). Aborting fail-closed!"
             exit 1
           fi
 
-          npx vercel@59.25.0 pull --yes --environment=preview
-          npx vercel@59.25.0 build
-          npx vercel@59.25.0 deploy --prebuilt
+          if [ -n "$VERCEL_ORG_ID" ] && [ "$VERCEL_ORG_ID" != "team_eeEYqzXI8zkrTo62cUOTMVmS" ]; then
+            echo "::error::VERCEL_ORG_ID must match staging team 'team_eeEYqzXI8zkrTo62cUOTMVmS'. Aborting fail-closed!"
+            exit 1
+          fi
+
+          mkdir -p .vercel
+          cat <<EOF > .vercel/project.json
+          {
+            "projectId": "prj_XHvIpATc0SF11QBeCNPatRe5t8Af",
+            "orgId": "team_eeEYqzXI8zkrTo62cUOTMVmS"
+          }
+          EOF
+
+          # Assemble .vercel/output directory for Build Output API v3
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static
+          cp -r ui/dist/* .vercel/output/static/
+
+          cat <<EOF > .vercel/output/config.json
+          {
+            "version": 3,
+            "routes": [
+              {
+                "src": "/assets/(.*)",
+                "headers": {
+                  "Cache-Control": "public, max-age=31536000, immutable"
+                },
+                "continue": true
+              },
+              {
+                "handle": "filesystem"
+              },
+              {
+                "src": "/(.*)",
+                "dest": "/index.html",
+                "headers": {
+                  "X-Content-Type-Options": "nosniff",
+                  "X-Frame-Options": "SAMEORIGIN",
+                  "Referrer-Policy": "strict-origin-when-cross-origin",
+                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                }
+              }
+            ]
+          }
+          EOF
+
+          # Deploy prebuilt bundle directly to Production target of isolated Staging project (Approach A)
+          DEPLOY_OUTPUT=$(npx vercel@59.25.0 deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")
+          echo "Deployment successful: $DEPLOY_OUTPUT"
+
+          # Verify stable staging alias
+          echo "Verifying stable Staging URL: https://etap-ai-work-staging.vercel.app ..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://etap-ai-work-staging.vercel.app)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Stable Staging URL returned HTTP $HTTP_CODE (expected 200). Aborting!"
+            exit 1
+          fi
+          echo "Stable Staging URL verified (HTTP 200)."
 
   smoke-and-health-staging:
     needs: [guard, verify-staging-backend, deploy-vercel-staging]
@@ -276,7 +331,7 @@ jobs:
           echo "Backend readiness OK."
 
           echo "4. Executing Authenticated Engineering Calculation..."
-          STUDY_PAYLOAD='{"study_type": "arc_flash", "parameters": {"bus_voltage_kv": 13.8, "bolted_fault_current_ka": 25.0, "arcing_time_s": 0.05, "working_distance_mm": 914, "gap_mm": 152, "electrode_configuration": "VCB"}}'
+          STUDY_PAYLOAD='{"study_type": "arc_flash", "parameters": {"voltage_kv": 13.8, "bolted_fault_current_ka": 25.0, "arc_duration_sec": 0.1, "working_distance_mm": 914.0, "gap_mm": 152.0, "electrode_config": "VCB", "enclosure_type": "box", "enclosure_width_mm": 508.0, "enclosure_height_mm": 508.0, "enclosure_depth_mm": 508.0}}'
           CALC_RESP=$(curl -sf -X POST "$STAGING_API/api/v1/studies/run" \
             -H "Content-Type: application/json" \
             -H "X-API-Key: $API_KEY" \
