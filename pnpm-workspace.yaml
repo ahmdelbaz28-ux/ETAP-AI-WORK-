@@ -3,8 +3,8 @@ packages:
 
 # =============================================================================
 # pnpm overrides — SECURITY: force upgraded versions of vulnerable transitive
-# dependencies. pnpm 11+ reads overrides from pnpm-workspace.yaml (NOT from
-# the `pnpm.overrides` field in package.json — that field is ignored).
+# dependencies. In pnpm 9.x, `package.json -> pnpm.overrides` is the active channel,
+# while `pnpm-workspace.yaml -> overrides` is synchronized for pnpm 10+/cross-tooling.
 # Source of the vulnerability list: GitHub Dependabot alerts on this repo
 # (fetched 2026-08-03; refreshed 2026-08-08). Each entry below corresponds to
 # one or more open alerts that are fixed by the pinned version.
@@ -116,8 +116,6 @@ overrides:
   markdown-it: ^14.3.3
   # HIGH: follow-redirects credential stripping bypass & regex escaping (GHSA-q3jh-wrc6-jgq8, GHSA-8r9p-f939-6h3c)
   follow-redirects: ^1.16.1
-  # HIGH: vite launch-editor fs.existsSync bypass & escaping on Windows (GHSA-587h-7wmj-h5pm, CVE-2026-112943)
-  vite: 8.2.4
   '@vitest/mocker': ^4.1.11
   vitest: ^4.1.11
   '@vitest/coverage-v8': ^4.1.11

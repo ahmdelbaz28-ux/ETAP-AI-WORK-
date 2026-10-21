@@ -124,7 +124,6 @@
       "multer": "^2.4.0",
       "markdown-it": "^14.3.3",
       "follow-redirects": "^1.16.1",
-      "vite": "8.2.4",
       "@vitest/mocker": "^4.1.11",
       "vitest": "^4.1.11",
       "@vitest/coverage-v8": "^4.1.11",
