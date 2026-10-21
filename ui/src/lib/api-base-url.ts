@@ -7,14 +7,20 @@
 
 const PROD_HF_SPACE_URL = "https://ahmdelbaz28-ahmedetap-platform.hf.space";
 
-export function resolveApiBaseUrl(): string {
-  const env = (import.meta as unknown as { env?: Record<string, string> }).env;
+export function resolveApiBaseUrl(customEnv?: Record<string, string | undefined>): string {
+  const metaEnv = (import.meta as unknown as { env?: Record<string, string | undefined> })?.env ?? {};
+  const globalProc =
+    typeof globalThis !== "undefined"
+      ? (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process
+      : undefined;
+  const procEnv = globalProc?.env ?? {};
+  const env = customEnv || { ...metaEnv, ...procEnv };
   const isStaging =
     env?.MODE === "staging" ||
     (typeof window !== "undefined" && window.location?.hostname.includes("staging"));
 
   // 1. Explicit env var wins (set at build time or runtime)
-  if (env?.VITE_API_URL) {
+  if (env?.VITE_API_URL && env.VITE_API_URL.trim() !== "") {
     const rawUrl = env.VITE_API_URL.trim();
     // Fail-Closed: Guard against accidental production routing from Staging
     if (isStaging && rawUrl.includes("ahmdelbaz28-ahmedetap-platform.hf.space")) {

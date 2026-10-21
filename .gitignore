@@ -19,7 +19,8 @@ scratch/
 *.env
 
 # Scan / temp files
-_*
+/_*
+!/**/__tests__/**
 _*.txt
 _*.json
 _*.log
@@ -243,7 +244,8 @@ pnpm-debug.log*
 # Build outputs
 .next/
 out/
-ui-dist/
+ui-dist/*
+!ui-dist/.gitkeep
 duplicate-audit/
 scientific_validation_report.json
 
@@ -322,6 +324,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.staging.example
 security_audit_findings*.json
 security_findings*.json
 

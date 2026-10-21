@@ -38,13 +38,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify commit SHA and Staging Isolation
+      - name: Verify commit SHA, CI checks, and Staging Isolation
         id: sha
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_REF_SHA: ${{ inputs.ref_sha }}
         run: |
           set -euo pipefail
-          SHA="${{ inputs.ref_sha }}"
+          SHA="$INPUT_REF_SHA"
 
           if ! echo "$SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
             echo "::error::ref_sha must be a full 40-character hexadecimal SHA. Received: $SHA"
@@ -55,6 +56,25 @@ jobs:
             echo "::error::Commit $SHA does not exist in repository history."
             exit 1
           fi
+
+          # Fail-Closed: Verify that this commit has passed all mandatory CI checks
+          echo "Verifying CI check-runs for commit $SHA..."
+          FAILED_CHECKS=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
+            --paginate \
+            --jq '.check_runs[] | select(.status != "completed" or (.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")) | "\(.name): status=\(.status), conclusion=\(.conclusion)"' 2>/dev/null || echo "")
+
+          if [ -n "$FAILED_CHECKS" ]; then
+            echo "::error::Commit $SHA has failing or incomplete checks:"
+            echo "$FAILED_CHECKS"
+            exit 1
+          fi
+
+          TOTAL_CHECKS=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq '.total_count' 2>/dev/null || echo "0")
+          if [ "$TOTAL_CHECKS" -eq 0 ]; then
+            echo "::error::Commit $SHA has no registered CI check runs. Refusing to deploy unvalidated commit."
+            exit 1
+          fi
+          echo "CI check runs verified: $TOTAL_CHECKS total checks with zero failures."
 
           # Fail-Closed: Verify that this workflow runs strictly against the staging environment
           echo "Target Environment: staging (verified)"
@@ -167,6 +187,19 @@ jobs:
           }
           echo "Version response: $VER_BODY"
 
+          BACKEND_SHA=$(python3 -c "import json, sys; data = json.loads('''$VER_BODY'''); sys.stdout.write(data.get('commit_sha') or '')" 2>/dev/null || echo "")
+          if [ -z "$BACKEND_SHA" ] || [ "$BACKEND_SHA" = "unknown" ]; then
+            echo "::error::Staging Backend did not return a valid commit_sha in /version response (received: '$BACKEND_SHA'). Aborting!"
+            exit 1
+          fi
+
+          EXPECTED_SHA="${{ needs.guard.outputs.sha }}"
+          if [ "$BACKEND_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::Staging Backend commit_sha ($BACKEND_SHA) does not match expected deploy SHA ($EXPECTED_SHA). Aborting (Fail-Closed)!"
+            exit 1
+          fi
+          echo "Backend version strictly verified: matches deployment SHA $BACKEND_SHA"
+
   build-ui:
     needs: [guard, validate-staging-environment, verify-staging-backend]
     runs-on: ubuntu-24.04
@@ -265,6 +298,16 @@ jobs:
             "version": 3,
             "routes": [
               {
+                "src": "/(.*)",
+                "headers": {
+                  "X-Content-Type-Options": "nosniff",
+                  "X-Frame-Options": "SAMEORIGIN",
+                  "Referrer-Policy": "strict-origin-when-cross-origin",
+                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                },
+                "continue": true
+              },
+              {
                 "src": "/assets/(.*)",
                 "headers": {
                   "Cache-Control": "public, max-age=31536000, immutable"
@@ -276,13 +319,7 @@ jobs:
               },
               {
                 "src": "/(.*)",
-                "dest": "/index.html",
-                "headers": {
-                  "X-Content-Type-Options": "nosniff",
-                  "X-Frame-Options": "SAMEORIGIN",
-                  "Referrer-Policy": "strict-origin-when-cross-origin",
-                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-                }
+                "dest": "/index.html"
               }
             ]
           }
@@ -339,7 +376,37 @@ jobs:
             echo "::error::Authenticated study execution failed."
             exit 1
           }
-          echo "Engineering calculation executed successfully: $CALC_RESP"
+          echo "Engineering calculation executed successfully. Validating output schema and numeric integrity..."
+
+          python3 -c "
+          import json, math, sys
+
+          raw = '''$CALC_RESP'''
+          data = json.loads(raw)
+          if not data.get('success'):
+              print(f'::error::Study execution did not succeed: {data.get(\"errors\")}', file=sys.stderr)
+              sys.exit(1)
+
+          results = data.get('results') or data.get('data') or {}
+          if not isinstance(results, dict):
+              print(f'::error::Study results missing or not a dictionary: {type(results)}', file=sys.stderr)
+              sys.exit(1)
+
+          def check_finite(obj, path=''):
+              if isinstance(obj, float):
+                  if not math.isfinite(obj):
+                      print(f'::error::Non-finite floating-point value at {path}: {obj}', file=sys.stderr)
+                      sys.exit(1)
+              elif isinstance(obj, dict):
+                  for k, v in obj.items():
+                      check_finite(v, f'{path}.{k}' if path else str(k))
+              elif isinstance(obj, list):
+                  for i, v in enumerate(obj):
+                      check_finite(v, f'{path}[{i}]')
+
+          check_finite(results)
+          print('Study result validation passed: success=True, all numbers finite.')
+          "
 
           echo "5. Verifying Chat Stream Route Availability..."
           STREAM_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_API/api/v1/chat/stream" \
