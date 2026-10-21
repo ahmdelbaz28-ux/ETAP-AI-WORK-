@@ -136,3 +136,36 @@ class TestStagingDatabaseGuards:
         validate_staging_runtime_env()
         monkeypatch.setenv("ALLOW_SQLITE_IN_PROD", "false")
         validate_staging_runtime_env()
+
+
+class TestStagingDockerContract:
+    """Verifies Docker revision identity contract for Staging."""
+
+    def test_dockerfile_staging_enforces_40_char_sha(self):
+        """Dockerfile.staging must strictly fail closed if DEPLOY_SHA is invalid."""
+        from pathlib import Path
+        dockerfile = Path("Dockerfile.staging")
+        assert dockerfile.exists(), "Dockerfile.staging must exist"
+        content = dockerfile.read_text(encoding="utf-8")
+        assert "ARG DEPLOY_SHA=\"\"" in content
+        assert "grep -Eq '^[0-9a-fA-F]{40}$'" in content
+        assert "FATAL: DEPLOY_SHA must be a valid 40-character git commit SHA" in content
+
+    def test_docker_compose_staging_requires_deploy_sha(self):
+        """docker-compose.staging.yml must require DEPLOY_SHA parameter."""
+        from pathlib import Path
+        import yaml
+        compose_file = Path("docker-compose.staging.yml")
+        assert compose_file.exists(), "docker-compose.staging.yml must exist"
+        raw_text = compose_file.read_text(encoding="utf-8")
+        assert "${DEPLOY_SHA:?DEPLOY_SHA must be set to a 40-char git commit SHA}" in raw_text
+
+    def test_deploy_sha_file_is_valid_sha(self):
+        """DEPLOY_SHA file in repository must contain a 40-char hex commit SHA or be handled dynamically."""
+        from pathlib import Path
+        import re
+        sha_file = Path("DEPLOY_SHA")
+        assert sha_file.exists(), "DEPLOY_SHA file must exist"
+        content = sha_file.read_text(encoding="utf-8").strip()
+        assert content not in ("unspecified", "unknown", "")
+        assert re.match(r"^[0-9a-fA-F]{40}$", content) is not None, f"Expected 40-char hex SHA, got: {content}"
