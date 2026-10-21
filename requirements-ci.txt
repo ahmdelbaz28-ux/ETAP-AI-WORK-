@@ -35,7 +35,7 @@ tqdm~=4.66.0
 psutil~=5.9.0
 tenacity>=8.2,<9.2
 ezdxf>=1.1.0,<1.5.0
-# Note: Pint <0.22 for Python 3.8 compatibility; Pint >=0.24.4 for Python >=3.9 (fixes Python 3.13 dataclass & NumPy 2.x compatibility)
+# Note: Pint <0.22 for Python 3.8 compatibility; Pint >=0.26.1 for Python >=3.9 (fixes Python 3.13 dataclass & NumPy 2.x compatibility)
 pint>=0.21.1,<0.22; python_version < "3.9"
 pint>=0.24.4; python_version >= "3.9"
 Pillow~=13.0.0
