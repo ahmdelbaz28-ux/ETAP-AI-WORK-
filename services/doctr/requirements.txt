@@ -9,4 +9,4 @@ torch==2.13.0
 torchvision==0.28.0
 numpy==2.2.6
 Pillow==13.0.0
-python-dotenv==1.2.2
+python-dotenv==1.2.4
