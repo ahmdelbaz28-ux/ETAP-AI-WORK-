@@ -38,7 +38,7 @@ ezdxf>=1.1.0,<1.5.0
 # Note: Pint <0.22 for Python 3.8 compatibility; Pint >=0.24.4 for Python >=3.9 (fixes Python 3.13 dataclass & NumPy 2.x compatibility)
 pint>=0.21.1,<0.22; python_version < "3.9"
 pint>=0.24.4; python_version >= "3.9"
-Pillow~=12.3.0
+Pillow~=13.0.0
 
 # Security, Cryptography & Auth
 cryptography>=50.0.0

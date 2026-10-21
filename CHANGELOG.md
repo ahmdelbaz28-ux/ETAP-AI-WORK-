@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Security
+- **aiohttp (Dependabot Alerts #531, #532, #533)**: Upgraded transitive `aiohttp` dependency from `3.14.3` to `3.14.5` in `uv.lock` and manifest constraints in `requirements.hf.txt`, `hf-space/requirements.hf.txt`, and `requirements-optional.txt`, mitigating GHSA-2g87-pp6c-29x5, CVE-2026-111063, and CVE-2026-111064.
+- **Pillow 12.3.0 -> 13.0.0 (PR #728)**: Upgraded `Pillow` across 5 manifests and `uv.lock`, resolving 9 CVEs (CVE-2026-112395, 112397, 112400, 112403, 112404, 112895, 112896, 112897, 112899) and clearing the blocking `pip-audit` CI gate.
 - **Vite & npm Supply-Chain Remediation (Dependabot Alerts #534–#542 & npm audit)**: Upgraded direct devDependency `vite` to `8.2.4` in `ui/package.json` to resolve 9 open Dependabot alerts (#534–#542 across `ui/package.json`, `pnpm-lock.yaml`, and redundant `ui/pnpm-lock.yaml`) for GHSA-587h-7wmj-h5pm (CVE-2026-112942, High), GHSA-698v-4r3x-3vcv (CVE-2026-112943, Moderate), and GHSA-r825-w8mm-5pxw (CVE-2026-112944, Moderate). Added transitive overrides for `follow-redirects` (`^1.16.1`) and `markdown-it` (`^14.3.3`) in root `package.json -> pnpm.overrides`, synchronized npm `overrides` in `ui/package.json`, and consolidated pnpm workspace lockfile management by deleting the redundant `ui/pnpm-lock.yaml` and aligning `.github/dependabot.yml` to a single root scan. Resolves blocking npm audit advisories GHSA-q3jh-wrc6-jgq8, GHSA-8r9p-f939-6h3c, and GHSA-gfr2-rv44-r23c.
 
 ---
