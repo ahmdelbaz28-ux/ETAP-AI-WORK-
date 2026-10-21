@@ -3,7 +3,7 @@
 # Versions pinned for reproducible builds (SonarCloud docker:S8544)
 doctr==0.8.1
 fastapi==0.115.12
-uvicorn[standard]==0.34.3
+uvicorn[standard]==0.54.0
 python-multipart==0.0.31
 torch==2.13.0
 torchvision==0.28.0
