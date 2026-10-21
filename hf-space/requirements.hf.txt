@@ -82,7 +82,7 @@ websockets>=15.0.1,<17.1.0
 # The DesktopCUAExecutor (pyautogui) is NOT installable on HF Space.
 playwright~=1.62.0
 google-generativeai~=0.8.6
-Pillow~=12.3.0
+Pillow~=13.0.0
 
 # OpenCV + pytesseract — local offline vision fallback
 # Used by integrations/opencv_vision.py when Gemini Vision is unreachable
