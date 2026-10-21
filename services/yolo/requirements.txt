@@ -9,4 +9,4 @@ torchvision==0.28.0
 numpy==2.2.6
 Pillow==13.0.0
 huggingface-hub==0.33.4
-python-dotenv==1.2.2
+python-dotenv==1.2.4
