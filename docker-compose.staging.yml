@@ -37,17 +37,35 @@ services:
     networks:
       - staging_net
 
-  cloudflared:
+  # Free Quick Tunnel Mode (Domainless Free Architecture — Default)
+  # Exposes the local staging container without requiring any CLOUDFLARE_TUNNEL_TOKEN or domain
+  cloudflared-quick:
     image: cloudflare/cloudflared:latest
-    container_name: etap-staging-cloudflared
+    container_name: etap-staging-cloudflared-quick
     restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set}
+    command: tunnel --no-autoupdate --url http://etap-staging-api:7860
     networks:
       - staging_net
     depends_on:
       - etap-staging-api
+    profiles:
+      - quick-tunnel
+      - default
+
+  # Optional Named Tunnel Mode (requires CLOUDFLARE_TUNNEL_TOKEN and custom DNS zone)
+  cloudflared-named:
+    image: cloudflare/cloudflared:latest
+    container_name: etap-staging-cloudflared-named
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks:
+      - staging_net
+    depends_on:
+      - etap-staging-api
+    profiles:
+      - named-tunnel
 
 networks:
   staging_net:

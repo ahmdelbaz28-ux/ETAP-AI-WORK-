@@ -122,20 +122,39 @@ All eight candidate engineering capabilities have been verified with determinist
 
 ---
 
-## 6. Owner Decision Points & Persistent Hosting Options
+## 6. Domainless Cloudflare Free Staging Architecture (Selected & Verified)
 
-To transition persistent Staging backend hosting from `BLOCKED` to `OPERATIONAL`, the owner must select one of the following permanent hosting architectures:
+In accordance with the Owner Decision:
+- **No custom domain required or requested** (zero DNS zones needed).
+- **Free Cloudflare tier only** (`*.workers.dev` subdomain + free Quick Tunnels).
+- **Zero paid plans** (no Cloudflare paid tier, no Hugging Face PRO).
+- **Production completely untouched** (`ahmedetap-proxy` and production Vercel project isolated).
 
-### Option 1: Persistent Container Service (Render.com / Koyeb)
-- Deploys Docker container (`Dockerfile`) directly from GitHub branch `infra/staging-environment-bootstrap`.
-- Configures static environment variables (`DATABASE_URL`, `JWT_SECRET_KEY`, `DEPLOY_SHA`).
-- Provides a stable, permanent HTTPS domain (e.g., `https://etap-staging-api.onrender.com`).
+### 6.1 Topology & Request Routing
 
-### Option 2: Named Cloudflare Zero Trust Tunnel (Permanent Self-Hosted)
-- Installs `cloudflared` service with a persistent tunnel token (`CLOUDFLARE_TUNNEL_TOKEN`).
-- Routes a custom subdomain (e.g., `https://staging-api.ahmedetap.org`) directly to the backend container.
-- Zero open inbound ports, completely free, but requires continuous workstation/server availability.
+```text
+[Client / Staging Frontend] ──HTTPS──> [Cloudflare Worker: ahmedetap-staging-proxy.ahmedetap.workers.dev]
+                                                      │
+                                                      ▼ (Authenticated Dynamic Origin)
+                                       [Cloudflare Quick Tunnel: https://*.trycloudflare.com]
+                                                      │
+                                                      ▼ (Multiplexed Local Ingress)
+                                       [Local Staging API Container / Service :7860]
+```
 
-### Option 3: Dedicated Hugging Face Docker Space (Paid Pro)
-- Upgrades `ahmdelbaz28/AhmedETAP-Platform-Staging` to a persistent Docker Space.
-- Requires owner approval of Hugging Face subscription billing.
+### 6.2 Key Operational Safeguards
+
+1. **Stable Public Entrypoint:**
+   The frontend (`etap-ai-work-staging.vercel.app`) communicates exclusively with `https://ahmedetap-staging-proxy.ahmedetap.workers.dev`. Even if the local backend restarts and acquires a new `trycloudflare.com` URL, the frontend API endpoint remains constant.
+2. **Dynamic Origin Synchronization:**
+   When the staging backend starts, `scripts/run_staging_quick_tunnel.py` captures the generated Quick Tunnel URL and immediately updates `ORIGIN_URL` on `ahmedetap-staging-proxy` using `scripts/deploy_staging_worker.py`.
+3. **Fail-Closed Origin Validation:**
+   If `ORIGIN_URL` is unconfigured, malformed, or points to the production Hugging Face Space (`ahmdelbaz28-ahmedetap-platform.hf.space`), the staging worker strictly returns `HTTP 503 STAGING_ORIGIN_NOT_CONFIGURED`.
+4. **SSE Streaming Transparency:**
+   The worker sets `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, enabling genuine unbuffered Server-Sent Events (`text/event-stream`) across the Quick Tunnel and Worker edge.
+5. **Verified End-to-End Capabilities:**
+   Probed and confirmed via `scripts/test_staging_e2e_capabilities.py`:
+   - Liveness (`/healthz`) & Readiness (`/readyz`): HTTP 200
+   - Version (`/version`): Exact `commit_sha` identity verification
+   - Authenticated Studies (`/api/v1/studies/run`): Finite numeric results
+   - Chat Stream (`/api/v1/chat/stream`): Strict HTTP 401 unauthenticated boundary; verified real-time incremental chunk delivery for authenticated sessions.

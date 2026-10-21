@@ -7,6 +7,14 @@ on:
         description: "Deploy this exact commit SHA to Staging (must have passed CI)"
         required: true
         type: string
+      ingress_mode:
+        description: "Staging ingress architecture: 'worker_proxy' (free domainless *.workers.dev) or 'named_tunnel' (custom DNS)"
+        required: false
+        default: "worker_proxy"
+        type: choice
+        options:
+          - worker_proxy
+          - named_tunnel
 
 concurrency:
   group: cd-staging
@@ -26,6 +34,7 @@ jobs:
     environment: staging
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
+      ingress_mode: ${{ steps.sha.outputs.ingress_mode }}
     steps:
       - name: Verify repository identity
         run: |
@@ -125,6 +134,8 @@ jobs:
           echo "Target Environment: staging (verified)"
           echo "Deploying pinned SHA to Staging: $SHA"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          INGRESS_MODE="${{ inputs.ingress_mode || 'worker_proxy' }}"
+          echo "ingress_mode=$INGRESS_MODE" >> "$GITHUB_OUTPUT"
 
   validate-staging-environment:
     needs: [guard]
@@ -167,7 +178,8 @@ jobs:
             exit 1
           fi
 
-          # 4. Canonical Backend Endpoint Verification (Cloudflare Tunnel / Dedicated Staging)
+          # 4. Canonical Backend Endpoint Verification (Domainless Worker Proxy / Named Tunnel)
+          INGRESS_MODE="${{ needs.guard.outputs.ingress_mode }}"
           API_URL="${{ vars.STAGING_BACKEND_URL || '' }}"
           if [ -z "$API_URL" ]; then
             echo "::error::Missing STAGING_BACKEND_URL in staging environment variables."
@@ -185,12 +197,25 @@ jobs:
           fi
 
           if echo "$API_URL" | grep -qi "trycloudflare\.com"; then
-            echo "::error::CRITICAL: STAGING_BACKEND_URL points to an ephemeral trycloudflare.com Quick Tunnel! A persistent, verified Named Tunnel hostname is strictly required. Aborting (Fail-Closed)."
+            echo "::error::CRITICAL: STAGING_BACKEND_URL points directly to an ephemeral trycloudflare.com Quick Tunnel! The stable public entrypoint must be the dedicated Staging Worker on *.workers.dev. Quick Tunnels are confined to worker upstream origin only. Aborting (Fail-Closed)."
             exit 1
           fi
 
           if echo "$API_URL" | grep -qiE "^https?://(localhost|127\.0\.0\.1)"; then
             echo "::error::CRITICAL: STAGING_BACKEND_URL is a localhost address in a public staging deployment! Aborting."
+            exit 1
+          fi
+
+          if [ "$INGRESS_MODE" = "worker_proxy" ]; then
+            if ! echo "$API_URL" | grep -qiE "^https://[a-zA-Z0-9-]+\.ahmedetap\.workers\.dev"; then
+              echo "::error::CRITICAL: For ingress_mode=worker_proxy, STAGING_BACKEND_URL must be a verified dedicated Worker on the account subdomain 'https://*.ahmedetap.workers.dev'. Received: $API_URL"
+              exit 1
+            fi
+            echo "Verified Domainless Ingress: Dedicated Worker on ahmedetap.workers.dev ($API_URL)"
+          elif [ "$INGRESS_MODE" = "named_tunnel" ]; then
+            echo "Verified Persistent Named Tunnel ingress mode ($API_URL)"
+          else
+            echo "::error::Unknown ingress_mode '$INGRESS_MODE'. Aborting fail-closed."
             exit 1
           fi
 
@@ -366,7 +391,7 @@ jobs:
                   "X-Content-Type-Options": "nosniff",
                   "X-Frame-Options": "SAMEORIGIN",
                   "Referrer-Policy": "strict-origin-when-cross-origin",
-                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://ahmedetap-staging-proxy.ahmedetap.workers.dev https://*.workers.dev https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
                 },
                 "continue": true
               },
