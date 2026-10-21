@@ -36,18 +36,6 @@ updates:
       - dependencies
       - auto-generated
 
-  # npm dependencies (ui)
-  - package-ecosystem: npm
-    directory: /ui
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    ignore:
-      - dependency-name: "@vitest/mocker"
-    labels:
-      - dependencies
-      - auto-generated
 
   # npm dependencies (new TS service)
   - package-ecosystem: npm

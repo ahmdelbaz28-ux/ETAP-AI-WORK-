@@ -23,6 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **Vite & npm Supply-Chain Remediation (Dependabot Alerts #534, #535, #536)**: Upgraded `vite` to minimum patched version `8.2.4` and added workspace overrides for `vite` (`8.2.4`), `follow-redirects` (`^1.16.1`), and `markdown-it` (`^14.3.3`) in `package.json`, `ui/package.json`, and `pnpm-workspace.yaml`. Consolidated pnpm workspace lockfile management by removing redundant `ui/pnpm-lock.yaml` and aligning `.github/dependabot.yml` to a single root workspace scan. Resolves blocking advisories GHSA-698v-4r3x-3vcv, GHSA-587h-7wmj-h5pm, GHSA-q3jh-wrc6-jgq8, GHSA-8r9p-f939-6h3c, and GHSA-gfr2-rv44-r23c, restoring a clean pass for the npm-audit gate.
+
 ---
 
 ## [2.2.0] - 2026-10-14

@@ -112,8 +112,12 @@ overrides:
   react-router-dom: ^7.18.2
   # HIGH: multer ReDoS / body limit bypass (Dependabot alert #1564925488, GHSA-3pph-fpjx-jg34)
   multer: ^2.4.0
-  # MODERATE: markdown-it quadratic regex event loop stall (GHSA-253c-mchw-3w2r)
-  markdown-it: ^14.3.1
+  # HIGH: markdown-it quadratic rendering (GHSA-gfr2-rv44-r23c)
+  markdown-it: ^14.3.3
+  # HIGH: follow-redirects credential stripping bypass & regex escaping (GHSA-q3jh-wrc6-jgq8, GHSA-8r9p-f939-6h3c)
+  follow-redirects: ^1.16.1
+  # HIGH: vite launch-editor fs.existsSync bypass & escaping on Windows (GHSA-587h-7wmj-h5pm, CVE-2026-112943)
+  vite: 8.2.4
   '@vitest/mocker': ^4.1.11
   vitest: ^4.1.11
   '@vitest/coverage-v8': ^4.1.11
