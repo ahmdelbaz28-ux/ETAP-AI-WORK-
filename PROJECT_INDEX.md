@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-19T10:36:44.669004+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-21T11:29:28.360517+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -53,7 +53,7 @@
 | **Orchestrator.Py** | `orchestrator.py` | — | AhmedETAP - Multi-Agent Orchestrator ======================= |
 | **Output Schema Guard.Py** | `output_schema_guard.py` | — | agents/output_schema_guard.py — Code-Gated Output Validation |
 | **Predictive** | `predictive_agent.py` | — | AhmedETAP - Predictive Analytics Agent ===================== |
-| **Prompt Loader.Py** | `prompt_loader.py` | IEC 60909, IEEE 1584 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
+| **Prompt Loader.Py** | `prompt_loader.py` | IEEE 1584, IEC 60909 | AhmedETAP - Prompt Loader (Safety-Critical Edition) ======== |
 | **Registry.Py** | `registry.py` | — | AhmedETAP - Agent Registry & Specialist Agents ============= |
 | **Renewable** | `renewable_agent.py` | IEEE 1547 | AhmedETAP - Renewable Integration Agent ==================== |
 | **Router.Py** | `router.py` | — | AhmedETAP - Power System Goal Router ======================= |
@@ -5916,9 +5916,9 @@ Provides
 
 | Type | Count |
 |:---|---:|
-| ui-page | 61 |
 | ui-component | 280 |
 | python-module | 41 |
+| ui-page | 61 |
 | api-route | 92 |
 | **TOTAL** | **474** |
 
@@ -5931,7 +5931,7 @@ Provides
 | `adms_control` | `scada_model` | — |
 | `agents` | `api`, `coordination`, `copilot`, `core`, `core_model`, `curves`, `digital_twin`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `load_flow`, `ml`, `relays`, `reporting`, `services` | `api`, `core`, `engine`, `services` |
 | `ai_context_engine` | — | `api` |
-| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `load_flow`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
+| `api` | `agents`, `ai_context_engine`, `autodesk_connector`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `gis_integration`, `gis_validation_electrical`, `integrations`, `knowledge`, `ml`, `security`, `services`, `worker` | `agents`, `coordination`, `core`, `engine`, `gis_integration`, `integrations`, `knowledge`, `load_flow`, `migrations`, `security`, `services` |
 | `autodesk_connector` | — | `api`, `copilot` |
 | `coordination` | `api`, `curves`, `engine`, `relays` | `agents`, `digital_twin`, `engine` |
 | `copilot` | `autodesk_connector`, `digital_twin`, `etap_integration` | `agents`, `api`, `services` |
@@ -5948,10 +5948,10 @@ Provides
 | `gis_validation` | `gis_integration`, `gis_validation_real` | `gis_validation_real` |
 | `gis_validation_electrical` | `gis_integration` | `api` |
 | `gis_validation_real` | `gis_integration`, `gis_validation` | `gis_validation` |
-| `guards` | — | `agents`, `security`, `services` |
+| `guards` | — | `agents`, `security` |
 | `integrations` | `api`, `core_model`, `engine`, `etap_integration`, `services` | `agents`, `api`, `core`, `reporting`, `services` |
 | `knowledge` | `api` | `api` |
-| `load_flow` | `api`, `core_model`, `engine` | `agents`, `api`, `core`, `digital_twin`, `engine` |
+| `load_flow` | `api`, `core_model`, `engine` | `agents`, `core`, `digital_twin`, `engine` |
 | `migrations` | `api` | — |
 | `ml` | — | `agents`, `api`, `scada_model` |
 | `network_solver` | — | `core_model`, `engine` |
@@ -5959,7 +5959,7 @@ Provides
 | `reporting` | `integrations` | `agents` |
 | `scada_model` | `ml` | `adms_control`, `core`, `digital_twin` |
 | `security` | `api`, `guards` | `api`, `etap_integration` |
-| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `guards`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
+| `services` | `agents`, `api`, `copilot`, `core`, `core_model`, `engine`, `etap_integration`, `fault_analysis`, `integrations`, `utils` | `agents`, `api`, `core`, `integrations`, `worker` |
 | `utils` | `engine` | `services` |
 | `visualization` | `relays` | `engine` |
 | `worker` | `etap_integration`, `services` | `api` |
@@ -6468,12 +6468,12 @@ Provides
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
-| `requirements.txt` | 11.4 KB | `ec3c8bebef37` |
+| `requirements.txt` | 11.4 KB | `8f1989d9105f` |
 | `requirements-prod.txt` | 3.2 KB | `783687e79569` |
 | `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
 | `requirements-ml.txt` | 1.5 KB | `04baa1273efe` |
-| `requirements.hf.txt` | 5.8 KB | `2d88449a31fa` |
+| `requirements.hf.txt` | 5.8 KB | `9d33b005f4fd` |
 | `.github/workflows/security.yml` | 14.4 KB | `ef770ec504af` |
 | `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
@@ -6484,11 +6484,11 @@ Provides
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
 | `hf-space/app.py` | 78.2 KB | `26c459c66193` |
-| `ui/package.json` | 3.8 KB | `a4afc5a6c8bb` |
+| `ui/package.json` | 3.9 KB | `95d70e8a3179` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
-| `pnpm-workspace.yaml` | 8.1 KB | `70a9b725e71f` |
+| `pnpm-workspace.yaml` | 8.2 KB | `9d4d4ae11f9f` |
 | `tsconfig.json` | 0.7 KB | `e1bd959f6bc6` |
 
 ---
