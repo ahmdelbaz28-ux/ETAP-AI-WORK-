@@ -7,6 +7,6 @@ uvicorn[standard]==0.34.3
 python-multipart==0.0.31
 torch==2.13.0
 torchvision==0.28.0
-numpy==2.2.6
+numpy==2.5.4
 Pillow==13.0.0
 python-dotenv==1.2.2
