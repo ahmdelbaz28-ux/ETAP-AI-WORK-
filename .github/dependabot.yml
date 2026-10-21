@@ -48,6 +48,27 @@ updates:
       - dependencies
       - auto-generated
 
+# Python auxiliary microservices (ensures coverage and alert resolution)
+  - package-ecosystem: pip
+    directory: /services/doctr
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - auto-generated
+
+  - package-ecosystem: pip
+    directory: /services/yolo
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - auto-generated
+
   # GitHub Actions versions
   - package-ecosystem: github-actions
     directory: /
