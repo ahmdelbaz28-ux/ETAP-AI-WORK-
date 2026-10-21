@@ -349,7 +349,7 @@ google-generativeai~=0.8.0
 #   CVE-2026-59205 (Controlled heap OOB write in ImageCmsTransform)
 #   CVE-2026-59204 (JPEG2000 tiled decode DoS)
 #   CVE-2026-55380/55379/54060/54059/54058 (decompression bomb bypasses)
-Pillow~=12.3.0
+Pillow~=13.0.0
 
 # (opencv-python, numpy, and httpx are already declared above — duplicates removed to avoid
 # pip resolver conflicts. opencv-python>=4.10.0.84,<5.1 at line 195, numpy>=1.26,<2.6 at line 36, httpx~=0.27.0 at line 106.)

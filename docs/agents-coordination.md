@@ -168,7 +168,7 @@ The previous phase had shortcuts that a senior engineer would not accept:
 TOTAL:                          260/260 PASSED in 48.51s
 
 ### Compatibility verified:
-- Pillow 12.3.0 works with OpenCV 5.0.0 (basic image ops tested)
+- Pillow 13.0.0 works with OpenCV 5.0.0 (basic image ops tested)
 - vitest 3.2.6 + @vitest/coverage-v8 3.2.6 both exist on npm registry
 - migration 006 does NOT conflict with Equipment ORM model
 - DATABASE_URL=Postgres in compose does NOT affect HF Space (uses Dockerfile.hf)

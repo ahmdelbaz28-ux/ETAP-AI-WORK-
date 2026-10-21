@@ -1,6 +1,6 @@
 # 📘 AhmedETAP — Complete Project Index v2.0.0
 
-> Auto-generated on **2026-10-19T10:36:44.669004+00:00** by indexer v2.0.0.
+> Auto-generated on **2026-10-21T12:42:48.149758+00:00** by indexer v2.0.0.
 > Re-run `python indexer.py` to refresh.
 
 ---
@@ -32,13 +32,13 @@
 |:---|:---|:---|:---|
 | **Ahmed Etap Orchestrator.Py** | `ahmed_etap_orchestrator.py` | — | agents/ahmed_etap_orchestrator.py — AhmedETAP Agent Orchestr |
 | **Anomaly** | `anomaly_agent.py` | — | AhmedETAP - Anomaly Detection Agent ======================== |
-| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584-2018, IEEE 1584 | AhmedETAP - Arc Flash Analysis Agent ======================= |
+| **Arc Flash** | `arc_flash_agent.py` | IEEE 1584, IEEE 1584-2018 | AhmedETAP - Arc Flash Analysis Agent ======================= |
 | **Base.Py** | `base.py` | — | Base agent class for the multi-agent engineering orchestrati |
 | **Battery Storage** | `battery_storage_agent.py` | IEC 62933 | AhmedETAP - Battery Storage Agent ========================== |
 | **Browser Cua Executor.Py** | `browser_cua_executor.py` | — | agents/browser_cua_executor.py — Browser-based CUA Loop (hea |
 | **Cable Sizing** | `cable_sizing_agent.py` | IEC 60364 | AhmedETAP - Cable Sizing Agent ============================= |
 | **Code Guard** | `code_guard_agent.py` | — | Code Guard Agent — AI-Powered Code Quality Review ========== |
-| **Coordination** | `coordination_agent.py` | IEC60255, IEEE 242, IEC 60255 | AhmedETAP - Protection Coordination Agent ================== |
+| **Coordination** | `coordination_agent.py` | IEEE 242, IEC 60255, IEC60255 | AhmedETAP - Protection Coordination Agent ================== |
 | **Cua Base Executor.Py** | `cua_base_executor.py` | — | agents/cua_base_executor.py — Base CUA Executor (Template Me |
 | **Cua Executor.Py** | `cua_executor.py` | — | agents/cua_executor.py — Computer Use Agent Executor (Deskto |
 | **Design** | `design_agent.py` | — | AhmedETAP - Generative Substation & Feeder Design Agent (Sca |
@@ -5918,8 +5918,8 @@ Provides
 |:---|---:|
 | ui-page | 61 |
 | ui-component | 280 |
-| python-module | 41 |
 | api-route | 92 |
+| python-module | 41 |
 | **TOTAL** | **474** |
 
 ---
@@ -6468,12 +6468,12 @@ Provides
 | `docker-compose.loki.yml` | 1.7 KB | `ed8530c457d6` |
 | `docker-compose.windows.yml` | 1.8 KB | `185d919edca6` |
 | `pyproject.toml` | 11.7 KB | `2a2cca5d3b7d` |
-| `requirements.txt` | 11.4 KB | `ec3c8bebef37` |
+| `requirements.txt` | 11.4 KB | `8f1989d9105f` |
 | `requirements-prod.txt` | 3.2 KB | `783687e79569` |
 | `requirements-dev.txt` | 0.9 KB | `66a60eeb3251` |
 | `requirements-minimal.txt` | 1.7 KB | `ce2cad55156d` |
-| `requirements-ml.txt` | 1.5 KB | `04baa1273efe` |
-| `requirements.hf.txt` | 5.8 KB | `2d88449a31fa` |
+| `requirements-ml.txt` | 1.6 KB | `23009c662e35` |
+| `requirements.hf.txt` | 5.8 KB | `9d33b005f4fd` |
 | `.github/workflows/security.yml` | 14.4 KB | `ef770ec504af` |
 | `.github/workflows/release.yml` | 2.3 KB | `8a462090da4d` |
 | `scripts/docker_deploy.sh` | 6.2 KB | `2cdc0572a33f` |
@@ -6484,11 +6484,11 @@ Provides
 | `ruff.toml` | 10.9 KB | `0a9d9bfe0e03` |
 | `nginx.conf` | 12.2 KB | `e4874229fcba` |
 | `hf-space/app.py` | 78.2 KB | `26c459c66193` |
-| `ui/package.json` | 3.8 KB | `a4afc5a6c8bb` |
+| `ui/package.json` | 3.9 KB | `95d70e8a3179` |
 | `ui/vite.config.ts` | 2.9 KB | `7a50b8e48f9b` |
 | `ui/tsconfig.json` | 0.1 KB | `e8d6f7b50828` |
 | `mastra.config.ts` | 0.4 KB | `d5a9e78941a7` |
-| `pnpm-workspace.yaml` | 8.1 KB | `70a9b725e71f` |
+| `pnpm-workspace.yaml` | 8.2 KB | `9d4d4ae11f9f` |
 | `tsconfig.json` | 0.7 KB | `e1bd959f6bc6` |
 
 ---
