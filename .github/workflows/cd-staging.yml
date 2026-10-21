@@ -16,6 +16,8 @@ permissions:
   contents: read
   packages: write
   actions: read
+  checks: read
+  statuses: read
 
 jobs:
   guard:
@@ -59,22 +61,65 @@ jobs:
 
           # Fail-Closed: Verify that this commit has passed all mandatory CI checks
           echo "Verifying CI check-runs for commit $SHA..."
-          FAILED_CHECKS=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" \
-            --paginate \
-            --jq '.check_runs[] | select(.status != "completed" or (.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")) | "\(.name): status=\(.status), conclusion=\(.conclusion)"' 2>/dev/null || echo "")
+          python3 -c "
+          import json, subprocess, sys
 
-          if [ -n "$FAILED_CHECKS" ]; then
-            echo "::error::Commit $SHA has failing or incomplete checks:"
-            echo "$FAILED_CHECKS"
-            exit 1
-          fi
+          sha = '$SHA'
+          repo = '${{ github.repository }}'
 
-          TOTAL_CHECKS=$(gh api "repos/${{ github.repository }}/commits/$SHA/check-runs" --jq '.total_count' 2>/dev/null || echo "0")
-          if [ "$TOTAL_CHECKS" -eq 0 ]; then
-            echo "::error::Commit $SHA has no registered CI check runs. Refusing to deploy unvalidated commit."
-            exit 1
-          fi
-          echo "CI check runs verified: $TOTAL_CHECKS total checks with zero failures."
+          cmd = ['gh', 'api', f'repos/{repo}/commits/{sha}/check-runs', '--paginate']
+          res = subprocess.run(cmd, capture_output=True, text=True)
+          if res.returncode != 0:
+              print(f'::error::Failed to query GitHub Checks API (exit code {res.returncode}):', file=sys.stderr)
+              for line in res.stderr.strip().splitlines():
+                  print(f'::error::{line}', file=sys.stderr)
+              sys.exit(1)
+
+          raw = res.stdout.strip()
+          check_runs = []
+          decoder = json.JSONDecoder()
+          pos = 0
+          while pos < len(raw):
+              raw_slice = raw[pos:].lstrip()
+              if not raw_slice:
+                  break
+              try:
+                  obj, idx = decoder.raw_decode(raw_slice)
+                  pos += (len(raw) - len(raw_slice)) + idx
+                  if isinstance(obj, dict) and 'check_runs' in obj:
+                      check_runs.extend(obj['check_runs'])
+              except Exception as e:
+                  print(f'::error::Error decoding JSON from checks API: {e}', file=sys.stderr)
+                  sys.exit(1)
+
+          if not check_runs:
+              print(f'::error::Commit {sha} has zero registered CI check runs. Refusing to deploy unvalidated commit.', file=sys.stderr)
+              sys.exit(1)
+
+          failed = []
+          pending = []
+          for c in check_runs:
+              name = c.get('name', 'unknown')
+              status = c.get('status')
+              conclusion = c.get('conclusion')
+              if status != 'completed':
+                  pending.append(f'{name} (status={status})')
+              elif conclusion not in ('success', 'skipped', 'neutral'):
+                  failed.append(f'{name} (conclusion={conclusion})')
+
+          if failed or pending:
+              if failed:
+                  print(f'::error::Commit {sha} has {len(failed)} failing checks:', file=sys.stderr)
+                  for f in failed:
+                      print(f'  - {f}', file=sys.stderr)
+              if pending:
+                  print(f'::error::Commit {sha} has {len(pending)} in-progress/pending checks:', file=sys.stderr)
+                  for p in pending:
+                      print(f'  - {p}', file=sys.stderr)
+              sys.exit(1)
+
+          print(f'CI check runs verified: {len(check_runs)} checks completed with zero failures.')
+          "
 
           # Fail-Closed: Verify that this workflow runs strictly against the staging environment
           echo "Target Environment: staging (verified)"
@@ -187,11 +232,19 @@ jobs:
           }
           echo "Version response: $VER_BODY"
 
-          BACKEND_SHA=$(python3 -c "import json, sys; data = json.loads('''$VER_BODY'''); sys.stdout.write(data.get('commit_sha') or '')" 2>/dev/null || echo "")
-          if [ -z "$BACKEND_SHA" ] || [ "$BACKEND_SHA" = "unknown" ]; then
-            echo "::error::Staging Backend did not return a valid commit_sha in /version response (received: '$BACKEND_SHA'). Aborting!"
-            exit 1
-          fi
+          BACKEND_SHA=$(printf '%s' "$VER_BODY" | python3 -c '
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              sha = data.get("commit_sha", "")
+              if not sha or sha == "unknown":
+                  sys.stderr.write(f"::error::Staging Backend returned missing or unknown commit_sha: {sha}\n")
+                  sys.exit(1)
+              sys.stdout.write(sha)
+          except Exception as e:
+              sys.stderr.write(f"::error::Failed to parse /version response as JSON: {e}\n")
+              sys.exit(1)
+          ')
 
           EXPECTED_SHA="${{ needs.guard.outputs.sha }}"
           if [ "$BACKEND_SHA" != "$EXPECTED_SHA" ]; then
@@ -378,45 +431,62 @@ jobs:
           }
           echo "Engineering calculation executed successfully. Validating output schema and numeric integrity..."
 
-          python3 -c "
+          printf '%s' "$CALC_RESP" | python3 -c '
           import json, math, sys
 
-          raw = '''$CALC_RESP'''
-          data = json.loads(raw)
-          if not data.get('success'):
-              print(f'::error::Study execution did not succeed: {data.get(\"errors\")}', file=sys.stderr)
+          try:
+              data = json.load(sys.stdin)
+          except Exception as e:
+              print(f"::error::Failed to parse calculation response as JSON: {e}", file=sys.stderr)
               sys.exit(1)
 
-          results = data.get('results') or data.get('data') or {}
-          if not isinstance(results, dict):
-              print(f'::error::Study results missing or not a dictionary: {type(results)}', file=sys.stderr)
+          if data.get("success") is not True:
+              print(f"::error::Study execution did not succeed: {data.get(\"errors\")}", file=sys.stderr)
               sys.exit(1)
 
-          def check_finite(obj, path=''):
+          results = data.get("results") or data.get("data")
+          if not isinstance(results, dict) or not results:
+              print(f"::error::Study results missing, not a dictionary, or empty: {type(results)}", file=sys.stderr)
+              sys.exit(1)
+
+          # Required engineering outputs for arc_flash study
+          required_fields = ["incident_energy_cal_per_cm2", "arc_flash_boundary_mm", "arc_current_ka"]
+          for field in required_fields:
+              if field not in results:
+                  print(f"::error::Missing required engineering field: {field}", file=sys.stderr)
+                  sys.exit(1)
+              val = results[field]
+              if not isinstance(val, (int, float)) or not math.isfinite(val) or val <= 0:
+                  print(f"::error::Field {field} must be a positive finite number (got: {val})", file=sys.stderr)
+                  sys.exit(1)
+
+          # Validate all numeric fields in results are finite
+          def check_finite(obj, path=""):
               if isinstance(obj, float):
                   if not math.isfinite(obj):
-                      print(f'::error::Non-finite floating-point value at {path}: {obj}', file=sys.stderr)
+                      print(f"::error::Non-finite floating-point value at {path}: {obj}", file=sys.stderr)
                       sys.exit(1)
               elif isinstance(obj, dict):
                   for k, v in obj.items():
-                      check_finite(v, f'{path}.{k}' if path else str(k))
+                      check_finite(v, f"{path}.{k}" if path else str(k))
               elif isinstance(obj, list):
                   for i, v in enumerate(obj):
-                      check_finite(v, f'{path}[{i}]')
+                      check_finite(v, f"{path}[{i}]")
 
           check_finite(results)
-          print('Study result validation passed: success=True, all numbers finite.')
-          "
+          print("Study result validation passed: success=True, all required engineering outputs present, positive, and finite.")
+          '
 
-          echo "5. Verifying Chat Stream Route Availability..."
-          STREAM_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$STAGING_API/api/v1/chat/stream" \
+          echo "5. Verifying Chat Stream Route Contract..."
+          # Probe without auth: API contract strictly requires 401 or 403 (unauthorized), or 422. NEVER 500, 502, or 404
+          PROBE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$STAGING_API/api/v1/chat/stream" \
             -H "Content-Type: application/json" \
-            -d '{"messages": [{"role": "user", "content": "ping"}]}') || STREAM_CODE="000"
-          # Expected: 200 or 401/422 if credentials missing, NOT 404 or 502
-          if [ "$STREAM_CODE" = "404" ] || [ "$STREAM_CODE" = "502" ] || [ "$STREAM_CODE" = "000" ]; then
-            echo "::error::Chat streaming endpoint returned unexpected status HTTP $STREAM_CODE"
+            -d '{"messages": [{"role": "user", "content": "ping"}]}') || PROBE_STATUS="000"
+
+          if [ "$PROBE_STATUS" != "401" ] && [ "$PROBE_STATUS" != "403" ] && [ "$PROBE_STATUS" != "422" ]; then
+            echo "::error::Unauthenticated chat streaming probe returned unexpected HTTP $PROBE_STATUS (expected 401, 403, or 422). 500/502/404 are strictly rejected!"
             exit 1
           fi
-          echo "Chat streaming route verified (HTTP $STREAM_CODE)."
+          echo "Chat streaming authentication boundary verified (HTTP $PROBE_STATUS)."
 
           echo "=== STAGING DEPLOYMENT AND SMOKE TESTS PASSED SUCCESSFULLY ==="

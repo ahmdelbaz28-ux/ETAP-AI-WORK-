@@ -1,0 +1,121 @@
+# =============================================================================
+# AhmedETAP — Dedicated Staging Backend Dockerfile
+# =============================================================================
+# Build context: repository root
+# Usage:
+#   docker build -f Dockerfile.staging --build-arg DEPLOY_SHA=$(git rev-parse HEAD) -t etap-staging-api .
+# Or via docker compose:
+#   docker compose -f docker-compose.staging.yml build etap-staging-api
+# =============================================================================
+
+FROM python:3.13-slim
+
+LABEL maintainer="Eng. Ahmed Elbaz <ahmdelbaz28@gmail.com>"
+LABEL description="AhmedETAP — Staging Backend API"
+LABEL version="2.1.0"
+LABEL environment="staging"
+
+WORKDIR /app
+
+# System dependencies + non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl g++ gcc \
+    libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+    libcairo2 libcups2 libdrm2 libgbm1 libnspr4 libnss3 \
+    libpango-1.0-0 libxcomposite1 libxdamage1 libxfixes3 \
+    libxkbcommon0 libxrandr2 \
+    tesseract-ocr tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 user \
+    && mkdir -p /app /tmp/cache /tmp/logs /tmp/data /tmp/cua_audit \
+    && chown -R user:user /app /tmp
+
+# Python dependencies
+COPY hf-space/requirements.hf.txt /tmp/requirements.hf.txt
+RUN pip install --no-cache-dir --only-binary :all: --upgrade pip==25.0.1 && \
+    pip install --no-cache-dir --only-binary :all: \
+        --default-timeout 100 --retries 5 \
+        --requirement /tmp/requirements.hf.txt
+
+# Chromium for Playwright headless CUA
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install chromium && \
+    chmod -R 755 /ms-playwright && \
+    chown -R user:user /ms-playwright
+
+# Application code
+COPY --chown=root:root --chmod=go-w hf-space/app.py /app/app.py
+COPY --chown=root:root --chmod=go-w compat.py /app/compat.py
+COPY --chown=root:root --chmod=go-w agents/ /app/agents/
+COPY --chown=user:user prompts/ /app/prompts/
+COPY --chown=user:user prompts.json /app/prompts.json
+COPY --chown=user:user core_model/ /app/core_model/
+COPY --chown=user:user core/ /app/core/
+COPY --chown=user:user engine/ /app/engine/
+COPY --chown=user:user load_flow/ /app/load_flow/
+COPY --chown=user:user fault_analysis/ /app/fault_analysis/
+COPY --chown=user:user coordination/ /app/coordination/
+COPY --chown=user:user contingency/ /app/contingency/
+COPY --chown=user:user motor_starting/ /app/motor_starting/
+COPY --chown=user:user curves/ /app/curves/
+COPY --chown=user:user relays/ /app/relays/
+COPY --chown=user:user network_solver/ /app/network_solver/
+COPY --chown=user:user contracts/ /app/contracts/
+COPY --chown=user:user etap_integration/ /app/etap_integration/
+COPY --chown=user:user scripts/ /app/scripts/
+COPY --chown=user:user scada_model/ /app/scada_model/
+COPY --chown=user:user scada_protocols/ /app/scada_protocols/
+COPY --chown=user:user services/ /app/services/
+COPY --chown=user:user api/ /app/api/
+COPY --chown=user:user utils/ /app/utils/
+COPY --chown=user:user ai_context_engine/ /app/ai_context_engine/
+COPY --chown=user:user integrations/ /app/integrations/
+COPY --chown=user:user visualization/ /app/visualization/
+COPY --chown=user:user reporting/ /app/reporting/
+COPY --chown=user:user digital_twin/ /app/digital_twin/
+COPY --chown=user:user security/ /app/security/
+COPY --chown=user:user gis_integration/ /app/gis_integration/
+COPY --chown=user:user adms_control/ /app/adms_control/
+COPY --chown=user:user ml/ /app/ml/
+COPY --chown=user:user copilot/ /app/copilot/
+COPY --chown=user:user data/ /app/data/
+COPY --chown=user:user VERSION /app/VERSION
+COPY --chown=user:user config/ /app/config/
+COPY --chown=user:user alembic.ini /app/alembic.ini
+COPY --chown=user:user migrations/ /app/migrations/
+
+# Revision identity: embed build argument into /app/DEPLOY_SHA
+ARG DEPLOY_SHA=""
+RUN if [ -n "$DEPLOY_SHA" ]; then \
+        echo "$DEPLOY_SHA" > /app/DEPLOY_SHA; \
+    else \
+        echo "unknown" > /app/DEPLOY_SHA; \
+    fi && chown user:user /app/DEPLOY_SHA
+
+# UI placeholder directory
+RUN mkdir -p /app/ui-dist
+COPY --chown=user:user ui-dist/ /app/ui-dist/
+
+# Runtime environment
+ENV PORT=7860
+ENV HOST=0.0.0.0
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app
+ENV MPLCONFIGDIR=/tmp/cache
+ENV XDG_CACHE_HOME=/tmp/cache
+ENV HF_HOME=/tmp/cache
+ENV NUMBA_CACHE_DIR=/tmp/cache
+ENV ENVIRONMENT=staging
+ENV DEPLOYMENT_TOPOLOGY=single_replica
+ENV DEPLOY_SHA=${DEPLOY_SHA}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD ["curl", "-f", "http://localhost:7860/healthz"]
+
+EXPOSE 7860
+
+USER 1000
+
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:7860", "--timeout", "120", "--keep-alive", "5", "--max-requests", "1000", "--max-requests-jitter", "100", "app:app"]

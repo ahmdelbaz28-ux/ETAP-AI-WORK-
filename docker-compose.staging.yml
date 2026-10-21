@@ -10,7 +10,9 @@ services:
   etap-staging-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.staging
+      args:
+        DEPLOY_SHA: ${DEPLOY_SHA:-}
     container_name: etap-staging-api
     restart: unless-stopped
     ports:
