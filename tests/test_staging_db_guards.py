@@ -12,6 +12,9 @@ Covers Gate 2 requirements:
 - Non-exposure of credentials in error messages
 """
 
+import re
+from pathlib import Path
+
 import pytest
 
 from api.staging_guard import (
@@ -153,8 +156,6 @@ class TestStagingDockerContract:
 
     def test_docker_compose_staging_requires_deploy_sha(self):
         """docker-compose.staging.yml must require DEPLOY_SHA parameter."""
-        from pathlib import Path
-        import yaml
         compose_file = Path("docker-compose.staging.yml")
         assert compose_file.exists(), "docker-compose.staging.yml must exist"
         raw_text = compose_file.read_text(encoding="utf-8")
@@ -162,8 +163,6 @@ class TestStagingDockerContract:
 
     def test_deploy_sha_file_is_valid_sha(self):
         """DEPLOY_SHA file in repository must contain a 40-char hex commit SHA or be handled dynamically."""
-        from pathlib import Path
-        import re
         sha_file = Path("DEPLOY_SHA")
         assert sha_file.exists(), "DEPLOY_SHA file must exist"
         content = sha_file.read_text(encoding="utf-8").strip()
