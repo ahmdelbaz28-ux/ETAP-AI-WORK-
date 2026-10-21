@@ -174,13 +174,23 @@ jobs:
             exit 1
           fi
 
+          if ! echo "$API_URL" | grep -qiE "^https://"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL must use HTTPS protocol. Received: $API_URL"
+            exit 1
+          fi
+
           if echo "$API_URL" | grep -qi "ahmdelbaz28-ahmedetap-platform.hf.space"; then
-            echo "::error::CRITICAL: STAGING_API_BASE_URL points to the production Hugging Face Space! Aborting (Fail-Closed)."
+            echo "::error::CRITICAL: STAGING_BACKEND_URL points to the production Hugging Face Space! Aborting (Fail-Closed)."
+            exit 1
+          fi
+
+          if echo "$API_URL" | grep -qi "trycloudflare\.com"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL points to an ephemeral trycloudflare.com Quick Tunnel! A persistent, verified Named Tunnel hostname is strictly required. Aborting (Fail-Closed)."
             exit 1
           fi
 
           if echo "$API_URL" | grep -qiE "^https?://(localhost|127\.0\.0\.1)"; then
-            echo "::error::CRITICAL: STAGING_API_BASE_URL is a localhost address in a public staging deployment! Aborting."
+            echo "::error::CRITICAL: STAGING_BACKEND_URL is a localhost address in a public staging deployment! Aborting."
             exit 1
           fi
 
@@ -478,19 +488,19 @@ jobs:
           print("Study result validation passed: success=True, all required engineering outputs present, positive, and finite.")
           '
 
-          echo "5. Verifying Chat Stream Route Contract..."
-          # Probe without auth: API contract strictly requires 401 or 403 (unauthorized), or 422. NEVER 500, 502, or 404
+          echo "5. Verifying Chat Stream Authentication Boundary..."
+          UNAUTH_PAYLOAD='{"session_id": "probe-session-unauth", "messages": [{"role": "user", "content": "ping"}]}'
           PROBE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$STAGING_API/api/v1/chat/stream" \
             -H "Content-Type: application/json" \
-            -d '{"messages": [{"role": "user", "content": "ping"}]}') || PROBE_STATUS="000"
+            -d "$UNAUTH_PAYLOAD") || PROBE_STATUS="000"
 
-          if [ "$PROBE_STATUS" != "401" ] && [ "$PROBE_STATUS" != "403" ] && [ "$PROBE_STATUS" != "422" ]; then
-            echo "::error::Unauthenticated chat streaming probe returned unexpected HTTP $PROBE_STATUS (expected 401, 403, or 422). 500/502/404 are strictly rejected!"
+          if [ "$PROBE_STATUS" != "401" ] && [ "$PROBE_STATUS" != "403" ]; then
+            echo "::error::Unauthenticated chat streaming probe returned unexpected HTTP $PROBE_STATUS (expected 401 or 403). Fail-closed auth boundary violated!"
             exit 1
           fi
           echo "Chat streaming authentication boundary verified (HTTP $PROBE_STATUS)."
 
-          echo "6. Verifying SSE Streaming Protocol with 30s timeout..."
+          echo "6. Verifying Authenticated SSE Streaming Protocol & Capabilities..."
           AUTH_HEADER=""
           if [ -n "${JWT_SECRET_KEY:-}" ]; then
             BEARER_TOKEN=$(python3 -c '
@@ -509,29 +519,63 @@ jobs:
             fi
           fi
 
-          if [ -n "$AUTH_HEADER" ]; then
-            SSE_OUTPUT=$(curl -s --max-time 30 -X POST "$STAGING_API/api/v1/chat/stream" \
-              -H "Content-Type: application/json" \
-              -H "$AUTH_HEADER" \
-              -d '{"messages": [{"role": "user", "content": "ping"}]}' || true)
-          else
-            SSE_OUTPUT=$(curl -s --max-time 30 -X POST "$STAGING_API/api/v1/chat/stream" \
-              -H "Content-Type: application/json" \
-              -H "X-API-Key: $API_KEY" \
-              -d '{"messages": [{"role": "user", "content": "ping"}]}' || true)
+          if [ -z "$AUTH_HEADER" ] && [ -n "${API_KEY:-}" ]; then
+            AUTH_HEADER="X-API-Key: $API_KEY"
           fi
 
-          printf '%s' "$SSE_OUTPUT" | python3 -c '
-          import sys
-          raw = sys.stdin.read().strip()
-          # SSE streams either emit data: frames (and optionally [DONE]) or handle upstream status
-          if "data:" in raw or "[DONE]" in raw:
-              print("SSE streaming response received with valid data frames.")
-          elif "NO_LLM_PROVIDER_CONFIGURED" in raw or "detail" in raw:
-              print("SSE streaming route reached; returned expected structured payload (no provider configured in staging).")
+          if [ -z "$AUTH_HEADER" ]; then
+            echo "::error::No authentication credentials available to test authenticated SSE endpoint. Aborting!"
+            exit 1
+          fi
+
+          AUTH_PAYLOAD='{"session_id": "staging-smoke-session", "messages": [{"role": "user", "content": "ping"}]}'
+          CURL_TMP=$(mktemp)
+          HTTP_INFO=$(curl -s --max-time 30 -X POST "$STAGING_API/api/v1/chat/stream" \
+            -H "Content-Type: application/json" \
+            -H "$AUTH_HEADER" \
+            -d "$AUTH_PAYLOAD" \
+            -w "%{http_code} %{content_type}" \
+            -o "$CURL_TMP") || CURL_EXIT=$?
+
+          if [ "${CURL_EXIT:-0}" -ne 0 ]; then
+            echo "::error::Transport failure during authenticated SSE probe (curl exit code: ${CURL_EXIT:-0})."
+            rm -f "$CURL_TMP"
+            exit 1
+          fi
+
+          HTTP_CODE=$(echo "$HTTP_INFO" | awk '{print $1}')
+          CONTENT_TYPE=$(echo "$HTTP_INFO" | cut -d' ' -f2-)
+
+          python3 -c '
+          import json, sys
+
+          http_code = "'"$HTTP_CODE"'"
+          content_type = "'"$CONTENT_TYPE"'".lower()
+          with open("'"$CURL_TMP"'", "r", encoding="utf-8", errors="replace") as f:
+              raw = f.read().strip()
+
+          if http_code == "200":
+              if "text/event-stream" not in content_type:
+                  sys.exit(f"::error::Authenticated SSE probe returned HTTP 200 but incorrect Content-Type: {content_type}")
+              lines = raw.splitlines()
+              has_event_or_data = any(line.startswith("event:") or line.startswith("data:") for line in lines)
+              if not has_event_or_data:
+                  sys.exit(f"::error::Authenticated SSE probe returned 200 text/event-stream without valid SSE event/data framing. Response: {raw[:200]}")
+              print("SSE streaming response verified with valid text/event-stream framing.")
+          elif http_code == "503":
+              try:
+                  data = json.loads(raw)
+                  code = data.get("detail", {}).get("code") if isinstance(data.get("detail"), dict) else data.get("detail")
+                  if code in ("NO_LLM_PROVIDER_CONFIGURED", "PROVIDER_NOT_CONFIGURED"):
+                      print("::warning::LLM provider is not configured on staging (HTTP 503: NO_LLM_PROVIDER_CONFIGURED). Capability is unavailable as expected without server API keys or BYOK.")
+                  else:
+                      sys.exit(f"::error::Authenticated chat probe returned HTTP 503 with unexpected detail: {raw[:200]}")
+              except Exception as exc:
+                  sys.exit(f"::error::Authenticated chat probe returned HTTP 503 with unparseable payload: {raw[:200]} ({exc})")
           else:
-              print(f"SSE stream probe executed; response: {raw[:120]}")
+              sys.exit(f"::error::Authenticated chat probe returned unexpected HTTP {http_code}. Response: {raw[:300]}")
           '
+          rm -f "$CURL_TMP"
           echo "SSE streaming probe completed."
 
           echo "=== STAGING DEPLOYMENT AND SMOKE TESTS PASSED SUCCESSFULLY ==="
