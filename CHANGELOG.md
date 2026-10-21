@@ -23,6 +23,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **aiohttp (Dependabot Alerts #531, #532, #533)**: Upgraded transitive `aiohttp` dependency from `3.14.3` to `3.14.5` in `uv.lock` and manifest constraints in `requirements.hf.txt`, `hf-space/requirements.hf.txt`, and `requirements-optional.txt`, mitigating GHSA-2g87-pp6c-29x5, CVE-2026-111063, and CVE-2026-111064.
+
 ---
 
 ## [2.2.0] - 2026-10-14
