@@ -1,0 +1,52 @@
+# =============================================================================
+# AhmedETAP — Staging Local Service Orchestration (Minimal Additive)
+# =============================================================================
+# Runs the lightweight staging API container (built from Dockerfile using
+# hf-space/app.py entrypoint) alongside the official cloudflared connector.
+# Does NOT replace or modify docker-compose.yml (which serves full local dev).
+# =============================================================================
+
+services:
+  etap-staging-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: etap-staging-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7860:7860"
+    environment:
+      - PORT=7860
+      - HOST=0.0.0.0
+      - ENVIRONMENT=staging
+      - DATABASE_URL=${STAGING_DATABASE_URL:?STAGING_DATABASE_URL must be set}
+      - JWT_SECRET_KEY=${STAGING_JWT_SECRET_KEY:?STAGING_JWT_SECRET_KEY must be set}
+      - ENGINEERING_SERVICE_API_KEY=${STAGING_ENGINEERING_SERVICE_API_KEY:?STAGING_ENGINEERING_SERVICE_API_KEY must be set}
+      - ALLOW_SQLITE_IN_PROD=false
+      - DEPLOYMENT_TOPOLOGY=single_replica
+      - EXTRA_CORS_ORIGINS=https://etap-ai-work-staging.vercel.app
+      - DEPLOY_SHA=${DEPLOY_SHA:-004d7c0fbb7502c115c92722f8dd92de2e9e3409}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:7860/healthz', timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - staging_net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: etap-staging-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN must be set}
+    networks:
+      - staging_net
+    depends_on:
+      - etap-staging-api
+
+networks:
+  staging_net:
+    driver: bridge
