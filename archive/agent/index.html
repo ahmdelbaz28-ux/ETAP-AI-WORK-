@@ -9228,7 +9228,7 @@ No probabilistic decisions. Pure deterministic logic.</p>
 </tbody>
 </table>
 <ul>
-<li><em><em>A</em> Cost Function</em>*: bend penalty (0.5m), elevation (2.0m),
+<li>*<em>A</em> Cost Function**: bend penalty (0.5m), elevation (2.0m),
   electrical proximity (1.0m)</li>
 <li><strong>Manhattan Heuristic</strong>: admissible for 6-directional orthogonal</li>
 <li><strong>ConstraintSource enum</strong>: every constraint has a traceable origin</li>
@@ -13417,7 +13417,7 @@ design engine, preventing corrupted geometry from producing unsafe designs.</p>
 </tr>
 <tr>
 <td>BUG-20</td>
-<td>Route length = len(path)*step instead of (len-1)*step</td>
+<td>Route length = len(path)<em>step instead of (len-1)</em>step</td>
 <td>CRITICAL</td>
 <td>routing.py</td>
 <td>All lengths overstated by one grid step</td>
@@ -18653,9 +18653,9 @@ because they used editable install.
 <strong>Fix:</strong>
 1. Deleted <code>setup.py</code> — <code>pyproject.toml</code> is the sole build config (PEP 517/518).
 2. Added <code>[tool.setuptools.packages.find]</code> with explicit <code>include</code> list
-   (backend*, etap*, core*, parsers*, facp_system*, facp_distributed*,
-   qomn_fire*, qomn_conduit*, integration*, marine*, adapters*, services*,
-   skills*) and <code>exclude</code> list (tests*, docs*, deploy*, etc.).
+   (backend<em>, etap</em>, core<em>, parsers</em>, facp_system<em>, facp_distributed</em>,
+   qomn_fire<em>, qomn_conduit</em>, integration<em>, marine</em>, adapters<em>, services</em>,
+   skills<em>) and <code>exclude</code> list (tests</em>, docs<em>, deploy</em>, etc.).
 3. Added <code>[tool.setuptools.package-data]</code> for py.typed, JSON, YAML, SVG, HTML.
 4. Updated Dockerfiles to <code>COPY pyproject.toml ./</code> (removed <code>setup.py</code>).
 <strong>Verification:</strong> <code>python -m build --wheel</code> now produces a 4.5MB wheel with
