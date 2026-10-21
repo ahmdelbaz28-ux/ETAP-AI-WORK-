@@ -1,7 +1,7 @@
 # YOLO Segmentation Service requirements
 # Versions pinned for reproducible builds (SonarCloud docker:S8544)
 doclayout-yolo==0.0.7
-fastapi==0.115.12
+fastapi==0.144.0
 uvicorn[standard]==0.34.3
 python-multipart==0.0.31
 torch==2.13.0
