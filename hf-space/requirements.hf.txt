@@ -80,7 +80,7 @@ websockets>=15.0.1,<17.1.0
 # These enable the BrowserCUAExecutor — a headless-browser CUA that works
 # on HF Space (no display server required).
 # The DesktopCUAExecutor (pyautogui) is NOT installable on HF Space.
-playwright~=1.62.0
+playwright~=1.64.0
 google-generativeai~=0.8.6
 Pillow~=13.0.0
 
