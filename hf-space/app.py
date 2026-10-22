@@ -1616,8 +1616,18 @@ async def websocket_cua_confirmation(websocket: WebSocket):
 
 
 @app.post("/api/v1/studies/run", tags=["Studies"])
-async def run_study(request: SharedStudyRequest):
-    result = run_study_lightweight(request.study_type, request.system, request.parameters)
+async def run_study(
+    request: SharedStudyRequest,
+    user: Annotated[Optional[CurrentUser], Depends(get_optional_current_user_from_header)] = None,
+    api_key: Annotated[Optional[str], Header(alias="X-API-Key")] = None,
+):
+    result = run_study_lightweight(
+        request.study_type,
+        request.system,
+        request.parameters,
+        user=user,
+        api_key=api_key,
+    )
     status = result.pop("_status", None)
     if status:
         return JSONResponse(status_code=status, content=result)

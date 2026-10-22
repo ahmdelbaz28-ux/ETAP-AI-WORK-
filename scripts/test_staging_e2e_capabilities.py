@@ -286,6 +286,10 @@ def run_full_capability_suite(args: argparse.Namespace) -> Dict[str, Any]:
         elif user_token:
             print("  [6/7] /api/v1/auth/me: Using provided user JWT access token.")
         else:
+            if getattr(args, "require_login", False):
+                raise AssertionError(
+                    "User login verification is mandatory for staging release gate, but no credentials were provided."
+                )
             print(
                 "  [6/7] /api/v1/auth/login: Skipped (no --email/--password or --token provided; using API key for chat)."
             )
@@ -315,6 +319,12 @@ def run_full_capability_suite(args: argparse.Namespace) -> Dict[str, Any]:
         print(f"  [7/7] /api/v1/chat/stream (Auth SSE): {status_label}")
         print(f"        Chunks received: {len(timings)}, Total stream span: {total_time:.3f}s")
         print(f"        Arrival offsets: {[round(t, 3) for t in timings[:6]]}...")
+
+        if not is_incremental:
+            raise AssertionError(
+                f"SSE acceptance test defect detected: stream was BUFFERED (total span {total_time:.3f}s < 0.10s, "
+                f"chunks={len(timings)}). Non-incremental or buffered responses cannot pass the staging release gate."
+            )
 
         return {
             "health": True,
@@ -375,6 +385,12 @@ def main():
         "--llm-provider",
         default=os.environ.get("STAGING_LLM_PROVIDER", "openai"),
         help="BYOK LLM provider (default: openai)",
+    )
+    parser.add_argument(
+        "--require-login",
+        action="store_true",
+        default=os.environ.get("STAGING_REQUIRE_LOGIN", "").lower() in ("1", "true", "yes"),
+        help="Enforce mandatory user login verification (fails if omitted)",
     )
 
     args = parser.parse_args()

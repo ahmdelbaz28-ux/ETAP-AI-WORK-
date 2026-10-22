@@ -25,7 +25,10 @@ import time
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from api.dependencies import CurrentUser
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -594,6 +597,8 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
     study_type: str,
     system: dict[str, Any],
     parameters: dict[str, Any],
+    user: Optional[CurrentUser] = None,
+    api_key: Optional[str] = None,
 ) -> dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.
 
@@ -631,11 +636,28 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
     from services.execution_request import ExecutionRequest
     from services.study_service import _run_async
 
+    # Derive effective user and tenant identity from verified server-side authentication context
+    if user and getattr(user, "user_id", None):
+        eff_user = str(user.user_id).strip()
+        eff_tenant = str(getattr(user, "tenant_id", "") or "").strip() or "default"
+        eff_role = str(getattr(user, "role", "engineer"))
+    elif api_key:
+        import hashlib
+
+        key_hash = hashlib.sha256(str(api_key).encode("utf-8")).hexdigest()[:12]
+        eff_user = f"service_principal:{key_hash}"
+        eff_tenant = f"service_tenant_{key_hash[:8]}"
+        eff_role = "service_principal"
+    else:
+        eff_user = "service_principal:hf_space"
+        eff_tenant = "hf_space_tenant"
+        eff_role = "engineer"
+
     req = ExecutionRequest(
         capability_id=study_type,
-        tenant_id="hf_space_tenant",
-        user_id="service_principal:hf_space",
-        user_role="engineer",
+        tenant_id=eff_tenant,
+        user_id=eff_user,
+        user_role=eff_role,
         input={"system": system, "parameters": parameters},
         metadata={"deployment": "hf_space", "caller": "run_study_lightweight"},
     )
