@@ -162,6 +162,7 @@ k6-load-test.js
 *.json
 !prompts.json
 !package.json
+!.feature-flags.staging.json
 !pyproject.toml
 *.yml
 *.yaml

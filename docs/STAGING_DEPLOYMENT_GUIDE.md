@@ -150,11 +150,10 @@ In accordance with the Owner Decision:
    When the staging backend starts, `scripts/run_staging_quick_tunnel.py` captures the generated Quick Tunnel URL and immediately updates `ORIGIN_URL` on `ahmedetap-staging-proxy` using `scripts/deploy_staging_worker.py`.
 3. **Fail-Closed Origin Validation:**
    If `ORIGIN_URL` is unconfigured, malformed, or points to the production Hugging Face Space (`ahmdelbaz28-ahmedetap-platform.hf.space`), the staging worker strictly returns `HTTP 503 STAGING_ORIGIN_NOT_CONFIGURED`.
-4. **SSE Streaming Transparency:**
-   The worker sets `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, enabling genuine unbuffered Server-Sent Events (`text/event-stream`) across the Quick Tunnel and Worker edge.
-5. **Verified End-to-End Capabilities:**
-   Probed and confirmed via `scripts/test_staging_e2e_capabilities.py`:
-   - Liveness (`/healthz`) & Readiness (`/readyz`): HTTP 200
-   - Version (`/version`): Exact `commit_sha` identity verification
-   - Authenticated Studies (`/api/v1/studies/run`): Finite numeric results
-   - Chat Stream (`/api/v1/chat/stream`): Strict HTTP 401 unauthenticated boundary; verified real-time incremental chunk delivery for authenticated sessions.
+4. **SSE Streaming Transport Limitation (Quick Tunnel Blocker):**
+   Cloudflare official documentation explicitly states that Quick Tunnels (`trycloudflare.com`) do not support WebSockets or unbuffered Server-Sent Events (SSE). While the Cloudflare Worker forwards streaming headers, the upstream Quick Tunnel buffers or disconnects real-time chunk streams. Consequently, Quick Tunnels cannot provide genuine real-time incremental SSE streaming.
+5. **Runtime Operational Status & Gate Constraints:**
+   - **Local Container Runtime:** Operates on WSL2 Docker (`Dockerfile.staging`, `docker-compose.staging.yml`) bound to dedicated Staging PostgreSQL 17 (`guunodspzhcxpmdwwyjv`).
+   - **Public Ingress Status:** The Cloudflare Worker proxy (`ahmedetap-staging-proxy.ahmedetap.workers.dev`) returns HTTP 530 when origin is offline.
+   - **SSE Ingress Blocker:** Real-time incremental SSE delivery across public ingress remains **BLOCKED** until an owner-controlled domain (for Named Tunnel) or an empirical zero-cost ingress that satisfies unbuffered streaming is verified.
+

@@ -526,32 +526,11 @@ jobs:
           echo "Chat streaming authentication boundary verified (HTTP $PROBE_STATUS)."
 
           echo "6. Verifying Authenticated SSE Streaming Protocol & Capabilities..."
-          AUTH_HEADER=""
-          if [ -n "${JWT_SECRET_KEY:-}" ]; then
-            BEARER_TOKEN=$(python3 -c '
-            import base64, hashlib, hmac, json, os, sys, time
-            key = os.environ.get("JWT_SECRET_KEY", "").strip()
-            if key:
-                b64 = lambda b: base64.urlsafe_b64encode(b).decode().rstrip("=")
-                hdr = b64(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
-                now = int(time.time())
-                pay = b64(json.dumps({"sub": "staging-smoke-tester", "type": "access", "iat": now, "exp": now + 300}).encode())
-                sig = b64(hmac.new(key.encode(), f"{hdr}.{pay}".encode(), hashlib.sha256).digest())
-                sys.stdout.write(f"{hdr}.{pay}.{sig}")
-            ')
-            if [ -n "$BEARER_TOKEN" ]; then
-              AUTH_HEADER="Authorization: Bearer $BEARER_TOKEN"
-            fi
-          fi
-
-          if [ -z "$AUTH_HEADER" ] && [ -n "${API_KEY:-}" ]; then
-            AUTH_HEADER="X-API-Key: $API_KEY"
-          fi
-
-          if [ -z "$AUTH_HEADER" ]; then
-            echo "::error::No authentication credentials available to test authenticated SSE endpoint. Aborting!"
+          if [ -z "${API_KEY:-}" ]; then
+            echo "::error::STAGING_ENGINEERING_SERVICE_API_KEY is required to test authenticated endpoints. Aborting!"
             exit 1
           fi
+          AUTH_HEADER="X-API-Key: $API_KEY"
 
           AUTH_PAYLOAD='{"session_id": "staging-smoke-session", "messages": [{"role": "user", "content": "ping"}]}'
           CURL_TMP=$(mktemp)
