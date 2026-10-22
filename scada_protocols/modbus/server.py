@@ -180,7 +180,12 @@ class ModbusServerAdapter(ProtocolAdapter):
                         self._point_quality[entry.name] = "ERROR"
 
         if _USE_SPARSE:
-            block = ModbusSparseDataBlock(initial)
+            # pymodbus 3.13 simdevice __check_block requires at least one register to compute last_address
+            # without raising IndexError: list index out of range.
+            # Populating a base word at address 0 satisfies the block constructor without
+            # affecting server.latest_snapshot or freshness state.
+            sparse_init = dict(initial) if initial else {0: 0}
+            block = ModbusSparseDataBlock(sparse_init)
         else:  # pragma: no cover - legacy API
             block = ModbusSequentialDataBlock(1, [store.get(i, 0) for i in range(1, max_addr + 11)])
 

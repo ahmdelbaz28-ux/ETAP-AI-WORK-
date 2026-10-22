@@ -1,0 +1,170 @@
+{
+  "harmonic_analysis": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Harmonic analysis (IEEE 519) - Verified in Staging",
+    "updated_at": "2026-10-20T10:40:00+00:00"
+  },
+  "motor_starting": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Motor starting analysis (IEEE 399) - Verified in Staging"
+  },
+  "transient_stability": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Transient stability (swing equation) - Verified in Staging"
+  },
+  "optimal_power_flow": {
+    "enabled": true,
+    "status": "beta",
+    "description": "OPF (economic dispatch) - Verified in Staging"
+  },
+  "cable_sizing": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Cable sizing per IEC 60364 (ampacity, derating, voltage drop) - Verified in Staging",
+    "rollout_percentage": 100
+  },
+  "earth_grid": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Earth grid analysis per IEEE 80 - Verified in Staging",
+    "rollout_percentage": 100
+  },
+  "renewable_integration": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Renewable integration (solar/wind) per IEEE 1547 - Verified in Staging",
+    "rollout_percentage": 100
+  },
+  "battery_storage": {
+    "enabled": true,
+    "status": "beta",
+    "description": "Battery Energy Storage System (BESS) per IEC 62933 - Verified in Staging",
+    "rollout_percentage": 100
+  },
+  "data_import": {
+    "enabled": true,
+    "status": "ga",
+    "description": "In-chat power system data import (P9)",
+    "rollout_percentage": 100
+  },
+  "data_export": {
+    "enabled": true,
+    "status": "ga",
+    "description": "In-chat power system data export (P9)",
+    "rollout_percentage": 100
+  },
+  "data_export_cim": {
+    "enabled": false,
+    "status": "beta",
+    "description": "CIM XML for Schneider ADMS export (P9) — fail-closed by default",
+    "rollout_percentage": 0
+  },
+  "arcgis_provider": {
+    "enabled": false,
+    "status": "beta",
+    "description": "ArcGIS Online / Portal REST API integration"
+  },
+  "gis_write": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Safe ArcGIS Online / Enterprise write operations via applyEdits"
+  },
+  "etap_rest_draw": {
+    "enabled": false,
+    "status": "alpha",
+    "description": "Automatic ETAP drawing via DataHub etapAPI (dual-control, OFF by default)"
+  },
+  "production_hardening": {
+    "enabled": true,
+    "status": "ga",
+    "description": "Production persistence, no baselines, real re-run execution",
+    "rollout_percentage": 100
+  },
+  "chat_first_ui": {
+    "enabled": true,
+    "status": "ga",
+    "description": "Unified chat-first conversational engineering workspace (ChatWorkspace)",
+    "rollout_percentage": 100
+  },
+  "token_governance": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Token Governance Layer (Token Budgeting, Semantic Cache, RAG & Prompt Versioning)",
+    "rollout_percentage": 0
+  },
+  "use_pso_coordination": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Enable PSO-based protection coordination optimization (replaces linear TMS sweep)",
+    "rollout_percentage": 0
+  },
+  "use_warm_start": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Enable warm-start voltage memory for Newton-Raphson load flow solver",
+    "rollout_percentage": 0
+  },
+  "use_bandit_router": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Enable Contextual Bandit (LinUCB) learning router for intent resolution with GoalRouter fallback",
+    "rollout_percentage": 0
+  },
+  "generative_design": {
+    "enabled": false,
+    "status": "experimental",
+    "description": "Generative Substation & Feeder Design Scaffold (topology, equipment sizing, protection scheme)",
+    "rollout_percentage": 0
+  },
+  "breaker_duty": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Breaker Duty evaluation per IEC 62271-100 against catalog switchgear limits",
+    "rollout_percentage": 0
+  },
+  "chat_system_prompt": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Inject canonical etap_engineer_agent system prompt and engineering temperature/token limits",
+    "rollout_percentage": 0
+  },
+  "chat_history_prune": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Prune chat conversation history exceeding token budget while preserving system prompt",
+    "rollout_percentage": 0
+  },
+  "rag_model2vec": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Enable CPU-optimized model2vec embedding inference for engineering knowledge search",
+    "rollout_percentage": 0
+  },
+  "chat_structured": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Enforce Pydantic EngineerAnswer schema validation for chat responses",
+    "rollout_percentage": 0
+  },
+  "langfuse_output_capture": {
+    "enabled": false,
+    "status": "beta",
+    "description": "Allow capturing chat stream response output in Langfuse LLM traces",
+    "rollout_percentage": 0
+  },
+  "use_model_cascade": {
+    "enabled": false,
+    "status": "alpha",
+    "description": "Enable cost-aware LLM cascade router (Economy → Standard → Reasoning)",
+    "rollout_percentage": 0
+  },
+  "dspy_copilot": {
+    "enabled": false,
+    "status": "experimental",
+    "description": "DSPy SLD ingest + diagnostic copilot (pre/post processor only, OFF by default)",
+    "rollout_percentage": 0
+  }
+}

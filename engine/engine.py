@@ -593,6 +593,12 @@ class PowerSystemEngine:
             "working_distance_mm": result.working_distance_mm,
             "model_type": "simplified_empirical",
             "k3_status": "omitted_in_simplified_model",
+            "compliance": "NON_COMPLIANT_SIMPLIFIED_EDUCATIONAL",
+            "safety_warning": (
+                "Simplified empirical model. Gap distance and K4 interaction terms omitted; "
+                "linear duration multiplier. NOT compliant with IEEE 1584-2018 for PPE selection "
+                "or arc-flash labeling."
+            ),
         }
 
     def run_protection_coordination(

@@ -17,9 +17,11 @@ scratch/
 .env.*
 .env.local
 *.env
+*.secret
 
 # Scan / temp files
-_*
+/_*
+!/**/__tests__/**
 _*.txt
 _*.json
 _*.log
@@ -243,7 +245,8 @@ pnpm-debug.log*
 # Build outputs
 .next/
 out/
-ui-dist/
+ui-dist/*
+!ui-dist/.gitkeep
 duplicate-audit/
 scientific_validation_report.json
 
@@ -322,6 +325,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.staging.example
 security_audit_findings*.json
 security_findings*.json
 
@@ -566,3 +570,8 @@ testsprite_tests/tmp_assistant*.html
 
 .claude/
 testsprite_tests/tmp/config.json
+
+# Cloudflare tunnel local artifacts
+cloudflared.exe
+quick_tunnel.log
+

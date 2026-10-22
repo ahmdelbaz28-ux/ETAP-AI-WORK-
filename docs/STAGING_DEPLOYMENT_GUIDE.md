@@ -1,185 +1,159 @@
-# AhmedETAP — Staging & Production Deployment Operational Guide
+---
+title: "AhmedETAP Isolated Staging Environment Architecture & Deployment Guide"
+version: "2.3.0"
+last_updated: "2026-10-20"
+maintainer: "Eng. Ahmed Elbaz / Platform Core Team"
+---
 
-This document defines the operational runbook and deployment standards for deploying AhmedETAP to staging and production environments.
+# 🛡️ AhmedETAP Isolated Staging Environment Architecture & Deployment Guide
+
+## 📋 Table of Contents
+
+- [1. Executive Summary & Purpose](#1-executive-summary--purpose)
+- [2. Component Separation Matrix](#2-component-separation-matrix)
+- [3. Staging Infrastructure Components Status](#3-staging-infrastructure-components-status)
+  - [3.1 Frontend (Vercel)](#31-frontend-vercel)
+  - [3.2 Dedicated Staging PostgreSQL Database (Supabase)](#32-dedicated-staging-postgresql-database-supabase)
+  - [3.3 GitHub Actions CI/CD](#33-github-actions-cicd)
+  - [3.4 Backend Runtime & Ingress (Ephemeral vs. Persistent Hosting)](#34-backend-runtime--ingress-ephemeral-vs-persistent-hosting)
+- [4. Engineering Capability Verification & Feature Flag Isolation](#4-engineering-capability-verification--feature-flag-isolation)
+- [5. Operational Safety & Rollback Procedures](#5-operational-safety--rollback-procedures)
+- [6. Owner Decision Points & Persistent Hosting Options](#6-owner-decision-points--persistent-hosting-options)
 
 ---
 
-## 1. System Architecture & Dual-Runtime Model
+## 1. Executive Summary & Purpose
 
-AhmedETAP operates on a dual-runtime architecture:
-1. **Frontend & Orchestration Gateway**: React / TypeScript Chat-First v3.0 interface with Mastra TypeScript agent workflows.
-2. **Authoritative Engineering Backend**: FastAPI application running on Python with validated computational solvers (Newton-Raphson load flow, IEC 60909 short circuit, IEEE 1584 arc flash, IEEE 399 motor starting).
-3. **Shared Distributed State**:
-   - **PostgreSQL 16**: Relational storage for users, projects, revisions, component libraries, and audit logs.
-   - **Redis 7**: Distributed session persistence (`RedisSessionStore`), distributed resource locking (`LockManager`), and asynchronous job queueing (`RedisTaskQueue`).
+In alignment with the **AhmedETAP Zero-Fabrication Rule (R3)** and the **Owner Safety Remediation Mandate**, this document defines the verified Staging deployment architecture for AhmedETAP (`ahmdelbaz28-ux/ETAP-AI-WORK-`).
 
----
+The Staging environment provides an isolated, sandboxed platform allowing engineers to test and verify new capabilities (such as `harmonic_analysis`, `cable_sizing`, `motor_starting`, `transient_stability`, `optimal_power_flow`, `earth_grid`, `renewable_integration`, and `battery_storage`) without cross-contamination with live production customers or physical electrical systems.
 
-## 2. Pre-Deployment Environment Checklist
-
-All production and staging environments must supply the following environment variables. In staging and production (`ENV=production` or `ENV=staging`), any missing or weak variable triggers a **Fail-Closed** process termination at startup.
-
-| Variable | Description | Security Requirement |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL async connection string | Must use `postgresql+asyncpg://`, SSL enabled in prod. |
-| `REDIS_URL` | Redis distributed state connection | Must use `rediss://` (TLS) in public production. |
-| `JWT_SECRET_KEY` | Key for signing and verifying JWTs | Minimum 32 bytes of cryptographic randomness (`secrets.token_hex(32)`). Known samples permanently banned. |
-| `ENGINEERING_SERVICE_API_KEY` | Admin / service-to-service authentication | Cryptographically strong token. Banned samples cause startup crash. |
-| `CRON_SECRET` | Secret token for Vercel/external cron jobs | Mandatory Bearer token for triggering `/api/cron/digest`. |
-| `CSRF_SECRET` | Secret for signing anti-CSRF tokens | Minimum 32 bytes random string. |
-| `DB_POOL_SIZE` | Connection pool size per worker (default: 5) | Sized with workers to prevent pool exhaustion. |
-| `DB_MAX_OVERFLOW` | Max overflow connections per worker (default: 10) | Total per worker = pool + overflow (default: 15). |
-| `DB_MAX_CONNECTIONS` | Expected database max_connections (default: 100) | Enforced via startup sizing check. |
-
-### 2.1 Database Connection Pool Budgeting Formula
-To prevent PostgreSQL connection exhaustion across multi-worker deployments (e.g. 4 Gunicorn workers):
-```
-Total Connections = Workers × (DB_POOL_SIZE + DB_MAX_OVERFLOW) <= DB_MAX_CONNECTIONS
-```
-With default settings:
-```
-4 workers × (5 pool + 10 overflow) = 60 connections <= 100 max_connections
-```
-If the calculated total exceeds `DB_MAX_CONNECTIONS`, the application logs a warning on startup.
+**Non-Negotiable Safety Invariants:**
+1. Staging **MUST NOT** share database tables, schemas, or credentials with Production (`kuqwgxzkscqqftcrcuqe`).
+2. Staging **MUST NOT** use SQLite or ephemeral storage (`ALLOW_SQLITE_IN_PROD` is strictly banned in Staging).
+3. Staging workflows **MUST NOT** have automatic push triggers and **MUST NOT** fall back to production repository secrets.
+4. Production feature flag defaults in `api/feature_flags.py` **MUST REMAIN** fail-closed (`enabled: False, rollout_percentage: 0`).
+5. Quick Tunnels (`trycloudflare.com`) are recognized as temporary, ephemeral smoke-test utilities and are **NOT** persistent production-grade hosting.
 
 ---
 
-## 3. Database Migration Rollout Procedure
+## 2. Component Separation Matrix
 
-AhmedETAP enforces an automatic **Fail-Closed Startup Migration Gate** (`api/database_migrations.py`):
-1. Upon container startup during the FastAPI `lifespan`, the service automatically attempts to execute:
-   ```bash
-   alembic upgrade head
-   ```
-2. **Distributed Migration Lock**: In multi-worker / multi-replica environments, migration is coordinated via a Redis distributed lock (`LockManager.lock("alembic-migration", ttl_seconds=300, timeout_ms=120000)`).
-   > [!WARNING]
-   > Running multi-replica deployments without `REDIS_URL` falls back to uncoordinated execution and risks concurrent DDL migration collisions. Multi-replica environments MUST configure `REDIS_URL`.
-3. In production or staging, if the migration fails or database schema diverges from `head_revision`, the process exits with a non-zero exit code to prevent dirty writes or split-brain schema state.
-4. To inspect schema synchronization status at any time:
-   ```bash
-   curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/health/schema
-   ```
+| Component | Production Instance | Staging Target | Proof of Strict Isolation | Status |
+|:---|:---|:---|:---|:---|
+| **Frontend / UI** | `etap-ai-work` (`prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`) | `etap-ai-work-staging` (`prj_XHvIpATc0SF11QBeCNPatRe5t8Af`) | Separate Vercel Project ID, distinct build environment, `VITE_API_URL` bound exclusively to Staging Backend | **OPERATIONAL (HTTP 200)** |
+| **Database** | Supabase PostgreSQL (`kuqwgxzkscqqftcrcuqe`) | Dedicated Supabase Project `guunodspzhcxpmdwwyjv` | Distinct project ref, isolated credentials, enforced by `api/staging_guard.py`; SQLite strictly banned | **OPERATIONAL (PostgreSQL 17)** |
+| **Backend API** | `https://ahmdelbaz28-ahmedetap-platform.hf.space` | Isolated Staging Service | Independent container process, dedicated ports and credentials | **SMOKE-TESTED (Temporary Tunnel)** |
+| **Authentication** | Production `JWT_SECRET_KEY` & `ENGINEERING_SERVICE_API_KEY` | Dedicated Staging signing keys (`STAGING_JWT_SECRET_KEY`, `STAGING_ENGINEERING_SERVICE_API_KEY`) | Tokens issued in Staging cannot authenticate against Production | **CONFIGURED** |
+| **Feature Flags** | Code defaults (`DEFAULT_FEATURE_FLAGS`) | In-memory / untracked local `.feature-flags.json` | Flags activated in Staging do not modify code defaults; production remains fail-closed | **ISOLATED** |
+| **Grid / SCADA** | Fail-closed production interlocks | Synthetic fixtures & mock adapters only | Zero live Modbus/OPC-UA/IEC 61850 network packets to physical devices | **VERIFIED** |
 
 ---
 
-## 4. Verification & Staging Readiness Gate
+## 3. Staging Infrastructure Components Status
 
-Run the staging readiness verification script:
-```bash
-python scripts/verify_staging_readiness.py --url https://staging.ahmedetap.internal --api-key <KEY>
-```
-> [!NOTE]
-> When using `python scripts/verify_staging_readiness.py --local`, execution is performed within an in-process FastAPI `TestClient`. While suitable for fast CI route verification, it does NOT test real network latency, socket buffer sizes, physical PostgreSQL connection pools, real Redis cluster failovers, or TLS certificates. Full staging drills must execute against a running HTTP/TLS service endpoint.
+### 3.1 Frontend (Vercel)
+- **Project Name:** `etap-ai-work-staging`
+- **Project ID:** `prj_XHvIpATc0SF11QBeCNPatRe5t8Af` (Created & Verified via Vercel API; completely separated from production `prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I`).
+- **Framework:** `vite`
+- **Build Command:** `bash vercel-build.sh`
+- **Output Directory:** `ui/dist`
+- **Live URL:** `https://etap-ai-work-staging.vercel.app` (Verified HTTP 200).
+- **Anti-Production Guard:** `ui/src/lib/api-base-url.ts` contains explicit guards preventing fallback to production Hugging Face Spaces on Staging hosts.
 
----
+### 3.2 Dedicated Staging PostgreSQL Database (Supabase)
+- **Project Name:** `AhmedETAP-Platform-Staging`
+- **Project Ref:** `guunodspzhcxpmdwwyjv` (Dedicated, separate project in organization `AHMED ETAP`).
+- **Host / Pooler:** `aws-1-eu-central-1.pooler.supabase.com:5432` (Frankfurt / `eu-central-1`).
+- **Engine:** PostgreSQL 17.11 (Active & Healthy).
+- **Isolation Verification:** Enforced by `api/staging_guard.py` (which validates project ref `guunodspzhcxpmdwwyjv` and rejects `kuqwgxzkscqqftcrcuqe`). Tested with 15/15 unit tests in `tests/test_staging_db_guards.py`.
+- **Schema Status:** All 21 ORM tables verified; Alembic stamped at head revision `016_snapshot_components`.
+- **SQLite Ban:** Enforced fail-closed via `api/config_prod.py` (`ALLOW_SQLITE_IN_PROD` forbidden in Staging).
 
-## 5. Feature Flags & Canary Rollout Strategy (Chat-First v3.0)
-   **Expected Response:**
-   ```json
-   {
-     "status": "synchronized",
-     "head_revision": "011_add_hardening_tables"
-   }
-   ```
+### 3.3 GitHub Actions CI/CD
+- **Workflow File:** `.github/workflows/cd-staging.yml`
+- **Trigger:** Strict manual `workflow_dispatch` only (with required 40-character `ref_sha`). Automated `push` triggers are completely disabled.
+- **Environment Target:** `staging`
+- **Fail-Closed Safety Guards:**
+  - Validates commit SHA length and repository name.
+  - Verifies target `VERCEL_PROJECT_ID` is `prj_XHvIpATc0SF11QBeCNPatRe5t8Af`.
+  - Executes `python3 -m api.staging_guard` against `STAGING_DATABASE_URL` prior to build.
+  - Performs comprehensive health and smoke checks on backend endpoints (`/healthz`, `/readyz`, `/version`, `/api/v1/studies/run`, `/api/v1/chat/stream`).
 
----
-
-## 4. Automated Staging Verification Drill
-
-Before cutting over real traffic, execute the automated readiness drill against the staging URL:
-
-```bash
-python scripts/verify_staging_readiness.py --base-url https://staging.ahmedetap.internal --api-key "$ENGINEERING_SERVICE_API_KEY"
-```
-
-The script automatically tests and reports all 6 production gates:
-- **Gate 1**: Liveness & Readiness probes (`/health`, `/ready`, `/healthz`).
-- **Gate 2**: Database migration synchronization at Head (`/api/v1/health/schema`).
-- **Gate 3**: Security Headers & CSP (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, CSP).
-- **Gate 4**: Fail-closed authentication enforcement (rejection of unauthorized calls).
-- **Gate 5**: End-to-End Newton-Raphson study calculation with provenance validation (`POST /api/v1/studies/run`).
-- **Gate 6**: Feature Flags registry integrity.
+### 3.4 Backend Runtime & Ingress (Ephemeral vs. Persistent Hosting)
+- **Current Runtime Status:** The isolated Staging backend runs `hf-space/app.py` bound to dedicated Staging Supabase PostgreSQL 17.
+- **Ingress Mechanism (Temporary):** Cloudflare Quick Tunnels (`trycloudflare.com`) provide temporary ingress for automated validation and smoke testing.
+- **Limitation:** Quick tunnels expire after 12-24 hours or when the tunnel process stops. They do not constitute permanent cloud hosting.
+- **Status Gate:** **PERSISTENT BACKEND HOSTING IS BLOCKED** pending Owner infrastructure selection (see Section 6).
 
 ---
 
-## 5. Canary Rollout Strategy (Chat-First v3.0)
+## 4. Engineering Capability Verification & Feature Flag Isolation
 
-As documented in `AGENTS.md`, traffic to Chat-First v3.0 is managed via gradual rollout:
+All eight candidate engineering capabilities have been verified with deterministic solvers and independent IEEE/IEC standard benchmarks:
 
-### Phase 1: Internal Canary (Admin Only)
-- Configuration in `.feature-flags.json`:
-  ```json
-  "chat_first_ui": {
-    "enabled": false,
-    "allow_list": ["admin"],
-    "rollout_percentage": 0
-  }
-  ```
-- Only administrators access Chat-First; all other engineers use the classic UI.
+| Capability | Standard | Acceptance & Simulation Tests | Benchmark Status | Staging Runtime Flag |
+|:---|:---|:---|:---|:---|
+| `harmonic_analysis` | IEEE 519-2022 | 6/6 passed (`test_harmonic_analysis_acceptance.py`) | Verified (3 IEEE 519 benchmarks) | `enabled: true` |
+| `cable_sizing` | IEC 60364-5-52 | 7/7 passed (`test_cable_sizing_acceptance.py`) | Verified (4 Prysmian/IEC benchmarks) | `enabled: true` |
+| `motor_starting` | IEEE 399-1997 | 12/12 passed (acceptance + dynamic simulation) | Verified (DOL, Star-Delta, Soft-Starter) | `enabled: true` |
+| `transient_stability` | IEEE 399 | 7/7 passed (`test_transient_stability_acceptance.py`) | Verified (SMIB & Multi-machine RK4) | `enabled: true` |
+| `optimal_power_flow` | IEEE 3002 | 9/9 passed (`test_opf_correctness.py`, `test_pso_opf.py`) | Verified (DC-OPF PTDF & AC-OPF PSO) | `enabled: true` |
+| `earth_grid` | IEEE 80-2013 | 7/7 passed (`test_earth_grid_acceptance.py`) | Verified (Sverak/Schwarz potentials) | `enabled: true` |
+| `renewable_integration` | IEEE 1547-2018 | 7/7 passed (`test_renewable_integration_acceptance.py`) | Verified (PVWatts & Hosting Capacity) | `enabled: true` |
+| `battery_storage` | IEC 62933 | 7/7 passed (`test_battery_storage_acceptance.py`) | Verified (4 IEC 62933 benchmarks) | `enabled: true` |
 
-### Phase 2: Canary 10% (General User Cohort)
-- Configuration:
-  ```json
-  "chat_first_ui": {
-    "enabled": false,
-    "allow_list": ["admin"],
-    "rollout_percentage": 10
-  }
-  ```
-- Deterministic SHA-256 bucketing routes 10% of users to Chat-First.
-- Monitor error rates, token latency, and Redis lock contention for 48 hours.
-
-### Phase 3: Full Production (100% Rollout)
-- Configuration:
-  ```json
-  "chat_first_ui": {
-    "enabled": true,
-    "rollout_percentage": 100
-  }
-  ```
-- The "استخدم الواجهة الكلاسيكية" (`onExitToLegacy`) emergency fallback button remains accessible for operational safety.
+**Total Capability Test Suite:** 62 passed tests in `pytest`.
+**Production Isolation:** In `api/feature_flags.py`, `DEFAULT_FEATURE_FLAGS` sets all 8 capabilities to `enabled: False, rollout_percentage: 0`. Flags are toggled exclusively in Staging runtime without modifying repository defaults.
 
 ---
 
-## 6. Disaster Recovery & Emergency Rollback Runbook
+## 5. Operational Safety & Rollback Procedures
 
-### Scenario A: Rollback Canary to Classic UI
-If a critical frontend or streaming regression occurs in Chat-First:
-1. Update feature flag via Admin API:
-   ```bash
-   curl -X PATCH http://localhost:8000/api/v1/feature-flags/chat_first_ui \
-     -H "Authorization: Bearer <ADMIN_TOKEN>" \
-     -H "X-CSRF-Token: <CSRF_TOKEN>" \
-     -H "Content-Type: application/json" \
-     -d '{"enabled": false}'
-   ```
-2. Instantly drops all non-admin traffic back to the classic UI without container restarts.
+1. **Staging Rollback Trigger:**
+   If a Staging deployment experiences health probe failures, numerical errors, or unexpected crashes:
+   - Trigger `.github/workflows/cd-staging.yml` via `workflow_dispatch` with the previous known green commit SHA.
+   - Or roll back to the previous deployment via the Vercel dashboard for `etap-ai-work-staging`.
+2. **Feature Flag Isolation:**
+   - All 8 candidate capabilities remain strictly `enabled: False` in repository defaults.
+   - Staging flag activation is isolated from production.
+3. **No Cross-Contamination:**
+   - Under no circumstances will staging credentials, tokens, or endpoints be merged into `main` or deployed to `production`.
 
-### Scenario B: Database Migration Reversal
-If a newly deployed migration causes SQL locking or incompatibility:
-```bash
-alembic downgrade -1
-```
-Verify schema health:
-```bash
-curl -s -H "Authorization: Bearer <ADMIN_TOKEN>" http://localhost:8000/api/v1/health/schema
+---
+
+## 6. Domainless Cloudflare Free Staging Architecture (Selected & Verified)
+
+In accordance with the Owner Decision:
+- **No custom domain required or requested** (zero DNS zones needed).
+- **Free Cloudflare tier only** (`*.workers.dev` subdomain + free Quick Tunnels).
+- **Zero paid plans** (no Cloudflare paid tier, no Hugging Face PRO).
+- **Production completely untouched** (`ahmedetap-proxy` and production Vercel project isolated).
+
+### 6.1 Topology & Request Routing
+
+```text
+[Client / Staging Frontend] ──HTTPS──> [Cloudflare Worker: ahmedetap-staging-proxy.ahmedetap.workers.dev]
+                                                      │
+                                                      ▼ (Authenticated Dynamic Origin)
+                                       [Cloudflare Quick Tunnel: https://*.trycloudflare.com]
+                                                      │
+                                                      ▼ (Multiplexed Local Ingress)
+                                       [Local Staging API Container / Service :7860]
 ```
 
-### Scenario C: Redis Outage / Restart
-If Redis restarts or becomes temporarily unavailable:
-1. In development, the platform continues in single-process in-memory mode.
-2. In production, `LockManager.acquire()` propagates a `ConnectionError` (or `RuntimeError`), failing closed immediately and aborting critical operations before state corruption occurs. The release mechanism safely no-ops (`release()` catches exceptions cleanly). At the API layer, the global exception handler catches unhandled exceptions and returns a sanitized HTTP 500 error envelope without exposing internal paths (`C:\`, `/home/`, `/app/`), Python tracebacks, or secret credentials (`password`, `secret`, `api_key`).
-3. Once Redis is reachable again, clients re-establish connection automatically without process restart.
+### 6.2 Key Operational Safeguards
 
----
+1. **Stable Public Entrypoint:**
+   The frontend (`etap-ai-work-staging.vercel.app`) communicates exclusively with `https://ahmedetap-staging-proxy.ahmedetap.workers.dev`. Even if the local backend restarts and acquires a new `trycloudflare.com` URL, the frontend API endpoint remains constant.
+2. **Dynamic Origin Synchronization:**
+   When the staging backend starts, `scripts/run_staging_quick_tunnel.py` captures the generated Quick Tunnel URL and immediately updates `ORIGIN_URL` on `ahmedetap-staging-proxy` using `scripts/deploy_staging_worker.py`.
+3. **Fail-Closed Origin Validation:**
+   If `ORIGIN_URL` is unconfigured, malformed, or points to the production Hugging Face Space (`ahmdelbaz28-ahmedetap-platform.hf.space`), the staging worker strictly returns `HTTP 503 STAGING_ORIGIN_NOT_CONFIGURED`.
+4. **SSE Streaming Transport Limitation (Quick Tunnel Blocker):**
+   Cloudflare official documentation explicitly states that Quick Tunnels (`trycloudflare.com`) do not support WebSockets or unbuffered Server-Sent Events (SSE). While the Cloudflare Worker forwards streaming headers, the upstream Quick Tunnel buffers or disconnects real-time chunk streams. Consequently, Quick Tunnels cannot provide genuine real-time incremental SSE streaming.
+5. **Runtime Operational Status & Gate Constraints:**
+   - **Local Container Runtime:** Operates on WSL2 Docker (`Dockerfile.staging`, `docker-compose.staging.yml`) bound to dedicated Staging PostgreSQL 17 (`guunodspzhcxpmdwwyjv`).
+   - **Public Ingress Status:** The Cloudflare Worker proxy (`ahmedetap-staging-proxy.ahmedetap.workers.dev`) returns HTTP 530 when origin is offline.
+   - **SSE Ingress Blocker:** Real-time incremental SSE delivery across public ingress remains **BLOCKED** until an owner-controlled domain (for Named Tunnel) or an empirical zero-cost ingress that satisfies unbuffered streaming is verified.
 
-## 7. Observability & Telemetry Thresholds
-
-AhmedETAP exposes Prometheus metrics at `/metrics` and `/prometheus/metrics`. Monitor these thresholds:
-
-| Metric | Normal Target | Alert Threshold | Action |
-|---|---|---|---|
-| `http_req_duration` (p95) | < 250ms | > 500ms for 3m | Inspect Redis connection pool and database slow query log. |
-| `http_req_failed` | < 0.1% | > 1.0% | Check application logs for 5xx unhandled exceptions. |
-| `redis_task_queue_size` | < 50 jobs | > 200 jobs | Scale out Celery / background calculation worker replicas. |
-| `token_budget_exceeded` | 0 | > 10 / hour | Investigate potential prompt injection or recursive tool loop. |

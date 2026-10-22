@@ -252,12 +252,12 @@ class BatteryStorageAgent(BaseAgent):
         cumulative_throughput = 0.0
 
         if strategy == "arbitrage":
-            # Sort periods by price: charge at lowest, discharge at highest
-            _price_ranks = np.argsort(np.argsort(energy_prices))
+            # Sort periods by price: charge at lowest, discharge at highest (stable sort guarantees deterministic tie-breaking)
+            _price_ranks = np.argsort(np.argsort(energy_prices, kind="stable"), kind="stable")
             n_charge = int(n_periods * 0.3)
             n_discharge = int(n_periods * 0.3)
-            charge_periods = set(np.argsort(energy_prices)[:n_charge])
-            discharge_periods = set(np.argsort(energy_prices)[-n_discharge:])
+            charge_periods = set(np.argsort(energy_prices, kind="stable")[:n_charge])
+            discharge_periods = set(np.argsort(energy_prices, kind="stable")[-n_discharge:])
 
             for t in range(n_periods):
                 current_soc = soc[t]

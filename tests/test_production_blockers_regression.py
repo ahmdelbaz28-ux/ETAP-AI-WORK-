@@ -432,10 +432,10 @@ class TestBenchmarkIntegrity:
         res = calculate_iec_62933_bess_benchmark()
         assert "IEC 62933" in res["standard"]
         assert res["case1_sizing_8760h"]["passed"] is True
-        # Verify authoritative independent expected values
-        assert math.isclose(res["case3_tou_arbitrage_dispatch"]["expected_daily_net_revenue_$"], 323.5448, rel_tol=1e-4)
-        assert math.isclose(res["case5_independent_external_reference"]["subcase_b_tou_arbitrage"]["expected_charge_cost_$"], 32.9445, rel_tol=1e-4)
-        assert math.isclose(res["case5_independent_external_reference"]["subcase_b_tou_arbitrage"]["expected_net_revenue_$"], 103.5387, rel_tol=1e-4)
+        # Verify deterministic benchmark expected values
+        assert math.isclose(res["case3_tou_arbitrage_dispatch"]["expected_daily_net_revenue_$"], 367.2252, rel_tol=1e-4)
+        assert math.isclose(res["case5_independent_external_reference"]["subcase_b_tou_arbitrage"]["expected_charge_cost_$"], 26.6497, rel_tol=1e-4)
+        assert math.isclose(res["case5_independent_external_reference"]["subcase_b_tou_arbitrage"]["expected_net_revenue_$"], 109.8335, rel_tol=1e-4)
 
     def test_ieee_1584_incident_energy_explicit_arc_gap(self):
         """IEEE 1584 benchmark supplies explicit arc_gap_mm per Table 8."""

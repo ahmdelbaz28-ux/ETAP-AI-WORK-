@@ -1,0 +1,81 @@
+# =============================================================================
+# AhmedETAP — Staging Local Service Orchestration (Minimal Additive)
+# =============================================================================
+# Runs the lightweight staging API container (built from Dockerfile using
+# hf-space/app.py entrypoint) alongside the official cloudflared connector.
+# Does NOT replace or modify docker-compose.yml (which serves full local dev).
+# =============================================================================
+
+services:
+  etap-staging-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+      args:
+        DEPLOY_SHA: ${DEPLOY_SHA:?DEPLOY_SHA must be set to a 40-char git commit SHA}
+    container_name: etap-staging-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7860:7860"
+    environment:
+      - PORT=7860
+      - HOST=0.0.0.0
+      - ENVIRONMENT=staging
+      - DATABASE_URL=${STAGING_DATABASE_URL:?STAGING_DATABASE_URL must be set}
+      - JWT_SECRET_KEY=${STAGING_JWT_SECRET_KEY:?STAGING_JWT_SECRET_KEY must be set}
+      - ENGINEERING_SERVICE_API_KEY=${STAGING_ENGINEERING_SERVICE_API_KEY:?STAGING_ENGINEERING_SERVICE_API_KEY must be set}
+      - ALLOW_SQLITE_IN_PROD=false
+      - DEPLOYMENT_TOPOLOGY=single_replica
+      - EXTRA_CORS_ORIGINS=https://etap-ai-work-staging.vercel.app
+      - DEPLOY_SHA=${DEPLOY_SHA:?DEPLOY_SHA must be set to a 40-char git commit SHA}
+      - FEATURE_FLAGS_PATH=/app/.feature-flags.staging.json
+      - FEATURE_FLAG_HARMONIC_ANALYSIS=true
+      - FEATURE_FLAG_CABLE_SIZING=true
+      - FEATURE_FLAG_MOTOR_STARTING=true
+      - FEATURE_FLAG_TRANSIENT_STABILITY=true
+      - FEATURE_FLAG_OPTIMAL_POWER_FLOW=true
+      - FEATURE_FLAG_EARTH_GRID=true
+      - FEATURE_FLAG_RENEWABLE_INTEGRATION=true
+      - FEATURE_FLAG_BATTERY_STORAGE=true
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request as u; u.urlopen('http://localhost:7860/healthz', timeout=5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - staging_net
+
+  # Free Quick Tunnel Mode (Domainless Free Architecture — Default)
+  # Exposes the local staging container without requiring any CLOUDFLARE_TUNNEL_TOKEN or domain
+  cloudflared-quick:
+    image: cloudflare/cloudflared:latest
+    container_name: etap-staging-cloudflared-quick
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://etap-staging-api:7860
+    networks:
+      - staging_net
+    depends_on:
+      - etap-staging-api
+    profiles:
+      - quick-tunnel
+      - default
+
+  # Optional Named Tunnel Mode (requires CLOUDFLARE_TUNNEL_TOKEN and custom DNS zone)
+  cloudflared-named:
+    image: cloudflare/cloudflared:latest
+    container_name: etap-staging-cloudflared-named
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    networks:
+      - staging_net
+    depends_on:
+      - etap-staging-api
+    profiles:
+      - named-tunnel
+
+networks:
+  staging_net:
+    driver: bridge

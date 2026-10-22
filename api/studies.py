@@ -346,8 +346,17 @@ async def run_study(
             )
             if "AUTHENTICATION_REQUIRED" in err_msg or "TENANT_VALIDATION_FAILED" in err_msg:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=err_msg)
-            if "AUTHORIZATION_DENIED" in err_msg or "APPROVAL_REQUIRED" in err_msg or "MAKER_CHECKER_VIOLATION" in err_msg:
+            if (
+                "AUTHORIZATION_DENIED" in err_msg
+                or "APPROVAL_REQUIRED" in err_msg
+                or "MAKER_CHECKER_VIOLATION" in err_msg
+                or "PILOT_FEATURE_FLAG_DISABLED" in err_msg
+                or "CAPABILITY_DISABLED" in err_msg
+                or "FEATURE_FLAG_DISABLED" in err_msg
+            ):
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=err_msg)
+            if "CAPABILITY_NOT_FOUND" in err_msg:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
             if "SCHEMA_VALIDATION_FAILED" in err_msg or "missing mandatory parameters" in err_msg.lower():
                 detail_str = (
                     err_msg

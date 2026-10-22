@@ -328,14 +328,28 @@ def _check_env_override(key: str) -> bool | None:
     return None
 
 
+def _get_current_env() -> str:
+    """Return normalized environment name.
+
+    If ENV is explicitly set (e.g. in test suites using monkeypatch.setenv('ENV', ...)),
+    it takes precedence. Otherwise checks ENVIRONMENT (used by Docker and staging containers),
+    falling back to APP_ENV or 'development'.
+    """
+    env = os.getenv("ENV")
+    if env:
+        return env.strip().lower()
+    raw = os.getenv("ENVIRONMENT") or os.getenv("APP_ENV") or "development"
+    return raw.strip().lower()
+
+
 def _is_dev_test_env() -> bool:
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-    return env in ("development", "dev", "test", "")
+    env = _get_current_env()
+    return env in ("development", "dev", "test")
 
 
 def _format_flag_item(key: str, cfg: dict[str, Any], env: str) -> dict[str, Any]:
     enabled = bool(cfg.get("enabled", False))
-    effective = True if env in ("development", "dev", "test", "") else enabled
+    effective = True if env in ("development", "dev", "test") else enabled
     return {
         "key": key,
         "flag_id": key,
@@ -396,8 +410,8 @@ def get_disabled_studies() -> list[str]:
 
     In dev/test environments, returns an empty list (all studies enabled).
     """
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
-    if env in ("development", "dev", "test", ""):
+    env = _get_current_env()
+    if env in ("development", "dev", "test"):
         return []
 
     flags = _load_flags()
@@ -535,7 +549,7 @@ def _apply_flag_patch(
 async def list_feature_flags(request: Request):
     """List all feature flags with their effective state for the current ENV."""
     trace_id = getattr(request.state, "trace_id", "unknown")
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    env = _get_current_env()
     flags = _load_flags()
     items = [_format_flag_item(k, v, env) for k, v in flags.items()]
     return JSONResponse(
@@ -560,7 +574,7 @@ async def get_feature_flag(request: Request, key: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Feature flag '{key}' not found",
         )
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    env = _get_current_env()
     item = _format_flag_item(key, flags[key], env)
     return JSONResponse(
         content={
@@ -601,7 +615,7 @@ async def update_feature_flag(
         flags[key]["enabled"],
     )
 
-    env = os.getenv("ENV", os.getenv("APP_ENV", "development")).lower()
+    env = _get_current_env()
     item = _format_flag_item(key, flags[key], env)
     item_data = dict(item)
     item_data["previous_enabled"] = old_value

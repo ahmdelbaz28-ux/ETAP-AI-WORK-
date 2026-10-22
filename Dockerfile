@@ -91,6 +91,7 @@ COPY --chown=user:user ml/ /app/ml/
 COPY --chown=user:user copilot/ /app/copilot/
 COPY --chown=user:user data/ /app/data/
 COPY --chown=user:user VERSION DEPLOY_SHA* /app/
+COPY --chown=user:user config/ /app/config/
 COPY --chown=user:user alembic.ini /app/alembic.ini
 COPY --chown=user:user migrations/ /app/migrations/
 

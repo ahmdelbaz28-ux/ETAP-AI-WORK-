@@ -25,7 +25,10 @@ import time
 from datetime import datetime, timezone
 
 UTC = timezone.utc  # noqa: UP017
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
+
+if TYPE_CHECKING:
+    from api.dependencies import CurrentUser
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -87,7 +90,11 @@ BUILD_TIME: str = datetime.now(UTC).isoformat()
 
 from agents.models import StudyType
 
-STUDY_TYPES: list[str] = [st.value for st in StudyType] + ["ahmed_etap_orchestration"]
+STUDY_TYPES: list[str] = [st.value for st in StudyType] + [
+    "ahmed_etap_orchestration",
+    "optimization",
+    "breaker_duty",
+]
 
 # ---------------------------------------------------------------------------
 # Agents list
@@ -594,6 +601,8 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
     study_type: str,
     system: dict[str, Any],
     parameters: dict[str, Any],
+    user: Optional[CurrentUser] = None,
+    api_key: Optional[str] = None,
 ) -> dict[str, Any]:
     """Execute an engineering study with **no** external service dependencies.
 
@@ -631,11 +640,28 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
     from services.execution_request import ExecutionRequest
     from services.study_service import _run_async
 
+    # Derive effective user and tenant identity from verified server-side authentication context
+    if user and getattr(user, "user_id", None):
+        eff_user = str(user.user_id).strip()
+        eff_tenant = str(getattr(user, "tenant_id", "") or "").strip() or "default"
+        eff_role = str(getattr(user, "role", "engineer"))
+    elif api_key:
+        import hashlib
+
+        key_hash = hashlib.sha256(str(api_key).encode("utf-8")).hexdigest()[:12]
+        eff_user = f"service_principal:{key_hash}"
+        eff_tenant = f"service_tenant_{key_hash[:8]}"
+        eff_role = "service_principal"
+    else:
+        eff_user = "service_principal:hf_space"
+        eff_tenant = "hf_space_tenant"
+        eff_role = "engineer"
+
     req = ExecutionRequest(
         capability_id=study_type,
-        tenant_id="hf_space_tenant",
-        user_id="service_principal:hf_space",
-        user_role="engineer",
+        tenant_id=eff_tenant,
+        user_id=eff_user,
+        user_role=eff_role,
         input={"system": system, "parameters": parameters},
         metadata={"deployment": "hf_space", "caller": "run_study_lightweight"},
     )
@@ -730,7 +756,10 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
         response["success"] = False
         response["error"] = err_msg
         response["_status"] = 401
-    elif any(k in rejection_reason.lower() for k in ("authorization", "approval", "maker_checker")) or any(k in err_lower for k in ("authorization_denied", "approval_required", "maker_checker_violation")):
+    elif (
+        any(k in rejection_reason.lower() for k in ("authorization", "approval", "maker_checker", "pilot", "disabled", "feature_flag", "policy"))
+        or any(k in err_lower for k in ("authorization_denied", "approval_required", "maker_checker_violation", "pilot_feature_flag_disabled", "capability_disabled", "feature_flag_disabled", "policy_denied"))
+    ):
         response["status"] = "failed"
         response["success"] = False
         response["error"] = err_msg

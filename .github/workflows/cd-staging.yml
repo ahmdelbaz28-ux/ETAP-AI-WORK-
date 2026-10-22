@@ -1,0 +1,585 @@
+name: "CD — Deploy Staging (Isolated)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref_sha:
+        description: "Deploy this exact commit SHA to Staging (must have passed CI)"
+        required: true
+        type: string
+      ingress_mode:
+        description: "Staging ingress architecture: 'worker_proxy' (free domainless *.workers.dev) or 'named_tunnel' (custom DNS)"
+        required: false
+        default: "worker_proxy"
+        type: choice
+        options:
+          - worker_proxy
+          - named_tunnel
+
+concurrency:
+  group: cd-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+  checks: read
+  statuses: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: staging
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+      ingress_mode: ${{ steps.sha.outputs.ingress_mode }}
+    steps:
+      - name: Verify repository identity
+        run: |
+          set -euo pipefail
+          if [ "${{ github.repository }}" != "ahmdelbaz28-ux/ETAP-AI-WORK-" ]; then
+            echo "::error::Workflow triggered on untrusted repository '${{ github.repository }}'. Aborting."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit SHA, CI checks, and Staging Isolation
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_REF_SHA: ${{ inputs.ref_sha }}
+        run: |
+          set -euo pipefail
+          SHA="$INPUT_REF_SHA"
+
+          if ! echo "$SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
+            echo "::error::ref_sha must be a full 40-character hexadecimal SHA. Received: $SHA"
+            exit 1
+          fi
+
+          if ! git cat-file -e "$SHA^{commit}"; then
+            echo "::error::Commit $SHA does not exist in repository history."
+            exit 1
+          fi
+
+          # Fail-Closed: Verify that this commit has passed all mandatory CI checks
+          echo "Verifying CI check-runs for commit $SHA..."
+          python3 -c "
+          import json, subprocess, sys
+
+          sha = '$SHA'
+          repo = '${{ github.repository }}'
+
+          cmd = ['gh', 'api', f'repos/{repo}/commits/{sha}/check-runs', '--paginate']
+          res = subprocess.run(cmd, capture_output=True, text=True)
+          if res.returncode != 0:
+              print(f'::error::Failed to query GitHub Checks API (exit code {res.returncode}):', file=sys.stderr)
+              for line in res.stderr.strip().splitlines():
+                  print(f'::error::{line}', file=sys.stderr)
+              sys.exit(1)
+
+          raw = res.stdout.strip()
+          check_runs = []
+          decoder = json.JSONDecoder()
+          pos = 0
+          while pos < len(raw):
+              raw_slice = raw[pos:].lstrip()
+              if not raw_slice:
+                  break
+              try:
+                  obj, idx = decoder.raw_decode(raw_slice)
+                  pos += (len(raw) - len(raw_slice)) + idx
+                  if isinstance(obj, dict) and 'check_runs' in obj:
+                      check_runs.extend(obj['check_runs'])
+              except Exception as e:
+                  print(f'::error::Error decoding JSON from checks API: {e}', file=sys.stderr)
+                  sys.exit(1)
+
+          if not check_runs:
+              print(f'::error::Commit {sha} has zero registered CI check runs. Refusing to deploy unvalidated commit.', file=sys.stderr)
+              sys.exit(1)
+
+          failed = []
+          pending = []
+          for c in check_runs:
+              name = c.get('name', 'unknown')
+              status = c.get('status')
+              conclusion = c.get('conclusion')
+              if status != 'completed':
+                  pending.append(f'{name} (status={status})')
+              elif conclusion not in ('success', 'skipped', 'neutral'):
+                  failed.append(f'{name} (conclusion={conclusion})')
+
+          if failed or pending:
+              if failed:
+                  print(f'::error::Commit {sha} has {len(failed)} failing checks:', file=sys.stderr)
+                  for f in failed:
+                      print(f'  - {f}', file=sys.stderr)
+              if pending:
+                  print(f'::error::Commit {sha} has {len(pending)} in-progress/pending checks:', file=sys.stderr)
+                  for p in pending:
+                      print(f'  - {p}', file=sys.stderr)
+              sys.exit(1)
+
+          print(f'CI check runs verified: {len(check_runs)} checks completed with zero failures.')
+          "
+
+          # Fail-Closed: Verify that this workflow runs strictly against the staging environment
+          echo "Target Environment: staging (verified)"
+          echo "Deploying pinned SHA to Staging: $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          INGRESS_MODE="${{ inputs.ingress_mode || 'worker_proxy' }}"
+          echo "ingress_mode=$INGRESS_MODE" >> "$GITHUB_OUTPUT"
+
+  validate-staging-environment:
+    needs: [guard]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fail fast on SQLite, missing staging secrets, or production collision
+        run: |
+          set -euo pipefail
+
+          # 1. Staging Database Guard via api.staging_guard
+          echo "Validating Staging PostgreSQL Database Target..."
+          python3 -m api.staging_guard
+
+          # 2. Dedicated deployment secrets
+          if [ -z "${STAGING_VERCEL_TOKEN:-}" ]; then
+            echo "::error::Missing STAGING_VERCEL_TOKEN secret in staging environment."
+            exit 1
+          fi
+
+          # 3. Target Vercel Project must strictly match Staging Project ID
+          TARGET_VERCEL_PRJ="${{ vars.VERCEL_PROJECT_ID || '' }}"
+          if [ -z "$TARGET_VERCEL_PRJ" ]; then
+            echo "::error::Missing VERCEL_PROJECT_ID in staging environment variables."
+            exit 1
+          elif [ "$TARGET_VERCEL_PRJ" = "prj_WucHqc3lQDwYe0i3ykgWz7UR5E3I" ]; then
+            echo "::error::CRITICAL: Staging workflow is configured with Production Vercel Project ID! Aborting (Fail-Closed)."
+            exit 1
+          elif [ "$TARGET_VERCEL_PRJ" != "prj_XHvIpATc0SF11QBeCNPatRe5t8Af" ]; then
+            echo "::error::CRITICAL: Staging workflow VERCEL_PROJECT_ID unexpected: $TARGET_VERCEL_PRJ"
+            exit 1
+          fi
+
+          # 4. Canonical Backend Endpoint Verification (Domainless Worker Proxy / Named Tunnel)
+          INGRESS_MODE="${{ needs.guard.outputs.ingress_mode }}"
+          API_URL="${{ vars.STAGING_BACKEND_URL || '' }}"
+          if [ -z "$API_URL" ]; then
+            echo "::error::Missing STAGING_BACKEND_URL in staging environment variables."
+            exit 1
+          fi
+
+          if ! echo "$API_URL" | grep -qiE "^https://"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL must use HTTPS protocol. Received: $API_URL"
+            exit 1
+          fi
+
+          if echo "$API_URL" | grep -qi "ahmdelbaz28-ahmedetap-platform.hf.space"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL points to the production Hugging Face Space! Aborting (Fail-Closed)."
+            exit 1
+          fi
+
+          if echo "$API_URL" | grep -qi "trycloudflare\.com"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL points directly to an ephemeral trycloudflare.com Quick Tunnel! The stable public entrypoint must be the dedicated Staging Worker on *.workers.dev. Quick Tunnels are confined to worker upstream origin only. Aborting (Fail-Closed)."
+            exit 1
+          fi
+
+          if echo "$API_URL" | grep -qiE "^https?://(localhost|127\.0\.0\.1)"; then
+            echo "::error::CRITICAL: STAGING_BACKEND_URL is a localhost address in a public staging deployment! Aborting."
+            exit 1
+          fi
+
+          if [ "$INGRESS_MODE" = "worker_proxy" ]; then
+            if ! echo "$API_URL" | grep -qiE "^https://[a-zA-Z0-9-]+\.ahmedetap\.workers\.dev"; then
+              echo "::error::CRITICAL: For ingress_mode=worker_proxy, STAGING_BACKEND_URL must be a verified dedicated Worker on the account subdomain 'https://*.ahmedetap.workers.dev'. Received: $API_URL"
+              exit 1
+            fi
+            echo "Verified Domainless Ingress: Dedicated Worker on ahmedetap.workers.dev ($API_URL)"
+          elif [ "$INGRESS_MODE" = "named_tunnel" ]; then
+            echo "Verified Persistent Named Tunnel ingress mode ($API_URL)"
+          else
+            echo "::error::Unknown ingress_mode '$INGRESS_MODE'. Aborting fail-closed."
+            exit 1
+          fi
+
+          echo "Staging environment configuration, database, and targets validated successfully."
+        env:
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+          ALLOW_SQLITE_IN_PROD: ${{ vars.ALLOW_SQLITE_IN_PROD || '' }}
+
+  verify-staging-backend:
+    needs: [guard, validate-staging-environment]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - name: Verify Staging Backend Liveness and Readiness
+        env:
+          STAGING_API: "${{ vars.STAGING_BACKEND_URL }}"
+        run: |
+          set -euo pipefail
+          echo "Probing Staging Backend Liveness at $STAGING_API/healthz..."
+          HEALTHY=0
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_API/healthz") || code="000"
+            if [ "$code" = "200" ]; then
+              echo "Staging Backend healthz OK (attempt $i)"
+              HEALTHY=1
+              break
+            fi
+            echo "Liveness probe attempt $i: HTTP $code; waiting 5s..."
+            sleep 5
+          done
+          if [ "$HEALTHY" -ne 1 ]; then
+            echo "::error::Staging Backend healthz probe timed out or failed. Aborting."
+            exit 1
+          fi
+
+          echo "Probing Staging Backend Readiness at $STAGING_API/readyz..."
+          READY_BODY=$(curl -sf "$STAGING_API/readyz") || {
+            echo "::error::Staging Backend readyz probe failed."
+            exit 1
+          }
+          echo "Readyz response: $READY_BODY"
+
+          echo "Verifying Staging Backend Deployment Version at $STAGING_API/version..."
+          VER_BODY=$(curl -sf "$STAGING_API/version") || {
+            echo "::error::Staging Backend version endpoint unreachable."
+            exit 1
+          }
+          echo "Version response: $VER_BODY"
+
+          BACKEND_SHA=$(printf '%s' "$VER_BODY" | python3 -c '
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              sha = data.get("commit_sha", "")
+              if not sha or sha == "unknown":
+                  sys.stderr.write(f"::error::Staging Backend returned missing or unknown commit_sha: {sha}\n")
+                  sys.exit(1)
+              sys.stdout.write(sha)
+          except Exception as e:
+              sys.stderr.write(f"::error::Failed to parse /version response as JSON: {e}\n")
+              sys.exit(1)
+          ')
+
+          EXPECTED_SHA="${{ needs.guard.outputs.sha }}"
+          if [ "$BACKEND_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::Staging Backend commit_sha ($BACKEND_SHA) does not match expected deploy SHA ($EXPECTED_SHA). Aborting (Fail-Closed)!"
+            exit 1
+          fi
+          echo "Backend version strictly verified: matches deployment SHA $BACKEND_SHA"
+
+  build-ui:
+    needs: [guard, validate-staging-environment, verify-staging-backend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build UI for Staging (authoritatively bound to Staging API)
+        env:
+          VITE_API_URL: "${{ vars.STAGING_BACKEND_URL }}"
+        run: |
+          echo "Building UI with VITE_API_URL=$VITE_API_URL"
+          pnpm --filter ui run build
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: staging-ui-dist
+          path: ui/dist
+
+  deploy-vercel-staging:
+    needs: [guard, validate-staging-environment, build-ui]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+        with:
+          ref: "${{ needs.guard.outputs.sha }}"
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.1
+        with:
+          name: staging-ui-dist
+          path: ui/dist
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Deploy to Vercel Staging Project
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: "${{ vars.VERCEL_PROJECT_ID || 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' }}"
+        run: |
+          set -euo pipefail
+          export VERCEL_TOKEN=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_TOKEN', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_ORG_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_ORG_ID', '') if c.isascii() and not c.isspace()))")
+          export VERCEL_PROJECT_ID=$(python3 -c "import os, sys; sys.stdout.write(''.join(c for c in os.environ.get('VERCEL_PROJECT_ID', '') if c.isascii() and not c.isspace()))")
+
+          # Approach A: Strictly require exact Staging Project ID match (Fail-Closed)
+          if [ "$VERCEL_PROJECT_ID" != "prj_XHvIpATc0SF11QBeCNPatRe5t8Af" ]; then
+            echo "::error::VERCEL_PROJECT_ID must match exactly 'prj_XHvIpATc0SF11QBeCNPatRe5t8Af' (got '$VERCEL_PROJECT_ID'). Aborting fail-closed!"
+            exit 1
+          fi
+
+          if [ -n "$VERCEL_ORG_ID" ] && [ "$VERCEL_ORG_ID" != "team_eeEYqzXI8zkrTo62cUOTMVmS" ]; then
+            echo "::error::VERCEL_ORG_ID must match staging team 'team_eeEYqzXI8zkrTo62cUOTMVmS'. Aborting fail-closed!"
+            exit 1
+          fi
+
+          mkdir -p .vercel
+          cat <<EOF > .vercel/project.json
+          {
+            "projectId": "prj_XHvIpATc0SF11QBeCNPatRe5t8Af",
+            "orgId": "team_eeEYqzXI8zkrTo62cUOTMVmS"
+          }
+          EOF
+
+          # Assemble .vercel/output directory for Build Output API v3
+          rm -rf .vercel/output
+          mkdir -p .vercel/output/static
+          cp -r ui/dist/* .vercel/output/static/
+
+          cat <<EOF > .vercel/output/config.json
+          {
+            "version": 3,
+            "routes": [
+              {
+                "src": "/(.*)",
+                "headers": {
+                  "X-Content-Type-Options": "nosniff",
+                  "X-Frame-Options": "SAMEORIGIN",
+                  "Referrer-Policy": "strict-origin-when-cross-origin",
+                  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https://ahmedetap-staging-proxy.ahmedetap.workers.dev https://*.workers.dev https://*.trycloudflare.com wss://*.trycloudflare.com https://*.hf.space wss://*.hf.space https://*.huggingface.co https://*.supabase.co https://cloud.langfuse.com https://api.openai.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                },
+                "continue": true
+              },
+              {
+                "src": "/assets/(.*)",
+                "headers": {
+                  "Cache-Control": "public, max-age=31536000, immutable"
+                },
+                "continue": true
+              },
+              {
+                "handle": "filesystem"
+              },
+              {
+                "src": "/(.*)",
+                "dest": "/index.html"
+              }
+            ]
+          }
+          EOF
+
+          # Deploy prebuilt bundle directly to Production target of isolated Staging project (Approach A)
+          DEPLOY_OUTPUT=$(npx vercel@59.25.0 deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN")
+          echo "Deployment successful: $DEPLOY_OUTPUT"
+
+          # Verify stable staging alias
+          echo "Verifying stable Staging URL: https://etap-ai-work-staging.vercel.app ..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://etap-ai-work-staging.vercel.app)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Stable Staging URL returned HTTP $HTTP_CODE (expected 200). Aborting!"
+            exit 1
+          fi
+          echo "Stable Staging URL verified (HTTP 200)."
+
+  smoke-and-health-staging:
+    needs: [guard, verify-staging-backend, deploy-vercel-staging]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - name: Verify Staging Endpoints, Frontend Availability, and Real API Comm
+        env:
+          STAGING_API: "${{ vars.STAGING_BACKEND_URL }}"
+          STAGING_UI: "${{ vars.STAGING_UI_URL || 'https://etap-ai-work-staging.vercel.app' }}"
+          API_KEY: "${{ secrets.STAGING_ENGINEERING_SERVICE_API_KEY }}"
+          JWT_SECRET_KEY: "${{ secrets.STAGING_JWT_SECRET_KEY || '' }}"
+        run: |
+          set -euo pipefail
+          echo "1. Checking Frontend Availability at $STAGING_UI..."
+          UI_CODE=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_UI") || UI_CODE="000"
+          if [ "$UI_CODE" != "200" ]; then
+            echo "::error::Staging Frontend returned HTTP $UI_CODE (expected 200). Aborting."
+            exit 1
+          fi
+          echo "Frontend is accessible (HTTP 200 OK)."
+
+          echo "2. Checking Staging Backend Liveness..."
+          curl -sf "$STAGING_API/healthz" > /dev/null
+          echo "Backend liveness OK."
+
+          echo "3. Checking Staging Backend Readiness..."
+          curl -sf "$STAGING_API/readyz" > /dev/null
+          echo "Backend readiness OK."
+
+          echo "4. Executing Authenticated Engineering Calculation..."
+          STUDY_PAYLOAD='{"study_type": "arc_flash", "parameters": {"voltage_kv": 13.8, "bolted_fault_current_ka": 25.0, "arc_duration_sec": 0.1, "working_distance_mm": 914.0, "gap_mm": 152.0, "electrode_config": "VCB", "enclosure_type": "box", "enclosure_width_mm": 508.0, "enclosure_height_mm": 508.0, "enclosure_depth_mm": 508.0}}'
+          CALC_RESP=$(curl -sf -X POST "$STAGING_API/api/v1/studies/run" \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: $API_KEY" \
+            -d "$STUDY_PAYLOAD") || {
+            echo "::error::Authenticated study execution failed."
+            exit 1
+          }
+          echo "Engineering calculation executed successfully. Validating output schema and numeric integrity..."
+
+          printf '%s' "$CALC_RESP" | python3 -c '
+          import json, math, sys
+
+          try:
+              data = json.load(sys.stdin)
+          except Exception as e:
+              print(f"::error::Failed to parse calculation response as JSON: {e}", file=sys.stderr)
+              sys.exit(1)
+
+          if data.get("success") is not True:
+              print(f"::error::Study execution did not succeed: {data.get(\"errors\")}", file=sys.stderr)
+              sys.exit(1)
+
+          results = data.get("results") or data.get("data")
+          if not isinstance(results, dict) or not results:
+              print(f"::error::Study results missing, not a dictionary, or empty: {type(results)}", file=sys.stderr)
+              sys.exit(1)
+
+          # Required engineering outputs for arc_flash study
+          required_fields = ["incident_energy_cal_per_cm2", "arc_flash_boundary_mm", "arc_current_ka"]
+          for field in required_fields:
+              if field not in results:
+                  print(f"::error::Missing required engineering field: {field}", file=sys.stderr)
+                  sys.exit(1)
+              val = results[field]
+              if not isinstance(val, (int, float)) or not math.isfinite(val) or val <= 0:
+                  print(f"::error::Field {field} must be a positive finite number (got: {val})", file=sys.stderr)
+                  sys.exit(1)
+
+          # Validate all numeric fields in results are finite
+          def check_finite(obj, path=""):
+              if isinstance(obj, float):
+                  if not math.isfinite(obj):
+                      print(f"::error::Non-finite floating-point value at {path}: {obj}", file=sys.stderr)
+                      sys.exit(1)
+              elif isinstance(obj, dict):
+                  for k, v in obj.items():
+                      check_finite(v, f"{path}.{k}" if path else str(k))
+              elif isinstance(obj, list):
+                  for i, v in enumerate(obj):
+                      check_finite(v, f"{path}[{i}]")
+
+          check_finite(results)
+          print("Study result validation passed: success=True, all required engineering outputs present, positive, and finite.")
+          '
+
+          echo "5. Verifying Chat Stream Authentication Boundary..."
+          UNAUTH_PAYLOAD='{"session_id": "probe-session-unauth", "messages": [{"role": "user", "content": "ping"}]}'
+          PROBE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$STAGING_API/api/v1/chat/stream" \
+            -H "Content-Type: application/json" \
+            -d "$UNAUTH_PAYLOAD") || PROBE_STATUS="000"
+
+          if [ "$PROBE_STATUS" != "401" ] && [ "$PROBE_STATUS" != "403" ]; then
+            echo "::error::Unauthenticated chat streaming probe returned unexpected HTTP $PROBE_STATUS (expected 401 or 403). Fail-closed auth boundary violated!"
+            exit 1
+          fi
+          echo "Chat streaming authentication boundary verified (HTTP $PROBE_STATUS)."
+
+          echo "6. Verifying Authenticated SSE Streaming Protocol & Capabilities..."
+          if [ -z "${API_KEY:-}" ]; then
+            echo "::error::STAGING_ENGINEERING_SERVICE_API_KEY is required to test authenticated endpoints. Aborting!"
+            exit 1
+          fi
+          AUTH_HEADER="X-API-Key: $API_KEY"
+
+          AUTH_PAYLOAD='{"session_id": "staging-smoke-session", "messages": [{"role": "user", "content": "ping"}]}'
+          CURL_TMP=$(mktemp)
+          HTTP_INFO=$(curl -s --max-time 30 -X POST "$STAGING_API/api/v1/chat/stream" \
+            -H "Content-Type: application/json" \
+            -H "$AUTH_HEADER" \
+            -d "$AUTH_PAYLOAD" \
+            -w "%{http_code} %{content_type}" \
+            -o "$CURL_TMP") || CURL_EXIT=$?
+
+          if [ "${CURL_EXIT:-0}" -ne 0 ]; then
+            echo "::error::Transport failure during authenticated SSE probe (curl exit code: ${CURL_EXIT:-0})."
+            rm -f "$CURL_TMP"
+            exit 1
+          fi
+
+          HTTP_CODE=$(echo "$HTTP_INFO" | awk '{print $1}')
+          CONTENT_TYPE=$(echo "$HTTP_INFO" | cut -d' ' -f2-)
+
+          python3 -c '
+          import json, sys
+
+          http_code = "'"$HTTP_CODE"'"
+          content_type = "'"$CONTENT_TYPE"'".lower()
+          with open("'"$CURL_TMP"'", "r", encoding="utf-8", errors="replace") as f:
+              raw = f.read().strip()
+
+          if http_code == "200":
+              if "text/event-stream" not in content_type:
+                  sys.exit(f"::error::Authenticated SSE probe returned HTTP 200 but incorrect Content-Type: {content_type}")
+              lines = raw.splitlines()
+              has_event_or_data = any(line.startswith("event:") or line.startswith("data:") for line in lines)
+              if not has_event_or_data:
+                  sys.exit(f"::error::Authenticated SSE probe returned 200 text/event-stream without valid SSE event/data framing. Response: {raw[:200]}")
+              print("SSE streaming response verified with valid text/event-stream framing.")
+          elif http_code == "503":
+              try:
+                  data = json.loads(raw)
+                  code = data.get("detail", {}).get("code") if isinstance(data.get("detail"), dict) else data.get("detail")
+                  if code in ("NO_LLM_PROVIDER_CONFIGURED", "PROVIDER_NOT_CONFIGURED"):
+                      print("::warning::LLM provider is not configured on staging (HTTP 503: NO_LLM_PROVIDER_CONFIGURED). Capability is unavailable as expected without server API keys or BYOK.")
+                  else:
+                      sys.exit(f"::error::Authenticated chat probe returned HTTP 503 with unexpected detail: {raw[:200]}")
+              except Exception as exc:
+                  sys.exit(f"::error::Authenticated chat probe returned HTTP 503 with unparseable payload: {raw[:200]} ({exc})")
+          else:
+              sys.exit(f"::error::Authenticated chat probe returned unexpected HTTP {http_code}. Response: {raw[:300]}")
+          '
+          rm -f "$CURL_TMP"
+          echo "SSE streaming probe completed."
+
+          echo "=== STAGING DEPLOYMENT AND SMOKE TESTS PASSED SUCCESSFULLY ==="

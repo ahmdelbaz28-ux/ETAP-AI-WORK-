@@ -61,6 +61,13 @@ class ArcFlashResult:
     bolted_fault_current_ka: float
     arc_duration_sec: float
     working_distance_mm: float
+    compliance: str = "NON_COMPLIANT_SIMPLIFIED_EDUCATIONAL"
+    model_type: str = "simplified_empirical"
+    safety_warning: str = (
+        "Simplified empirical model. Gap distance and K4 interaction terms omitted; "
+        "linear duration multiplier. NOT compliant with IEEE 1584-2018 for PPE selection "
+        "or arc-flash labeling."
+    )
 
 
 # IEEE 1584-2018 Coefficients for arc current calculation
