@@ -48,7 +48,7 @@ def validate_origin_url(origin: str) -> str:
 
 def deploy_staging_worker(origin_url: str = "") -> dict:
     """Deploy ahmedetap-staging-proxy via Cloudflare REST API with ORIGIN_URL binding."""
-    token = os.environ.get("CLOUDFLARE_API_TOKEN") or os.environ.get("CF_TOKEN_TEST")
+    token = os.environ.get("CLOUDFLARE_API_TOKEN")
     if not token:
         raise RuntimeError("CLOUDFLARE_API_TOKEN environment variable is required")
 

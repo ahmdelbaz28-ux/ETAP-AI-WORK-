@@ -83,6 +83,7 @@ COPY --chown=user:user VERSION /app/VERSION
 COPY --chown=user:user config/ /app/config/
 COPY --chown=user:user alembic.ini /app/alembic.ini
 COPY --chown=user:user migrations/ /app/migrations/
+COPY --chown=user:user .feature-flags.staging.json /app/.feature-flags.staging.json
 
 # Revision identity: embed build argument into /app/DEPLOY_SHA
 ARG DEPLOY_SHA=""

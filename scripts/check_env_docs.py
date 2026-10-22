@@ -131,19 +131,25 @@ ENV_LOOKUP_PATTERN = re.compile(
 
 
 def get_documented_vars(env_example_path: Path) -> Set[str]:
-    """Extract all documented variables in .env.example (active or commented)."""
+    """Extract all documented variables in .env.example and .env.staging.example (active or commented)."""
     if not env_example_path.exists():
         print(f"ERROR: {env_example_path} does not exist!")
         sys.exit(1)
 
     documented = set()
-    with open(env_example_path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            # Match active VAR=val or commented # VAR=val
-            m = re.match(r"^(?:#\s*)?([A-Z0-9_]{3,})=", line)
-            if m:
-                documented.add(m.group(1))
+    sources = [env_example_path]
+    staging_example = env_example_path.parent / ".env.staging.example"
+    if staging_example.exists():
+        sources.append(staging_example)
+
+    for source in sources:
+        with open(source, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # Match active VAR=val or commented # VAR=val
+                m = re.match(r"^(?:#\s*)?([A-Z0-9_]{3,})=", line)
+                if m:
+                    documented.add(m.group(1))
     return documented
 
 
