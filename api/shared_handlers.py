@@ -90,7 +90,11 @@ BUILD_TIME: str = datetime.now(UTC).isoformat()
 
 from agents.models import StudyType
 
-STUDY_TYPES: list[str] = [st.value for st in StudyType] + ["ahmed_etap_orchestration"]
+STUDY_TYPES: list[str] = [st.value for st in StudyType] + [
+    "ahmed_etap_orchestration",
+    "optimization",
+    "breaker_duty",
+]
 
 # ---------------------------------------------------------------------------
 # Agents list
@@ -752,7 +756,10 @@ def run_study_lightweight(  # NOSONAR cognitive complexity; refactoring sprint
         response["success"] = False
         response["error"] = err_msg
         response["_status"] = 401
-    elif any(k in rejection_reason.lower() for k in ("authorization", "approval", "maker_checker")) or any(k in err_lower for k in ("authorization_denied", "approval_required", "maker_checker_violation")):
+    elif (
+        any(k in rejection_reason.lower() for k in ("authorization", "approval", "maker_checker", "pilot", "disabled", "feature_flag", "policy"))
+        or any(k in err_lower for k in ("authorization_denied", "approval_required", "maker_checker_violation", "pilot_feature_flag_disabled", "capability_disabled", "feature_flag_disabled", "policy_denied"))
+    ):
         response["status"] = "failed"
         response["success"] = False
         response["error"] = err_msg
