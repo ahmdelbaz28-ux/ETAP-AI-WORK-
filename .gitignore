@@ -17,6 +17,7 @@ scratch/
 .env.*
 .env.local
 *.env
+*.secret
 
 # Scan / temp files
 /_*
