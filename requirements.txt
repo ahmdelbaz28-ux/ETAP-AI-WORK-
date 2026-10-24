@@ -184,7 +184,7 @@ opencv-python>=4.10.0.84
 #   CVE-2025-55197, CVE-2026-22690, CVE-2026-49461, CVE-2026-54531 (ReDoS / XML parsing)
 #   CVE-2026-59935, CVE-2026-59936, GHSA-4v4c-8547-f2jp, GHSA-fwg2-594c-jp42, GHSA-6523-8687-jqm7
 # Note: project switched from PyPDF2 → pypdf (PyPDF2 is deprecated since 2022).
-pypdf>=6.17.0
+pypdf>=6.19.0
 pdfplumber>=0.10,<0.12
 
 # Document processing
